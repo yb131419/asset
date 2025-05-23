@@ -1,0 +1,158 @@
+{
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "LINE Webhook (設定 webhook 接收來自 LINE 的訊息)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "path": "line-deepseek-memory",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "extract",
+      "name": "Extract LINE Message & UserId (提取使用者訊息與ID)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        400,
+        300
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "replyToken",
+              "value": "={{$json[\"events\"][0][\"replyToken\"]}}"
+            },
+            {
+              "name": "userMessage",
+              "value": "={{$json[\"events\"][0][\"message\"][\"text\"]}}"
+            },
+            {
+              "name": "userId",
+              "value": "={{$json[\"events\"][0][\"source\"][\"userId\"]}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "askDeepSeek",
+      "name": "Ask DeepSeek API (帶記憶功能詢問 AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.deepseek.ai/chat/completions",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"model\": \"deepseek-chat\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"\\u4f60\\u662f LINE \\u4e0a\\u7684\\u5ba2\\u670d\\u52a9\\u7406\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{$json[\\\"userMessage\\\"]}}\"\n    }\n  ],\n  \"user\": \"{{$json[\\\"userId\\\"]}}\"\n}",
+        "headerParametersJson": "{\n  \"Authorization\": \"Bearer YOUR_DEEPSEEK_API_KEY\",\n  \"Content-Type\": \"application/json\"\n}"
+      }
+    },
+    {
+      "id": "buildReply",
+      "name": "Build LINE Reply (整理回覆格式)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "replyToken",
+              "value": "={{$json[\"replyToken\"]}}"
+            },
+            {
+              "name": "replyText",
+              "value": "={{$json[\"choices\"] ? $json[\"choices\"][0][\"message\"] : $json[\"reply\"]}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "replyLINE",
+      "name": "Reply to LINE (發送訊息回 LINE 使用者)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "method": "POST",
+        "jsonParameters": true,
+        "responseFormat": "json",
+        "bodyParametersJson": "{\n  \"replyToken\": \"{{$json[\\\"replyToken\\\"]}}\",\n  \"messages\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"{{$json[\\\"replyText\\\"]}}\"\n    }\n  ]\n}",
+        "headerParametersJson": "{\n  \"Authorization\": \"Bearer YOUR_LINE_CHANNEL_ACCESS_TOKEN\",\n  \"Content-Type\": \"application/json\"\n}"
+      }
+    }
+  ],
+  "connections": {
+    "LINE Webhook (設定 webhook 接收來自 LINE 的訊息)": {
+      "main": [
+        [
+          {
+            "node": "Extract LINE Message & UserId (提取使用者訊息與ID)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract LINE Message & UserId (提取使用者訊息與ID)": {
+      "main": [
+        [
+          {
+            "node": "Ask DeepSeek API (帶記憶功能詢問 AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask DeepSeek API (帶記憶功能詢問 AI)": {
+      "main": [
+        [
+          {
+            "node": "Build LINE Reply (整理回覆格式)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build LINE Reply (整理回覆格式)": {
+      "main": [
+        [
+          {
+            "node": "Reply to LINE (發送訊息回 LINE 使用者)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "name": "LINE to DeepSeek with Memory",
+  "active": false
+}
