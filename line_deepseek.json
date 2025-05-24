@@ -1,153 +1,121 @@
 {
+  "name": "DeepSeek AI 行銷素材自動化",
   "nodes": [
     {
       "id": "webhook",
-      "name": "LINE Webhook",
+      "name": "接收使用者輸入",
       "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [200, 300],
       "parameters": {
-        "path": "line-deepseek-commands",
+        "path": "marketing-material",
         "httpMethod": "POST",
-        "responseMode": "lastNode",
-        "options": { "responseCode": 200 }
-      }
+        "responseMode": "onReceived"
+      },
+      "position": [200, 300]
     },
     {
-      "id": "extract",
-      "name": "Extract Message & UserId",
+      "id": "extractInput",
+      "name": "提取輸入主題",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [400, 300],
       "parameters": {
         "values": {
           "string": [
-            { "name": "replyToken", "value": "={{$json[\"events\"][0][\"replyToken\"]}}" },
-            { "name": "userMessage", "value": "={{$json[\"events\"][0][\"message\"][\"text\"]}}" },
-            { "name": "userId", "value": "={{$json[\"events\"][0][\"source\"][\"userId\"]}}" }
+            {
+              "name": "topic",
+              "value": "={{$json[\"events\"][0][\"message\"][\"text\"]}}"
+            }
           ]
         }
-      }
+      },
+      "position": [400, 300]
     },
     {
-      "id": "switch",
-      "name": "Check Command",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 1,
-      "position": [600, 300],
-      "parameters": {
-        "dataType": "string",
-        "value1": "={{$json[\"userMessage\"]}}",
-        "rules": [
-          { "operation": "equal", "value2": "清除記憶" },
-          { "operation": "startsWith", "value2": "切換模型 " }
-        ]
-      }
-    },
-    {
-      "id": "clearMemory",
-      "name": "Clear DeepSeek Memory",
+      "id": "deepseekScript",
+      "name": "生成行銷腳本",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [800, 200],
-      "parameters": {
-        "url": "https://api.deepseek.ai/chat/memory/clear",
-        "method": "POST",
-        "jsonParameters": true,
-        "bodyParametersJson": "={ \"user\": \"{{$json[\"userId\"]}}\" }",
-        "headerParametersJson": "={\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\", <<< 請填入你的 DeepSeek API 金鑰\n  \"Content-Type\": \"application/json\"\n}"
-      }
-    },
-    {
-      "id": "confirmClearReply",
-      "name": "Confirm Clear Reply",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [1000, 200],
-      "parameters": {
-        "values": {
-          "string": [
-            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
-            { "name": "replyText", "value": "記憶已成功清除。" }
-          ]
-        }
-      }
-    },
-    {
-      "id": "switchModelReply",
-      "name": "Switch Model Reply",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [800, 400],
-      "parameters": {
-        "values": {
-          "string": [
-            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
-            { "name": "replyText", "value": "模型切換功能尚未實作。" }
-          ]
-        }
-      }
-    },
-    {
-      "id": "askDeepSeek",
-      "name": "Ask DeepSeek",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [800, 600],
       "parameters": {
         "url": "https://api.deepseek.ai/chat/completions",
         "method": "POST",
+        "responseFormat": "json",
         "jsonParameters": true,
-        "bodyParametersJson": "={\n  \"model\": \"deepseek-chat\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": \"你是 LINE 上的客服助理\" },\n    { \"role\": \"user\", \"content\": \"{{$json[\"userMessage\"]}}\" }\n  ],\n  \"user\": \"{{$json[\"userId\"]}}\"\n}",
-        "headerParametersJson": "={\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\", <<< 請填入你的 DeepSeek API 金鑰\n  \"Content-Type\": \"application/json\"\n}"
-      }
+        "bodyParametersJson": "{\n  \"model\": \"deepseek-chat\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"你是一位專業的行銷文案撰寫助手。\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"請為以下主題撰寫一段行銷腳本：{{$json[\"topic\"]}}\"\n    }\n  ]\n}",
+        "headerParametersJson": "{\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\",\n  \"Content-Type\": \"application/json\"\n}"
+      },
+      "position": [600, 300]
     },
     {
-      "id": "buildReply",
-      "name": "Build AI Reply",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [1000, 600],
-      "parameters": {
-        "values": {
-          "string": [
-            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
-            { "name": "replyText", "value": "={{$json[\"choices\"] ? $json[\"choices\"][0][\"message\"] : $json[\"reply\"]}}" }
-          ]
-        }
-      }
-    },
-    {
-      "id": "replyLINE",
-      "name": "Reply to LINE",
+      "id": "descriptEdit",
+      "name": "進行影音剪輯",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [1200, 400],
+      "parameters": {
+        "url": "https://api.descript.com/v1/projects/YOUR_PROJECT_ID/compositions",
+        "method": "POST",
+        "responseFormat": "json",
+        "jsonParameters": true,
+        "bodyParametersJson": "{\n  \"title\": \"{{$json[\"topic\"]}}\",\n  \"script\": \"{{$json[\"choices\"][0][\"message\"][\"content\"]}}\"\n}",
+        "headerParametersJson": "{\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\",\n  \"Content-Type\": \"application/json\"\n}"
+      },
+      "position": [800, 300]
+    },
+    {
+      "id": "replyUser",
+      "name": "回傳影音素材",
+      "type": "n8n-nodes-base.httpRequest",
       "parameters": {
         "url": "https://api.line.me/v2/bot/message/reply",
         "method": "POST",
         "jsonParameters": true,
-        "bodyParametersJson": "={\n  \"replyToken\": \"{{$json[\"replyToken\"]}}\",\n  \"messages\": [ { \"type\": \"text\", \"text\": \"{{$json[\"replyText\"]}}\" } ]\n}",
-        "headerParametersJson": "={\n  \"Authorization\": \"Bearer 33OIuhgSIxGBuXlGAf+zPq4/08MHvL9Xdn3qbyf/fDajuTkKH7GBMuZTUazqTh+ismlSe2bn9xOwbMRNmQbXtFudqkKvorMF4KIjNSTo/rvwdiiOvTkTWNtMl7QMihQuXTaWHWSGL9yguCw3JVmV4AdB04t89/1O/w1cDnyilFU=\", <<< 請填入你的 LINE Token\n  \"Content-Type\": \"application/json\"\n}"
-      }
+        "responseFormat": "json",
+        "bodyParametersJson": "{\n  \"replyToken\": \"{{$json[\"events\"][0][\"replyToken\"]}}\",\n  \"messages\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"您的行銷影音素材已生成，請查看以下連結：{{$json[\"share_url\"]}}\"\n    }\n  ]\n}",
+        "headerParametersJson": "{\n  \"Authorization\": \"Bearer YOUR_LINE_CHANNEL_ACCESS_TOKEN\",\n  \"Content-Type\": \"application/json\"\n}"
+      },
+      "position": [1000, 300]
     }
   ],
   "connections": {
-    "LINE Webhook": { "main": [[{ "node": "Extract Message & UserId", "type": "main", "index": 0 }]] },
-    "Extract Message & UserId": { "main": [[{ "node": "Check Command", "type": "main", "index": 0 }]] },
-    "Check Command": {
+    "接收使用者輸入": {
       "main": [
-        [{ "node": "Clear DeepSeek Memory", "type": "main", "index": 0 }],
-        [{ "node": "Switch Model Reply", "type": "main", "index": 0 }],
-        [{ "node": "Ask DeepSeek", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "提取輸入主題",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Clear DeepSeek Memory": { "main": [[{ "node": "Confirm Clear Reply", "type": "main", "index": 0 }]] },
-    "Ask DeepSeek": { "main": [[{ "node": "Build AI Reply", "type": "main", "index": 0 }]] },
-    "Build AI Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] },
-    "Switch Model Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] },
-    "Confirm Clear Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] }
-  },
-  "name": "LINE + DeepSeek AI + Commands",
-  "active": false
+    "提取輸入主題": {
+      "main": [
+        [
+          {
+            "node": "生成行銷腳本",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "生成行銷腳本": {
+      "main": [
+        [
+          {
+            "node": "進行影音剪輯",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "進行影音剪輯": {
+      "main": [
+        [
+          {
+            "node": "回傳影音素材",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  ],
+  "active": true
 }
