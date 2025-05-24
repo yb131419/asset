@@ -1,0 +1,153 @@
+{
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "LINE Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "parameters": {
+        "path": "line-deepseek-commands",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": { "responseCode": 200 }
+      }
+    },
+    {
+      "id": "extract",
+      "name": "Extract Message & UserId",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [400, 300],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "replyToken", "value": "={{$json[\"events\"][0][\"replyToken\"]}}" },
+            { "name": "userMessage", "value": "={{$json[\"events\"][0][\"message\"][\"text\"]}}" },
+            { "name": "userId", "value": "={{$json[\"events\"][0][\"source\"][\"userId\"]}}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "switch",
+      "name": "Check Command",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [600, 300],
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$json[\"userMessage\"]}}",
+        "rules": [
+          { "operation": "equal", "value2": "清除記憶" },
+          { "operation": "startsWith", "value2": "切換模型 " }
+        ]
+      }
+    },
+    {
+      "id": "clearMemory",
+      "name": "Clear DeepSeek Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [800, 200],
+      "parameters": {
+        "url": "https://api.deepseek.ai/chat/memory/clear",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={ \"user\": \"{{$json[\"userId\"]}}\" }",
+        "headerParametersJson": "={\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\", <<< 請填入你的 DeepSeek API 金鑰\n  \"Content-Type\": \"application/json\"\n}"
+      }
+    },
+    {
+      "id": "confirmClearReply",
+      "name": "Confirm Clear Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1000, 200],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
+            { "name": "replyText", "value": "記憶已成功清除。" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "switchModelReply",
+      "name": "Switch Model Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [800, 400],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
+            { "name": "replyText", "value": "模型切換功能尚未實作。" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "askDeepSeek",
+      "name": "Ask DeepSeek",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [800, 600],
+      "parameters": {
+        "url": "https://api.deepseek.ai/chat/completions",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"model\": \"deepseek-chat\",\n  \"messages\": [\n    { \"role\": \"system\", \"content\": \"你是 LINE 上的客服助理\" },\n    { \"role\": \"user\", \"content\": \"{{$json[\"userMessage\"]}}\" }\n  ],\n  \"user\": \"{{$json[\"userId\"]}}\"\n}",
+        "headerParametersJson": "={\n  \"Authorization\": \"Bearer sk-7d043173b4db4c1eb312ae8cea1ceaf6\", <<< 請填入你的 DeepSeek API 金鑰\n  \"Content-Type\": \"application/json\"\n}"
+      }
+    },
+    {
+      "id": "buildReply",
+      "name": "Build AI Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1000, 600],
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "replyToken", "value": "={{$json[\"replyToken\"]}}" },
+            { "name": "replyText", "value": "={{$json[\"choices\"] ? $json[\"choices\"][0][\"message\"] : $json[\"reply\"]}}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "replyLINE",
+      "name": "Reply to LINE",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1200, 400],
+      "parameters": {
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "method": "POST",
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"replyToken\": \"{{$json[\"replyToken\"]}}\",\n  \"messages\": [ { \"type\": \"text\", \"text\": \"{{$json[\"replyText\"]}}\" } ]\n}",
+        "headerParametersJson": "={\n  \"Authorization\": \"Bearer 33OIuhgSIxGBuXlGAf+zPq4/08MHvL9Xdn3qbyf/fDajuTkKH7GBMuZTUazqTh+ismlSe2bn9xOwbMRNmQbXtFudqkKvorMF4KIjNSTo/rvwdiiOvTkTWNtMl7QMihQuXTaWHWSGL9yguCw3JVmV4AdB04t89/1O/w1cDnyilFU=\", <<< 請填入你的 LINE Token\n  \"Content-Type\": \"application/json\"\n}"
+      }
+    }
+  ],
+  "connections": {
+    "LINE Webhook": { "main": [[{ "node": "Extract Message & UserId", "type": "main", "index": 0 }]] },
+    "Extract Message & UserId": { "main": [[{ "node": "Check Command", "type": "main", "index": 0 }]] },
+    "Check Command": {
+      "main": [
+        [{ "node": "Clear DeepSeek Memory", "type": "main", "index": 0 }],
+        [{ "node": "Switch Model Reply", "type": "main", "index": 0 }],
+        [{ "node": "Ask DeepSeek", "type": "main", "index": 0 }]
+      ]
+    },
+    "Clear DeepSeek Memory": { "main": [[{ "node": "Confirm Clear Reply", "type": "main", "index": 0 }]] },
+    "Ask DeepSeek": { "main": [[{ "node": "Build AI Reply", "type": "main", "index": 0 }]] },
+    "Build AI Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] },
+    "Switch Model Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] },
+    "Confirm Clear Reply": { "main": [[{ "node": "Reply to LINE", "type": "main", "index": 0 }]] }
+  },
+  "name": "LINE + DeepSeek AI + Commands",
+  "active": false
+}
