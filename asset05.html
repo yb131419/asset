@@ -1,142 +1,104 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>祭改報名表</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> 彥彬 🌿健康美麗 </title>
   <style>
+    :root {
+      --bg: #fffdf7;
+      --text: #333;
+      --subtext: #777;
+      --accent: #d4af37;
+      --shadow: rgba(0, 0, 0, 0.08);
+    }
+
     body {
       margin: 0;
-      padding: 0;
-      font-family: "Arial", sans-serif;
-      background-color: #f6f8fb;
+      padding: 24px 16px;
+      font-family: 'Helvetica Neue', 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 480px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 500px;
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px var(--shadow);
+    }
+
+    h1 {
+      font-size: 1.6em;
       text-align: center;
+      margin-bottom: 12px;
+      color: var(--text);
     }
 
-    h2 {
-      color: #444;
-      margin-bottom: 1.5rem;
+    p {
+      font-size: 1em;
+      text-align: center;
+      color: var(--subtext);
+      line-height: 1.5;
+      margin-bottom: 20px;
     }
 
-    label {
-      display: block;
-      text-align: left;
-      margin: 1rem 0 0.25rem;
-      font-weight: bold;
-      font-size: 1rem;
-    }
-
-    input, textarea {
+    /* 直式 3:4 容器 + 視窗裁切技巧 */
+    .video-wrapper {
+      position: relative;
       width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
+      aspect-ratio: 3 / 4;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      margin-bottom: 24px;
+      background-color: #000;
     }
 
-    button {
-      margin-top: 1.5rem;
-      padding: 0.75rem 1.5rem;
-      background-color: #007aff;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
+    .video-wrapper iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 177.78%; /* 強制讓橫式影片撐滿直式容器寬度 */
+      height: 100%;
+      transform: translate(-50%, -50%);
+      border: 0;
     }
 
-    button:hover {
-      background-color: #005fcc;
+    .footer {
+      text-align: center;
+      font-size: 0.85em;
+      color: #bbb;
+      margin-top: 30px;
     }
 
-    .message {
-      margin-top: 1.5rem;
-      font-size: 1rem;
+    @media (max-width: 480px) {
+      h1 { font-size: 1.4em; }
+      p { font-size: 0.95em; }
     }
   </style>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
   <div class="container">
-    <h2>📿 祭改報名表</h2>
-    <form id="signup-form">
-      <label for="name">姓名</label>
-      <input type="text" id="name" placeholder="請輸入姓名" required />
+    <h1>🌿 中風 真實分享 </h1>
+    <p> 中風二十四年：走路都用拖的走、到丟拐杖七支 </p>
 
-      <label for="wish">祭改項目（可填多項）</label>
-      <textarea id="wish" rows="3" placeholder="例如：補財庫、冤親債主" required></textarea>
+<div class="video-wrapper">
+  <iframe 
+    src="https://player.vimeo.com/video/1088290314?h=d38075ac31" 
+    frameborder="0" 
+    allow="autoplay; fullscreen; picture-in-picture" 
+    allowfullscreen>
+  </iframe>
+</div>
 
-      <button type="submit">✅ 送出報名</button>
-    </form>
-    <div class="message" id="responseMsg"></div>
+
+    <div class="footer">© 2025 彥彬 🌿健康美麗 · 保留所有權利</div>
   </div>
-
-  <script>
-    const LIFF_ID = '2007416974-JzvPy6DZ';
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyGV6eumKX2n3McquVS1LYtqn8iMr9stzwQ8uUkSoWQyKgz6CgXWVN5IIWsK9e-sHIL/exec';
-
-    async function main() {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) liff.login();
-
-      const userId = (await liff.getProfile()).userId;
-
-      document.getElementById('signup-form').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const name = document.getElementById('name').value.trim();
-        const wish = document.getElementById('wish').value.trim();
-        const msgBox = document.getElementById('responseMsg');
-
-        if (!name || !wish) {
-          msgBox.textContent = '⚠️ 請填寫所有欄位';
-          msgBox.style.color = 'red';
-          return;
-        }
-
-        const payload = {
-          name,
-          wish,
-          userId
-        };
-
-        try {
-          const res = await fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          });
-
-          const text = await res.text();
-          if (text.includes('Success')) {
-            msgBox.textContent = '✅ 報名成功！感謝填寫。';
-            msgBox.style.color = 'green';
-            document.getElementById('signup-form').reset();
-          } else {
-            msgBox.textContent = '⚠️ 發生錯誤，請稍後再試。';
-            msgBox.style.color = 'red';
-          }
-        } catch (err) {
-          msgBox.textContent = '❌ 無法連線到伺服器';
-          msgBox.style.color = 'red';
-        }
-      });
-    }
-
-    main();
-  </script>
 </body>
 </html>
