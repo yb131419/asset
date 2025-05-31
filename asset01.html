@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> 彥彬 🌿健康美麗 </title>
+  <title>彥彬 🌿健康美麗</title>
   <style>
     :root {
       --bg: #fffdf7;
@@ -48,7 +48,6 @@
       margin-bottom: 20px;
     }
 
-    /* 直式 3:4 容器 + 視窗裁切技巧 */
     .video-wrapper {
       position: relative;
       width: 100%;
@@ -64,7 +63,7 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 177.78%; /* 強制讓橫式影片撐滿直式容器寬度 */
+      width: 177.78%;
       height: 100%;
       transform: translate(-50%, -50%);
       border: 0;
@@ -85,20 +84,64 @@
 </head>
 <body>
   <div class="container">
-    <h1>🌿 三癌末病人 真實分享 </h1>
-    <p> 二十年乳癌、轉肺癌在轉骨癌 </p>
+    <h1>🌿 三癌末病人 真實分享</h1>
+    <p>二十年乳癌、轉肺癌再轉骨癌</p>
 
-<div class="video-wrapper">
-  <iframe 
-    src="https://player.vimeo.com/video/1087548335?h=62123a69c1" 
-    frameborder="0" 
-    allow="autoplay; fullscreen; picture-in-picture" 
-    allowfullscreen>
-  </iframe>
-</div>
-
+    <div class="video-wrapper">
+      <iframe 
+        src="https://player.vimeo.com/video/1087548335?h=62123a69c1" 
+        frameborder="0" 
+        allow="autoplay; fullscreen; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>
 
     <div class="footer">© 2025 彥彬 🌿健康美麗 · 保留所有權利</div>
   </div>
+
+  <!-- 加入 LIFF 功能 -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    const liffId = '2007475335-RVyOa6yg';  // ← 請替換為你自己的 LIFF ID
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec'; // ← 替換成你的 GAS Web App URL
+
+    async function initLiffAndLog() {
+      try {
+        await liff.init({ liffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const userId = liff.getContext().userId || '無法取得';
+        const displayName = profile.displayName;
+
+        const payload = {
+          action: 'logLiffVisit',
+          userId,
+          displayName,
+          liffId,
+          userMessage: '開啟 LIFF',
+          replyMessage: '您好，很高興與您相遇，祝您健康、美麗與希望同行！'
+        };
+
+        fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => console.log('資料紀錄成功', data))
+        .catch(err => console.error('紀錄失敗:', err));
+
+      } catch (err) {
+        console.error('LIFF 初始化錯誤:', err);
+      }
+    }
+
+    window.onload = initLiffAndLog;
+  </script>
 </body>
 </html>
