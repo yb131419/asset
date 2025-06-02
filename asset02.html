@@ -100,5 +100,48 @@
 
     <div class="footer">© 2025 彥彬 🌿健康美麗 · 保留所有權利</div>
   </div>
+  
+  <!-- 加入 LIFF 功能 -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    const liffId = '2007475335-RVyOa6yg';
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
+
+    async function initLiffAndLog() {
+      try {
+        await liff.init({ liffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const userId = liff.getContext().userId || '無法取得';
+        const displayName = profile.displayName;
+
+        const payload = {
+          userId,
+          displayName,
+          message: '開啟 LIFF',
+          replyMessage: '您好，很高興與您相遇，祝您健康、美麗與希望同行！'
+        };
+
+        fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.text())
+        .then(text => console.log('資料紀錄成功:', text))
+        .catch(err => console.error('紀錄失敗:', err));
+
+      } catch (err) {
+        console.error('LIFF 初始化錯誤:', err);
+      }
+    }
+
+    window.onload = initLiffAndLog;
+  </script>
 </body>
 </html>
