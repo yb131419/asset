@@ -102,8 +102,8 @@
   <!-- 加入 LIFF 功能 -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
-    const liffId = '2007475335-RVyOa6yg';  // ← 請替換為你自己的 LIFF ID
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec'; // ← 替換成你的 GAS Web App URL
+    const liffId = '2007475335-RVyOa6yg';
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
 
     async function initLiffAndLog() {
       try {
@@ -119,11 +119,9 @@
         const displayName = profile.displayName;
 
         const payload = {
-          action: 'logLiffVisit',
           userId,
           displayName,
-          liffId,
-          userMessage: '開啟 LIFF',
+          message: '開啟 LIFF',
           replyMessage: '您好，很高興與您相遇，祝您健康、美麗與希望同行！'
         };
 
@@ -132,8 +130,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(data => console.log('資料紀錄成功', data))
+        .then(res => res.text())
+        .then(text => console.log('資料紀錄成功:', text))
         .catch(err => console.error('紀錄失敗:', err));
 
       } catch (err) {
