@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title> 彥彬 🌿健康美麗 </title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>彥彬 🌿健康美麗</title>
   <style>
     :root {
       --bg: #fffdf7;
@@ -31,24 +31,21 @@
       padding: 20px;
       border-radius: 18px;
       box-shadow: 0 8px 30px var(--shadow);
+      text-align: center;
     }
 
     h1 {
       font-size: 1.6em;
-      text-align: center;
       margin-bottom: 12px;
-      color: var(--text);
     }
 
     p {
       font-size: 1em;
-      text-align: center;
       color: var(--subtext);
       line-height: 1.5;
       margin-bottom: 20px;
     }
 
-    /* 直式 3:4 容器 + 視窗裁切技巧 */
     .video-wrapper {
       position: relative;
       width: 100%;
@@ -56,15 +53,15 @@
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-      margin-bottom: 24px;
-      background-color: #000;
+      margin-top: 20px;
+      display: none;
     }
 
     .video-wrapper iframe {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 177.78%; /* 強制讓橫式影片撐滿直式容器寬度 */
+      width: 177.78%;
       height: 100%;
       transform: translate(-50%, -50%);
       border: 0;
@@ -77,9 +74,20 @@
       margin-top: 30px;
     }
 
-    @media (max-width: 480px) {
-      h1 { font-size: 1.4em; }
-      p { font-size: 0.95em; }
+    .btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #bfa332;
     }
   </style>
 </head>
@@ -88,17 +96,52 @@
     <h1>🌿 帕金森 真實分享 </h1>
     <p> 帕金森：教書三十五年老師、到包尿布 </p>
 
-<div class="video-wrapper">
-  <iframe 
-    src="https://player.vimeo.com/video/1088290344?h=e1cf9e0a7b" 
-    frameborder="0" 
-    allow="autoplay; fullscreen; picture-in-picture" 
-    allowfullscreen>
-  </iframe>
-</div>
+    <button class="btn" onclick="handleClick()">👉 進入影片</button>
 
+    <div class="video-wrapper" id="videoSection">
+      <iframe 
+        src="https://player.vimeo.com/video/1088290344?h=e1cf9e0a7b" 
+        frameborder="0" 
+        allow="autoplay; fullscreen; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>
 
     <div class="footer">© 2025 彥彬 🌿健康美麗 · 保留所有權利</div>
   </div>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    const liffId = '2007475335-anYWwZG4'; // <-- 替換成你的 LIFF ID
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbyUqLr2uf_gAqzjc_SCOK3fFmqqLE4vrhmkjchBgRxomzaAYPME6DhE4tdIxbiMuhafpA/exec'; // <-- 替換成你部署的 Google Apps Script 網址
+
+    async function handleClick() {
+      try {
+        document.querySelector(".btn").style.display = "none";
+        document.getElementById("videoSection").style.display = "block";
+
+        await liff.init({ liffId });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const data = {
+          userId: profile.userId || "無法取得",
+          displayName: profile.displayName || "未知使用者",
+          message: "點擊進入影片",
+          replyMessage: "健康/帕金森包尿布01"
+        };
+
+        const query = new URLSearchParams(data).toString();
+        await fetch(`${gasUrl}?${query}`);
+        console.log("✅ 已送出資料到 Google Sheet");
+      } catch (error) {
+        console.error("❌ 發生錯誤：", error);
+      }
+    }
+  </script>
 </body>
 </html>
