@@ -110,38 +110,67 @@
     <div class="footer">© 2025 彥彬 🌿系統美學 · 保留所有權利</div>
   </div>
 
- <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
     const liffId = '2007475335-B3Pr98Wd'; // <-- 替換成你的 LIFF ID
     const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec'; // <-- 替換成你部署的 Google Apps Script 網址
 
-    async function handleClick() {
-      try {
-        document.querySelector(".btn").style.display = "none";
-        document.getElementById("videoSection").style.display = "block";
+  const alreadySentKey = 'video-logged';
 
-        await liff.init({ liffId });
+  async function initPage() {
+    await liff.init({ liffId });
 
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-
-        const profile = await liff.getProfile();
-        const data = {
-          userId: profile.userId || "無法取得",
-          displayName: profile.displayName || "未知使用者",
-          message: "Liff-網頁影片",
-          replyMessage: "健康/癲癇十六年01"
-        };
-
-        const query = new URLSearchParams(data).toString();
-        await fetch(`${gasUrl}?${query}`);
-        console.log("✅ 已送出資料到 Google Sheet");
-      } catch (error) {
-        console.error("❌ 發生錯誤：", error);
-      }
+    // 如果登入狀態 & 有標記要播放影片，就直接播放
+    if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
+      localStorage.removeItem('wantToPlay');
+      showVideo();
+      await sendToSheet();
     }
-  </script>
+  }
+
+  async function handleClick() {
+    await liff.init({ liffId });
+
+    if (!liff.isLoggedIn()) {
+      localStorage.setItem('wantToPlay', '1'); // 標記登入後要播放影片
+      liff.login();
+      return;
+    }
+
+    showVideo();
+
+    // 只記一次
+    if (!localStorage.getItem(alreadySentKey)) {
+      await sendToSheet();
+      localStorage.setItem(alreadySentKey, 'true');
+    }
+  }
+
+  async function sendToSheet() {
+    try {
+      const profile = await liff.getProfile();
+      const data = {
+        userId: profile.userId || "無法取得",
+        displayName: profile.displayName || "未知使用者",
+        message: "Liff-網頁影片",
+        replyMessage: "健康/癲癇十六年01"
+      };
+      const query = new URLSearchParams(data).toString();
+      await fetch(`${gasUrl}?${query}`);
+      console.log("✅ 已送出資料到 Google Sheet");
+    } catch (e) {
+      console.error("❌ 發送資料失敗", e);
+    }
+  }
+
+  function showVideo() {
+    document.querySelector(".btn").style.display = "none";
+    document.getElementById("videoSection").style.display = "block";
+  }
+
+  // 初始化
+  initPage();
+</script>
+
 </body>
 </html>
