@@ -82,41 +82,59 @@
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
-    const liffId = '2007475335-Z0LKm1wQ'; // 替換成你的 LIFF ID
-    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec'; // 替換成你的 GAS URL
-    const redirectUrl = 'https://lihi.cc/nXzqN'; // <<=== 替換成你要跳轉的影片網址
+    const liffId = '2007475335-Z0LKm1wQ';
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
+    const redirectUrl = 'https://lihi.cc/nXzqN';
+    const storageKey = 'liff-appointment-logged';
+
+    async function initPage() {
+      await liff.init({ liffId });
+
+      if (liff.isLoggedIn() && localStorage.getItem('wantToRedirect') === '1') {
+        localStorage.removeItem('wantToRedirect');
+        await sendOnceThenRedirect();
+      }
+    }
 
     async function handleClick() {
-      try {
-        await liff.init({ liffId });
+      await liff.init({ liffId });
 
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
+      if (!liff.isLoggedIn()) {
+        localStorage.setItem('wantToRedirect', '1');
+        liff.login();
+        return;
+      }
+
+      await sendOnceThenRedirect();
+    }
+
+    async function sendOnceThenRedirect() {
+      try {
+        if (!localStorage.getItem(storageKey)) {
+          const profile = await liff.getProfile();
+          const data = {
+            userId: profile.userId || "無法取得",
+            displayName: profile.displayName || "未知使用者",
+            message: "Liff網頁",
+            replyMessage: "預約/連結預約"
+          };
+          const query = new URLSearchParams(data).toString();
+          await fetch(`${gasUrl}?${query}`);
+          console.log("✅ 資料已送出");
+          localStorage.setItem(storageKey, 'true');
         }
 
-        const profile = await liff.getProfile();
-        const data = {
-          userId: profile.userId || "無法取得",
-          displayName: profile.displayName || "未知使用者",
-          message: "Liff網頁",
-          replyMessage: "預約/連結預約"
-        };
-
-        const query = new URLSearchParams(data).toString();
-        await fetch(`${gasUrl}?${query}`);
-        console.log("✅ 資料已送出");
-
-        // 延遲 0.5 秒再跳轉
+        // 延遲 0.5 秒跳轉
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, 500);
-      } catch (error) {
-        console.error("❌ 發生錯誤：", error);
-        // 就算出錯也強制跳轉
+      } catch (e) {
+        console.error("❌ 發生錯誤：", e);
         window.location.href = redirectUrl;
       }
     }
+
+    initPage();
   </script>
 </body>
 </html>
