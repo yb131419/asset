@@ -85,14 +85,13 @@
     const liffId = '2007475335-Z0LKm1wQ';
     const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
     const redirectUrl = 'https://lihi.cc/nXzqN';
-    const storageKey = 'liff-appointment-logged';
 
     async function initPage() {
       await liff.init({ liffId });
 
       if (liff.isLoggedIn() && localStorage.getItem('wantToRedirect') === '1') {
         localStorage.removeItem('wantToRedirect');
-        await sendOnceThenRedirect();
+        await sendThenRedirect();
       }
     }
 
@@ -105,26 +104,23 @@
         return;
       }
 
-      await sendOnceThenRedirect();
+      await sendThenRedirect();
     }
 
-    async function sendOnceThenRedirect() {
+    async function sendThenRedirect() {
       try {
-        if (!localStorage.getItem(storageKey)) {
-          const profile = await liff.getProfile();
-          const data = {
-            userId: profile.userId || "無法取得",
-            displayName: profile.displayName || "未知使用者",
-            message: "Liff網頁",
-            replyMessage: "預約/連結預約"
-          };
-          const query = new URLSearchParams(data).toString();
-          await fetch(`${gasUrl}?${query}`);
-          console.log("✅ 資料已送出");
-          localStorage.setItem(storageKey, 'true');
-        }
+        const profile = await liff.getProfile();
+        const data = {
+          userId: profile.userId || "無法取得",
+          displayName: profile.displayName || "未知使用者",
+          message: "Liff網頁",
+          replyMessage: "預約/連結預約",
+          timestamp: new Date().toISOString()
+        };
+        const query = new URLSearchParams(data).toString();
+        await fetch(`${gasUrl}?${query}`);
+        console.log("✅ 每次點擊資料已送出");
 
-        // 延遲 0.5 秒跳轉
         setTimeout(() => {
           window.location.href = redirectUrl;
         }, 500);
