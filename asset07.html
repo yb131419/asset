@@ -115,12 +115,9 @@
   const liffId = '2007475335-jBeZYBxo';
   const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
 
-  const alreadySentKey = 'video-logged';
-
   async function initPage() {
     await liff.init({ liffId });
 
-    // 如果登入狀態 & 有標記要播放影片，就直接播放
     if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
       localStorage.removeItem('wantToPlay');
       showVideo();
@@ -132,18 +129,13 @@
     await liff.init({ liffId });
 
     if (!liff.isLoggedIn()) {
-      localStorage.setItem('wantToPlay', '1'); // 標記登入後要播放影片
+      localStorage.setItem('wantToPlay', '1');
       liff.login();
       return;
     }
 
     showVideo();
-
-    // 只記一次
-    if (!localStorage.getItem(alreadySentKey)) {
-      await sendToSheet();
-      localStorage.setItem(alreadySentKey, 'true');
-    }
+    await sendToSheet(); // ✅ 每次點擊都記錄
   }
 
   async function sendToSheet() {
@@ -153,11 +145,12 @@
         userId: profile.userId || "無法取得",
         displayName: profile.displayName || "未知使用者",
         message: "Liff-網頁影片",
-        replyMessage: "財富/一滴覺醒01"
+        replyMessage: "財富/一滴覺醒01",
+        timestamp: new Date().toISOString()
       };
       const query = new URLSearchParams(data).toString();
       await fetch(`${gasUrl}?${query}`);
-      console.log("✅ 已送出資料到 Google Sheet");
+      console.log("✅ 每次點擊資料已送出");
     } catch (e) {
       console.error("❌ 發送資料失敗", e);
     }
@@ -168,9 +161,7 @@
     document.getElementById("videoSection").style.display = "block";
   }
 
-  // 初始化
   initPage();
 </script>
-
 </body>
 </html>
