@@ -86,8 +86,13 @@
     const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
     const redirectUrl = 'https://lihi.cc/nXzqN';
 
+    let liffInitialized = false;
+
     async function initPage() {
-      await liff.init({ liffId });
+      if (!liffInitialized) {
+        await liff.init({ liffId });
+        liffInitialized = true;
+      }
 
       if (liff.isLoggedIn() && localStorage.getItem('wantToRedirect') === '1') {
         localStorage.removeItem('wantToRedirect');
@@ -96,7 +101,10 @@
     }
 
     async function handleClick() {
-      await liff.init({ liffId });
+      if (!liffInitialized) {
+        await liff.init({ liffId });
+        liffInitialized = true;
+      }
 
       if (!liff.isLoggedIn()) {
         localStorage.setItem('wantToRedirect', '1');
