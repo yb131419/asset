@@ -105,90 +105,91 @@
     <div class="footer">© 2025 彥彬 🌿系統美學 · 保留所有權利</div>
   </div>
 
- <script>
-  const liffId = '2007475335-5BKMwjlO';
-  const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
-  let vimeoPlayer;
-  let sentProgress = new Set();
-  let didShowVideo = false;
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://player.vimeo.com/api/player.js"></script>
+  <script>
+    const liffId = '2007475335-5BKMwjlO';
+    const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
+    let vimeoPlayer;
+    let sentProgress = new Set();
 
-  async function initPage() {
-    await liff.init({ liffId });
-    if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
-      localStorage.removeItem('wantToPlay');
-      if (!didShowVideo) {
-        didShowVideo = true;
+    async function initPage() {
+      try {
+        await liff.init({ liffId });
+        if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
+          localStorage.removeItem('wantToPlay');
+          showVideo();
+          await sendToSheet('點擊播放');
+        }
+      } catch (error) {
+        console.error('LIFF 初始化失敗：', error);
+      }
+    }
+
+    async function handleClick() {
+      document.getElementById('watchBtn').disabled = true;
+      document.getElementById('loadingSpinner').style.display = 'block';
+      try {
+        if (!liff.isLoggedIn()) {
+          localStorage.setItem('wantToPlay', '1');
+          liff.login();
+          return;
+        }
         showVideo();
         await sendToSheet('點擊播放');
+      } catch (error) {
+        console.error('處理點擊事件時發生錯誤：', error);
       }
     }
-  }
 
-  async function handleClick() {
-    document.getElementById('watchBtn').disabled = true;
-    document.getElementById('loadingSpinner').style.display = 'block';
-    await liff.init({ liffId });
-    if (!liff.isLoggedIn()) {
-      localStorage.setItem('wantToPlay', '1');
-      liff.login();
-      return;
+    function showVideo() {
+      document.getElementById("watchBtn").style.display = "none";
+      document.getElementById("loadingSpinner").style.display = "none";
+      document.getElementById("videoSection").style.display = "block";
+      setupVimeoEvents();
     }
-    if (!didShowVideo) {
-      didShowVideo = true;
-      showVideo();
-      await sendToSheet('點擊播放');
-    }
-  }
 
-  function showVideo() {
-    document.getElementById("watchBtn").style.display = "none";
-    document.getElementById("loadingSpinner").style.display = "none";
-    document.getElementById("videoSection").style.display = "block";
-    setupVimeoEvents();
-  }
-
-  async function sendToSheet(action) {
-    try {
-      let userId = "匿名訪客";
-      let displayName = "未登入用戶";
-      if (liff.isLoggedIn()) {
-        const profile = await liff.getProfile();
-        userId = profile.userId || userId;
-        displayName = profile.displayName || displayName;
+    async function sendToSheet(action) {
+      try {
+        let userId = "匿名訪客";
+        let displayName = "未登入用戶";
+        if (liff.isLoggedIn()) {
+          const profile = await liff.getProfile();
+          userId = profile.userId || userId;
+          displayName = profile.displayName || displayName;
+        }
+        const data = {
+          userId,
+          displayName,
+          message: `影片觀看進度：${action}`,
+          replyMessage: "健康/全癌末01",
+          timestamp: new Date().toISOString()
+        };
+        const query = new URLSearchParams(data).toString();
+        await fetch(`${gasUrl}?${query}`);
+        console.log(`📡 ${action} 已記錄`);
+      } catch (e) {
+        console.error("❌ 上傳失敗", e);
       }
-      const data = {
-        userId,
-        displayName,
-        message: `影片觀看進度：${action}`,
-        replyMessage: "健康/全癌末01",
-        timestamp: new Date().toISOString()
-      };
-      const query = new URLSearchParams(data).toString();
-      await fetch(`${gasUrl}?${query}`);
-      console.log(`📡 ${action} 已記錄`);
-    } catch (e) {
-      console.error("❌ 上傳失敗", e);
     }
-  }
 
-  function setupVimeoEvents() {
-    const iframe = document.getElementById("vimeoPlayer");
-    if (!iframe) return;
-    vimeoPlayer = new Vimeo.Player(iframe);
+    function setupVimeoEvents() {
+      const iframe = document.getElementById("vimeoPlayer");
+      if (!iframe) return;
+      vimeoPlayer = new Vimeo.Player(iframe);
 
-    vimeoPlayer.on('play', () => sendToSheet("開始播放"));
-    vimeoPlayer.on('ended', () => sendToSheet("播放完畢"));
-    vimeoPlayer.on('timeupdate', (data) => {
-      const percent = Math.floor((data.percent || 0) * 100);
-      if ([25, 50, 75].includes(percent) && !sentProgress.has(percent)) {
-        sentProgress.add(percent);
-        sendToSheet(`播放${percent}%`);
-      }
-    });
-  }
+      vimeoPlayer.on('play', () => sendToSheet("開始播放"));
+      vimeoPlayer.on('ended', () => sendToSheet("播放完畢"));
+      vimeoPlayer.on('timeupdate', (data) => {
+        const percent = Math.floor((data.percent || 0) * 100);
+        if ([25, 50, 75].includes(percent) && !sentProgress.has(percent)) {
+          sentProgress.add(percent);
+          sendToSheet(`播放${percent}%`);
+        }
+      });
+    }
 
-  initPage();
-</script>
-
+    initPage();
+  </script>
 </body>
 </html>
