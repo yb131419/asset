@@ -114,10 +114,19 @@
 <script>
   const liffId = '2007475335-RVyOa6YG';
   const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
+  let liffReady = false;
+
+  async function initLiff() {
+    if (!liffReady) {
+      await liff.init({ liffId });
+      liffReady = true;
+    }
+  }
 
   async function initPage() {
-    await liff.init({ liffId });
+    await initLiff();
 
+    // 只在登入 & localStorage有標記時觸發一次
     if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
       localStorage.removeItem('wantToPlay');
       showVideo();
@@ -126,7 +135,7 @@
   }
 
   async function handleClick() {
-    await liff.init({ liffId });
+    await initLiff();
 
     if (!liff.isLoggedIn()) {
       localStorage.setItem('wantToPlay', '1');
@@ -135,7 +144,7 @@
     }
 
     showVideo();
-    await sendToSheet(); // ✅ 每次點擊都記錄
+    await sendToSheet(); // ✅ 點擊就記錄
   }
 
   async function sendToSheet() {
@@ -150,7 +159,7 @@
       };
       const query = new URLSearchParams(data).toString();
       await fetch(`${gasUrl}?${query}`);
-      console.log("✅ 每次點擊資料已送出");
+      console.log("✅ 點擊資料已送出");
     } catch (e) {
       console.error("❌ 發送資料失敗", e);
     }
@@ -163,5 +172,7 @@
 
   initPage();
 </script>
+
+  
 </body>
 </html>
