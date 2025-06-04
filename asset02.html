@@ -12,7 +12,6 @@
       --accent: #d4af37;
       --shadow: rgba(0, 0, 0, 0.08);
     }
-
     body {
       margin: 0;
       padding: 24px 16px;
@@ -23,7 +22,6 @@
       flex-direction: column;
       align-items: center;
     }
-
     .container {
       width: 100%;
       max-width: 500px;
@@ -33,19 +31,16 @@
       box-shadow: 0 8px 30px var(--shadow);
       text-align: center;
     }
-
     h1 {
       font-size: 1.6em;
       margin-bottom: 12px;
     }
-
     p {
       font-size: 1em;
       color: var(--subtext);
       line-height: 1.5;
       margin-bottom: 20px;
     }
-
     .video-wrapper {
       position: relative;
       width: 100%;
@@ -56,7 +51,6 @@
       margin-top: 20px;
       display: none;
     }
-
     .video-wrapper iframe {
       position: absolute;
       top: 50%;
@@ -66,14 +60,12 @@
       transform: translate(-50%, -50%);
       border: 0;
     }
-
     .footer {
       text-align: center;
       font-size: 0.85em;
       color: #bbb;
       margin-top: 30px;
     }
-
     .btn {
       background-color: var(--accent);
       color: white;
@@ -85,9 +77,14 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       transition: background-color 0.2s;
     }
-
     .btn:hover {
       background-color: #bfa332;
+    }
+    .loading {
+      display: none;
+      margin-top: 16px;
+      font-size: 0.95em;
+      color: var(--subtext);
     }
   </style>
 </head>
@@ -95,73 +92,103 @@
   <div class="container">
     <h1>🌿 全身癌細胞 真實分享</h1>
     <p> 安寧病房的病人、為什麼能站出唱歌跳舞</p>
-
-    <button class="btn" onclick="handleClick()">👉 進入影片</button>
-
+    <button class="btn" id="watchBtn" onclick="handleClick()">👉 進入影片</button>
+    <div class="loading" id="loadingSpinner">載入中，請稍候...</div>
     <div class="video-wrapper" id="videoSection">
       <iframe 
+        id="vimeoPlayer"
         src="https://player.vimeo.com/video/1087548276?h=1afee27a0b" 
-        frameborder="0" 
         allow="autoplay; fullscreen; picture-in-picture" 
         allowfullscreen>
       </iframe>
     </div>
-
     <div class="footer">© 2025 彥彬 🌿系統美學 · 保留所有權利</div>
   </div>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
+ <script>
   const liffId = '2007475335-5BKMwjlO';
   const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
+  let vimeoPlayer;
+  let sentProgress = new Set();
+  let didShowVideo = false;
 
   async function initPage() {
     await liff.init({ liffId });
-
     if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
       localStorage.removeItem('wantToPlay');
-      showVideo();
-      await sendToSheet();
+      if (!didShowVideo) {
+        didShowVideo = true;
+        showVideo();
+        await sendToSheet('點擊播放');
+      }
     }
   }
 
   async function handleClick() {
+    document.getElementById('watchBtn').disabled = true;
+    document.getElementById('loadingSpinner').style.display = 'block';
     await liff.init({ liffId });
-
     if (!liff.isLoggedIn()) {
       localStorage.setItem('wantToPlay', '1');
       liff.login();
       return;
     }
-
-    showVideo();
-    await sendToSheet(); // ✅ 每次點擊都記錄
+    if (!didShowVideo) {
+      didShowVideo = true;
+      showVideo();
+      await sendToSheet('點擊播放');
+    }
   }
 
-  async function sendToSheet() {
+  function showVideo() {
+    document.getElementById("watchBtn").style.display = "none";
+    document.getElementById("loadingSpinner").style.display = "none";
+    document.getElementById("videoSection").style.display = "block";
+    setupVimeoEvents();
+  }
+
+  async function sendToSheet(action) {
     try {
-      const profile = await liff.getProfile();
+      let userId = "匿名訪客";
+      let displayName = "未登入用戶";
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        userId = profile.userId || userId;
+        displayName = profile.displayName || displayName;
+      }
       const data = {
-        userId: profile.userId || "無法取得",
-        displayName: profile.displayName || "未知使用者",
-        message: "Liff-網頁影片",
+        userId,
+        displayName,
+        message: `影片觀看進度：${action}`,
         replyMessage: "健康/全癌末01",
         timestamp: new Date().toISOString()
       };
       const query = new URLSearchParams(data).toString();
       await fetch(`${gasUrl}?${query}`);
-      console.log("✅ 每次點擊資料已送出");
+      console.log(`📡 ${action} 已記錄`);
     } catch (e) {
-      console.error("❌ 發送資料失敗", e);
+      console.error("❌ 上傳失敗", e);
     }
   }
 
-  function showVideo() {
-    document.querySelector(".btn").style.display = "none";
-    document.getElementById("videoSection").style.display = "block";
+  function setupVimeoEvents() {
+    const iframe = document.getElementById("vimeoPlayer");
+    if (!iframe) return;
+    vimeoPlayer = new Vimeo.Player(iframe);
+
+    vimeoPlayer.on('play', () => sendToSheet("開始播放"));
+    vimeoPlayer.on('ended', () => sendToSheet("播放完畢"));
+    vimeoPlayer.on('timeupdate', (data) => {
+      const percent = Math.floor((data.percent || 0) * 100);
+      if ([25, 50, 75].includes(percent) && !sentProgress.has(percent)) {
+        sentProgress.add(percent);
+        sendToSheet(`播放${percent}%`);
+      }
+    });
   }
 
   initPage();
 </script>
+
 </body>
 </html>
