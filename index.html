@@ -74,9 +74,7 @@
   <div class="container">
     <h1>🌿 搶先預約</h1>
     <p>搶先預約、健康講座</p>
-
     <button class="btn" onclick="handleClick()">👉 點擊前往預約</button>
-
     <div class="footer">© 2025 彥彬 🌿系統美學 · 保留所有權利</div>
   </div>
 
@@ -86,25 +84,21 @@
     const gasUrl = 'https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec';
     const redirectUrl = 'https://lihi.cc/nXzqN';
 
-    let liffInitialized = false;
+    let liffReady = false;
 
-    async function initPage() {
-      if (!liffInitialized) {
-        await liff.init({ liffId });
-        liffInitialized = true;
-      }
-
-      if (liff.isLoggedIn() && localStorage.getItem('wantToRedirect') === '1') {
-        localStorage.removeItem('wantToRedirect');
-        await sendThenRedirect();
+    async function initLiff() {
+      if (!liffReady) {
+        try {
+          await liff.init({ liffId });
+          liffReady = true;
+        } catch (err) {
+          console.error("LIFF 初始化失敗", err);
+        }
       }
     }
 
     async function handleClick() {
-      if (!liffInitialized) {
-        await liff.init({ liffId });
-        liffInitialized = true;
-      }
+      await initLiff();
 
       if (!liff.isLoggedIn()) {
         localStorage.setItem('wantToRedirect', '1');
@@ -127,7 +121,7 @@
         };
         const query = new URLSearchParams(data).toString();
         await fetch(`${gasUrl}?${query}`);
-        console.log("✅ 每次點擊資料已送出");
+        console.log("✅ 資料已送出");
 
         setTimeout(() => {
           window.location.href = redirectUrl;
@@ -138,7 +132,14 @@
       }
     }
 
-    initPage();
+    window.addEventListener('load', async () => {
+      await initLiff();
+
+      if (liff.isLoggedIn() && localStorage.getItem('wantToRedirect') === '1') {
+        localStorage.removeItem('wantToRedirect');
+        await sendThenRedirect();
+      }
+    });
   </script>
 </body>
 </html>
