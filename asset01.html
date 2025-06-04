@@ -93,7 +93,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>🌿 三癌末病人 真實分享</h1>
+   <h1>🌿 三癌末病人 真實分享</h1>
     <p>二十年乳癌、轉肺癌再轉骨癌</p>
 
     <button class="btn" onclick="handleClick()">👉 進入影片</button>
@@ -118,16 +118,6 @@
   async function initPage() {
     await liff.init({ liffId });
 
-    // 如果是從 LINE 內部開啟，則自動跳到外部瀏覽器
-    if (liff.isInClient()) {
-      liff.openWindow({
-        url: window.location.href,
-        external: true
-      });
-      return;
-    }
-
-    // 外部瀏覽器中才繼續執行
     if (liff.isLoggedIn() && localStorage.getItem('wantToPlay') === '1') {
       localStorage.removeItem('wantToPlay');
       showVideo();
@@ -145,7 +135,7 @@
     }
 
     showVideo();
-    await sendToSheet();
+    await sendToSheet(); // ✅ 每次點擊都記錄
   }
 
   async function sendToSheet() {
