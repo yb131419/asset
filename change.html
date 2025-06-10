@@ -2,41 +2,52 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>資料轉移測試</title>
+  <title>用戶資料轉移介面</title>
 </head>
 <body>
-  <h2>從 Sheet3 轉移到 用戶ID</h2>
+  <h2>從 Sheet3 轉移資料到 用戶ID 工作表</h2>
 
-  <label for="item">選擇項目：</label>
-  <select id="item">
+  <label for="categorySelect">選擇分類：</label>
+  <select id="categorySelect">
     <option value="開發">開發</option>
     <option value="服務">服務</option>
   </select>
 
   <br><br>
-  <button onclick="transfer()">開始轉移</button>
+  <button id="btnTransfer" onclick="transferData()">開始執行轉移</button>
 
-  <p id="result"></p>
+  <p id="transferResult"></p>
 
   <script>
-    function transfer() {
-      const item = document.getElementById("item").value;
-      document.getElementById("result").innerText = "轉移中...";
+    async function transferData() {
+      const selectedCategory = document.getElementById("categorySelect").value;
+      document.getElementById("transferResult").innerText = "轉移中...";
 
-      fetch("https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ item: item })
-      })
-      .then(res => res.json())
-      .then(data => {
-        document.getElementById("result").innerText = data.message || data.error;
-      })
-      .catch(err => {
-        document.getElementById("result").innerText = "錯誤：" + err.message;
-      });
+      try {
+        // 假設資料列 index 1~10
+        const rowsToTransfer = [];
+        for(let i=1; i<=10; i++) {
+          rowsToTransfer.push(i);
+        }
+
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxndZDNdJcSfk5ZX-5zKk9sFSQ_2CCDjYAUKwBvcVlyjmwwHWYib5CbzhItx9kFvyH1/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "transferData",
+            item: selectedCategory,
+            rows: rowsToTransfer,
+            autoDeleteAfterTransfer: false
+          })
+        });
+
+        const result = await response.json();
+        document.getElementById("transferResult").innerText = result.message || result.error;
+      } catch (error) {
+        document.getElementById("transferResult").innerText = "錯誤：" + error.message;
+      }
     }
   </script>
 </body>
