@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      select, button {
+        padding: 8px;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      #status {
+        margin-top: 20px;
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>轉移 Sheet3 資料到 用戶ID</h2>
+
+    <label for="item">請選擇項目：</label>
+    <select id="item">
+      <option value="開發">開發</option>
+      <option value="服務">服務</option>
+    </select><br>
+
+    <button onclick="transfer()">轉移資料</button>
+
+    <div id="status"></div>
+
+    <script>
+      function transfer() {
+        const item = document.getElementById('item').value;
+        document.getElementById('status').innerText = '處理中...';
+
+        google.script.run
+          .withSuccessHandler(msg => {
+            document.getElementById('status').innerText = msg;
+          })
+          .withFailureHandler(err => {
+            document.getElementById('status').innerText = '錯誤：' + err.message;
+          })
+          .transferDataToUserSheet(item);
+      }
+    </script>
+  </body>
+</html>
