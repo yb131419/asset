@@ -138,7 +138,6 @@
     <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
 
     <div id="rewriteResult" aria-live="polite" aria-atomic="true"></div>
-
     <div id="bottomSpacer"></div>
   </div>
 
@@ -160,108 +159,4 @@
       btn.textContent = "🚀 自動改寫";
 
       if (res.error) {
-        resultDiv.innerHTML = `<div class="error">❌ 發生錯誤：${res.error}</div>`;
-        shareBtn.style.display = "none";
-        lastRewrite = { title: "", content: "" };
-        return;
-      }
-
-      let output = "";
-      let content = res.content || res.rewritten || "";
-      content = content.replace(/。/g, "。\n\n"); // 句號換兩行
-
-      if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-      if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-      if (content) output += `📝 改寫內容：\n${content}`;
-      else output += JSON.stringify(res, null, 2);
-
-      resultDiv.textContent = output;
-
-      lastRewrite = {
-        title: res.title || "",
-        content
-      };
-
-      if (navigator.share && content.trim()) {
-        shareBtn.style.display = "block";
-        shareBtn.disabled = false;
-      } else {
-        shareBtn.style.display = "none";
-      }
-    }
-
-    let loadingInterval;
-
-    function autoRewrite() {
-      const text = document.getElementById("originalText").value.trim();
-      const topic = document.getElementById("topicSelect").value;
-      const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-
-      if (!text) {
-        alert("請先貼上文章內容");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = "✍️ 改寫中...";
-      shareBtn.style.display = "none";
-
-      // 動態點點 loading
-      let dots = 0;
-      resultDiv.textContent = "⏳ 改寫中";
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-      }, 500);
-
-      const oldScript = document.getElementById("jsonpScript");
-      if (oldScript) oldScript.remove();
-
-      const script = document.createElement("script");
-      script.id = "jsonpScript";
-
-      const params = new URLSearchParams({
-        text: text,
-        topic: topic,
-        callback: "handleResponse"
-      });
-
-      script.src = `${SCRIPT_URL}?${params.toString()}`;
-      script.onerror = () => {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = "🚀 自動改寫";
-        resultDiv.innerHTML = `<div class="error">❌ 呼叫失敗，請稍後再試</div>`;
-        shareBtn.style.display = "none";
-      };
-
-      document.body.appendChild(script);
-    }
-
-    function nativeShare() {
-      if (!navigator.share) {
-        alert("您的瀏覽器不支援原生分享功能");
-        return;
-      }
-
-      if (!lastRewrite.content) {
-        alert("沒有可分享的改寫內容");
-        return;
-      }
-
-      const shareData = {
-        title: lastRewrite.title || "文案改寫分享",
-        text: `${lastRewrite.title ? lastRewrite.title + "\n\n" : ""}${lastRewrite.content}`
-      };
-
-      navigator.share(shareData)
-        .catch(err => {
-          console.error("分享失敗:", err);
-          alert("分享失敗，請稍後再試");
-        });
-    }
-  </script>
-</body>
-</html>
+        resultDiv.innerHTML = `<div class="error">❌ 發生錯誤
