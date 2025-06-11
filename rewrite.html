@@ -1,13 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>彥彬 ✍️文案改寫</title>
-  <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
     body {
       font-family: 'Roboto', sans-serif;
       background: #121212;
@@ -17,7 +14,6 @@
       display: flex;
       justify-content: center;
     }
-
     .card {
       background: #1e1e1e;
       border-radius: 16px;
@@ -26,16 +22,16 @@
       max-width: 480px;
       padding: 20px;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
-
     h2 {
       margin-bottom: 16px;
       color: #ffffff;
       font-weight: 700;
       font-size: 20px;
     }
-
-    textarea, select {
+    textarea {
       width: 100%;
       margin-top: 12px;
       padding: 12px 14px;
@@ -47,18 +43,9 @@
       font-family: 'Roboto', sans-serif;
       line-height: 1.6;
       box-sizing: border-box;
-    }
-
-    textarea:focus, select:focus {
-      outline: none;
-      border-color: #4dabf7;
-    }
-
-    textarea {
       height: 120px;
       resize: vertical;
     }
-
     label {
       margin-top: 20px;
       display: block;
@@ -66,10 +53,20 @@
       font-size: 14px;
       color: #cccccc;
     }
-
+    select {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #2a2a2a;
+      border: 1px solid #3f3f3f;
+      color: #f0f0f0;
+      font-size: 15px;
+      font-family: 'Roboto', sans-serif;
+      box-sizing: border-box;
+    }
     button {
       margin-top: 20px;
-      background: linear-gradient(135deg, #4dabf7, #2d9cdb);
       border: none;
       color: white;
       font-weight: bold;
@@ -80,16 +77,20 @@
       cursor: pointer;
       transition: all 0.3s ease;
     }
-
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
-    button:hover:not(:disabled) {
+    #rewriteBtn {
+      background: linear-gradient(135deg, #4dabf7, #2d9cdb);
+    }
+    #rewriteBtn:hover:not(:disabled) {
       background: linear-gradient(135deg, #339af0, #228be6);
     }
-
+    #shareBtn {
+      background: linear-gradient(135deg, #2d3a9c, #1e2a7c);
+      display: none;
+    }
     #rewriteResult {
       margin-top: 24px;
       background: #232323;
@@ -100,21 +101,9 @@
       font-size: 14.5px;
       max-height: 400px;
       overflow-y: auto;
+      white-space: pre-wrap;
+      flex-grow: 1;
     }
-
-    #rewriteResult b {
-      display: block;
-      margin-top: 12px;
-      color: #74c0fc;
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .rewrite-text p {
-      margin: 10px 0;
-      line-height: 1.8;
-    }
-
     .error {
       background: #3c1e1e;
       border: 1px solid #d93025;
@@ -125,32 +114,18 @@
       margin-top: 16px;
       font-size: 14px;
     }
-
-    @media (min-width: 600px) {
-      .card {
-        padding: 24px;
-      }
-
-      h2 {
-        font-size: 22px;
-      }
-
-      button {
-        font-size: 17px;
-      }
-
-      #rewriteResult {
-        font-size: 15.5px;
-      }
+    #bottomSpacer {
+      height: 100px;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <div class="card" role="main">
-    <h2>📘 彥彬文案改寫<br>✍️ 貼上文章自動改寫</h2>
+    <h2>📘 彥彬文案改寫<br>✍️ 貼上文章自動改寫 </h2>
     <textarea id="originalText" placeholder="請貼上原始文章..." aria-label="原始文章內容"></textarea>
 
-    <label for="topicSelect">選擇分類主題（可 AI 自動判斷）：</label>
+    <label for="topicSelect">選擇分類主題（可AI自動判斷）：</label>
     <select id="topicSelect" name="topicSelect" aria-label="分類主題選擇">
       <option value="">AI 自動判斷</option>
       <option>人生成長</option>
@@ -160,121 +135,132 @@
     </select>
 
     <button id="rewriteBtn" onclick="autoRewrite()">🚀 自動改寫</button>
+    <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
 
     <div id="rewriteResult" aria-live="polite" aria-atomic="true"></div>
 
-    <button id="lineShareBtn" style="display: none;" onclick="shareToLine()">📤 分享文案</button>
+    <div id="bottomSpacer"></div>
   </div>
 
   <script>
-    let isInLine = false;
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypi6famaFiFGy_2CJanUKgKyt15-9UT9-WstEfiNeaZy_AVu5A2D1kdSVEYaQ3Sgok/exec";
 
-    document.addEventListener("DOMContentLoaded", function () {
-      liff.init()
-        .then(() => {
-          isInLine = liff.isInClient();
-        })
-        .catch(err => {
-          console.warn("不是 LINE App 環境，改用原生分享", err);
-        });
-    });
+    let lastRewrite = {
+      title: "",
+      content: ""
+    };
 
-    function formatContentWithParagraphs(content) {
-      // 嘗試以雙換行拆分段落
-      let paragraphs = [];
-      if (content.indexOf('\n\n') > -1) {
-        paragraphs = content.split('\n\n');
-      } else if (content.indexOf('\n') > -1) {
-        paragraphs = content.split('\n');
-      } else {
-        // 如果沒有換行，試用中文句號斷句
-        paragraphs = content.split(/(?<=。)/);
+    function handleResponse(res) {
+      const resultDiv = document.getElementById("rewriteResult");
+      const btn = document.getElementById("rewriteBtn");
+      const shareBtn = document.getElementById("shareBtn");
+
+      clearInterval(loadingInterval);
+      btn.disabled = false;
+      btn.textContent = "🚀 自動改寫";
+
+      if (res.error) {
+        resultDiv.innerHTML = `<div class="error">❌ 發生錯誤：${res.error}</div>`;
+        shareBtn.style.display = "none";
+        lastRewrite = { title: "", content: "" };
+        return;
       }
 
-      paragraphs = paragraphs.map(p => p.trim()).filter(p => p);
+      let output = "";
+      let content = res.content || res.rewritten || "";
+      content = content.replace(/。/g, "。\n\n"); // 句號換兩行
 
-      // 用 <p> 包裹每段
-      return paragraphs.map(p => `<p>${p}</p>`).join('');
+      if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+      if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+      if (content) output += `📝 改寫內容：\n${content}`;
+      else output += JSON.stringify(res, null, 2);
+
+      resultDiv.textContent = output;
+
+      lastRewrite = {
+        title: res.title || "",
+        content
+      };
+
+      if (navigator.share && content.trim()) {
+        shareBtn.style.display = "block";
+        shareBtn.disabled = false;
+      } else {
+        shareBtn.style.display = "none";
+      }
     }
 
+    let loadingInterval;
+
     function autoRewrite() {
-      const text = document.getElementById("originalText").value;
+      const text = document.getElementById("originalText").value.trim();
       const topic = document.getElementById("topicSelect").value;
       const resultDiv = document.getElementById("rewriteResult");
       const btn = document.getElementById("rewriteBtn");
+      const shareBtn = document.getElementById("shareBtn");
 
-      if (!text.trim()) {
+      if (!text) {
         alert("請先貼上文章內容");
         return;
       }
 
       btn.disabled = true;
-      btn.innerText = "✍️ 改寫中...";
-      resultDiv.innerHTML = "⏳ 改寫中，請稍候...";
-      document.getElementById("lineShareBtn").style.display = "none";
+      btn.textContent = "✍️ 改寫中...";
+      shareBtn.style.display = "none";
 
-      google.script.run
-        .withSuccessHandler(res => {
-          btn.disabled = false;
-          btn.innerText = "🚀 自動改寫";
+      // 動態點點 loading
+      let dots = 0;
+      resultDiv.textContent = "⏳ 改寫中";
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+      }, 500);
 
-          if (res.error) {
-            resultDiv.innerHTML = `<div class="error">❌ 發生錯誤：${res.error}</div>`;
-          } else {
-            const formattedContent = formatContentWithParagraphs(res.content);
-            resultDiv.innerHTML = `
-              <b>🔖 類別：</b>${res.topic}
-              <b class="recommend-title-text">📌 推薦標題：</b>${res.title}
-              <b>📝 改寫內容：</b>
-              <div class="rewrite-text">${formattedContent}</div>
-            `;
-            document.getElementById("lineShareBtn").style.display = "block";
-          }
-        })
-        .withFailureHandler(err => {
-          btn.disabled = false;
-          btn.innerText = "🚀 自動改寫";
-          resultDiv.innerHTML = `<div class="error">❌ 呼叫失敗，請稍後再試</div>`;
-          console.error(err);
-        })
-        .rewriteWithAI(text, topic);
+      const oldScript = document.getElementById("jsonpScript");
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+
+      const params = new URLSearchParams({
+        text: text,
+        topic: topic,
+        callback: "handleResponse"
+      });
+
+      script.src = `${SCRIPT_URL}?${params.toString()}`;
+      script.onerror = () => {
+        clearInterval(loadingInterval);
+        btn.disabled = false;
+        btn.textContent = "🚀 自動改寫";
+        resultDiv.innerHTML = `<div class="error">❌ 呼叫失敗，請稍後再試</div>`;
+        shareBtn.style.display = "none";
+      };
+
+      document.body.appendChild(script);
     }
 
-    function shareToLine() {
-      const title = document.querySelector(".recommend-title-text")?.nextSibling?.textContent.trim() || "改寫內容";
-      const contentDiv = document.querySelector(".rewrite-text");
-      let content = "";
-
-      if (contentDiv) {
-        // 取純文字，段落間以雙換行分隔
-        content = Array.from(contentDiv.querySelectorAll('p'))
-          .map(p => p.textContent.trim())
-          .filter(p => p)
-          .join('\n\n');
+    function nativeShare() {
+      if (!navigator.share) {
+        alert("您的瀏覽器不支援原生分享功能");
+        return;
       }
 
-      const message = `📌  推薦標題：\n\n${title}\n\n📝  改寫內容：\n\n${content}`;
+      if (!lastRewrite.content) {
+        alert("沒有可分享的改寫內容");
+        return;
+      }
 
-      if (isInLine && liff.isApiAvailable('shareTargetPicker')) {
-        liff.shareTargetPicker([{ type: "text", text: message }])
-          .then(() => alert("✅ 已分享至 LINE！"))
-          .catch(err => {
-            console.error("❌ LINE 分享失敗", err);
-            alert("❌ 分享失敗，請稍後再試");
-          });
-      } else if (navigator.share) {
-        navigator.share({
-          title: title,
-          text: message
-        })
-        .then(() => alert("✅ 已分享！"))
+      const shareData = {
+        title: lastRewrite.title || "文案改寫分享",
+        text: `${lastRewrite.title ? lastRewrite.title + "\n\n" : ""}${lastRewrite.content}`
+      };
+
+      navigator.share(shareData)
         .catch(err => {
-          console.error("❌ 原生分享失敗", err);
-          alert("❌ 分享失敗，請稍後再試");
+          console.error("分享失敗:", err);
+          alert("分享失敗，請稍後再試");
         });
-      } else {
-        alert("❌ 無法分享，請用 LINE App 或手機瀏覽器開啟");
-      }
     }
   </script>
 </body>
