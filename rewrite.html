@@ -215,18 +215,19 @@
 
   function setupInputListener() {
     const textarea = document.getElementById("originalText");
+    const btn = document.getElementById("rewriteBtn");
     textarea.addEventListener("input", () => {
       const val = textarea.value.trim();
-      const btn = document.getElementById("rewriteBtn");
       btn.disabled = !(hasPermission && val.length >= 8);
+      btn.setAttribute("aria-disabled", btn.disabled.toString());
     });
   }
 
-  // 新增：將 ISO 日期字串轉成「YYYY年M月D日」格式
+  // 將 ISO 日期字串轉成「YYYY年M月D日」格式
   function formatDateToChinese(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr; // 若非有效日期，原樣回傳
+    if (isNaN(d)) return dateStr; // 非有效日期則原樣回傳
     return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
   }
 
@@ -250,6 +251,9 @@
           info.textContent = `使用者：${displayName}　剩餘天數：${left}　到期日：${expiryFormatted}`;
         }
         setupInputListener();
+        // 也讓按鈕檢查一次
+        const val = document.getElementById("originalText").value.trim();
+        document.getElementById("rewriteBtn").disabled = !(hasPermission && val.length >= 8);
       } else {
         hasPermission = false;
         info.textContent = `使用者：${displayName}　❌ 無權限`;
@@ -267,12 +271,12 @@
     document.body.appendChild(script);
   }
 
-  // 計算剩餘天數，維持原邏輯
+  // 計算剩餘天數
   function calcDaysLeft(expiryDate) {
     const exp = new Date(expiryDate);
     const now = new Date();
 
-    // 取本地時間的年月日（不帶時分秒）
+    // 取年月日，忽略時分秒
     const expDateLocal = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
     const nowDateLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -299,6 +303,7 @@
 
     btn.disabled = true;
     btn.textContent = "✍️ 改寫中…";
+    btn.setAttribute("aria-disabled", "true");
     shareBtn.style.display = "none";
     resultDiv.textContent = "⏳ 改寫中";
 
@@ -312,6 +317,7 @@
       clearInterval(loadingInterval);
       btn.disabled = false;
       btn.textContent = "🚀 自動改寫";
+      btn.setAttribute("aria-disabled", "false");
 
       if (res.error) {
         resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
@@ -335,6 +341,7 @@
       resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
       btn.disabled = false;
       btn.textContent = "🚀 自動改寫";
+      btn.setAttribute("aria-disabled", "false");
     };
     document.body.appendChild(script);
   }
