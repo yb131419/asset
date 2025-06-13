@@ -17,6 +17,8 @@
       justify-content: center;
       min-height: 100vh;
     }
+
+    /* === 主容器卡片樣式 === */
     .card {
       background: #1e1e1e;
       border-radius: 16px;
@@ -28,6 +30,8 @@
       flex-direction: column;
       box-sizing: border-box;
     }
+
+    /* === 使用者資訊列 === */
     #userInfo {
       color: #bbbbbb;
       font-size: 13px;
@@ -37,6 +41,8 @@
       font-weight: 500;
       white-space: nowrap;
     }
+
+    /* === 標題 === */
     h2 {
       margin-bottom: 16px;
       color: #ffffff;
@@ -46,6 +52,8 @@
       text-align: center;
       user-select: none;
     }
+
+    /* === 表單元件 === */
     textarea, select {
       width: 100%;
       margin-top: 12px;
@@ -58,16 +66,19 @@
       font-family: 'Roboto', sans-serif;
       box-sizing: border-box;
     }
+
     textarea:focus, select:focus {
       border-color: #4dabf7;
       outline: none;
       background: #353535;
     }
+
     textarea {
       height: 120px;
       resize: vertical;
       line-height: 1.6;
     }
+
     label {
       margin-top: 20px;
       display: block;
@@ -76,6 +87,8 @@
       color: #cccccc;
       user-select: none;
     }
+
+    /* === 按鈕樣式 === */
     button {
       margin-top: 20px;
       border: none;
@@ -90,25 +103,32 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
+
     button:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       pointer-events: none;
       box-shadow: none;
     }
+
     #rewriteBtn {
       background: linear-gradient(135deg, #4dabf7, #2d9cdb);
     }
+
     #rewriteBtn:hover:not(:disabled) {
       background: linear-gradient(135deg, #339af0, #228be6);
     }
+
     #shareBtn {
       background: linear-gradient(135deg, #2d3a9c, #1e2a7c);
       display: none;
     }
+
     #shareBtn:hover {
       background: linear-gradient(135deg, #1e2a7c, #0f1a4f);
     }
+
+    /* === 改寫結果區塊 === */
     #rewriteResult {
       margin-top: 24px;
       background: #232323;
@@ -123,6 +143,7 @@
       flex-grow: 1;
       user-select: text;
     }
+
     .error {
       background: #3c1e1e;
       border: 1px solid #d93025;
@@ -133,6 +154,7 @@
       margin-top: 16px;
       font-size: 14px;
     }
+
     #bottomSpacer {
       height: 100px;
       flex-shrink: 0;
@@ -144,7 +166,9 @@
   <main class="card" role="main" aria-label="彥彬文案改寫工具">
     <div id="userInfo" aria-live="polite" aria-atomic="true"></div>
     <h2>📘 『彥彬 文案改寫』<br>✍️ 「貼上 自動改寫」</h2>
+
     <textarea id="originalText" placeholder="請貼上原始文章..." aria-label="輸入原始文章"></textarea>
+
     <label for="topicSelect">選擇分類主題（可AI自動判斷）：</label>
     <select id="topicSelect" aria-label="選擇分類主題">
       <option value="">AI 自動判斷</option>
@@ -153,170 +177,180 @@
       <option>健康養生</option>
       <option>財富商機</option>
     </select>
+
     <button id="rewriteBtn" onclick="autoRewrite()" disabled aria-disabled="true">🚀 自動改寫</button>
     <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
+
     <div id="rewriteResult" role="region" aria-live="polite" aria-atomic="true"></div>
     <div id="bottomSpacer"></div>
   </main>
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-63jZvMxQ";
-    const isDev = true;
 
-    let liffUserId = "";
-    let hasPermission = false;
-    let lastRewrite = { title: "", content: "" };
-    let loadingInterval = null;
+  <!-- 主程式邏輯（JS） -->
+<!-- 前略略去 <html> ~ <style> 皆相同，保留 style 與主結構 -->
+<!-- 直接跳到 script 區塊，標出新增與修改處 -->
 
-    async function initLIFF() {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-        } else {
-          const profile = await liff.getProfile();
-          const idToken = liff.getDecodedIDToken();
-          liffUserId = idToken?.sub || profile?.userId || "";
-          checkPermission(liffUserId, profile?.displayName || "使用者");
-          setupInputListener();
-        }
-      } catch (err) {
-        document.getElementById("userInfo").textContent = "❌ LIFF 初始化失敗";
-        console.error(err);
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
+  const LIFF_ID = "2007488640-PbB48ELN";
+  const isDev = true; // ✅ ← 切換開發模式 true/false
+
+  let liffUserId = "";
+  let hasPermission = false;
+  let lastRewrite = { title: "", content: "" };
+  let loadingInterval = null;
+
+  async function initLIFF() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        const profile = await liff.getProfile();
+        const idToken = liff.getDecodedIDToken();
+        liffUserId = idToken?.sub || profile?.userId || "";
+        checkPermission(liffUserId, profile?.displayName || "使用者");
+        setupInputListener();
       }
+    } catch (err) {
+      document.getElementById("userInfo").textContent = "❌ LIFF 初始化失敗";
+      console.error(err);
     }
+  }
 
-    function setupInputListener() {
-      const textarea = document.getElementById("originalText");
-      textarea.addEventListener("input", () => {
-        const val = textarea.value.trim();
-        const btn = document.getElementById("rewriteBtn");
-        btn.disabled = !(hasPermission && val.length >= 8);
+  function setupInputListener() {
+    const textarea = document.getElementById("originalText");
+    textarea.addEventListener("input", () => {
+      const val = textarea.value.trim();
+      const btn = document.getElementById("rewriteBtn");
+      btn.disabled = !(hasPermission && val.length >= 8);
+    });
+  }
+
+  function checkPermission(userId, displayName) {
+    window.handlePermission = function(res) {
+      const info = document.getElementById("userInfo");
+      const result = document.getElementById("rewriteResult");
+      if (res?.auth) {
+        hasPermission = true;
+        let left = calcDaysLeft(res.expiryDate);
+
+        // ✅ 判斷開發模式顯示詳細資訊
+        if (isDev) {
+          info.innerHTML = `👤 使用者：${displayName}<br>🆔 User ID：<code>${userId}</code><br>📅 剩餘天數：${left}`;
+          console.log("🔧 開發模式資訊：", { displayName, userId, expiryDate: res.expiryDate });
+        } else {
+          info.textContent = `使用者：${displayName}　剩餘天數：${left}`;
+        }
+
+        setupInputListener();
+      } else {
+        hasPermission = false;
+        info.textContent = `使用者：${displayName}　❌ 無權限`;
+        document.getElementById("rewriteBtn").disabled = true;
+        result.innerHTML = `<div class="error">⛔ 尚未開通權限，請聯絡管理者。</div>`;
+      }
+    };
+
+    const script = document.createElement("script");
+    script.src = `${SCRIPT_URL}?userId=${encodeURIComponent(userId)}&checkAuth=1&callback=handlePermission`;
+    script.onerror = () => {
+      document.getElementById("userInfo").textContent = `使用者：${displayName}　❌ 驗證失敗`;
+      document.getElementById("rewriteResult").innerHTML = `<div class="error">⚠️ 權限驗證失敗，請稍後再試。</div>`;
+    };
+    document.body.appendChild(script);
+  }
+
+  function calcDaysLeft(expiryDate) {
+  const exp = new Date(expiryDate);
+  const now = new Date();
+
+  // 取本地時間的年月日（不帶時分秒）
+  const expDateLocal = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
+  const nowDateLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diff = Math.floor((expDateLocal - nowDateLocal) / (1000 * 60 * 60 * 24));
+  if (diff > 0) return `${diff} 天`;
+  if (diff === 0) {
+    const ms = exp.getTime() - now.getTime();
+    if (ms <= 0) return "已過期";
+    const h = Math.floor(ms / (1000 * 60 * 60));
+    const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    return `${h} 時 ${m} 分`;
+  }
+  return "已過期";
+}
+
+
+  function autoRewrite() {
+    const text = document.getElementById("originalText").value.trim();
+    const topic = document.getElementById("topicSelect").value;
+    const resultDiv = document.getElementById("rewriteResult");
+    const btn = document.getElementById("rewriteBtn");
+    const shareBtn = document.getElementById("shareBtn");
+
+    if (!text || text.length < 8 || !hasPermission) return;
+
+    btn.disabled = true;
+    btn.textContent = "✍️ 改寫中…";
+    shareBtn.style.display = "none";
+    resultDiv.textContent = "⏳ 改寫中";
+
+    let dots = 0;
+    loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+    }, 500);
+
+    window.handleResponse = function(res) {
+      clearInterval(loadingInterval);
+      btn.disabled = false;
+      btn.textContent = "🚀 自動改寫";
+
+      if (res.error) {
+        resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
+        return;
+      }
+
+      let output = "";
+      if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+      if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+      output += `📝 改寫內容：\n${(res.content || res.rewrite || "").replace(/。/g, "。\n\n")}`;
+
+      resultDiv.textContent = output;
+      lastRewrite = { title: res.title || "", content: res.content || "" };
+      if (lastRewrite.content.trim()) shareBtn.style.display = "block";
+    };
+
+    const script = document.createElement("script");
+    script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&userId=${encodeURIComponent(liffUserId)}&callback=handleResponse`;
+    script.onerror = () => {
+      clearInterval(loadingInterval);
+      resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+      btn.disabled = false;
+      btn.textContent = "🚀 自動改寫";
+    };
+    document.body.appendChild(script);
+  }
+
+  function nativeShare() {
+    if (!lastRewrite.content.trim()) return alert("內容為空，無法分享。");
+    const shareData = {
+      title: lastRewrite.title || "文案改寫分享",
+      text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
+    };
+    if (navigator.share) {
+      navigator.share(shareData).catch(() => alert("分享失敗，請稍後再試"));
+    } else {
+      navigator.clipboard.writeText(shareData.text).then(() => {
+        alert("已複製到剪貼簿，可手動貼上分享");
+      }).catch(() => {
+        alert("複製失敗，請手動選取並複製文字");
       });
     }
+  }
 
-    function formatDateChinese(dateStr) {
-      const d = new Date(dateStr);
-      const year = d.getFullYear();
-      const month = d.getMonth() + 1;
-      const day = d.getDate();
-      return `${year}年${month}月${day}日`;
-    }
+  window.onload = initLIFF;
+</script>
 
-    function checkPermission(userId, displayName) {
-      window.handlePermission = function(res) {
-        const info = document.getElementById("userInfo");
-        const result = document.getElementById("rewriteResult");
-        if (res?.auth) {
-          hasPermission = true;
-          let left = calcDaysLeft(res.expiryDate);
-          if (isDev) {
-            info.innerHTML = `👤 使用者：${displayName}<br>🆔 User ID：<code>${userId}</code><br>📅 到期日：${formatDateChinese(res.expiryDate)}　剩餘天數：${left}`;
-            console.log("🔧 開發模式資訊：", { displayName, userId, expiryDate: res.expiryDate });
-          } else {
-            info.textContent = `使用者：${displayName}　剩餘天數：${left}`;
-          }
-          setupInputListener();
-        } else {
-          hasPermission = false;
-          info.textContent = `使用者：${displayName}　❌ 無權限`;
-          document.getElementById("rewriteBtn").disabled = true;
-          result.innerHTML = `<div class="error">⛔ 尚未開通權限，請聯絡管理者。</div>`;
-        }
-      };
-
-      const script = document.createElement("script");
-      script.src = `${SCRIPT_URL}?userId=${encodeURIComponent(userId)}&checkAuth=1&callback=handlePermission`;
-      script.onerror = () => {
-        document.getElementById("userInfo").textContent = `使用者：${displayName}　❌ 驗證失敗`;
-        document.getElementById("rewriteResult").innerHTML = `<div class="error">⚠️ 權限驗證失敗，請稍後再試。</div>`;
-      };
-      document.body.appendChild(script);
-    }
-
-    function calcDaysLeft(expiryDate) {
-      const exp = new Date(expiryDate);
-      const now = new Date();
-      const expDateLocal = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
-      const nowDateLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const diff = Math.floor((expDateLocal - nowDateLocal) / (1000 * 60 * 60 * 24));
-      if (diff > 0) return `${diff} 天`;
-      if (diff === 0) {
-        const ms = exp.getTime() - now.getTime();
-        if (ms <= 0) return "已過期";
-        const h = Math.floor(ms / (1000 * 60 * 60));
-        const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-        return `${h} 時 ${m} 分`;
-      }
-      return "已過期";
-    }
-
-    function autoRewrite() {
-      const text = document.getElementById("originalText").value.trim();
-      const topic = document.getElementById("topicSelect").value;
-      const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-
-      if (!text || text.length < 8 || !hasPermission) return;
-
-      btn.disabled = true;
-      btn.textContent = "✍️ 改寫中…";
-      shareBtn.style.display = "none";
-      resultDiv.textContent = "⏳ 改寫中";
-
-      let dots = 0;
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-      }, 500);
-
-      window.handleResponse = function(res) {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = "🚀 自動改寫";
-        if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
-          return;
-        }
-        let output = "";
-        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-        output += `📝 改寫內容：\n${(res.content || res.rewrite || "").replace(/。/g, "。\n\n")}`;
-        resultDiv.textContent = output;
-        lastRewrite = { title: res.title || "", content: res.content || "" };
-        if (lastRewrite.content.trim()) shareBtn.style.display = "block";
-      };
-
-      const script = document.createElement("script");
-      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&userId=${encodeURIComponent(liffUserId)}&callback=handleResponse`;
-      script.onerror = () => {
-        clearInterval(loadingInterval);
-        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
-        btn.disabled = false;
-        btn.textContent = "🚀 自動改寫";
-      };
-      document.body.appendChild(script);
-    }
-
-    function nativeShare() {
-      if (!lastRewrite.content.trim()) return alert("內容為空，無法分享。");
-      const shareData = {
-        title: lastRewrite.title || "文案改寫分享",
-        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
-      };
-      if (navigator.share) {
-        navigator.share(shareData).catch(() => alert("分享失敗，請稍後再試"));
-      } else {
-        navigator.clipboard.writeText(shareData.text).then(() => {
-          alert("已複製到剪貼簿，可手動貼上分享");
-        }).catch(() => {
-          alert("複製失敗，請手動選取並複製文字");
-        });
-      }
-    }
-
-    window.onload = initLIFF;
-  </script>
 </body>
 </html>
