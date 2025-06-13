@@ -185,10 +185,6 @@
     <div id="bottomSpacer"></div>
   </main>
 
-  <!-- 主程式邏輯（JS） -->
-<!-- 前略略去 <html> ~ <style> 皆相同，保留 style 與主結構 -->
-<!-- 直接跳到 script 區塊，標出新增與修改處 -->
-
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
   const LIFF_ID = "2007488640-PbB48ELN";
@@ -226,6 +222,14 @@
     });
   }
 
+  // 新增：將 ISO 日期字串轉成「YYYY年M月D日」格式
+  function formatDateToChinese(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr; // 若非有效日期，原樣回傳
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  }
+
   function checkPermission(userId, displayName) {
     window.handlePermission = function(res) {
       const info = document.getElementById("userInfo");
@@ -233,15 +237,18 @@
       if (res?.auth) {
         hasPermission = true;
         let left = calcDaysLeft(res.expiryDate);
+        let expiryFormatted = formatDateToChinese(res.expiryDate);
 
-        // ✅ 判斷開發模式顯示詳細資訊
         if (isDev) {
-          info.innerHTML = `👤 使用者：${displayName}<br>🆔 User ID：<code>${userId}</code><br>📅 剩餘天數：${left}`;
+          info.innerHTML = 
+            `👤 使用者：${displayName}<br>` +
+            `🆔 User ID：<code>${userId}</code><br>` +
+            `📅 剩餘天數：${left}<br>` +
+            `⏳ 到期日：${expiryFormatted}`;
           console.log("🔧 開發模式資訊：", { displayName, userId, expiryDate: res.expiryDate });
         } else {
-          info.textContent = `使用者：${displayName}　剩餘天數：${left}`;
+          info.textContent = `使用者：${displayName}　剩餘天數：${left}　到期日：${expiryFormatted}`;
         }
-
         setupInputListener();
       } else {
         hasPermission = false;
@@ -260,26 +267,26 @@
     document.body.appendChild(script);
   }
 
+  // 計算剩餘天數，維持原邏輯
   function calcDaysLeft(expiryDate) {
-  const exp = new Date(expiryDate);
-  const now = new Date();
+    const exp = new Date(expiryDate);
+    const now = new Date();
 
-  // 取本地時間的年月日（不帶時分秒）
-  const expDateLocal = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
-  const nowDateLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // 取本地時間的年月日（不帶時分秒）
+    const expDateLocal = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
+    const nowDateLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const diff = Math.floor((expDateLocal - nowDateLocal) / (1000 * 60 * 60 * 24));
-  if (diff > 0) return `${diff} 天`;
-  if (diff === 0) {
-    const ms = exp.getTime() - now.getTime();
-    if (ms <= 0) return "已過期";
-    const h = Math.floor(ms / (1000 * 60 * 60));
-    const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    return `${h} 時 ${m} 分`;
+    const diff = Math.floor((expDateLocal - nowDateLocal) / (1000 * 60 * 60 * 24));
+    if (diff > 0) return `${diff} 天`;
+    if (diff === 0) {
+      const ms = exp.getTime() - now.getTime();
+      if (ms <= 0) return "已過期";
+      const h = Math.floor(ms / (1000 * 60 * 60));
+      const m = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      return `${h} 時 ${m} 分`;
+    }
+    return "已過期";
   }
-  return "已過期";
-}
-
 
   function autoRewrite() {
     const text = document.getElementById("originalText").value.trim();
