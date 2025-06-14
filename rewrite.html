@@ -243,7 +243,7 @@
         labelOutput: "輸出語言", rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
         rewriting: "⏳ 改寫中", topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"],
         outputs: ["繁體中文", "簡體中文", "英文", "越南文"],
-        user: "使用者", remain: "剩餘日", expiry: "到期日", expired: "已過期", invalid: "無效日期"
+        remain: "剩餘日", expiry: "到期日", expired: "已過期", invalid: "無效日期"
       },
       "zh-Hans": {
         title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
@@ -251,7 +251,7 @@
         labelOutput: "输出语言", rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
         rewriting: "⏳ 改写中", topics: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"],
         outputs: ["繁體中文", "简体中文", "英文", "越南文"],
-        user: "使用者", remain: "剩余日", expiry: "到期日", expired: "已过期", invalid: "无效日期"
+        remain: "剩余日", expiry: "到期日", expired: "已过期", invalid: "无效日期"
       },
       "en": {
         title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
@@ -259,7 +259,7 @@
         labelOutput: "Output Language", rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
         rewriting: "⏳ Rewriting", topics: ["AI Auto-Detect", "Personal Growth", "Emotional Stories", "Health & Wellness", "Wealth & Opportunities"],
         outputs: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
-        user: "User", remain: "Remaining", expiry: "Expiry Date", expired: "Expired", invalid: "Invalid date"
+        remain: "Remaining", expiry: "Expiry Date", expired: "Expired", invalid: "Invalid date"
       },
       "vi": {
         title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
@@ -267,7 +267,7 @@
         labelOutput: "Ngôn ngữ đầu ra", rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
         rewriting: "⏳ Đang viết lại", topics: ["AI Tự Động Nhận", "Phát Triển Bản Thân", "Câu Chuyện Cảm Động", "Sức Khỏe & Dinh Dưỡng", "Cơ Hội & Tài Chính"],
         outputs: ["Tiếng Phồn Thể", "Tiếng Giản Thể", "Tiếng Anh", "Tiếng Việt"],
-        user: "Người dùng", remain: "Còn lại", expiry: "Ngày hết hạn", expired: "Hết hạn", invalid: "Không hợp lệ"
+        remain: "Còn lại", expiry: "Ngày hết hạn", expired: "Hết hạn", invalid: "Không hợp lệ"
       }
     };
 
@@ -316,13 +316,13 @@
           const days = calcDaysLeft(res.expiryDate);
           const danger = typeof days === "number" && days <= 3;
           infoDiv.innerHTML = `
-            <div class="name">👤 ${map.user}：${displayName}</div>
+            <div class="name">${map.user}：${displayName}</div>
             <div class="daysWrapper ${danger ? "danger" : ""}">${map.remain}：${typeof days === "number" ? days + " 天" : map.invalid}</div>
             <div class="expiry">${map.expiry}：${formatTaipeiDate(res.expiryDate)}</div>
           `;
           resultDiv.innerHTML = ""; document.getElementById("rewriteBtn").disabled = false;
         } else {
-          infoDiv.innerHTML = `<div class="name">👤 ${map.user}：${displayName}</div><div class="daysWrapper">⛔ 無權限</div>`;
+          infoDiv.innerHTML = `<div class="name">${map.user}：${displayName}</div><div class="daysWrapper">⛔ 無權限</div>`;
           resultDiv.innerHTML = `<div class="error">❌ 無使用權限</div>`;
         }
       };
