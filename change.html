@@ -23,51 +23,49 @@
     <button type="submit">送出</button>
   </form>
 
-  <script>
-    document.getElementById('date').value = new Date().toISOString().slice(0, 10);
-
-    function jsonpRequest(url, callbackName) {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        window[callbackName] = function(data) {
-          resolve(data);
-          document.body.removeChild(script);
-          delete window[callbackName];
-        };
-        script.src = url;
-        script.onerror = reject;
-        document.body.appendChild(script);
-      });
+ <script>
+  function handleResponse(res) {
+    if(res.status === "success"){
+      alert("✅ 資料已成功送出！");
+    } else {
+      alert("❌ 發生錯誤：" + res.message);
     }
+  }
 
-    document.getElementById('infoForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
+  function sendData() {
+    const data = {
+      pageId: document.getElementById('pageId').value,
+      name: document.getElementById('name').value,
+      date: document.getElementById('date').value,
+      lineId: document.getElementById('lineId').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value
+    };
 
-      const data = {
-        pageId: encodeURIComponent(document.getElementById('pageId').value),
-        name: encodeURIComponent(document.getElementById('name').value),
-        date: encodeURIComponent(document.getElementById('date').value),
-        lineId: encodeURIComponent(document.getElementById('lineId').value),
-        phone: encodeURIComponent(document.getElementById('phone').value),
-        email: encodeURIComponent(document.getElementById('email').value)
-      };
+    // 建立 URL 參數字串
+    const params = new URLSearchParams(data);
+    params.append('callback', 'handleResponse');
 
-      // 組合 URL，包含 callback 參數（JSONP）
-      const callbackName = 'handleResponse';
-      const params = Object.keys(data).map(k => `${k}=${data[k]}`).join('&');
-      const url = `https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?${params}&callback=${callbackName}`;
+    // 建立 script 標籤
+    const script = document.createElement('script');
+    script.src = SCRIPT_URL + "?" + params.toString();
 
-      try {
-        const res = await jsonpRequest(url, callbackName);
-        if (res.status === "success") {
-          alert("✅ 資料已成功送出！");
-        } else {
-          alert("❌ 發生錯誤：" + res.message);
-        }
-      } catch (error) {
-        alert("⚠️ JSONP 請求失敗：" + error);
-      }
-    });
-  </script>
+    // 插入到 body
+    document.body.appendChild(script);
+
+    // 選擇移除 script 標籤以免累積
+    script.onload = () => document.body.removeChild(script);
+    script.onerror = () => {
+      alert("⚠️ JSONP 請求失敗");
+      document.body.removeChild(script);
+    };
+  }
+
+  document.getElementById('infoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    sendData();
+  });
+</script>
+
 </body>
 </html>
