@@ -203,6 +203,7 @@
   </style>
 </head>
 <body>
+
   <main class="card">
     <select id="langSelect" onchange="changeLang()">
       <option value="zh-Hant">繁體中文</option>
@@ -231,187 +232,254 @@
   </main>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-Vb5Nrpg2";
-    let liffUserId = "", hasPermission = false, lastRewrite = {}, currentLang = "zh-Hant";
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
+  const LIFF_ID = "2007475335-Vb5Nrpg2";
+  let liffUserId = "", hasPermission = false, lastRewrite = {}, currentLang = "zh-Hant";
 
-    const langMap = {
-      "zh-Hant": {
-        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
-        placeholder: "請貼上原始文章...", labelTopic: "選擇分類主題『可AI自動判斷』",
-        labelOutput: "輸出語言", rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
-        rewriting: "⏳ 改寫中", topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"],
-        outputs: ["繁體中文", "簡體中文", "英文", "越南文"],
-        remain: "剩餘日", expiry: "到期日", expired: "已過期", invalid: "無效日期"
+  const langMap = {
+    "zh-Hant": {
+      title: "📘 『彥彬 文案改寫』",
+      subtitle: "✍️ 自動改寫 + 翻譯",
+      placeholder: "請貼上原始文章...",
+      labelTopic: "選擇分類主題『可AI自動判斷』",
+      labelOutput: "輸出語言",
+      rewriteBtn: "🚀 自動改寫 + 翻譯",
+      shareBtn: "📤 分享文案",
+      rewriting: "⏳ 改寫中",
+      noPermission: "⛔ 尚未開通使用權限",
+      expired: "已過期",
+      invalid: "無效日期",
+      labels: {
+        user: "使用者",
+        days: "剩餘日",
+        expiry: "到期日"
       },
-      "zh-Hans": {
-        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
-        placeholder: "请粘贴原始文章...", labelTopic: "选择分类主题『可AI自动判断』",
-        labelOutput: "输出语言", rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
-        rewriting: "⏳ 改写中", topics: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"],
-        outputs: ["繁體中文", "简体中文", "英文", "越南文"],
-        remain: "剩余日", expiry: "到期日", expired: "已过期", invalid: "无效日期"
+      topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"],
+      outputs: ["繁體中文", "簡體中文", "英文", "越南文"]
+    },
+    "zh-Hans": {
+      title: "📘 『彦彬 文案改写』",
+      subtitle: "✍️ 自动改写 + 翻译",
+      placeholder: "请粘贴原始文章...",
+      labelTopic: "选择分类主题『可AI自动判断』",
+      labelOutput: "输出语言",
+      rewriteBtn: "🚀 自动改写 + 翻译",
+      shareBtn: "📤 分享文案",
+      rewriting: "⏳ 改写中",
+      noPermission: "⛔ 尚未开通使用权限",
+      expired: "已过期",
+      invalid: "无效日期",
+      labels: {
+        user: "使用者",
+        days: "剩余日",
+        expiry: "到期日"
       },
-      "en": {
-        title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
-        placeholder: "Paste your original text here...", labelTopic: "Choose topic (or let AI decide)",
-        labelOutput: "Output Language", rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
-        rewriting: "⏳ Rewriting", topics: ["AI Auto-Detect", "Personal Growth", "Emotional Stories", "Health & Wellness", "Wealth & Opportunities"],
-        outputs: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
-        remain: "Remaining", expiry: "Expiry Date", expired: "Expired", invalid: "Invalid date"
+      topics: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"],
+      outputs: ["繁體中文", "简体中文", "英文", "越南文"]
+    },
+    "en": {
+      title: "📘 'Yanbin Rewriter'",
+      subtitle: "✍️ Rewrite + Translate Automatically",
+      placeholder: "Paste your original text here...",
+      labelTopic: "Choose topic (or let AI decide)",
+      labelOutput: "Output Language",
+      rewriteBtn: "🚀 Rewrite + Translate",
+      shareBtn: "📤 Share Copy",
+      rewriting: "⏳ Rewriting",
+      noPermission: "⛔ Access not granted",
+      expired: "Expired",
+      invalid: "Invalid Date",
+      labels: {
+        user: "User",
+        days: "Days Left",
+        expiry: "Expiry Date"
       },
-      "vi": {
-        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
-        placeholder: "Vui lòng dán văn bản gốc...", labelTopic: "Chọn chủ đề (hoặc AI tự động)",
-        labelOutput: "Ngôn ngữ đầu ra", rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
-        rewriting: "⏳ Đang viết lại", topics: ["AI Tự Động Nhận", "Phát Triển Bản Thân", "Câu Chuyện Cảm Động", "Sức Khỏe & Dinh Dưỡng", "Cơ Hội & Tài Chính"],
-        outputs: ["Tiếng Phồn Thể", "Tiếng Giản Thể", "Tiếng Anh", "Tiếng Việt"],
-        remain: "Còn lại", expiry: "Ngày hết hạn", expired: "Hết hạn", invalid: "Không hợp lệ"
+      topics: ["AI Auto-Detect", "Personal Growth", "Emotional Stories", "Health & Wellness", "Wealth & Opportunities"],
+      outputs: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"]
+    },
+    "vi": {
+      title: "📘 'Yanbin Viết lại văn bản'",
+      subtitle: "✍️ Viết lại và Dịch tự động",
+      placeholder: "Vui lòng dán văn bản gốc...",
+      labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+      labelOutput: "Ngôn ngữ đầu ra",
+      rewriteBtn: "🚀 Viết lại + Dịch",
+      shareBtn: "📤 Chia sẻ",
+      rewriting: "⏳ Đang viết lại",
+      noPermission: "⛔ Chưa có quyền truy cập",
+      expired: "Đã hết hạn",
+      invalid: "Ngày không hợp lệ",
+      labels: {
+        user: "Người dùng",
+        days: "Số ngày còn lại",
+        expiry: "Ngày hết hạn"
+      },
+      topics: ["AI Tự Động Nhận", "Phát Triển Bản Thân", "Câu Chuyện Cảm Động", "Sức Khỏe & Dinh Dưỡng", "Cơ Hội & Tài Chính"],
+      outputs: ["Tiếng Phồn Thể", "Tiếng Giản Thể", "Tiếng Anh", "Tiếng Việt"]
+    }
+  };
+
+  function changeLang() {
+    currentLang = document.getElementById('langSelect').value;
+    const map = langMap[currentLang];
+
+    document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+    document.querySelector('#originalText').placeholder = map.placeholder;
+    document.querySelector('#labelTopic').textContent = map.labelTopic;
+    document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+    document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+    document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+    const topicSelect = document.getElementById('topicSelect');
+    topicSelect.innerHTML = "";
+    map.topics.forEach(topic => {
+      const option = document.createElement("option");
+      option.value = topic;
+      option.textContent = topic;
+      topicSelect.appendChild(option);
+    });
+
+    const outputSelect = document.getElementById('outputLangSelect');
+    outputSelect.innerHTML = "";
+    map.outputs.forEach(output => {
+      const option = document.createElement("option");
+      option.value =
+        output.includes("繁") ? "zh-Hant" :
+        output.includes("简") ? "zh-Hans" :
+        output.includes("Anh") || output === "English" ? "en" :
+        output.includes("越") || output === "Tiếng Việt" ? "vi" : output;
+      option.textContent = output;
+      outputSelect.appendChild(option);
+    });
+
+    // 更新權限顯示
+    if (hasPermission) checkPermission(liffUserId);
+  }
+
+  window.onload = async () => {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) return liff.login();
+    const profile = await liff.getProfile();
+    const idToken = liff.getDecodedIDToken();
+    liffUserId = idToken?.sub || profile?.userId || "";
+    checkPermission(liffUserId, profile?.displayName || "使用者");
+    document.getElementById("originalText").addEventListener("input", () => {
+      document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
+    });
+    changeLang();
+  };
+
+  function checkPermission(userId, displayName = "使用者") {
+    const lang = currentLang;
+    const map = langMap[lang];
+    const infoDiv = document.getElementById("userInfo");
+    const resultDiv = document.getElementById("rewriteResult");
+
+    window.handlePermission = res => {
+      if (res?.auth) {
+        hasPermission = true;
+        const days = calcDaysLeft(res.expiryDate);
+        const danger = typeof days === "number" && days <= 3;
+        infoDiv.innerHTML = `
+          <div class="name">👤 ${map.labels.user}：${displayName}</div>
+          <div class="daysWrapper ${danger ? "danger" : ""}">${map.labels.days}：${typeof days === "number" ? days + " 天" : map.invalid}</div>
+          <div class="expiry">${map.labels.expiry}：${formatTaipeiDate(res.expiryDate)}</div>
+        `;
+        resultDiv.innerHTML = "";
+        document.getElementById("rewriteBtn").disabled = false;
+      } else {
+        infoDiv.innerHTML = `<div class="name">👑 ${map.labels.user}：${displayName}</div><div class="daysWrapper">❌ ${map.noPermission}</div>`;
+        resultDiv.innerHTML = `<div class="error">⛔ ${map.noPermission}</div>`;
       }
     };
 
-    function changeLang() {
-      currentLang = document.getElementById('langSelect').value;
-      const map = langMap[currentLang];
-
-      document.getElementById("headerTitle").innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.getElementById("originalText").placeholder = map.placeholder;
-      document.getElementById("labelTopic").textContent = map.labelTopic;
-      document.getElementById("labelOutputLang").textContent = map.labelOutput;
-      document.getElementById("rewriteBtn").textContent = map.rewriteBtn;
-      document.getElementById("shareBtn").textContent = map.shareBtn;
-
-      const topicSelect = document.getElementById("topicSelect");
-      topicSelect.innerHTML = "";
-      map.topics.forEach(topic => {
-        const option = document.createElement("option");
-        option.value = topic;
-        option.textContent = topic;
-        topicSelect.appendChild(option);
-      });
-
-      const outputLangSelect = document.getElementById("outputLangSelect");
-      outputLangSelect.innerHTML = "";
-      map.outputs.forEach(label => {
-        const val = label.includes("繁") ? "zh-Hant" :
-                    label.includes("简") || label.includes("Giản") ? "zh-Hans" :
-                    label.includes("English") || label.includes("Anh") ? "en" : "vi";
-        const option = document.createElement("option");
-        option.value = val;
-        option.textContent = label;
-        outputLangSelect.appendChild(option);
-      });
-
-      if (hasPermission) checkPermission(liffUserId);
-    }
-
-    function checkPermission(userId, displayName = "") {
-      const map = langMap[currentLang];
-      window.handlePermission = res => {
-        const infoDiv = document.getElementById("userInfo");
-        const resultDiv = document.getElementById("rewriteResult");
-        if (res?.auth) {
-          hasPermission = true;
-          const days = calcDaysLeft(res.expiryDate);
-          const danger = typeof days === "number" && days <= 3;
-          infoDiv.innerHTML = `
-            <div class="name">${map.user}：${displayName}</div>
-            <div class="daysWrapper ${danger ? "danger" : ""}">${map.remain}：${typeof days === "number" ? days + " 天" : map.invalid}</div>
-            <div class="expiry">${map.expiry}：${formatTaipeiDate(res.expiryDate)}</div>
-          `;
-          resultDiv.innerHTML = ""; document.getElementById("rewriteBtn").disabled = false;
-        } else {
-          infoDiv.innerHTML = `<div class="name">${map.user}：${displayName}</div><div class="daysWrapper">⛔ 無權限</div>`;
-          resultDiv.innerHTML = `<div class="error">❌ 無使用權限</div>`;
-        }
-      };
-      const s = document.createElement("script");
-      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-      document.body.appendChild(s);
-    }
-
-    function calcDaysLeft(dateStr) {
-      const d = new Date(dateStr.trim()), now = new Date();
-      const diff = Math.floor((d - now) / (1000 * 60 * 60 * 24));
-      return isNaN(diff) ? null : diff < 0 ? 0 : diff;
-    }
-
-    function formatTaipeiDate(dateStr) {
-      const d = new Date(dateStr.trim());
-      return isNaN(d.getTime()) ? "" : d.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Taipei' });
-    }
-
-    function autoRewrite() {
-      const map = langMap[currentLang];
-      const text = document.getElementById("originalText").value.trim();
-      const topic = document.getElementById("topicSelect").value;
-      const outputLang = document.getElementById("outputLangSelect").value;
-      const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-      if (!text || btn.disabled || !liffUserId || !hasPermission) return;
-
-      btn.disabled = true;
-      btn.textContent = map.rewriteBtn + "...";
-      shareBtn.style.display = "none";
-      resultDiv.innerHTML = `
-        <span class="rewrite-loading">${map.rewriting}
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </span>`;
-
-      window.handleResponse = res => {
-        btn.disabled = false;
-        btn.textContent = map.rewriteBtn;
-        if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-          return;
-        }
-        let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
-        let output = "";
-        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-        output += `📝 改寫內容：\n${content}`;
-        resultDiv.textContent = output;
-        lastRewrite = { title: res.title || "", content };
-        shareBtn.style.display = content.trim() ? "block" : "none";
-      };
-
-      const old = document.getElementById("jsonpScript");
-      if (old) old.remove();
-      const script = document.createElement("script");
-      script.id = "jsonpScript";
-      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
-      script.onerror = () => {
-        btn.disabled = false;
-        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
-      };
-      document.body.appendChild(script);
-    }
-
-    function nativeShare() {
-      if (!lastRewrite.content.trim()) return alert("內容為空，無法分享。");
-      const shareData = {
-        title: lastRewrite.title || "文案改寫分享",
-        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
-      };
-      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
-      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
-    }
-
-    window.onload = async () => {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) return liff.login();
-      const profile = await liff.getProfile();
-      const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile?.userId || "";
-      changeLang();
-      checkPermission(liffUserId, profile.displayName || "使用者");
-      document.getElementById("originalText").addEventListener("input", () => {
-        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
-      });
+    const script = document.createElement("script");
+    script.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+    script.onerror = () => {
+      resultDiv.innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
     };
-  </script>
+    document.body.appendChild(script);
+  }
+
+  function calcDaysLeft(dateStr) {
+    const d = new Date(dateStr.trim()), now = new Date();
+    const diff = Math.floor((d - now) / (1000 * 60 * 60 * 24));
+    return isNaN(diff) ? null : diff < 0 ? langMap[currentLang].expired : diff;
+  }
+
+  function formatTaipeiDate(dateStr) {
+    const d = new Date(dateStr.trim());
+    return isNaN(d.getTime()) ? langMap[currentLang].invalid : d.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Taipei' });
+  }
+
+  function autoRewrite() {
+    const text = document.getElementById("originalText").value.trim();
+    const topic = document.getElementById("topicSelect").value;
+    const outputLang = document.getElementById("outputLangSelect").value;
+    const resultDiv = document.getElementById("rewriteResult");
+    const btn = document.getElementById("rewriteBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    if (!text || btn.disabled || !liffUserId || !hasPermission) return;
+
+    const lang = document.getElementById('langSelect').value;
+    btn.disabled = true;
+    btn.textContent = langMap[lang].rewriteBtn + "...";
+    shareBtn.style.display = "none";
+
+    // 用 HTML + CSS 動畫替代原本文字點點
+    resultDiv.innerHTML = `
+      <span class="rewrite-loading">
+        ${langMap[lang].rewriting}
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </span>
+    `;
+
+    window.handleResponse = res => {
+      btn.disabled = false;
+      btn.textContent = langMap[lang].rewriteBtn;
+      if (res.error) {
+        resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
+        return;
+      }
+      let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
+      let output = "";
+      if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+      if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+      output += `📝 改寫內容：\n${content}`;
+      resultDiv.textContent = output;
+      lastRewrite = { title: res.title || "", content };
+      shareBtn.style.display = content.trim() ? "block" : "none";
+    };
+
+    const old = document.getElementById("jsonpScript");
+    if (old) old.remove();
+    const script = document.createElement("script");
+    script.id = "jsonpScript";
+    script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
+    script.onerror = () => {
+      btn.disabled = false;
+      resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+    };
+    document.body.appendChild(script);
+  }
+
+  function nativeShare() {
+    if (!lastRewrite.content.trim()) {
+      alert("內容為空，無法分享。");
+      return;
+    }
+    const shareData = {
+      title: lastRewrite.title || "文案改寫分享",
+      text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
+    };
+    if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
+    else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
+  }
+</script>
+
 </body>
 
 </html>
