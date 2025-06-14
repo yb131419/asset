@@ -299,16 +299,41 @@
   }
     };
 
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh-Hant'];
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.labelTopic;
-      document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
-    }
+function changeLang() {
+  const lang = document.getElementById('langSelect').value;
+  const map = langMap[lang] || langMap['zh-Hant'];
+
+  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+  document.querySelector('#originalText').placeholder = map.placeholder;
+  document.querySelector('#labelTopic').textContent = map.labelTopic;
+  document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+  document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+  // 更新 topicSelect 選項
+  const topicSelect = document.getElementById('topicSelect');
+  topicSelect.innerHTML = ""; // 清空原本選項
+  map.topics.forEach(topic => {
+    const option = document.createElement('option');
+    option.value = topic;
+    option.textContent = topic;
+    topicSelect.appendChild(option);
+  });
+
+  // 更新 outputLangSelect 選項
+  const outputLangSelect = document.getElementById('outputLangSelect');
+  outputLangSelect.innerHTML = "";
+  map.outputs.forEach(output => {
+    const option = document.createElement('option');
+    option.value = output === "繁體中文" ? "zh-Hant" :
+                   output === "简体中文" ? "zh-Hans" :
+                   output === "English" ? "en" :
+                   output === "Tiếng Việt" ? "vi" : output;
+    option.textContent = output;
+    outputLangSelect.appendChild(option);
+  });
+}
+
 
     window.onload = async () => {
       await liff.init({ liffId: LIFF_ID });
