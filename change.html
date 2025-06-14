@@ -3,69 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSONP 跨域請求示範</title>
+  <title>JSONP 範例</title>
 </head>
 <body>
-  <h2>JSONP 跨域請求示範</h2>
-
   <form id="infoForm">
     <input type="hidden" id="pageId" value="Page_001" />
     <label>姓名：</label><br>
     <input type="text" id="name" required /><br><br>
+
     <label>日期：</label><br>
-    <input type="text" id="date" readonly /><br><br>
-    <label>LINE ID：</label><br>
-    <input type="text" id="lineId" /><br><br>
+    <input type="text" id="date" readonly value="" /><br><br>
+
+    <label>Line ID：</label><br>
+    <input type="text" id="lineId" readonly value="LineUserId123" /><br><br>
+
     <label>電話：</label><br>
     <input type="tel" id="phone" /><br><br>
+
     <label>信箱：</label><br>
     <input type="email" id="email" /><br><br>
+
     <button type="submit">送出</button>
   </form>
 
-<script>
-  // 先定義
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
+  <script>
+    // 先宣告 URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
 
-  function handleResponse(res) {
-    if(res.status === "success"){
-      alert("✅ 資料已成功送出！");
-    } else {
-      alert("❌ 發生錯誤：" + res.message);
+    // 預設日期
+    document.getElementById('date').value = new Date().toISOString().slice(0,10);
+
+    // JSONP 回傳函式
+    function handleResponse(response) {
+      if (response.status === "success") {
+        alert("✅ 資料已成功送出！");
+      } else {
+        alert("❌ 發生錯誤：" + response.message);
+      }
     }
-  }
 
-  function sendData() {
-    const data = {
-      pageId: document.getElementById('pageId').value,
-      name: document.getElementById('name').value,
-      date: document.getElementById('date').value,
-      lineId: document.getElementById('lineId').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value
-    };
+    // 送出資料函式
+    function sendData() {
+      const data = {
+        pageId: document.getElementById('pageId').value,
+        name: document.getElementById('name').value,
+        date: document.getElementById('date').value,
+        lineId: document.getElementById('lineId').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value
+      };
 
-    const params = new URLSearchParams(data);
-    params.append('callback', 'handleResponse');
+      // 把 data 轉成 URL 參數字串
+      const params = new URLSearchParams(data);
+      params.append('callback', 'handleResponse');
 
-    const script = document.createElement('script');
-    script.src = SCRIPT_URL + "?" + params.toString();
+      // 動態插入 <script> 標籤進行 JSONP 請求
+      const script = document.createElement('script');
+      script.src = SCRIPT_URL + "?" + params.toString();
 
-    document.body.appendChild(script);
+      document.body.appendChild(script);
 
-    script.onload = () => document.body.removeChild(script);
-    script.onerror = () => {
-      alert("⚠️ JSONP 請求失敗");
-      document.body.removeChild(script);
-    };
-  }
+      script.onload = () => document.body.removeChild(script);
+      script.onerror = () => {
+        alert("⚠️ JSONP 請求失敗");
+        document.body.removeChild(script);
+      };
+    }
 
-  document.getElementById('infoForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    sendData();
-  });
-</script>
-
-
+    // 監聽表單送出事件
+    document.getElementById('infoForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      sendData();
+    });
+  </script>
 </body>
 </html>
