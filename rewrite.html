@@ -6,7 +6,12 @@
   <meta name="theme-color" content="#1e1e1e" />
   <title>彥彬 ✍️文案改寫</title>
   <style>
-    /* --- Reset & Base --- */
+
+    #labelTopic {
+  white-space: pre-line;
+}
+
+
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
       padding: 24px;
@@ -33,7 +38,6 @@
       flex-direction: column;
       position: relative;
     }
-
 #langSelect {
   position: absolute;
   top: 24px;
@@ -53,131 +57,127 @@
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
-#langSelect:hover {
-  background: #555;
-}
+    #langSelect:hover { background: #444; }
 
     #userInfo { margin-bottom: 18px; text-align: center; }
     #userInfo .name {
-      font-size: 24px; font-weight: 800; color: #fff;
-      margin-bottom: 8px;
+      font-size: 24px; font-weight: 800; color: #ffffff; margin-bottom: 8px;
       text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,255,255,0.4);
     }
     .daysWrapper {
       display: inline-block; padding: 8px 20px; border-radius: 20px;
-      background: linear-gradient(135deg, #fff, #e0e0e0);
-      color: #111; font-size: 22px; font-weight: 700;
       box-shadow: 0 0 14px rgba(255,255,255,0.9), inset 0 0 10px rgba(0,0,0,0.1);
+      background: linear-gradient(135deg, #ffffff, #e0e0e0);
+      color: #111; font-size: 22px; font-weight: 700;
     }
     .daysWrapper.danger {
       background: linear-gradient(135deg, #ffb6b9, #ff6f61);
       color: #fff0f0;
-      border: 1px solid rgba(255,192,203,0.4);
-      box-shadow: 0 0 14px rgba(255,182,193,0.6), inset 0 0 12px rgba(255,255,255,0.08);
       text-shadow: 0 0 6px rgba(255,182,193,0.6);
+      box-shadow:
+        0 0 14px rgba(255,182,193,0.6),
+        inset 0 0 12px rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,192,203,0.4);
     }
     #userInfo .expiry {
-      display: block; font-size: 15px; color: #ddd;
-      margin-top: 6px; letter-spacing: 0.04em;
+      font-size: 15px; color: #dddddd; margin-top: 6px;
+      display: block; letter-spacing: 0.04em;
       text-shadow: 0 0 6px rgba(255,255,255,0.3);
     }
-    /* --- Headings --- */
     h2 {
-      margin-bottom: 24px; font-size: 24px; font-weight:700;
-      text-align: center; line-height:1.3;
-      color: #fafafa;
-      letter-spacing: 0.05em;
+      margin-bottom: 24px; color: #fafafa; font-weight: 700;
+      font-size: 24px; line-height: 1.3;
+      text-align: center; letter-spacing: 0.05em;
       text-shadow: 0 0 8px #4a90e2, 0 0 18px #4a90e2;
     }
     h2 small {
-      display: block; font-size:14px; font-weight:400;
-      color: #99aabb; margin-top:4px; line-height:1.2;
+      display: block; font-weight: 400; font-size: 14px;
+      color: #99aabb; margin-top: 4px; line-height: 1.2;
     }
-    /* --- Form Elements --- */
     textarea {
-      width:100%; font-size:16px; line-height:1.5;
-      padding:16px 18px; border:none; border-radius:12px;
-      background:#222831; color:#f5f5f5;
+      font-size: 16px; line-height: 1.5; padding: 16px 18px;
+      border-radius: 12px; border: none; resize: vertical;
+      min-height: 140px; background: #222831; color: #f5f5f5;
       box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
-      margin-bottom:20px; resize: vertical;
-      transition:box-shadow 0.3s ease;
-      letter-spacing:0.03em;
-      min-height:140px;
+      transition: box-shadow 0.3s ease; margin-bottom: 20px;
+      letter-spacing: 0.03em;
     }
     textarea:focus {
-      outline:none;
-      background:#1e272e;
+      outline: none;
       box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
-      color:#dcdde1;
+      background: #1e272e; color: #dcdde1;
     }
-    label { display:block; margin-bottom:8px;
-      font-weight:600; letter-spacing:0.04em;
-      color:#dcdcdc; text-shadow:0 0 4px rgba(0,0,0,0.3);
+    label {
+      font-weight: 600; margin-bottom: 8px; display: block;
+      letter-spacing: 0.04em; color: #dcdcdc;
+      text-shadow: 0 0 4px rgba(0,0,0,0.3);
     }
     select, button {
-      width:100%; font-size:16px; padding:12px;
-      border:none; border-radius:12px;
-      margin-bottom:24px; letter-spacing:0.03em;
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 12px; border: none;
+      margin-bottom: 24px;
+      width: 100%;
+      letter-spacing: 0.03em;
     }
     select {
-      background:#222831; color:#f0f0f0; cursor:pointer;
+      background: #222831; color: #f0f0f0;
+      cursor: pointer;
       box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
-      transition:box-shadow 0.3s ease;
+      transition: box-shadow 0.3s ease;
     }
     select:hover, select:focus {
-      background:#1e272e;
+      outline: none;
       box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
-      outline:none;
+      background: #1e272e;
     }
     button {
-      font-weight:600; color:#fff;
-      background: linear-gradient(135deg,#4a90e2,#357ABD);
-      text-shadow:0 0 4px rgba(0,0,0,0.4);
-      cursor:pointer;
-      box-shadow:0 6px 12px rgba(74,144,226,0.6);
-      transition:background 0.3s ease, box-shadow 0.3s ease;
-      padding:14px 26px;
+      font-weight: 600; font-size: 17px;
+      padding: 14px 26px; cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 6px 12px rgba(74,144,226,0.6);
+      color: #fff;
+      background: linear-gradient(135deg, #4a90e2, #357ABD);
+      text-shadow: 0 0 4px rgba(0,0,0,0.4);
+      margin-bottom: 14px;
     }
     button:hover:not(:disabled) {
-      background:linear-gradient(135deg,#5aa0ff,#4d83e1);
-      box-shadow:0 8px 18px rgba(74,144,226,0.8);
+      background: linear-gradient(135deg, #5aa0ff, #4d83e1);
+      box-shadow: 0 8px 18px rgba(74,144,226,0.8);
     }
     button:disabled {
-      background:#444; cursor:not-allowed; opacity:0.7;
-      box-shadow:none;
+      background: #444444; cursor: not-allowed; opacity: 0.7; box-shadow: none;
     }
     #shareBtn {
-      display:none;
-      background:linear-gradient(135deg,#27ae60,#2ecc71);
-      color:#f0f9f1;
-      text-shadow:0 0 5px rgba(0,0,0,0.5);
-      box-shadow:0 6px 14px rgba(39,174,96,0.7);
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      box-shadow: 0 6px 14px rgba(39,174,96,0.7);
+      display: none;
+      color: #f0f9f1;
+      text-shadow: 0 0 5px rgba(0,0,0,0.5);
     }
     #shareBtn:hover {
-      background:linear-gradient(135deg,#3acf7d,#47d88d);
-      box-shadow:0 9px 22px rgba(39,174,96,0.9);
+      background: linear-gradient(135deg, #3acf7d, #47d88d);
+      box-shadow: 0 9px 22px rgba(39,174,96,0.9);
     }
     #rewriteResult {
-      margin-bottom:10px;
-      white-space:pre-wrap;
-      font-size:16px; line-height:1.6;
-      background:#181818; border-radius:14px;
-      padding:20px; color:#ccc;
+      white-space: pre-wrap; font-size: 16px; line-height: 1.6;
+      background: #181818; border-radius: 14px; padding: 20px;
+      min-height: 140px; color: #ccc;
       box-shadow: inset 0 0 12px #222222;
-      letter-spacing:0.03em;
-      min-height:140px;
+      letter-spacing: 0.03em;
     }
-    .error { color:#ff6b6b; font-weight:700;
-      text-shadow:0 0 8px rgba(255,107,107,0.6);
+    .error {
+      color: #ff6b6b; font-weight: 700;
+      text-shadow: 0 0 8px rgba(255,107,107,0.6);
     }
   </style>
 </head>
 <body>
+
   <main class="card">
     <select id="langSelect" onchange="changeLang()">
-      <option value="zh">繁體中文</option>
-      <option value="zh-CN">简体中文</option>
+      <option value="zh-Hant">繁體中文</option>
+      <option value="zh-Hans">简体中文</option>
       <option value="en">English</option>
       <option value="vi">Tiếng Việt</option>
     </select>
@@ -245,145 +245,155 @@
       }
     };
 
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap.zh;
-      document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : (lang === 'zh-CN'? 'zh-Hans': lang);
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.label;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
-      const topicSelect = document.getElementById('topicSelect');
-      topicSelect.innerHTML = '';
-      map.topics.forEach((txt, idx)=>{
-        const opt = document.createElement('option');
-        opt.value = idx===0?'':txt;
-        opt.textContent = txt;
-        topicSelect.appendChild(opt);
-      });
-    }
 
-    document.addEventListener('DOMContentLoaded', changeLang);
+function changeLang() {
+  const lang = document.getElementById('langSelect').value;
+  const map = langMap[lang] || langMap['zh-Hant'];
 
+  // 更新各項文字
+  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+  document.querySelector('#originalText').placeholder = map.placeholder;
+  document.querySelector('#labelTopic').textContent = map.label;
+  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+  document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+  // 更新「分類主題」下拉選單
+  const topicSelect = document.getElementById('topicSelect');
+  topicSelect.innerHTML = "";  // 先清空
+  map.topics.forEach((text, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx === 0 ? "" : text;  // 第一個為空值
+    opt.textContent = text;
+    topicSelect.appendChild(opt);
+  });
+}
+
+
+    // LIFF & 改寫邏輯整合
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
     const LIFF_ID = "2007475335-Vb5Nrpg2";
-    let liffUserId = '', hasPermission=false, lastRewrite={}, loadingInterval=null;
+    let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval = null;
 
-    window.onload = async()=>{
-      await liff.init({liffId: LIFF_ID});
-      if(!liff.isLoggedIn()) return liff.login();
+    window.onload = async () => {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) return liff.login();
       const profile = await liff.getProfile();
       const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile.userId;
-      checkPermission(liffUserId, profile.displayName);
-      document.getElementById('originalText').addEventListener('input', ()=>{
-        document.getElementById('rewriteBtn').disabled = !(hasPermission && originalText.value.trim().length>=8);
+      liffUserId = idToken?.sub || profile?.userId || "";
+      checkPermission(liffUserId, profile?.displayName || "使用者");
+      document.getElementById("originalText").addEventListener("input", () => {
+        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
       });
     };
 
-    function checkPermission(userId, displayName='使用者'){
-      window.handlePermission = function(res){
-        const infoDiv = document.getElementById('userInfo');
-        const resultDiv = document.getElementById('rewriteResult');
-        if(res?.auth){
-          hasPermission=true;
+    function checkPermission(userId, displayName = "使用者") {
+      window.handlePermission = function (res) {
+        const infoDiv = document.getElementById("userInfo");
+        const resultDiv = document.getElementById("rewriteResult");
+        if (res?.auth) {
+          hasPermission = true;
           const days = calcDaysLeft(res.expiryDate);
-          const danger = typeof days==='number' && days<=3;
+          const isDanger = typeof days === "number" && days <= 3;
           infoDiv.innerHTML = `
             <div class="name"> 使用者：${displayName}</div>
             <div class="daysWrapper ${isDanger ? "danger" : ""}"> 剩餘日：${typeof days === "number" ? days + " 天" : days}</div>
             <div class="expiry"> 到期日：${formatTaipeiDate(res.expiryDate)}</div>
           `;
-          resultDiv.innerHTML='';
-          document.getElementById('rewriteBtn').disabled=false;
+          resultDiv.innerHTML = "";
+          document.getElementById("rewriteBtn").disabled = false;
         } else {
-          infoDiv.innerHTML=`<div class="name">👑 ${displayName}</div><div class="daysWrapper">無權限</div>`;
-          resultDiv.innerHTML=`<div class="error">⛔ 尚未開通使用權限</div>`;
+          infoDiv.innerHTML = `<div class="name">👑 使用者：${displayName}</div><div class="daysWrapper">無權限</div>`;
+          resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
         }
       };
-      const s=document.createElement('script');
-      s.src=`${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-      s.onerror=()=>document.getElementById('rewriteResult').innerHTML=`<div class="error">❌ 權限驗證失敗</div>`;
+      const s = document.createElement("script");
+      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+      s.onerror = () => document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
       document.body.appendChild(s);
     }
 
-    function calcDaysLeft(dateStr){
-      const d=new Date(dateStr), now=new Date();
-      const diff=Math.floor((d-now)/(1000*60*60*24));
-      return isNaN(diff)?'無效日期': diff<0?'已過期': diff===0?0: diff;
-    }
-    function formatTaipeiDate(dStr){
-      const d=new Date(dStr);
-      return isNaN(d)?'無效日期': d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
+    function calcDaysLeft(dateStr) {
+      const d = new Date(dateStr.trim()), now = new Date();
+      const diff = Math.floor((d - now) / (1000 * 60 * 60 * 24));
+      return isNaN(diff) ? "無效日期" : diff < 0 ? "已過期" : diff === 0 ? 0 : diff;
     }
 
-    function autoRewrite(){
-      const text=document.getElementById('originalText').value.trim();
-      const topic=document.getElementById('topicSelect').value;
-      if(!text||document.getElementById('rewriteBtn').disabled) return;
-      if(!liffUserId||!hasPermission){
-        document.getElementById('rewriteResult').innerHTML=`<div class="error">⚠️ 尚未登入或無權限。</div>`;
+    function formatTaipeiDate(dateStr) {
+      const d = new Date(dateStr.trim());
+      return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Taipei' });
+    }
+
+    function autoRewrite() {
+      const text = document.getElementById("originalText").value.trim();
+      const topic = document.getElementById("topicSelect").value;
+      const resultDiv = document.getElementById("rewriteResult");
+      const btn = document.getElementById("rewriteBtn");
+      const shareBtn = document.getElementById("shareBtn");
+
+      if (!text || btn.disabled) return;
+      if (!liffUserId || !hasPermission) {
+        resultDiv.innerHTML = `<div class="error">⚠️ 尚未登入或無權限。</div>`;
         return;
       }
-      const btn=document.getElementById('rewriteBtn');
-      const shareBtn=document.getElementById('shareBtn');
-      btn.disabled=true;
-      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + '...';
-      shareBtn.style.display='none';
-      const resultDiv=document.getElementById('rewriteResult');
-      resultDiv.textContent='⏳ 改寫中';
-      let dots=0;
-      loadingInterval=setInterval(()=>{
-        dots=(dots+1)%4;
-        resultDiv.textContent='⏳ 改寫中'+'.'.repeat(dots);
-      },500);
 
-      const selectedLang = document.getElementById('langSelect').value;
-      window.handleResponse = function(res){
+      btn.disabled = true;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
+      shareBtn.style.display = "none";
+      resultDiv.textContent = "⏳ 改寫中";
+      let dots = 0;
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+      }, 500);
+
+      window.handleResponse = function(res) {
         clearInterval(loadingInterval);
-        btn.disabled=false;
-        btn.textContent = langMap[selectedLang].rewriteBtn;
-        if(res.error){
-          resultDiv.innerHTML=`<div class="error">❌ 錯誤：${res.error}</div>`;
+        btn.disabled = false;
+        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+
+        if (res.error) {
+          resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
           return;
         }
-        let content = (res.content||res.rewrite||'').replace(/。/g,'。\n\n');
-        let output = '';
-        if(res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-        if(res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-        output += `📝 改寫內容：\n${content}`;
-        if(res.translation) output += `
 
-🌐 翻譯結果 (${selectedLang})：\n${res.translation}`;
+        let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
+        let output = "";
+        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+        output += `📝 改寫內容：\n${content}`;
+
         resultDiv.textContent = output;
-        lastRewrite = { title: res.title||'', content, translation: res.translation||'' };
-        shareBtn.style.display = content.trim() ? 'block':'none';
+        lastRewrite = { title: res.title || "", content };
+        shareBtn.style.display = content.trim() ? "block" : "none";
       };
 
-      const old = document.getElementById('jsonpScript');
-      if(old) old.remove();
-      const script=document.createElement('script');
-      script.id='jsonpScript';
-      const params=new URLSearchParams({ text, topic, userId: liffUserId, lang: selectedLang, callback:'handleResponse' });
+      const oldScript = document.getElementById("jsonpScript");
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+      const params = new URLSearchParams({ text, topic, userId: liffUserId, callback: "handleResponse" });
       script.src = `${SCRIPT_URL}?${params.toString()}`;
       script.onerror = () => {
         clearInterval(loadingInterval);
-        btn.disabled=false;
-        btn.textContent = langMap[selectedLang].rewriteBtn;
-        resultDiv.innerHTML=`<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+        btn.disabled = false;
+        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
       };
       document.body.appendChild(script);
     }
 
-    function nativeShare(){
-      if(!lastRewrite.content.trim()){ alert('內容為空，無法分享。'); return; }
-      const shareData={ title: lastRewrite.title||'文案改寫分享',
-        text: `${lastRewrite.title?`📌 推薦標題：\n${lastRewrite.title}\n\n`:''}📝 改寫內容：\n${lastRewrite.content}` +
-        `${lastRewrite.translation?`\n\n🌐 翻譯結果：\n${lastRewrite.translation}`:''}`
+    function nativeShare() {
+      if (!lastRewrite.content.trim()) {
+        alert("內容為空，無法分享。");
+        return;
+      }
+      const shareData = {
+        title: lastRewrite.title || "文案改寫分享",
+        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
       };
-      if(navigator.share) navigator.share(shareData).catch(()=>alert('分享失敗'));
-      else navigator.clipboard.writeText(shareData.text).then(()=>alert('已複製到剪貼簿'));
+      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
+      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
     }
   </script>
 </body>
