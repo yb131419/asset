@@ -3,78 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>使用者資訊填寫</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <title>JSONP 跨域請求示範</title>
 </head>
 <body>
-  <h2>請填寫以下資訊</h2>
+  <h2>JSONP 跨域請求示範</h2>
 
   <form id="infoForm">
     <input type="hidden" id="pageId" value="Page_001" />
-
     <label>姓名：</label><br>
     <input type="text" id="name" required /><br><br>
-
     <label>日期：</label><br>
     <input type="text" id="date" readonly /><br><br>
-
     <label>LINE ID：</label><br>
-    <input type="text" id="lineId" readonly /><br><br>
-
+    <input type="text" id="lineId" /><br><br>
     <label>電話：</label><br>
     <input type="tel" id="phone" /><br><br>
-
     <label>信箱：</label><br>
     <input type="email" id="email" /><br><br>
-
     <button type="submit">送出</button>
   </form>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
-    const LIFF_ID = "2007475335-wO37qkoE";
-
     document.getElementById('date').value = new Date().toISOString().slice(0, 10);
 
-    async function initLiff() {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
-      const profile = await liff.getProfile();
-      document.getElementById('lineId').value = profile.userId;
+    function jsonpRequest(url, callbackName) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        window[callbackName] = function(data) {
+          resolve(data);
+          document.body.removeChild(script);
+          delete window[callbackName];
+        };
+        script.src = url;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
     }
-    initLiff();
 
-    document.getElementById('infoForm').addEventListener('submit', function(e) {
+    document.getElementById('infoForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
       const data = {
-        pageId: document.getElementById('pageId').value,
-        name: document.getElementById('name').value,
-        date: document.getElementById('date').value,
-        lineId: document.getElementById('lineId').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value
+        pageId: encodeURIComponent(document.getElementById('pageId').value),
+        name: encodeURIComponent(document.getElementById('name').value),
+        date: encodeURIComponent(document.getElementById('date').value),
+        lineId: encodeURIComponent(document.getElementById('lineId').value),
+        phone: encodeURIComponent(document.getElementById('phone').value),
+        email: encodeURIComponent(document.getElementById('email').value)
       };
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      })
-        .then(res => res.json())
-        .then(response => {
-          if (response.status === "success") {
-            alert("✅ 資料已成功送出！");
-          } else {
-            alert("❌ 發生錯誤：" + response.message);
-          }
-        })
-        .catch(error => {
-          alert("⚠️ 發送失敗：" + error);
-        });
+      // 組合 URL，包含 callback 參數（JSONP）
+      const callbackName = 'handleResponse';
+      const params = Object.keys(data).map(k => `${k}=${data[k]}`).join('&');
+      const url = `https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?${params}&callback=${callbackName}`;
+
+      try {
+        const res = await jsonpRequest(url, callbackName);
+        if (res.status === "success") {
+          alert("✅ 資料已成功送出！");
+        } else {
+          alert("❌ 發生錯誤：" + res.message);
+        }
+      } catch (error) {
+        alert("⚠️ JSONP 請求失敗：" + error);
+      }
     });
   </script>
 </body>
