@@ -161,45 +161,6 @@
       color: #ff6b6b; font-weight: 700;
       text-shadow: 0 0 8px rgba(255,107,107,0.6);
     }
-     /* 改寫中 */
-    .rewrite-loading {
-  font-weight: 600;
-  color: #4a90e2; /* 高級藍色 */
-  font-family: 'Roboto', sans-serif;
-  font-size: 1.2rem;
-  user-select: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rewrite-loading .dot {
-  width: 6px;
-  height: 6px;
-  background-color: #4a90e2;
-  border-radius: 50%;
-  animation: blink 1.4s infinite ease-in-out both;
-}
-
-.rewrite-loading .dot:nth-child(1) {
-  animation-delay: 0s;
-}
-.rewrite-loading .dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.rewrite-loading .dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes blink {
-  0%, 80%, 100% {
-    opacity: 0.3;
-  }
-  40% {
-    opacity: 1;
-  }
-}
-
   </style>
 </head>
 <body>
@@ -249,91 +210,46 @@
     let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
     const langMap = {
-  "zh-Hant": {
-    title: "📘 『彥彬 文案改寫』",
-    subtitle: "✍️ 自動改寫 + 翻譯",
-    placeholder: "請貼上原始文章...",
-    labelTopic: "選擇分類主題『可AI自動判斷』",
-    labelOutput: "輸出語言",
-    rewriteBtn: "🚀 自動改寫 + 翻譯",
-    shareBtn: "📤 分享文案",
-    rewriting: "⏳ 改寫中",
-    topics: ["AI 自動判斷","人生成長","情感故事","健康養生","財富商機"],
-    outputs: ["繁體中文", "簡體中文", "英文", "越南文"]
-  },
-  "zh-Hans": {
-    title: "📘 『彦彬 文案改写』",
-    subtitle: "✍️ 自动改写 + 翻译",
-    placeholder: "请粘贴原始文章...",
-    labelTopic: "选择分类主题『可AI自动判断』",
-    labelOutput: "输出语言",
-    rewriteBtn: "🚀 自动改写 + 翻译",
-    shareBtn: "📤 分享文案",
-    rewriting: "⏳ 改写中",
-    topics: ["AI 自动判断","人生成长","情感故事","健康养生","财富商机"],
-    outputs: ["繁體中文", "简体中文", "英文", "越南文"]
-  },
-  "en": {
-    title: "📘 'Yanbin Rewriter'",
-    subtitle: "✍️ Rewrite + Translate Automatically",
-    placeholder: "Paste your original text here...",
-    labelTopic: "Choose topic (or let AI decide)",
-    labelOutput: "Output Language",
-    rewriteBtn: "🚀 Rewrite + Translate",
-    shareBtn: "📤 Share Copy",
-    rewriting: "⏳ Rewriting",
-    topics: ["AI Auto-Detect","Personal Growth","Emotional Stories","Health & Wellness","Wealth & Opportunities"],
-    outputs: ["Traditional Chinese","Simplified Chinese","English","Vietnamese"]
-  },
-  "vi": {
-    title: "📘 'Yanbin Viết lại văn bản'",
-    subtitle: "✍️ Viết lại và Dịch tự động",
-    placeholder: "Vui lòng dán văn bản gốc...",
-    labelTopic: "Chọn chủ đề (hoặc AI tự động)",
-    labelOutput: "Ngôn ngữ đầu ra",
-    rewriteBtn: "🚀 Viết lại + Dịch",
-    shareBtn: "📤 Chia sẻ",
-    rewriting: "⏳ Đang viết lại",
-    topics: ["AI Tự Động Nhận","Phát Triển Bản Thân","Câu Chuyện Cảm Động","Sức Khỏe & Dinh Dưỡng","Cơ Hội & Tài Chính"],
-    outputs: ["Tiếng Phồn Thể", "Tiếng Giản Thể", "Tiếng Anh", "Tiếng Việt"]
-  }
+      "zh-Hant": {
+        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
+        placeholder: "請貼上原始文章...",
+        labelTopic: "選擇分類主題『可AI自動判斷』",
+        labelOutput: "輸出語言",
+        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案"
+      },
+      "zh-Hans": {
+        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
+        placeholder: "请粘贴原始文章...",
+        labelTopic: "选择分类主题『可AI自动判断』",
+        labelOutput: "输出语言",
+        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案"
+      },
+      "en": {
+        title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
+        placeholder: "Paste your original text here...",
+        labelTopic: "Choose topic (or let AI decide)",
+        labelOutput: "Output Language",
+        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy"
+      },
+      "vi": {
+        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
+        placeholder: "Vui lòng dán văn bản gốc...",
+        labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+        labelOutput: "Ngôn ngữ đầu ra",
+        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ"
+      }
     };
 
-function changeLang() {
-  const lang = document.getElementById('langSelect').value;
-  const map = langMap[lang] || langMap['zh-Hant'];
-
-  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-  document.querySelector('#originalText').placeholder = map.placeholder;
-  document.querySelector('#labelTopic').textContent = map.labelTopic;
-  document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-  document.querySelector('#shareBtn').textContent = map.shareBtn;
-
-  // 更新 topicSelect 選項
-  const topicSelect = document.getElementById('topicSelect');
-  topicSelect.innerHTML = ""; // 清空原本選項
-  map.topics.forEach(topic => {
-    const option = document.createElement('option');
-    option.value = topic;
-    option.textContent = topic;
-    topicSelect.appendChild(option);
-  });
-
-  // 更新 outputLangSelect 選項
-  const outputLangSelect = document.getElementById('outputLangSelect');
-  outputLangSelect.innerHTML = "";
-  map.outputs.forEach(output => {
-    const option = document.createElement('option');
-    option.value = output === "繁體中文" ? "zh-Hant" :
-                   output === "简体中文" ? "zh-Hans" :
-                   output === "English" ? "en" :
-                   output === "Tiếng Việt" ? "vi" : output;
-    option.textContent = output;
-    outputLangSelect.appendChild(option);
-  });
-}
-
+    function changeLang() {
+      const lang = document.getElementById('langSelect').value;
+      const map = langMap[lang] || langMap['zh-Hant'];
+      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+      document.querySelector('#originalText').placeholder = map.placeholder;
+      document.querySelector('#labelTopic').textContent = map.labelTopic;
+      document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+      document.querySelector('#shareBtn').textContent = map.shareBtn;
+    }
 
     window.onload = async () => {
       await liff.init({ liffId: LIFF_ID });
@@ -384,58 +300,54 @@ function changeLang() {
     }
 
     function autoRewrite() {
-  const text = document.getElementById("originalText").value.trim();
-  const topic = document.getElementById("topicSelect").value;
-  const outputLang = document.getElementById("outputLangSelect").value;
-  const resultDiv = document.getElementById("rewriteResult");
-  const btn = document.getElementById("rewriteBtn");
-  const shareBtn = document.getElementById("shareBtn");
-  if (!text || btn.disabled || !liffUserId || !hasPermission) return;
+      const text = document.getElementById("originalText").value.trim();
+      const topic = document.getElementById("topicSelect").value;
+      const outputLang = document.getElementById("outputLangSelect").value;
+      const resultDiv = document.getElementById("rewriteResult");
+      const btn = document.getElementById("rewriteBtn");
+      const shareBtn = document.getElementById("shareBtn");
+      if (!text || btn.disabled || !liffUserId || !hasPermission) return;
 
-  const lang = document.getElementById('langSelect').value;
-  btn.disabled = true;
-  btn.textContent = langMap[lang].rewriteBtn + "...";
-  shareBtn.style.display = "none";
+      btn.disabled = true;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
+      shareBtn.style.display = "none";
+      resultDiv.textContent = "⏳ 改寫中...";
+      let dots = 0;
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+      }, 500);
 
-  // 用 HTML + CSS 動畫替代原本文字點點
-  resultDiv.innerHTML = `
-    <span class="rewrite-loading">
-      ${langMap[lang].rewriting}
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </span>
-  `;
+      window.handleResponse = res => {
+        clearInterval(loadingInterval);
+        btn.disabled = false;
+        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+        if (res.error) {
+          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
+          return;
+        }
+        let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
+        let output = "";
+        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+        output += `📝 改寫內容：\n${content}`;
+        resultDiv.textContent = output;
+        lastRewrite = { title: res.title || "", content };
+        shareBtn.style.display = content.trim() ? "block" : "none";
+      };
 
-  window.handleResponse = res => {
-    btn.disabled = false;
-    btn.textContent = langMap[lang].rewriteBtn;
-    if (res.error) {
-      resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-      return;
+      const old = document.getElementById("jsonpScript");
+      if (old) old.remove();
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
+      script.onerror = () => {
+        clearInterval(loadingInterval);
+        btn.disabled = false;
+        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+      };
+      document.body.appendChild(script);
     }
-    let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
-    let output = "";
-    if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-    if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-    output += `📝 改寫內容：\n${content}`;
-    resultDiv.textContent = output;
-    lastRewrite = { title: res.title || "", content };
-    shareBtn.style.display = content.trim() ? "block" : "none";
-  };
-
-  const old = document.getElementById("jsonpScript");
-  if (old) old.remove();
-  const script = document.createElement("script");
-  script.id = "jsonpScript";
-  script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
-  script.onerror = () => {
-    btn.disabled = false;
-    resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
-  };
-  document.body.appendChild(script);
-}
-
 
     function nativeShare() {
       if (!lastRewrite.content.trim()) {
