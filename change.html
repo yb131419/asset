@@ -3,41 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LINE LIFF 取得用戶ID並送出資料</title>
+  <title>彥彬文案改寫 - 用戶註冊</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #121212;
+      font-family: 'Roboto', sans-serif;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    main {
+      background: #1f1f1f;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+      width: 100%;
+      max-width: 420px;
+      padding: 32px 28px;
+    }
+
+    h2 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin-bottom: 28px;
+      text-align: center;
+      letter-spacing: 1.2px;
+      color: #9acd32; /* 柔和的淺綠色 */
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      background: #2a2a2a;
+      color: #eee;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="tel"]:focus {
+      background: #3a3a3a;
+      outline: none;
+    }
+
+    input[readonly] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    button {
+      width: 100%;
+      background: linear-gradient(135deg, #7ac70c, #4a9c00);
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 4px 12px rgba(122,199,12,0.5);
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #4a9c00, #7ac70c);
+      box-shadow: 0 6px 20px rgba(122,199,12,0.7);
+    }
+
+    .note {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: -16px;
+      margin-bottom: 16px;
+      text-align: right;
+      font-style: italic;
+    }
+  </style>
 </head>
 <body>
-  <h2>請填寫以下資訊</h2>
+  <main>
+    <h2>彥彬文案改寫<br>用戶註冊</h2>
 
-  <form id="infoForm">
-    <input type="hidden" id="pageId" value="Page_001" />
+    <form id="infoForm">
+      <input type="hidden" id="pageId" value="網頁" />
 
-    <label>姓名：</label><br>
-    <input type="text" id="name" required /><br><br>
+      <label for="name">姓名</label>
+      <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
-    <label>日期：</label><br>
-    <input type="text" id="date" readonly /><br><br>
+      <label for="date">日期（台北時間）</label>
+      <input type="text" id="date" name="date" readonly />
 
-    <label>Line ID：</label><br>
-    <input type="text" id="lineId" readonly /><br><br>
+      <label for="lineId">LINE 用戶ID（可修改）</label>
+      <input type="text" id="lineId" name="lineId" autocomplete="off" placeholder="等待從 LINE 取得用戶ID" />
 
-    <label>電話：</label><br>
-    <input type="tel" id="phone" /><br><br>
+      <label for="phone">電話</label>
+      <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
 
-    <label>信箱：</label><br>
-    <input type="email" id="email" /><br><br>
+      <label for="email">信箱</label>
+      <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-    <button type="submit">送出</button>
-  </form>
+      <button type="submit">送出</button>
+    </form>
+  </main>
 
   <script>
-    // 你的 GAS JSONP 網址
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
-
-    // 你的 LINE LIFF ID
     const LIFF_ID = "2007475335-wO37qkoE";
 
-    // 初始化 LIFF 並取得用戶資料
+    // 取得台北時區 yyyy-mm-dd
+    function getTaipeiDate() {
+      const date = new Date();
+      // 台北時區是 UTC+8
+      const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+      const taipeiTime = new Date(utc + (3600000 * 8));
+      return taipeiTime.toISOString().slice(0, 10);
+    }
+
     async function initLiff() {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -46,21 +153,17 @@
           return;
         }
         const profile = await liff.getProfile();
-        document.getElementById('lineId').value = profile.userId;
+        const lineIdInput = document.getElementById('lineId');
+        lineIdInput.value = profile.userId;
       } catch (error) {
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
         console.error(error);
       }
     }
 
-    // 初始化日期欄位（yyyy-mm-dd）
-    document.getElementById('date').value = new Date().toISOString().slice(0,10);
-
-    // JSONP 回傳函式
     function handleResponse(response) {
       if (response.status === "success") {
         alert("✅ 資料已成功送出！");
-        // 可選：送出後清空表單，但保留 lineId 和日期
         document.getElementById('name').value = "";
         document.getElementById('phone').value = "";
         document.getElementById('email').value = "";
@@ -69,7 +172,6 @@
       }
     }
 
-    // 送出資料函式（JSONP）
     function sendData() {
       const data = {
         pageId: document.getElementById('pageId').value,
@@ -95,20 +197,17 @@
       };
     }
 
-    // 綁定表單送出事件
     document.getElementById('infoForm').addEventListener('submit', function(e) {
       e.preventDefault();
-
       if (!document.getElementById('lineId').value) {
         alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
         return;
       }
-
       sendData();
     });
 
-    // 頁面載入時初始化 LIFF
     window.onload = () => {
+      document.getElementById('date').value = getTaipeiDate();
       initLiff();
     };
   </script>
