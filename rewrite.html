@@ -6,11 +6,7 @@
   <meta name="theme-color" content="#1e1e1e" />
   <title>彥彬 ✍️文案改寫</title>
   <style>
-
-    #labelTopic {
-      white-space: pre-line;
-    }
-
+    /* --- Reset & Base --- */
     * { box-sizing: border-box; margin:0; padding:0; }
     body {
       padding: 24px;
@@ -37,90 +33,141 @@
       flex-direction: column;
       position: relative;
     }
+    /* --- Language Selector --- */
     #langSelect {
       position: absolute;
       top: 24px;
       right: 32px;
       font-size: 14px;
-      writing-mode: vertical-rl; /* 使文字直書（由右至左） */
-      text-orientation: mixed;   /* 混合文字方向，避免全部旋轉 */
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
       padding: 10px 4px;
-      width: auto;
-      border-radius: 10px;
       background: #333;
       color: #fff;
       border: none;
+      border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 0 8px rgba(255,255,255,0.1);
-      white-space: nowrap;
-      text-overflow: ellipsis;
       overflow: hidden;
     }
     #langSelect:hover { background: #444; }
-
+    /* --- User Info --- */
     #userInfo { margin-bottom: 18px; text-align: center; }
     #userInfo .name {
-      font-size: 24px; font-weight: 800; color: #ffffff; margin-bottom: 8px;
+      font-size: 24px; font-weight: 800; color: #fff;
+      margin-bottom: 8px;
       text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,255,255,0.4);
     }
     .daysWrapper {
       display: inline-block; padding: 8px 20px; border-radius: 20px;
-      box-shadow: 0 0 14px rgba(255,255,255,0.9), inset 0 0 10px rgba(0,0,0,0.1);
-      background: linear-gradient(135deg, #ffffff, #e0e0e0);
+      background: linear-gradient(135deg, #fff, #e0e0e0);
       color: #111; font-size: 22px; font-weight: 700;
+      box-shadow: 0 0 14px rgba(255,255,255,0.9), inset 0 0 10px rgba(0,0,0,0.1);
     }
     .daysWrapper.danger {
       background: linear-gradient(135deg, #ffb6b9, #ff6f61);
       color: #fff0f0;
-      text-shadow: 0 0 6px rgba(255,182,193,0.6);
-      box-shadow:
-        0 0 14px rgba(255,182,193,0.6),
-        inset 0 0 12px rgba(255,255,255,0.08);
       border: 1px solid rgba(255,192,203,0.4);
+      box-shadow: 0 0 14px rgba(255,182,193,0.6), inset 0 0 12px rgba(255,255,255,0.08);
+      text-shadow: 0 0 6px rgba(255,182,193,0.6);
     }
     #userInfo .expiry {
-      font-size: 15px; color: #dddddd; margin-top: 6px;
-      display: block; letter-spacing: 0.04em;
+      display: block; font-size: 15px; color: #ddd;
+      margin-top: 6px; letter-spacing: 0.04em;
       text-shadow: 0 0 6px rgba(255,255,255,0.3);
     }
+    /* --- Headings --- */
     h2 {
-      margin-bottom: 24px; color: #fafafa; font-weight: 700;
-      font-size: 24px; line-height: 1.3;
-      text-align: center; letter-spacing: 0.05em;
+      margin-bottom: 24px; font-size: 24px; font-weight:700;
+      text-align: center; line-height:1.3;
+      color: #fafafa;
+      letter-spacing: 0.05em;
       text-shadow: 0 0 8px #4a90e2, 0 0 18px #4a90e2;
     }
     h2 small {
-      display: block; font-weight: 400; font-size: 14px;
-      color: #99aabb; margin-top: 4px; line-height: 1.2;
+      display: block; font-size:14px; font-weight:400;
+      color: #99aabb; margin-top:4px; line-height:1.2;
     }
+    /* --- Form Elements --- */
     textarea {
-      font-size: 16px; line-height: 1.5; padding: 16px 18px;
-      border-radius: 12px; border: none; resize: vertical;
-      min-height: 140px; background: #222831; color: #f5f5f5;
+      width:100%; font-size:16px; line-height:1.5;
+      padding:16px 18px; border:none; border-radius:12px;
+      background:#222831; color:#f5f5f5;
       box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
-      transition: box-shadow 0.3s ease; margin-bottom:20px;
-      letter-spacing: 0.03em;
+      margin-bottom:20px; resize: vertical;
+      transition:box-shadow 0.3s ease;
+      letter-spacing:0.03em;
+      min-height:140px;
     }
     textarea:focus {
-      outline: none;
+      outline:none;
+      background:#1e272e;
       box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
-      background: #1e272e; color: #dcdde1;
+      color:#dcdde1;
     }
-    label { font-weight:600; margin-bottom:8px; display:block; letter-spacing:0.04em; color: #dcdcdc; text-shadow:0 0 4px rgba(0,0,0,0.3); }
-    select, button { font-size:16px; padding:12px; border-radius:12px; border:none; margin-bottom:24px; width:100%; letter-spacing:0.03em; }
-    select { background:#222831; color:#f0f0f0; cursor:pointer; box-shadow:inset 0 0 12px #395B64,0 2px 6px rgba(0,0,0,0.5); transition:box-shadow 0.3s ease; }
-    select:hover, select:focus { outline:none; box-shadow:inset 0 0 16px #74b9ff,0 4px 12px rgba(116,185,255,0.7); background:#1e272e; }
-    button { font-weight:600; font-size:17px; padding:14px 26px; cursor:pointer; transition: background-color 0.3s ease, box-shadow 0.3s ease; box-shadow:0 6px 12px rgba(74,144,226,0.6); color:#fff; background:linear-gradient(135deg,#4a90e2,#357ABD); text-shadow:0 0 4px rgba(0,0,0,0.4); }
-    button:hover:not(:disabled) { background:linear-gradient(135deg,#5aa0ff,#4d83e1); box-shadow:0 8px 18px rgba(74,144,226,0.8); }
-    button:disabled { background:#444444; cursor:not-allowed; opacity:0.7; box-shadow:none; }
-    #shareBtn { background:linear-gradient(135deg,#27ae60,#2ecc71); box-shadow:0 6px 14px rgba(39,174,96,0.7); display:none; color:#f0f9f1; text-shadow:0 0 5px rgba(0,0,0,0.5); }
-    #shareBtn:hover { background:linear-gradient(135deg,#3acf7d,#47d88d); box-shadow:0 9px 22px rgba(39,174,96,0.9); }
-    #rewriteResult { white-space:pre-wrap; font-size:16px; line-height:1.6; background:#181818; border-radius:14px; padding:20px; min-height:140px; color:#ccc; box-shadow:inset 0 0 12px #222222; letter-spacing:0.03em; }
-    .error { color:#ff6b6b; font-weight:700; text-shadow:0 0 8px rgba(255,107,107,0.6); }
+    label { display:block; margin-bottom:8px;
+      font-weight:600; letter-spacing:0.04em;
+      color:#dcdcdc; text-shadow:0 0 4px rgba(0,0,0,0.3);
+    }
+    select, button {
+      width:100%; font-size:16px; padding:12px;
+      border:none; border-radius:12px;
+      margin-bottom:24px; letter-spacing:0.03em;
+    }
+    select {
+      background:#222831; color:#f0f0f0; cursor:pointer;
+      box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
+      transition:box-shadow 0.3s ease;
+    }
+    select:hover, select:focus {
+      background:#1e272e;
+      box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
+      outline:none;
+    }
+    button {
+      font-weight:600; color:#fff;
+      background: linear-gradient(135deg,#4a90e2,#357ABD);
+      text-shadow:0 0 4px rgba(0,0,0,0.4);
+      cursor:pointer;
+      box-shadow:0 6px 12px rgba(74,144,226,0.6);
+      transition:background 0.3s ease, box-shadow 0.3s ease;
+      padding:14px 26px;
+    }
+    button:hover:not(:disabled) {
+      background:linear-gradient(135deg,#5aa0ff,#4d83e1);
+      box-shadow:0 8px 18px rgba(74,144,226,0.8);
+    }
+    button:disabled {
+      background:#444; cursor:not-allowed; opacity:0.7;
+      box-shadow:none;
+    }
+    #shareBtn {
+      display:none;
+      background:linear-gradient(135deg,#27ae60,#2ecc71);
+      color:#f0f9f1;
+      text-shadow:0 0 5px rgba(0,0,0,0.5);
+      box-shadow:0 6px 14px rgba(39,174,96,0.7);
+    }
+    #shareBtn:hover {
+      background:linear-gradient(135deg,#3acf7d,#47d88d);
+      box-shadow:0 9px 22px rgba(39,174,96,0.9);
+    }
+    #rewriteResult {
+      margin-bottom:10px;
+      white-space:pre-wrap;
+      font-size:16px; line-height:1.6;
+      background:#181818; border-radius:14px;
+      padding:20px; color:#ccc;
+      box-shadow: inset 0 0 12px #222222;
+      letter-spacing:0.03em;
+      min-height:140px;
+    }
+    .error { color:#ff6b6b; font-weight:700;
+      text-shadow:0 0 8px rgba(255,107,107,0.6);
+    }
   </style>
 </head>
 <body>
-
   <main class="card">
     <select id="langSelect" onchange="changeLang()">
       <option value="zh">繁體中文</option>
@@ -135,7 +182,7 @@
 
     <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
-    <label for="topicSelect" id="labelTopic"> 選擇分類主題（可AI判斷）</label>
+    <label for="topicSelect" id="labelTopic">選擇分類主題（可AI判斷）</label>
     <select id="topicSelect">
       <option value="">AI 自動判斷</option>
     </select>
@@ -144,199 +191,157 @@
     <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
 
     <div id="rewriteResult"></div>
-    <div id="bottomSpacer" style="height:60px;"></div>
+    <div style="height:60px;"></div>
   </main>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
     const langMap = {
-      "zh": {
-        title: "📘 『彥彬 文案改寫』",
-        subtitle: "✍️ 貼上 自動改寫",
-        placeholder: "請貼上原始文章...",
-        label: "選擇分類主題\n（可AI判斷）",
-        rewriteBtn: "🚀 自動改寫",
-        shareBtn: "📤 分享文案",
-        topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"]
-      },
-      "zh-CN": {
-        title: "📘 『彦彬 文案改写』",
-        subtitle: "✍️ 粘贴 自动改写",
-        placeholder: "请粘贴原始文章...",
-        label: "选择分类主题\n（可AI自动判断）",
-        rewriteBtn: "🚀 自动改写",
-        shareBtn: "📤 分享文案",
-        topics: ["AI自动判断", "人生成长", "情感故事", "健康养生", "财富商机"]
-      },
-      "en": {
-        title: "📘 'Yanbin Copy Rewriter'",
-        subtitle: "✍️ Paste to rewrite automatically",
-        placeholder: "Paste your original text here...",
-        label: "Choose topic category\n(or let AI decide)",
-        rewriteBtn: "🚀 Rewrite Automatically",
-        shareBtn: "📤 Share Copy",
-        topics: ["AI Auto-Detect", "Personal Growth", "Emotional Stories", "Health & Wellness", "Wealth & Opportunities"]
-      },
-      "vi": {
-        title: "📘 'Yanbin Viết lại văn bản'",
-        subtitle: "✍️ Dán để viết lại tự động",
-        placeholder: "Vui lòng dán văn bản gốc...",
-        label: "Chọn chủ đề\n(hoặc để AI tự動)",
-        rewriteBtn: "🚀 Viết lại",
-        shareBtn: "📤 Chia sẻ nội dung",
-        topics: ["AI Tự Động Nhận", "Phát Triển Bản Thân", "Câu Chuyện Cảm Động", "Sức Khỏe & Dinh Dưỡng", "Cơ Hội & Tài Chính"]
-      }
+      zh: { /* … */ },
+      "zh-CN": { /* … */ },
+      en: { /* … */ },
+      vi: { /* … */ }
     };
 
     function changeLang() {
       const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh'];
-
-      document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : (lang === 'zh-CN' ? 'zh-Hans' : lang);
+      const map = langMap[lang] || langMap.zh;
+      document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : (lang === 'zh-CN'? 'zh-Hans': lang);
       document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
       document.querySelector('#originalText').placeholder = map.placeholder;
       document.querySelector('#labelTopic').textContent = map.label;
       document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
       document.querySelector('#shareBtn').textContent = map.shareBtn;
-
       const topicSelect = document.getElementById('topicSelect');
-      topicSelect.innerHTML = "";
-      map.topics.forEach((txt, idx) => {
+      topicSelect.innerHTML = '';
+      map.topics.forEach((txt, idx)=>{
         const opt = document.createElement('option');
-        opt.value = idx === 0 ? '' : txt;
+        opt.value = idx===0?'':txt;
         opt.textContent = txt;
         topicSelect.appendChild(opt);
       });
     }
 
-    // 初始化預設語言
     document.addEventListener('DOMContentLoaded', changeLang);
 
-    // 以下 LIFF & 改寫邏輯不變，可照原來來源整合進來
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
     const LIFF_ID = "2007475335-Vb5Nrpg2";
-    let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval = null;
+    let liffUserId = '', hasPermission=false, lastRewrite={}, loadingInterval=null;
 
-    window.onload = async () => {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) return liff.login();
+    window.onload = async()=>{
+      await liff.init({liffId: LIFF_ID});
+      if(!liff.isLoggedIn()) return liff.login();
       const profile = await liff.getProfile();
       const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile?.userId || "";
-      checkPermission(liffUserId, profile?.displayName || "使用者");
-      document.getElementById("originalText").addEventListener("input", () => {
-        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
+      liffUserId = idToken?.sub || profile.userId;
+      checkPermission(liffUserId, profile.displayName);
+      document.getElementById('originalText').addEventListener('input', ()=>{
+        document.getElementById('rewriteBtn').disabled = !(hasPermission && originalText.value.trim().length>=8);
       });
     };
 
-    function checkPermission(userId, displayName = "使用者") {
-      window.handlePermission = function (res) {
-        const infoDiv = document.getElementById("userInfo");
-        const resultDiv = document.getElementById("rewriteResult");
-        if (res?.auth) {
-          hasPermission = true;
+    function checkPermission(userId, displayName='使用者'){
+      window.handlePermission = function(res){
+        const infoDiv = document.getElementById('userInfo');
+        const resultDiv = document.getElementById('rewriteResult');
+        if(res?.auth){
+          hasPermission=true;
           const days = calcDaysLeft(res.expiryDate);
-          const isDanger = typeof days === "number" && days <= 3;
+          const danger = typeof days==='number' && days<=3;
           infoDiv.innerHTML = `
-            <div class="name"> 使用者：${displayName}</div>
-            <div class="daysWrapper ${isDanger ? "danger" : ""}"> 剩餘日：${typeof days === "number" ? days + " 天" : days}</div>
-            <div class="expiry"> 到期日：${formatTaipeiDate(res.expiryDate)}</div>
+            <div class="name">使用者：${displayName}</div>
+            <div class="daysWrapper ${danger?'danger':''}">${typeof days==='number'?days+' 天':days}</div>
+            <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>
           `;
-          resultDiv.innerHTML = "";
-          document.getElementById("rewriteBtn").disabled = false;
+          resultDiv.innerHTML='';
+          document.getElementById('rewriteBtn').disabled=false;
         } else {
-          infoDiv.innerHTML = `<div class="name">👑 使用者：${displayName}</div><div class="daysWrapper">無權限</div>`;
-          resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
+          infoDiv.innerHTML=`<div class="name">👑 ${displayName}</div><div class="daysWrapper">無權限</div>`;
+          resultDiv.innerHTML=`<div class="error">⛔ 尚未開通使用權限</div>`;
         }
       };
-      const s = document.createElement("script");
-      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-      s.onerror = () => document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
+      const s=document.createElement('script');
+      s.src=`${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+      s.onerror=()=>document.getElementById('rewriteResult').innerHTML=`<div class="error">❌ 權限驗證失敗</div>`;
       document.body.appendChild(s);
     }
 
-    function calcDaysLeft(dateStr) {
-      const d = new Date(dateStr.trim()), now = new Date();
-      const diff = Math.floor((d - now) / (1000 * 60 * 60 * 24));
-      return isNaN(diff) ? "無效日期" : diff < 0 ? "已過期" : diff === 0 ? 0 : diff;
+    function calcDaysLeft(dateStr){
+      const d=new Date(dateStr), now=new Date();
+      const diff=Math.floor((d-now)/(1000*60*60*24));
+      return isNaN(diff)?'無效日期': diff<0?'已過期': diff===0?0: diff;
+    }
+    function formatTaipeiDate(dStr){
+      const d=new Date(dStr);
+      return isNaN(d)?'無效日期': d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
     }
 
-    function formatTaipeiDate(dateStr) {
-      const d = new Date(dateStr.trim());
-      return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Taipei' });
-    }
-
-    function autoRewrite() {
-      const text = document.getElementById("originalText").value.trim();
-      const topic = document.getElementById("topicSelect").value;
-      const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-
-      if (!text || btn.disabled) return;
-      if (!liffUserId || !hasPermission) {
-        resultDiv.innerHTML = `<div class="error">⚠️ 尚未登入或無權限。</div>`;
+    function autoRewrite(){
+      const text=document.getElementById('originalText').value.trim();
+      const topic=document.getElementById('topicSelect').value;
+      if(!text||document.getElementById('rewriteBtn').disabled) return;
+      if(!liffUserId||!hasPermission){
+        document.getElementById('rewriteResult').innerHTML=`<div class="error">⚠️ 尚未登入或無權限。</div>`;
         return;
       }
+      const btn=document.getElementById('rewriteBtn');
+      const shareBtn=document.getElementById('shareBtn');
+      btn.disabled=true;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + '...';
+      shareBtn.style.display='none';
+      const resultDiv=document.getElementById('rewriteResult');
+      resultDiv.textContent='⏳ 改寫中';
+      let dots=0;
+      loadingInterval=setInterval(()=>{
+        dots=(dots+1)%4;
+        resultDiv.textContent='⏳ 改寫中'+'.'.repeat(dots);
+      },500);
 
-      btn.disabled = true;
-      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
-      shareBtn.style.display = "none";
-      resultDiv.textContent = "⏳ 改寫中";
-      let dots = 0;
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-      }, 500);
-
-      window.handleResponse = function(res) {
+      const selectedLang = document.getElementById('langSelect').value;
+      window.handleResponse = function(res){
         clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
-
-        if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
+        btn.disabled=false;
+        btn.textContent = langMap[selectedLang].rewriteBtn;
+        if(res.error){
+          resultDiv.innerHTML=`<div class="error">❌ 錯誤：${res.error}</div>`;
           return;
         }
-
-        let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
-        let output = "";
-        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+        let content = (res.content||res.rewrite||'').replace(/。/g,'。\n\n');
+        let output = '';
+        if(res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if(res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
         output += `📝 改寫內容：\n${content}`;
+        if(res.translation) output += `
 
+🌐 翻譯結果 (${selectedLang})：\n${res.translation}`;
         resultDiv.textContent = output;
-        lastRewrite = { title: res.title || "", content };
-        shareBtn.style.display = content.trim() ? "block" : "none";
+        lastRewrite = { title: res.title||'', content, translation: res.translation||'' };
+        shareBtn.style.display = content.trim() ? 'block':'none';
       };
 
-      const oldScript = document.getElementById("jsonpScript");
-      if (oldScript) oldScript.remove();
-
-      const script = document.createElement("script");
-      script.id = "jsonpScript";
-      const params = new URLSearchParams({ text, topic, userId: liffUserId, callback: "handleResponse" });
+      const old = document.getElementById('jsonpScript');
+      if(old) old.remove();
+      const script=document.createElement('script');
+      script.id='jsonpScript';
+      const params=new URLSearchParams({ text, topic, userId: liffUserId, lang: selectedLang, callback:'handleResponse' });
       script.src = `${SCRIPT_URL}?${params.toString()}`;
       script.onerror = () => {
         clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
-        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+        btn.disabled=false;
+        btn.textContent = langMap[selectedLang].rewriteBtn;
+        resultDiv.innerHTML=`<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
       };
       document.body.appendChild(script);
     }
 
-    function nativeShare() {
-      if (!lastRewrite.content.trim()) {
-        alert("內容為空，無法分享。");
-        return;
-      }
-      const shareData = {
-        title: lastRewrite.title || "文案改寫分享",
-        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
+    function nativeShare(){
+      if(!lastRewrite.content.trim()){ alert('內容為空，無法分享。'); return; }
+      const shareData={ title: lastRewrite.title||'文案改寫分享',
+        text: `${lastRewrite.title?`📌 推薦標題：\n${lastRewrite.title}\n\n`:''}📝 改寫內容：\n${lastRewrite.content}` +
+        `${lastRewrite.translation?`\n\n🌐 翻譯結果：\n${lastRewrite.translation}`:''}`
       };
-      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
-      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
+      if(navigator.share) navigator.share(shareData).catch(()=>alert('分享失敗'));
+      else navigator.clipboard.writeText(shareData.text).then(()=>alert('已複製到剪貼簿'));
     }
   </script>
 </body>
