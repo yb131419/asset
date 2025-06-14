@@ -209,47 +209,91 @@
     const LIFF_ID = "2007475335-Vb5Nrpg2";
     let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
-    const langMap = {
-      "zh-Hant": {
-        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
-        placeholder: "請貼上原始文章...",
-        labelTopic: "選擇分類主題『可AI自動判斷』",
-        labelOutput: "輸出語言",
-        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案"
-      },
-      "zh-Hans": {
-        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
-        placeholder: "请粘贴原始文章...",
-        labelTopic: "选择分类主题『可AI自动判断』",
-        labelOutput: "输出语言",
-        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案"
-      },
-      "en": {
-        title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
-        placeholder: "Paste your original text here...",
-        labelTopic: "Choose topic (or let AI decide)",
-        labelOutput: "Output Language",
-        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy"
-      },
-      "vi": {
-        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
-        placeholder: "Vui lòng dán văn bản gốc...",
-        labelTopic: "Chọn chủ đề (hoặc AI tự động)",
-        labelOutput: "Ngôn ngữ đầu ra",
-        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ"
-      }
+const langMap = {
+  "zh-Hant": {
+    title: "📘 『彥彬 文案改寫』",
+    subtitle: "✍️ 自動改寫 + 翻譯",
+    placeholder: "請貼上原始文章...",
+    labelTopic: "選擇分類主題『可AI自動判斷』",
+    labelOutput: "輸出語言",
+    rewriteBtn: "🚀 自動改寫 + 翻譯",
+    shareBtn: "📤 分享文案",
+    rewriting: "⏳ 改寫中",
+    topics: ["AI 自動判斷","人生成長","情感故事","健康養生","財富商機"],
+    outputs: ["繁體中文", "簡體中文", "英文", "越南文"]
+  },
+  "zh-Hans": {
+    title: "📘 『彦彬 文案改写』",
+    subtitle: "✍️ 自动改写 + 翻译",
+    placeholder: "请粘贴原始文章...",
+    labelTopic: "选择分类主题『可AI自动判断』",
+    labelOutput: "输出语言",
+    rewriteBtn: "🚀 自动改写 + 翻译",
+    shareBtn: "📤 分享文案",
+    rewriting: "⏳ 改写中",
+    topics: ["AI 自动判断","人生成长","情感故事","健康养生","财富商机"],
+    outputs: ["繁體中文", "简体中文", "英文", "越南文"]
+  },
+  "en": {
+    title: "📘 'Yanbin Rewriter'",
+    subtitle: "✍️ Rewrite + Translate Automatically",
+    placeholder: "Paste your original text here...",
+    labelTopic: "Choose topic (or let AI decide)",
+    labelOutput: "Output Language",
+    rewriteBtn: "🚀 Rewrite + Translate",
+    shareBtn: "📤 Share Copy",
+    rewriting: "⏳ Rewriting",
+    topics: ["AI Auto-Detect","Personal Growth","Emotional Stories","Health & Wellness","Wealth & Opportunities"],
+    outputs: ["Traditional Chinese","Simplified Chinese","English","Vietnamese"]
+  },
+  "vi": {
+    title: "📘 'Yanbin Viết lại văn bản'",
+    subtitle: "✍️ Viết lại và Dịch tự động",
+    placeholder: "Vui lòng dán văn bản gốc...",
+    labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+    labelOutput: "Ngôn ngữ đầu ra",
+    rewriteBtn: "🚀 Viết lại + Dịch",
+    shareBtn: "📤 Chia sẻ",
+    rewriting: "⏳ Đang viết lại",
+    topics: ["AI Tự Động Nhận","Phát Triển Bản Thân","Câu Chuyện Cảm Động","Sức Khỏe & Dinh Dưỡng","Cơ Hội & Tài Chính"],
+    outputs: ["Tiếng Phồn Thể", "Tiếng Giản Thể", "Tiếng Anh", "Tiếng Việt"]
+  }
     };
 
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh-Hant'];
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.labelTopic;
-      document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
-    }
+function changeLang() {
+  const lang = document.getElementById('langSelect').value;
+  const map = langMap[lang] || langMap['zh-Hant'];
+
+  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+  document.querySelector('#originalText').placeholder = map.placeholder;
+  document.querySelector('#labelTopic').textContent = map.labelTopic;
+  document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+  document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+  // 更新 topicSelect 選項
+  const topicSelect = document.getElementById('topicSelect');
+  topicSelect.innerHTML = ""; // 清空原本選項
+  map.topics.forEach(topic => {
+    const option = document.createElement('option');
+    option.value = topic;
+    option.textContent = topic;
+    topicSelect.appendChild(option);
+  });
+
+  // 更新 outputLangSelect 選項
+  const outputLangSelect = document.getElementById('outputLangSelect');
+  outputLangSelect.innerHTML = "";
+  map.outputs.forEach(output => {
+    const option = document.createElement('option');
+    option.value = output === "繁體中文" ? "zh-Hant" :
+                   output === "简体中文" ? "zh-Hans" :
+                   output === "English" ? "en" :
+                   output === "Tiếng Việt" ? "vi" : output;
+    option.textContent = output;
+    outputLangSelect.appendChild(option);
+  });
+}
 
     window.onload = async () => {
       await liff.init({ liffId: LIFF_ID });
