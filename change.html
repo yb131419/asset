@@ -6,13 +6,9 @@
   <title>彥彬文案改寫 - 用戶註冊</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
+    /* (維持你原本的 CSS) */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-    /* Reset */
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       background: #121212;
@@ -24,7 +20,6 @@
       min-height: 100vh;
       padding: 40px 20px;
     }
-
     main {
       background: #1f1f1f;
       border-radius: 12px;
@@ -33,16 +28,14 @@
       max-width: 420px;
       padding: 32px 28px;
     }
-
     h2 {
       font-weight: 700;
       font-size: 1.8rem;
       margin-bottom: 28px;
       text-align: center;
       letter-spacing: 1.2px;
-      color: #9acd32; /* 柔和的淺綠色 */
+      color: #9acd32;
     }
-
     form label {
       display: block;
       margin-bottom: 6px;
@@ -50,7 +43,6 @@
       font-size: 1rem;
       color: #ccc;
     }
-
     input[type="text"],
     input[type="email"],
     input[type="tel"] {
@@ -64,19 +56,16 @@
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
     }
-
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="tel"]:focus {
       background: #3a3a3a;
       outline: none;
     }
-
     input[readonly] {
       opacity: 0.7;
       cursor: not-allowed;
     }
-
     button {
       width: 100%;
       background: linear-gradient(135deg, #7ac70c, #4a9c00);
@@ -90,19 +79,9 @@
       transition: background 0.3s ease;
       box-shadow: 0 4px 12px rgba(122,199,12,0.5);
     }
-
     button:hover {
       background: linear-gradient(135deg, #4a9c00, #7ac70c);
       box-shadow: 0 6px 20px rgba(122,199,12,0.7);
-    }
-
-    .note {
-      font-size: 0.85rem;
-      color: #777;
-      margin-top: -16px;
-      margin-bottom: 16px;
-      text-align: right;
-      font-style: italic;
     }
   </style>
 </head>
@@ -119,8 +98,11 @@
       <label for="date">日期（台北時間）</label>
       <input type="text" id="date" name="date" readonly />
 
-      <label for="lineId">LINE 用戶ID（可修改）</label>
-      <input type="text" id="lineId" name="lineId" autocomplete="off" placeholder="等待從 LINE 取得用戶ID" />
+      <label for="lineIdVisible">LINE 用戶ID（只讀）</label>
+      <input type="text" id="lineIdVisible" name="lineIdVisible" readonly placeholder="等待從 LINE 取得用戶ID" />
+
+      <!-- 隱藏欄位真正送出的 lineId -->
+      <input type="hidden" id="lineId" name="lineId" />
 
       <label for="phone">電話</label>
       <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
@@ -136,13 +118,16 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
     const LIFF_ID = "2007475335-wO37qkoE";
 
-    // 取得台北時區 yyyy-mm-dd
+    // 用 Intl.DateTimeFormat 確保台北時間 yyyy-mm-dd
     function getTaipeiDate() {
-      const date = new Date();
-      // 台北時區是 UTC+8
-      const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-      const taipeiTime = new Date(utc + (3600000 * 8));
-      return taipeiTime.toISOString().slice(0, 10);
+      const dtf = new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      const [{value: year},,{value: month},,{value: day}] = dtf.formatToParts(new Date());
+      return `${year}-${month}-${day}`;
     }
 
     async function initLiff() {
@@ -153,8 +138,8 @@
           return;
         }
         const profile = await liff.getProfile();
-        const lineIdInput = document.getElementById('lineId');
-        lineIdInput.value = profile.userId;
+        document.getElementById('lineId').value = profile.userId;
+        document.getElementById('lineIdVisible').value = profile.userId;
       } catch (error) {
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
         console.error(error);
