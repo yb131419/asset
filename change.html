@@ -3,19 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSONP 範例</title>
+  <title>LINE LIFF 取得用戶ID並送出資料</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
+  <h2>請填寫以下資訊</h2>
+
   <form id="infoForm">
     <input type="hidden" id="pageId" value="Page_001" />
+
     <label>姓名：</label><br>
     <input type="text" id="name" required /><br><br>
 
     <label>日期：</label><br>
-    <input type="text" id="date" readonly value="" /><br><br>
+    <input type="text" id="date" readonly /><br><br>
 
     <label>Line ID：</label><br>
-    <input type="text" id="lineId" readonly value="LineUserId123" /><br><br>
+    <input type="text" id="lineId" readonly /><br><br>
 
     <label>電話：</label><br>
     <input type="tel" id="phone" /><br><br>
@@ -27,22 +31,45 @@
   </form>
 
   <script>
-    // 先宣告 URL
+    // 你的 GAS JSONP 網址
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
 
-    // 預設日期
+    // 你的 LINE LIFF ID
+    const LIFF_ID = "2007475335-wO37qkoE";
+
+    // 初始化 LIFF 並取得用戶資料
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        document.getElementById('lineId').value = profile.userId;
+      } catch (error) {
+        alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
+        console.error(error);
+      }
+    }
+
+    // 初始化日期欄位（yyyy-mm-dd）
     document.getElementById('date').value = new Date().toISOString().slice(0,10);
 
     // JSONP 回傳函式
     function handleResponse(response) {
       if (response.status === "success") {
         alert("✅ 資料已成功送出！");
+        // 可選：送出後清空表單，但保留 lineId 和日期
+        document.getElementById('name').value = "";
+        document.getElementById('phone').value = "";
+        document.getElementById('email').value = "";
       } else {
         alert("❌ 發生錯誤：" + response.message);
       }
     }
 
-    // 送出資料函式
+    // 送出資料函式（JSONP）
     function sendData() {
       const data = {
         pageId: document.getElementById('pageId').value,
@@ -53,11 +80,9 @@
         email: document.getElementById('email').value
       };
 
-      // 把 data 轉成 URL 參數字串
       const params = new URLSearchParams(data);
       params.append('callback', 'handleResponse');
 
-      // 動態插入 <script> 標籤進行 JSONP 請求
       const script = document.createElement('script');
       script.src = SCRIPT_URL + "?" + params.toString();
 
@@ -70,11 +95,22 @@
       };
     }
 
-    // 監聽表單送出事件
+    // 綁定表單送出事件
     document.getElementById('infoForm').addEventListener('submit', function(e) {
       e.preventDefault();
+
+      if (!document.getElementById('lineId').value) {
+        alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
+        return;
+      }
+
       sendData();
     });
+
+    // 頁面載入時初始化 LIFF
+    window.onload = () => {
+      initLiff();
+    };
   </script>
 </body>
 </html>
