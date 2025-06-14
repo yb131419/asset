@@ -33,25 +33,30 @@
       flex-direction: column;
       position: relative;
     }
-    /* --- Language Selector --- */
-    #langSelect {
-      position: absolute;
-      top: 24px;
-      right: 32px;
-      font-size: 14px;
-      writing-mode: vertical-rl;
-      text-orientation: mixed;
-      padding: 10px 4px;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(255,255,255,0.1);
-      overflow: hidden;
-    }
-    #langSelect:hover { background: #444; }
-    /* --- User Info --- */
+#langSelect {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  font-size: 14px;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 12px 8px; /* 加寬內距 */
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(255,255,255,0.15);
+  overflow: visible;
+  letter-spacing: 0.05em; /* 增加字間距 */
+  line-height: 1.4;
+  user-select: none;
+}
+
+#langSelect:hover {
+  background: #555;
+}
+
     #userInfo { margin-bottom: 18px; text-align: center; }
     #userInfo .name {
       font-size: 24px; font-weight: 800; color: #fff;
@@ -230,7 +235,7 @@
         shareBtn: "📤 Chia sẻ nội dung"
       }
     };
-    
+
     function changeLang() {
       const lang = document.getElementById('langSelect').value;
       const map = langMap[lang] || langMap.zh;
