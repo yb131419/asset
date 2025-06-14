@@ -237,15 +237,51 @@
       }
     };
 
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh-Hant'];
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.label;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
-    }
+const langMap = {
+  "zh-Hant": {
+    /* ... 既有屬性 ... */
+    topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"]
+  },
+  "zh-Hans": {
+    /* ... */
+    topics: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"]
+  },
+  "en": {
+    /* ... */
+    topics: ["AI Auto-Detect", "Personal Growth", "Emotional Stories", "Health & Wellness", "Wealth & Opportunities"]
+  },
+  "vi": {
+    /* ... */
+    topics: ["AI Tự Động Nhận", "Phát Triển Bản Thân", "Câu Chuyện Cảm Động", "Sức Khỏe & Dinh Dưỡng", "Cơ Hội & Tài Chính"]
+  }
+};
+
+
+
+
+
+function changeLang() {
+  const lang = document.getElementById('langSelect').value;
+  const map = langMap[lang] || langMap['zh-Hant'];
+
+  // 更新各項文字
+  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+  document.querySelector('#originalText').placeholder = map.placeholder;
+  document.querySelector('#labelTopic').textContent = map.label;
+  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+  document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+  // 更新「分類主題」下拉選單
+  const topicSelect = document.getElementById('topicSelect');
+  topicSelect.innerHTML = "";  // 先清空
+  map.topics.forEach((text, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx === 0 ? "" : text;  // 第一個為空值
+    opt.textContent = text;
+    topicSelect.appendChild(opt);
+  });
+}
+
 
     // LIFF & 改寫邏輯整合
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
