@@ -166,7 +166,6 @@
 <body>
 
   <main class="card">
-    <!-- UI 語系切換 -->
     <select id="langSelect" onchange="changeLang()">
       <option value="zh-Hant">繁體中文</option>
       <option value="zh-Hans">简体中文</option>
@@ -176,11 +175,10 @@
 
     <div id="userInfo"></div>
 
-    <h2 id="headerTitle">📘 『彥彬 文案改寫』<br><small>✍️ 貼上 自動改寫</small></h2>
+    <h2 id="headerTitle">📘 『彥彬 文案改寫』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
 
     <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
-    <!-- 分類主題 -->
     <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
     <select id="topicSelect">
       <option value="">AI 自動判斷</option>
@@ -190,8 +188,7 @@
       <option value="財富商機">財富商機</option>
     </select>
 
-    <!-- 新增：翻譯語言 -->
-    <label for="outputLangSelect" id="labelOutputLang">選擇翻譯語言</label>
+    <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
     <select id="outputLangSelect">
       <option value="zh-Hant">繁體中文</option>
       <option value="zh-Hans">简体中文</option>
@@ -199,8 +196,8 @@
       <option value="vi">Tiếng Việt</option>
     </select>
 
-    <button id="rewriteBtn" onclick="autoRewrite()" disabled>🚀 自動改寫</button>
-    <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
+    <button id="rewriteBtn" onclick="autoRewrite()" disabled>🚀 自動改寫 + 翻譯</button>
+    <button id="shareBtn" onclick="nativeShare()" style="display:none;">📤 分享文案</button>
 
     <div id="rewriteResult"></div>
     <div id="bottomSpacer" style="height:60px;"></div>
@@ -208,83 +205,51 @@
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
-    // ===== 多國語系文字定義 =====
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
+    const LIFF_ID = "2007475335-Vb5Nrpg2";
+    let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
+
     const langMap = {
       "zh-Hant": {
-        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 貼上 自動改寫",
+        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
         placeholder: "請貼上原始文章...",
-        labelTopic: "選擇分類主題\n『可AI自動判斷』",
-        labelOutput: "選擇翻譯語言",
-        rewriteBtn: "🚀 自動改寫", shareBtn: "📤 分享文案",
-        topics: ["AI 自動判斷","人生成長","情感故事","健康養生","財富商機"],
-        outputs: ["繁體中文","简体中文","English","Tiếng Việt"]
+        labelTopic: "選擇分類主題『可AI自動判斷』",
+        labelOutput: "輸出語言",
+        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案"
       },
       "zh-Hans": {
-        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 粘贴 自动改写",
+        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
         placeholder: "请粘贴原始文章...",
-        labelTopic: "选择分类主题\n『可AI自动判断』",
-        labelOutput: "选择翻译语言",
-        rewriteBtn: "🚀 自动改写", shareBtn: "📤 分享文案",
-        topics: ["AI 自动判断","人生成长","情感故事","健康养生","财富商机"],
-        outputs: ["繁體中文","简体中文","English","Tiếng Việt"]
+        labelTopic: "选择分类主题『可AI自动判断』",
+        labelOutput: "输出语言",
+        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案"
       },
       "en": {
-        title: "📘 'Yanbin Copy Rewriter'", subtitle: "✍️ Paste to rewrite automatically",
+        title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
         placeholder: "Paste your original text here...",
-        labelTopic: "Choose topic category\n『or let AI decide』",
-        labelOutput: "Choose translation language",
-        rewriteBtn: "🚀 Rewrite Automatically", shareBtn: "📤 Share Copy",
-        topics: ["AI Auto-Detect","Personal Growth","Emotional Stories","Health & Wellness","Wealth & Opportunities"],
-        outputs: ["Traditional Chinese","Simplified Chinese","English","Vietnamese"]
+        labelTopic: "Choose topic (or let AI decide)",
+        labelOutput: "Output Language",
+        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy"
       },
       "vi": {
-        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Dán để viết lại tự động",
+        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
         placeholder: "Vui lòng dán văn bản gốc...",
-        labelTopic: "Chọn chủ đề\n『hoặc để AI tự động』",
-        labelOutput: "Chọn ngôn ngữ dịch",
-        rewriteBtn: "🚀 Viết lại", shareBtn: "📤 Chia sẻ nội dung",
-        topics: ["AI Tự Động Nhận","Phát Triển Bản Thân","Câu Chuyện Cảm Động","Sức Khỏe & Dinh Dưỡng","Cơ Hội & Tài Chính"],
-        outputs: ["繁體中文","简体中文","English","Tiếng Việt"]
+        labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+        labelOutput: "Ngôn ngữ đầu ra",
+        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ"
       }
     };
 
-    // 切換 UI 語系
     function changeLang() {
       const lang = document.getElementById('langSelect').value;
       const map = langMap[lang] || langMap['zh-Hant'];
-
       document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
       document.querySelector('#originalText').placeholder = map.placeholder;
       document.querySelector('#labelTopic').textContent = map.labelTopic;
       document.querySelector('#labelOutputLang').textContent = map.labelOutput;
       document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
       document.querySelector('#shareBtn').textContent = map.shareBtn;
-
-      // 更新主題選單
-      const topicSelect = document.getElementById('topicSelect');
-      topicSelect.innerHTML = "";
-      map.topics.forEach((txt, i) => {
-        const opt = document.createElement('option');
-        opt.value = i===0 ? "" : txt;
-        opt.textContent = txt;
-        topicSelect.appendChild(opt);
-      });
-
-      // 更新翻譯語言選單
-      const outputSelect = document.getElementById('outputLangSelect');
-      outputSelect.innerHTML = "";
-      ['zh-Hant','zh-Hans','en','vi'].forEach((code, i) => {
-        const opt = document.createElement('option');
-        opt.value = code;
-        opt.textContent = map.outputs[i];
-        outputSelect.appendChild(opt);
-      });
     }
-
-    // LIFF & 權限、改寫邏輯（同原本）
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-Vb5Nrpg2";
-    let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
     window.onload = async () => {
       await liff.init({ liffId: LIFF_ID });
@@ -296,6 +261,7 @@
       document.getElementById("originalText").addEventListener("input", () => {
         document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length>=8);
       });
+      changeLang(); // 預設語言初始化
     };
 
     function checkPermission(userId, displayName="使用者") {
@@ -333,7 +299,6 @@
       return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
     }
 
-    // 自動改寫 + 翻譯參數
     function autoRewrite() {
       const text = document.getElementById("originalText").value.trim();
       const topic = document.getElementById("topicSelect").value;
@@ -341,74 +306,60 @@
       const resultDiv = document.getElementById("rewriteResult");
       const btn = document.getElementById("rewriteBtn");
       const shareBtn = document.getElementById("shareBtn");
-      if (!text||btn.disabled) return;
-      if (!liffUserId||!hasPermission) {
-        resultDiv.innerHTML = `<div class="error">⚠️ 尚未登入或無權限。</div>`;
-        return;
-      }
-      // loading 狀態
-      btn.disabled=true;
-      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
-      shareBtn.style.display="none";
-      resultDiv.textContent="⏳ 改寫中";
-      let dots=0;
-      loadingInterval = setInterval(()=>{
-        dots=(dots+1)%4;
-        resultDiv.textContent="⏳ 改寫中"+ ".".repeat(dots);
-      },500);
+      if (!text || btn.disabled || !liffUserId || !hasPermission) return;
 
-      // JSONP 回調
+      btn.disabled = true;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
+      shareBtn.style.display = "none";
+      resultDiv.textContent = "⏳ 改寫中...";
+      let dots = 0;
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+      }, 500);
+
       window.handleResponse = res => {
         clearInterval(loadingInterval);
-        btn.disabled=false;
+        btn.disabled = false;
         btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
-
         if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ 錯誤：${res.error}</div>`;
+          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
           return;
         }
         let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
-        let output="";
-        if(res.topic) output+=`🔖 類別：\n${res.topic}\n\n`;
-        if(res.title) output+=`📌 推薦標題：\n${res.title}\n\n`;
-        output+=`📝 改寫內容：\n${content}`;
+        let output = "";
+        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+        output += `📝 改寫內容：\n${content}`;
         resultDiv.textContent = output;
-        lastRewrite={title:res.title||"",content};
-        shareBtn.style.display = content.trim()?"block":"none";
+        lastRewrite = { title: res.title || "", content };
+        shareBtn.style.display = content.trim() ? "block" : "none";
       };
 
-      // 移除舊 script
       const old = document.getElementById("jsonpScript");
-      if(old) old.remove();
-
-      const script=document.createElement("script");
-      script.id="jsonpScript";
-      const params=new URLSearchParams({
-        text, topic, userId:liffUserId,
-        outputLang, callback:"handleResponse"
-      });
-      script.src = `${SCRIPT_URL}?${params.toString()}`;
+      if (old) old.remove();
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
       script.onerror = () => {
         clearInterval(loadingInterval);
-        btn.disabled=false;
-        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+        btn.disabled = false;
         resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
       };
       document.body.appendChild(script);
     }
 
-    // 分享
     function nativeShare() {
-      if(!lastRewrite.content.trim()){
+      if (!lastRewrite.content.trim()) {
         alert("內容為空，無法分享。");
         return;
       }
       const shareData = {
-        title: lastRewrite.title||"文案改寫分享",
-        text: `${lastRewrite.title?`📌 推薦標題：\n${lastRewrite.title}\n\n`:``}📝 改寫內容：\n${lastRewrite.content}`
+        title: lastRewrite.title || "文案改寫分享",
+        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
       };
-      if(navigator.share) navigator.share(shareData).catch(()=>alert("分享失敗"));
-      else navigator.clipboard.writeText(shareData.text).then(()=>alert("已複製到剪貼簿"));
+      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
+      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
     }
   </script>
 </body>
