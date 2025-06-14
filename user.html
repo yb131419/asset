@@ -92,17 +92,18 @@
     <form id="infoForm">
       <input type="hidden" id="pageId" value="網頁" />
 
-      <label for="name">姓名</label>
-      <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
-
       <label for="date">日期</label>
       <input type="text" id="date" name="date" readonly />
 
       <label for="lineIdVisible">網頁ID</label>
       <input type="text" id="lineIdVisible" name="lineIdVisible" readonly placeholder="等待從 LINE 取得用戶ID" />
-
-      <!-- 隱藏欄位真正送出的 lineId -->
       <input type="hidden" id="lineId" name="lineId" />
+
+      <label for="userId">自訂 ID</label>
+      <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您自己的 ID（選填）" />
+
+      <label for="name">姓名</label>
+      <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
       <label for="phone">電話</label>
       <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
@@ -118,7 +119,6 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
     const LIFF_ID = "2007475335-wO37qkoE";
 
-    // 用 Intl.DateTimeFormat 確保台北時間 yyyy-mm-dd
     function getTaipeiDate() {
       const dtf = new Intl.DateTimeFormat('zh-TW', {
         timeZone: 'Asia/Taipei',
@@ -149,6 +149,7 @@
     function handleResponse(response) {
       if (response.status === "success") {
         alert("✅ 資料已成功送出！");
+        document.getElementById('userId').value = "";
         document.getElementById('name').value = "";
         document.getElementById('phone').value = "";
         document.getElementById('email').value = "";
@@ -160,9 +161,10 @@
     function sendData() {
       const data = {
         pageId: document.getElementById('pageId').value,
-        name: document.getElementById('name').value,
         date: document.getElementById('date').value,
         lineId: document.getElementById('lineId').value,
+        userId: document.getElementById('userId').value,
+        name: document.getElementById('name').value,
         phone: document.getElementById('phone').value,
         email: document.getElementById('email').value
       };
@@ -172,7 +174,6 @@
 
       const script = document.createElement('script');
       script.src = SCRIPT_URL + "?" + params.toString();
-
       document.body.appendChild(script);
 
       script.onload = () => document.body.removeChild(script);
