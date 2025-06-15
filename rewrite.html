@@ -68,6 +68,9 @@
       box-shadow: 0 0 14px rgba(255,182,193,0.6), inset 0 0 12px rgba(255,255,255,0.08);
       border: 1px solid rgba(255,192,203,0.4);
     }
+    
+
+
     #userInfo .expiry {
       font-size: 15px; color: #ddd; margin-top: 6px;
       display: block; letter-spacing: 0.04em;
@@ -173,6 +176,11 @@
       <option value="vi">Tiếng Việt</option>
     </select>
 
+    <div id="loginStatus" style="text-align:center; margin-bottom:12px; font-size:14px; color:#ffcc00;">
+      檢查登入中…
+    </div>
+
+
     <div id="userInfo"></div>
 
     <h2 id="headerTitle">📘 『彥彬 文案改寫』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
@@ -251,18 +259,41 @@
       document.querySelector('#shareBtn').textContent = map.shareBtn;
     }
 
-    window.onload = async () => {
-      await liff.init({ liffId: LIFF_ID });
-      if (!liff.isLoggedIn()) return liff.login();
-      const profile = await liff.getProfile();
-      const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile?.userId || "";
-      checkPermission(liffUserId, profile?.displayName||"使用者");
-      document.getElementById("originalText").addEventListener("input", () => {
-        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length>=8);
-      });
-      changeLang(); // 預設語言初始化
-    };
+window.onload = async () => {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+  } catch (e) {
+    document.getElementById("loginStatus").textContent = "LIFF init 失敗，請重整頁面";
+    console.error(e);
+    return;
+  }
+
+  // 顯示是否已登入
+  const statusDiv = document.getElementById("loginStatus");
+  if (liff.isLoggedIn()) {
+    statusDiv.textContent = "✅ 已登入 LINE";
+  } else {
+    statusDiv.innerHTML = `❌ 尚未登入，<button id="btnLogin" style="padding:4px 8px; margin-left:6px;">點此登入</button>`;
+    // 按鈕綁定 login
+    document.getElementById("btnLogin").addEventListener("click", () => liff.login());
+    // 跳過接下來的流程
+    return;
+  }
+
+  // 如果已登入，載入 profile 並進行權限檢查
+  const profile = await liff.getProfile();
+  const idToken = liff.getDecodedIDToken();
+  liffUserId = idToken?.sub || profile.userId || "";
+  console.log("取得 userId:", liffUserId);
+  statusDiv.textContent += `（UserID: ${liffUserId.slice(-8)}…）`;
+
+  checkPermission(liffUserId, profile.displayName || "使用者");
+  document.getElementById("originalText").addEventListener("input", () => {
+    document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
+  });
+  changeLang(); // 初始化語言
+};
+
 
     function checkPermission(userId, displayName="使用者") {
       window.handlePermission = res => {
