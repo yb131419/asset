@@ -361,13 +361,13 @@ window.onload = async () => {
           const days = calcDaysLeft(res.expiryDate);
           const danger = typeof days==="number" && days<=3;
           infoDiv.innerHTML = `
-            <div class="name">使用者：${displayName}</div>
+            <div class="name">👑 使用者<br>${displayName}</div>
             <div class="daysWrapper ${danger?"danger":""}">剩餘日：${typeof days==="number"?days+" 天":days}</div>
             <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>
           `;
           resultDiv.innerHTML = ""; document.getElementById("rewriteBtn").disabled = false;
         } else {
-          infoDiv.innerHTML = `<div class="name">👑 使用者：${displayName}</div><div class="daysWrapper">無權限</div>`;
+          infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
           resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
         }
       };
