@@ -195,7 +195,7 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-Vb5Nrpg2";
+    const LIFF_ID = "2007475335-jXmD4J3q";
     let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
     const langMap = {
@@ -269,18 +269,39 @@
       });
     }
 
-    window.onload = async () => {
+window.onload = async () => {
+    try {
       await liff.init({ liffId: LIFF_ID });
       if (!liff.isLoggedIn()) return liff.login();
-      const profile = await liff.getProfile();
-      const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile?.userId || "";
-      checkPermission(liffUserId, profile?.displayName||"使用者");
+
+      let profile = null, idToken = null;
+      try {
+        profile = await liff.getProfile();
+        idToken = liff.getDecodedIDToken();
+      } catch (e) {
+        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者資訊，請重新登入。</div>`;
+        return;
+      }
+
+      liffUserId = (idToken?.sub) || (profile?.userId) || "";
+      if (!liffUserId) {
+        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者 ID，請確認已登入 LINE。</div>`;
+        return;
+      }
+
+      checkPermission(liffUserId, profile?.displayName || "使用者");
+
       document.getElementById("originalText").addEventListener("input", () => {
-        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length>=8);
+        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
       });
+
       changeLang(); // 初始化語言介面
-    };
+
+    } catch (err) {
+      document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗，請稍後重試。</div>`;
+      console.error("LIFF 初始化錯誤", err);
+    }
+  };
 
     function checkPermission(userId, displayName="使用者") {
       window.handlePermission = res => {
