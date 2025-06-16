@@ -163,8 +163,8 @@
     }
   </style>
 </head>
-<body>
 
+<body>
   <main class="card">
     <select id="langSelect" onchange="changeLang()">
       <option value="zh-Hant">繁體中文</option>
@@ -180,13 +180,7 @@
     <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
     <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
-    <select id="topicSelect">
-      <option value="">AI 自動判斷</option>
-      <option value="人生成長">人生成長</option>
-      <option value="情感故事">情感故事</option>
-      <option value="健康養生">健康養生</option>
-      <option value="財富商機">財富商機</option>
-    </select>
+    <select id="topicSelect"></select>
 
     <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
     <select id="outputLangSelect">
@@ -215,28 +209,32 @@
         placeholder: "請貼上原始文章...",
         labelTopic: "選擇分類主題『可AI自動判斷』",
         labelOutput: "輸出語言",
-        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案"
+        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
+        topics: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"]
       },
       "zh-Hans": {
         title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
         placeholder: "请粘贴原始文章...",
         labelTopic: "选择分类主题『可AI自动判断』",
         labelOutput: "输出语言",
-        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案"
+        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
+        topics: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"]
       },
       "en": {
         title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
         placeholder: "Paste your original text here...",
         labelTopic: "Choose topic (or let AI decide)",
         labelOutput: "Output Language",
-        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy"
+        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
+        topics: ["AI Auto", "Self-growth", "Emotional Story", "Health & Wellness", "Wealth & Opportunity"]
       },
       "vi": {
         title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
         placeholder: "Vui lòng dán văn bản gốc...",
         labelTopic: "Chọn chủ đề (hoặc AI tự động)",
         labelOutput: "Ngôn ngữ đầu ra",
-        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ"
+        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
+        topics: ["AI tự động", "Phát triển bản thân", "Câu chuyện cảm xúc", "Sức khỏe", "Cơ hội tài chính"]
       }
     };
 
@@ -249,6 +247,16 @@
       document.querySelector('#labelOutputLang').textContent = map.labelOutput;
       document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
       document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+      // 更新分類選單
+      const topicSelect = document.getElementById('topicSelect');
+      topicSelect.innerHTML = "";
+      map.topics.forEach((t, i) => {
+        const option = document.createElement("option");
+        option.value = i === 0 ? "" : t; // 第一項為 AI 自動判斷
+        option.textContent = t;
+        topicSelect.appendChild(option);
+      });
     }
 
     window.onload = async () => {
@@ -363,4 +371,5 @@
     }
   </script>
 </body>
+
 </html>
