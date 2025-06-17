@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#1e1e1e" />
-  <title>彥彬 ✍️文案改寫</title>
+  <title>彥彬 ✍️故事行銷</title>
   <style>
     /* ===== 全域樣式 ===== */
 * { box-sizing: border-box; margin:0; padding:0; }
@@ -225,7 +225,7 @@ button:disabled {
 
     <div id="userInfo"></div>
 
-    <h2 id="headerTitle">📘 『彥彬 文案改寫』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
+    <h2 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
 
     <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
@@ -242,82 +242,109 @@ button:disabled {
     <div id="bottomSpacer" style="height:60px;"></div>
   </main>
 
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-jXmD4J3q";
-    let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
+  const LIFF_ID = "2007475335-jXmD4J3q";
+  let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
-    const langMap = {
-      "zh-Hant": {
-        title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
-        placeholder: "請貼上原始文章...",
-        labelTopic: "選擇分類主題『可AI自動判斷』",
-        labelOutput: "輸出語言",
-        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
-        outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
-        topicOptions: ["AI 自動判斷", "人生成長", "情感故事", "健康養生", "財富商機"]
-      },
-      "zh-Hans": {
-        title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
-        placeholder: "请粘贴原始文章...",
-        labelTopic: "选择分类主题『可AI自动判断』",
-        labelOutput: "输出语言",
-        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
-        outputOptions: ["繁体中文", "简体中文", "英文", "越南文"],
-        topicOptions: ["AI 自动判断", "人生成长", "情感故事", "健康养生", "财富商机"]
-      },
-      "en": {
-        title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
-        placeholder: "Paste your original text here...",
-        labelTopic: "Choose topic (or let AI decide)",
-        labelOutput: "Output Language",
-        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
-        outputOptions: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
-        topicOptions: ["AI Auto", "Personal Growth", "Emotional Story", "Health & Wellness", "Wealth & Business"]
-      },
-      "vi": {
-        title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
-        placeholder: "Vui lòng dán văn bản gốc...",
-        labelTopic: "Chọn chủ đề (hoặc AI tự động)",
-        labelOutput: "Ngôn ngữ đầu ra",
-        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
-        outputOptions: ["Tiếng Trung Phồn thể", "Tiếng Trung Giản thể", "Tiếng Anh", "Tiếng Việt"],
-        topicOptions: ["AI tự động", "Phát triển bản thân", "Câu chuyện tình cảm", "Sức khỏe", "Kinh doanh & Tài chính"]
-      }
-    };
-
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh-Hant'];
-
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.labelTopic;
-      document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
-
-      const outputSelect = document.getElementById('outputLangSelect');
-      const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
-      outputSelect.innerHTML = "";
-      outputValues.forEach((val, i) => {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = map.outputOptions[i] || val;
-        outputSelect.appendChild(opt);
-      });
-
-      const topicSelect = document.getElementById('topicSelect');
-      const topicValues = ["", "人生成長", "情感故事", "健康養生", "財富商機"];
-      topicSelect.innerHTML = "";
-      map.topicOptions.forEach((label, i) => {
-        const opt = document.createElement("option");
-        opt.value = topicValues[i];
-        opt.textContent = label;
-        topicSelect.appendChild(opt);
-      });
+  const langMap = {
+    "zh-Hant": {
+      title: "📘 『彥彬 文案改寫』", subtitle: "✍️ 自動改寫 + 翻譯",
+      placeholder: "請貼上原始文章...",
+      labelTopic: "選擇分類主題『可AI自動判斷』",
+      labelOutput: "輸出語言",
+      rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
+      outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
+      topicOptions: [
+        { value: "auto", label: "AI 自動判斷" },
+        { value: "story", label: "共鳴故事（信任建立）" },
+        { value: "education", label: "教育內容（知識價值）" },
+        { value: "product", label: "產品轉換（軟性銷售）" },
+        { value: "quote", label: "覺醒語錄（品牌記憶）" },
+        { value: "recruit", label: "合作機會（吸引夥伴）" }
+      ]
+    },
+    "zh-Hans": {
+      title: "📘 『彦彬 文案改写』", subtitle: "✍️ 自动改写 + 翻译",
+      placeholder: "请粘贴原始文章...",
+      labelTopic: "选择分类主题『可AI自动判断』",
+      labelOutput: "输出语言",
+      rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
+      outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
+      topicOptions: [
+        { value: "auto", label: "AI 自动判断" },
+        { value: "story", label: "共鸣故事（信任建立）" },
+        { value: "education", label: "教育内容（知识价值）" },
+        { value: "product", label: "产品转换（软性销售）" },
+        { value: "quote", label: "觉醒语录（品牌记忆）" },
+        { value: "recruit", label: "合作机会（吸引伙伴）" }
+      ]
+    },
+    "en": {
+      title: "📘 'Yanbin Rewriter'", subtitle: "✍️ Rewrite + Translate Automatically",
+      placeholder: "Paste your original text here...",
+      labelTopic: "Choose topic (or let AI decide)",
+      labelOutput: "Output Language",
+      rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
+      outputOptions: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
+      topicOptions: [
+        { value: "auto", label: "AI Auto" },
+        { value: "story", label: "Emotional Story" },
+        { value: "education", label: "Educational Content" },
+        { value: "product", label: "Product Conversion" },
+        { value: "quote", label: "Quote & Awakening" },
+        { value: "recruit", label: "Collaboration" }
+      ]
+    },
+    "vi": {
+      title: "📘 'Yanbin Viết lại văn bản'", subtitle: "✍️ Viết lại và Dịch tự động",
+      placeholder: "Vui lòng dán văn bản gốc...",
+      labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+      labelOutput: "Ngôn ngữ đầu ra",
+      rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
+      outputOptions: ["Tiếng Trung Phồn thể", "Tiếng Trung Giản thể", "Tiếng Anh", "Tiếng Việt"],
+      topicOptions: [
+        { value: "auto", label: "AI tự động" },
+        { value: "story", label: "Câu chuyện đồng cảm" },
+        { value: "education", label: "Nội dung giáo dục" },
+        { value: "product", label: "Chuyển đổi sản phẩm" },
+        { value: "quote", label: "Trích dẫn thức tỉnh" },
+        { value: "recruit", label: "Cơ hội hợp tác" }
+      ]
     }
+  };
+
+  function changeLang() {
+    const lang = document.getElementById('langSelect').value;
+    const map = langMap[lang] || langMap['zh-Hant'];
+
+    document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+    document.querySelector('#originalText').placeholder = map.placeholder;
+    document.querySelector('#labelTopic').textContent = map.labelTopic;
+    document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+    document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+    document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+    const outputSelect = document.getElementById('outputLangSelect');
+    const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
+    outputSelect.innerHTML = "";
+    outputValues.forEach((val, i) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = map.outputOptions[i] || val;
+      outputSelect.appendChild(opt);
+    });
+
+    const topicSelect = document.getElementById('topicSelect');
+    topicSelect.innerHTML = "";
+    map.topicOptions.forEach(optData => {
+      const opt = document.createElement("option");
+      opt.value = optData.value;
+      opt.textContent = optData.label;
+      topicSelect.appendChild(opt);
+    });
+  }
 
 window.onload = async () => {
     try {
@@ -451,6 +478,7 @@ window.onload = async () => {
       else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
     }
   </script>
+
 </body>
 
 </html>
