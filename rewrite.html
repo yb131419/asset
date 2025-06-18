@@ -325,7 +325,7 @@ button:disabled {
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
 const LIFF_ID = "2007475335-jXmD4J3q";
-let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
+let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval;
 
 const langMap = {
   "zh-Hant": {
@@ -416,18 +416,16 @@ function changeLang() {
   });
 
   const topicSelect = document.getElementById('topicSelect');
+  const currentValue = topicSelect.value; // ⚠️ 抓目前選擇值
   topicSelect.innerHTML = "";
   map.topicOptions.forEach(optData => {
     const opt = document.createElement("option");
     opt.value = optData.value;
     opt.textContent = optData.label;
+    if (opt.value === currentValue) opt.selected = true; // ✅ 自動選擇原本的
     topicSelect.appendChild(opt);
   });
-
-  // ✅ 補上這一行修正預設值
-  topicSelect.selectedIndex = 0;
 }
-
 
 window.onload = async () => {
   try {
@@ -456,7 +454,6 @@ window.onload = async () => {
     });
 
     changeLang(); // ✅ 初始化語言與主題選單
-
   } catch (err) {
     document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗，請稍後重試。</div>`;
     console.error("LIFF 初始化錯誤", err);
@@ -489,13 +486,13 @@ function checkPermission(userId, displayName="使用者") {
 }
 
 function calcDaysLeft(dateStr) {
-  const d=new Date(dateStr.trim()), now=new Date();
-  const diff=Math.floor((d-now)/(1000*60*60*24));
-  return isNaN(diff) ? "無效日期" : diff<0 ? "已過期" : diff===0 ? 0 : diff;
+  const d = new Date(dateStr.trim()), now = new Date();
+  const diff = Math.floor((d - now) / (1000 * 60 * 60 * 24));
+  return isNaN(diff) ? "無效日期" : diff < 0 ? "已過期" : diff === 0 ? 0 : diff;
 }
 function formatTaipeiDate(dateStr) {
-  const d=new Date(dateStr.trim());
-  return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
+  const d = new Date(dateStr.trim());
+  return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Taipei' });
 }
 
 function autoRewrite() {
@@ -525,7 +522,7 @@ function autoRewrite() {
       resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
       return;
     }
-    let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
+    let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
     let output = "";
     if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
     if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
@@ -560,6 +557,7 @@ function nativeShare() {
   if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
   else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
 }
+
 </script>
 
 </body>
