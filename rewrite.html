@@ -406,7 +406,7 @@ button:disabled {
     story: `請將以下內容改寫成一篇具有共鳴力的故事，能建立信任感，字數約150字左右，語氣溫暖且真誠：\n\n「{text}」`,
     education: `請將以下內容改寫成教育性質的文章，強調知識價值，字數約180字左右，語氣專業且易懂：\n\n「{text}」`,
     product: `請將以下內容改寫成軟性銷售文案，強調產品價值與轉換，字數約150字，語氣親切且具說服力：\n\n「{text}」`,
-    quote: `請將以下內容改寫成品牌覺醒語錄，字數約30字，語氣有力且易記：\n\n「{text}」`,
+    quote: `請將以下內容改寫成品牌覺醒語錄，字數約100字，語氣有力且易記：\n\n「{text}」`,
     recruit: `請將以下內容改寫成合作邀請文案，強調吸引合作夥伴，字數約120字，語氣熱情且具號召力：\n\n「{text}」`
   };
 
@@ -572,7 +572,7 @@ button:disabled {
     // ** 使用 generatePrompt() 產生完整 prompt 字串，送給後端 ** //
     const promptText = generatePrompt(text, modelPrompts);
 
-    const url = `${SCRIPT_URL}?text=${encodeURIComponent(promptText)}&modelType=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
+    const url = `${SCRIPT_URL}?text=${encodeURIComponent(promptText)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
     script.src = url;
     document.body.appendChild(script);
     script.onload = () => { script.remove(); };
