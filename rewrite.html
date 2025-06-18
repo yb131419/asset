@@ -521,62 +521,80 @@ button:disabled {
   }
 
   // 改寫主功能
-  function autoRewrite() {
-    const originalText = document.getElementById("originalText");
-    const topicSelect = document.getElementById("topicSelect");
-    const outputLangSelect = document.getElementById("outputLangSelect");
-    const langSelect = document.getElementById("langSelect");
-    const resultDiv = document.getElementById("rewriteResult");
-    const btn = document.getElementById("rewriteBtn");
-    const shareBtn = document.getElementById("shareBtn");
+  // 改寫主功能
+function autoRewrite() {
+  const originalText = document.getElementById("originalText");
+  const topicSelect = document.getElementById("topicSelect");
+  const outputLangSelect = document.getElementById("outputLangSelect");
+  const langSelect = document.getElementById("langSelect");
+  const resultDiv = document.getElementById("rewriteResult");
+  const btn = document.getElementById("rewriteBtn");
+  const shareBtn = document.getElementById("shareBtn");
 
-    const text = originalText.value.trim();
-    const modelPrompts = topicSelect.value; // 改成 modelPrompts 送後端
-    const outputLang = outputLangSelect.value;
-    const lang = langSelect.value;
+  const text = originalText.value.trim();
+  const modelPrompts = topicSelect.value; 
+  const outputLang = outputLangSelect.value;
+  const lang = langSelect.value;
 
-    if (!text || !hasPermission) return;
+  if (!text || !hasPermission) return;
 
-    btn.disabled = true;
-    btn.textContent = langMap[lang].rewriteBtn + "...";
-    btn.setAttribute("aria-disabled", "true");
-    resultDiv.textContent = "⏳ 改寫中...";
-    let dots = 0;
-    loadingInterval = setInterval(() => {
-      dots = (dots + 1) % 4;
-      resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-    }, 500);
+  btn.disabled = true;
+  btn.textContent = langMap[lang].rewriteBtn + "...";
+  btn.setAttribute("aria-disabled", "true");
+  resultDiv.textContent = "⏳ 改寫中...";
+  let dots = 0;
+  if (loadingInterval) clearInterval(loadingInterval);
+  loadingInterval = setInterval(() => {
+    dots = (dots + 1) % 4;
+    resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+  }, 500);
 
-    window.handleResponse = res => {
-      clearInterval(loadingInterval);
-      btn.disabled = false;
-      btn.textContent = langMap[lang].rewriteBtn;
-      btn.setAttribute("aria-disabled", "false");
-
-      if (res.error) {
-        resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-        shareBtn.style.display = "none";
-        return;
-      }
-      let content = res.content?.replace(/。/g, "。\n\n") || "";
-      let output = `🔖 類別：${res.topic || modelPrompts}\n\n📌 推薦標題：${res.title || "(無)"}\n\n📝 改寫內容：\n${content}`;
-      resultDiv.textContent = output;
-      shareBtn.style.display = "inline-block";
-      lastRewrite = { output };
-    };
-
-    // JSONP 動態注入
-    const cbName = "handleResponse";
-    const script = document.createElement("script");
-
-    // ** 使用 generatePrompt() 產生完整 prompt 字串，送給後端 ** //
-    const promptText = generatePrompt(text, modelPrompts);
-
-    const url = `${SCRIPT_URL}?text=${encodeURIComponent(promptText)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
-    script.src = url;
-    document.body.appendChild(script);
-    script.onload = () => { script.remove(); };
+  // 防止多次動態注入，先移除舊的 callback
+  if (window.handleResponse) {
+    delete window.handleResponse;
   }
+
+  window.handleResponse = res => {
+    clearInterval(loadingInterval);
+    btn.disabled = false;
+    btn.textContent = langMap[lang].rewriteBtn;
+    btn.setAttribute("aria-disabled", "false");
+
+    if (res.error) {
+      resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
+      shareBtn.style.display = "none";
+      return;
+    }
+    let content = res.content?.replace(/。/g, "。\n\n") || "";
+    let output = `🔖 類別：${res.topic || modelPrompts}\n\n📌 推薦標題：${res.title || "(無)"}\n\n📝 改寫內容：\n${content}`;
+    resultDiv.textContent = output;
+    shareBtn.style.display = "inline-block";
+    lastRewrite = { output };
+  };
+
+  // 動態生成 JSONP script
+  const cbName = "handleResponse";
+  const script = document.createElement("script");
+
+  const url = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
+
+  script.src = url;
+  script.onerror = () => {
+    clearInterval(loadingInterval);
+    btn.disabled = false;
+    btn.textContent = langMap[lang].rewriteBtn;
+    btn.setAttribute("aria-disabled", "false");
+    resultDiv.innerHTML = `<div class="error">❌ 無法載入後端服務，請稍後再試。</div>`;
+    shareBtn.style.display = "none";
+  };
+  document.body.appendChild(script);
+
+  // 自動清除 script，避免 DOM 堆積
+  script.onload = () => { 
+    setTimeout(() => script.remove(), 5000);
+  };
+}
+
 
   // 分享功能
   function nativeShare() {
