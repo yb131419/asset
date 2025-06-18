@@ -551,7 +551,9 @@ button:disabled {
     // JSONP 動態注入
     const cbName = "handleResponse";
     const script = document.createElement("script");
-   let url = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${topic}&modelType=${topic}&outputLang=${outputLang}&userId=${liffUserId}&callback=${cbName}`;
+    
+let url = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&modelType=${encodeURIComponent(modelType)}&outputLang=${outputLang}&userId=${liffUserId}&callback=${cbName}`;
+
     document.body.appendChild(script);
     script.src = url;
     script.onload = () => { script.remove(); };
