@@ -424,40 +424,44 @@ button:disabled {
     }
 
     // ===== 語言切換 =====
-    function changeLang() {
-      const lang = document.getElementById('langSelect').value;
-      const map = langMap[lang] || langMap['zh-Hant'];
+   function changeLang() {
+  const lang = document.getElementById('langSelect').value;
+  const map = langMap[lang] || langMap['zh-Hant'];
 
-      document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-      document.querySelector('#originalText').placeholder = map.placeholder;
-      document.querySelector('#labelTopic').textContent = map.labelTopic;
-      document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-      document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-      document.querySelector('#shareBtn').textContent = map.shareBtn;
+  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+  document.querySelector('#originalText').placeholder = map.placeholder;
+  document.querySelector('#labelTopic').textContent = map.labelTopic;
+  document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+  document.querySelector('#shareBtn').textContent = map.shareBtn;
 
-      // 輸出語言選項
-      const outputSelect = document.getElementById('outputLangSelect');
-      const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
-      outputSelect.innerHTML = "";
-      outputValues.forEach((val, i) => {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = map.outputOptions[i] || val;
-        outputSelect.appendChild(opt);
-      });
+  // 儲存使用者原本選的分類（如果有）
+  const topicSelect = document.getElementById('topicSelect');
+  const previousValue = topicSelect.value;
 
-      // 分類選項
-      const topicSelect = document.getElementById('topicSelect');
-      const currentValue = topicSelect.value;
-      topicSelect.innerHTML = "";
-      map.topicOptions.forEach(opt => {
-        const o = document.createElement("option");
-        o.value = opt.value;
-        o.textContent = opt.label;
-        if (opt.value === currentValue) o.selected = true;
-        topicSelect.appendChild(o);
-      });
-    }
+  // 分類選項
+  topicSelect.innerHTML = "";
+  map.topicOptions.forEach(opt => {
+    const o = document.createElement("option");
+    o.value = opt.value;
+    o.textContent = opt.label;
+    if (opt.value === previousValue) o.selected = true;
+    topicSelect.appendChild(o);
+  });
+
+  // 輸出語言選項
+  const outputSelect = document.getElementById('outputLangSelect');
+  const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
+  const previousOutput = outputSelect.value;
+  outputSelect.innerHTML = "";
+  outputValues.forEach((val, i) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = map.outputOptions[i] || val;
+    if (val === previousOutput) opt.selected = true;
+    outputSelect.appendChild(opt);
+  });
+}
 
     // ===== LIFF 初始化與授權檢查 =====
     window.onload = async () => {
@@ -541,6 +545,7 @@ button:disabled {
       const modelPrompts = topicSelect.value;
       const outputLang = outputLangSelect.value;
       const lang = langSelect.value;
+      
 
       if (!text || !hasPermission) return;
 
