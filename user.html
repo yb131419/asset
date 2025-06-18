@@ -6,7 +6,6 @@
   <title>彥彬文案改寫 - 用戶註冊</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    /* (維持你原本的 CSS) */
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
     * { box-sizing: border-box; }
     body {
@@ -90,13 +89,8 @@
     <h2>彥彬文案改寫<br>用戶註冊 <br>『開通用LINE通知』</h2>
 
     <form id="infoForm">
-      <input type="hidden" id="pageId" value="文案改寫" />
-
-      <label for="date">日期</label>
-      <input type="text" id="date" name="date" readonly />
-
-      <label for="lineIdVisible">網頁ID</label>
-      <input type="text" id="lineIdVisible" name="lineIdVisible" readonly placeholder="等待網頁ID" />
+      <input type="hidden" id="pageId" name="pageId" value="文案改寫" />
+      <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
       <label for="name">姓名</label>
@@ -139,7 +133,6 @@
         }
         const profile = await liff.getProfile();
         document.getElementById('lineId').value = profile.userId;
-        document.getElementById('lineIdVisible').value = profile.userId;
       } catch (error) {
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
         console.error(error);
