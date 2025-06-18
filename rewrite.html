@@ -293,35 +293,6 @@ button:disabled {
 </head>
 
 
-<body>
-  <main class="card">
-    <select id="langSelect" onchange="changeLang()">
-      <option value="zh-Hant">繁體中文</option>
-      <option value="zh-Hans">简体中文</option>
-      <option value="en">English</option>
-      <option value="vi">Tiếng Việt</option>
-    </select>
-
-    <div id="userInfo"></div>
-
-    <h2 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
-
-    <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
-
-    <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
-    <select id="topicSelect"></select>
-
-    <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
-    <select id="outputLangSelect"></select>
-
-    <button id="rewriteBtn" onclick="autoRewrite()" disabled>🚀 自動改寫 + 翻譯</button>
-    <button id="shareBtn" onclick="nativeShare()" style="display:none;">📤 分享文案</button>
-
-    <div id="rewriteResult"></div>
-    <div id="bottomSpacer" style="height:60px;"></div>
-  </main>
-
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
   const LIFF_ID = "2007475335-jXmD4J3q";
@@ -425,7 +396,7 @@ button:disabled {
     });
   }
 
-window.onload = async () => {
+  window.onload = async () => {
     try {
       await liff.init({ liffId: LIFF_ID });
       if (!liff.isLoggedIn()) return liff.login();
@@ -459,105 +430,109 @@ window.onload = async () => {
     }
   };
 
-    function checkPermission(userId, displayName="使用者") {
-      window.handlePermission = res => {
-        const infoDiv = document.getElementById("userInfo");
-        const resultDiv = document.getElementById("rewriteResult");
-        if (res?.auth) {
-          hasPermission = true;
-          const days = calcDaysLeft(res.expiryDate);
-          const danger = typeof days==="number" && days<=3;
-          infoDiv.innerHTML = `
-            <div class="name">👑 使用者<br>${displayName}</div>
-            <div class="daysWrapper ${danger?"danger":""}">剩餘日：${typeof days==="number"?days+" 天":days}</div>
-            <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>
-          `;
-          resultDiv.innerHTML = ""; document.getElementById("rewriteBtn").disabled = false;
-        } else {
-          infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
-          resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
-        }
-      };
-      const s = document.createElement("script");
-      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-      s.onerror = ()=> document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
-      document.body.appendChild(s);
-    }
-
-    function calcDaysLeft(dateStr) {
-      const d=new Date(dateStr.trim()), now=new Date();
-      const diff=Math.floor((d-now)/(1000*60*60*24));
-      return isNaN(diff) ? "無效日期" : diff<0 ? "已過期" : diff===0 ? 0 : diff;
-    }
-    function formatTaipeiDate(dateStr) {
-      const d=new Date(dateStr.trim());
-      return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
-    }
-
-    function autoRewrite() {
-      const text = document.getElementById("originalText").value.trim();
-      const topic = document.getElementById("topicSelect").value;
-      const outputLang = document.getElementById("outputLangSelect").value;
+  function checkPermission(userId, displayName="使用者") {
+    window.handlePermission = res => {
+      const infoDiv = document.getElementById("userInfo");
       const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-      if (!text || btn.disabled || !liffUserId || !hasPermission) return;
+      if (res?.auth) {
+        hasPermission = true;
+        const days = calcDaysLeft(res.expiryDate);
+        const danger = typeof days==="number" && days<=3;
+        infoDiv.innerHTML = `
+          <div class="name">👑 使用者<br>${displayName}</div>
+          <div class="daysWrapper ${danger?"danger":""}">剩餘日：${typeof days==="number"?days+" 天":days}</div>
+          <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>
+        `;
+        resultDiv.innerHTML = "";
+        document.getElementById("rewriteBtn").disabled = false;
+      } else {
+        infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
+        resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
+      }
+    };
+    const s = document.createElement("script");
+    s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+    s.onerror = ()=> document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
+    document.body.appendChild(s);
+  }
 
-      btn.disabled = true;
-      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
-      shareBtn.style.display = "none";
-      resultDiv.textContent = "⏳ 改寫中...";
-      let dots = 0;
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-      }, 500);
+  function calcDaysLeft(dateStr) {
+    const d=new Date(dateStr.trim()), now=new Date();
+    const diff=Math.floor((d-now)/(1000*60*60*24));
+    return isNaN(diff) ? "無效日期" : diff<0 ? "已過期" : diff===0 ? 0 : diff;
+  }
 
-      window.handleResponse = res => {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
-        if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-          return;
-        }
-        let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
-        let output = "";
-        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-        output += `📝 改寫內容：\n${content}`;
-        resultDiv.textContent = output;
-        lastRewrite = { title: res.title || "", content };
-        shareBtn.style.display = content.trim() ? "block" : "none";
-      };
+  function formatTaipeiDate(dateStr) {
+    const d=new Date(dateStr.trim());
+    return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
+  }
 
-      const old = document.getElementById("jsonpScript");
-      if (old) old.remove();
-      const script = document.createElement("script");
-      script.id = "jsonpScript";
-      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
-      script.onerror = () => {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
-      };
-      document.body.appendChild(script);
-    }
+  function autoRewrite() {
+    const text = document.getElementById("originalText").value.trim();
+    const modelType = document.getElementById("topicSelect").value;  // ✅ 這裡是關鍵：modelType 改為 topicSelect 的 value
+    const outputLang = document.getElementById("outputLangSelect").value;
+    const resultDiv = document.getElementById("rewriteResult");
+    const btn = document.getElementById("rewriteBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    if (!text || btn.disabled || !liffUserId || !hasPermission) return;
 
-    function nativeShare() {
-      if (!lastRewrite.content.trim()) {
-        alert("內容為空，無法分享。");
+    btn.disabled = true;
+    btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
+    shareBtn.style.display = "none";
+    resultDiv.textContent = "⏳ 改寫中...";
+    let dots = 0;
+    loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+    }, 500);
+
+    window.handleResponse = res => {
+      clearInterval(loadingInterval);
+      btn.disabled = false;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+      if (res.error) {
+        resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
         return;
       }
-      const shareData = {
-        title: lastRewrite.title || "文案改寫分享",
-        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
-      };
-      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
-      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
-    }
-  </script>
+      let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
+      let output = "";
+      if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+      if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+      output += `📝 改寫內容：\n${content}`;
+      resultDiv.textContent = output;
+      lastRewrite = { title: res.title || "", content };
+      shareBtn.style.display = content.trim() ? "block" : "none";
+    };
 
-</body>
+    const old = document.getElementById("jsonpScript");
+    if (old) old.remove();
+    const script = document.createElement("script");
+    script.id = "jsonpScript";
+
+    // ✅ 修正傳參數名稱為 modelType
+    script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&modelType=${encodeURIComponent(modelType)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
+
+    script.onerror = () => {
+      clearInterval(loadingInterval);
+      btn.disabled = false;
+      resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+    };
+    document.body.appendChild(script);
+  }
+
+  function nativeShare() {
+    if (!lastRewrite.content.trim()) {
+      alert("內容為空，無法分享。");
+      return;
+    }
+    const shareData = {
+      title: lastRewrite.title || "文案改寫分享",
+      text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
+    };
+    if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
+    else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
+  }
+</script>
+
 
 </html>
