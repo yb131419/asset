@@ -294,333 +294,311 @@ button:disabled {
 
 
 <body>
+  <main class="card">
+    <select id="langSelect" onchange="changeLang()">
+      <option value="zh-Hant">繁體中文</option>
+      <option value="zh-Hans">简体中文</option>
+      <option value="en">English</option>
+      <option value="vi">Tiếng Việt</option>
+    </select>
 
-  <h1 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h1>
+    <div id="userInfo"></div>
 
-  <div id="userInfo">👑 讀取中...</div>
+    <h2 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
 
-  <!-- 語言選擇 -->
-  <label for="langSelect">語言 Language</label>
-  <select id="langSelect" onchange="changeLang()">
-    <option value="zh-Hant">繁體中文</option>
-    <option value="zh-Hans">简体中文</option>
-    <option value="en">English</option>
-    <option value="vi">Tiếng Việt</option>
-  </select>
+    <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
-  <!-- 輸入文章 -->
-  <label for="originalText" id="labelOriginalText">請貼上原始文章...</label>
-  <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
+    <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
+    <select id="topicSelect"></select>
 
-  <!-- 主題選擇 -->
-  <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
-  <select id="topicSelect"></select>
+    <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
+    <select id="outputLangSelect"></select>
 
-  <!-- 輸出語言 -->
-  <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
-  <select id="outputLangSelect"></select>
+    <button id="rewriteBtn" onclick="autoRewrite()" disabled>🚀 自動改寫 + 翻譯</button>
+    <button id="shareBtn" onclick="nativeShare()" style="display:none;">📤 分享文案</button>
 
-  <!-- 按鈕區 -->
-  <div style="margin-top: 16px;">
-    <button id="rewriteBtn" disabled onclick="autoRewrite()">🚀 自動改寫 + 翻譯</button>
-    <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
-  </div>
+    <div id="rewriteResult"></div>
+    <div id="bottomSpacer" style="height:60px;"></div>
+  </main>
 
-  <!-- 改寫結果 -->
-  <pre id="rewriteResult"></pre>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
-  <!-- 引入 LIFF SDK -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script>
-    // ===== 設定常數 =====
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
-    const LIFF_ID = "2007475335-jXmD4J3q";
+<script>
+  // ===== 設定常數 =====
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
+  const LIFF_ID = "2007475335-jXmD4J3q";
 
-    // ===== 全域變數 =====
-    let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval;
+  // ===== 全域變數 =====
+  let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval;
 
-    // ===== 多語系與分類映射 =====
-    const langMap = {
-      "zh-Hant": {
-        title: "📘 『彥彬 故事行銷』", subtitle: "✍️ 自動改寫 + 翻譯",
-        placeholder: "請貼上原始文章...",
-        labelTopic: "選擇分類主題『可AI自動判斷』",
-        labelOutput: "輸出語言",
-        rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
-        outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
-        topicOptions: [
-          { value: "auto", label: "AI 自動判斷" },
-          { value: "story", label: "共鳴故事（信任建立）" },
-          { value: "education", label: "教育內容（知識價值）" },
-          { value: "product", label: "產品轉換（軟性銷售）" },
-          { value: "quote", label: "覺醒語錄（品牌記憶）" },
-          { value: "recruit", label: "合作機會（吸引夥伴）" }
-        ]
-      },
-      "zh-Hans": {
-        title: "📘 『彦彬 故事营销』", subtitle: "✍️ 自动改写 + 翻译",
-        placeholder: "请粘贴原始文章...",
-        labelTopic: "选择分类主题『可AI自动判断』",
-        labelOutput: "输出语言",
-        rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
-        outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
-        topicOptions: [
-          { value: "auto", label: "AI 自动判断" },
-          { value: "story", label: "共鸣故事（信任建立）" },
-          { value: "education", label: "教育内容（知识价值）" },
-          { value: "product", label: "产品转换（软性销售）" },
-          { value: "quote", label: "觉醒语录（品牌记忆）" },
-          { value: "recruit", label: "合作机会（吸引伙伴）" }
-        ]
-      },
-      "en": {
-        title: "📘 'Yanbin Story Marketing'", subtitle: "✍️ Rewrite + Translate Automatically",
-        placeholder: "Paste your original text here...",
-        labelTopic: "Choose topic (or let AI decide)",
-        labelOutput: "Output Language",
-        rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
-        outputOptions: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
-        topicOptions: [
-          { value: "auto", label: "AI Auto" },
-          { value: "story", label: "Emotional Story" },
-          { value: "education", label: "Educational Content" },
-          { value: "product", label: "Product Conversion" },
-          { value: "quote", label: "Quote & Awakening" },
-          { value: "recruit", label: "Collaboration" }
-        ]
-      },
-      "vi": {
-        title: "📘 'Yanbin Tiếp thị bằng câu chuyện'", subtitle: "✍️ Viết lại và Dịch tự động",
-        placeholder: "Vui lòng dán văn bản gốc...",
-        labelTopic: "Chọn chủ đề (hoặc AI tự động)",
-        labelOutput: "Ngôn ngữ đầu ra",
-        rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
-        outputOptions: ["Tiếng Trung Phồn thể", "Tiếng Trung Giản thể", "Tiếng Anh", "Tiếng Việt"],
-        topicOptions: [
-          { value: "auto", label: "AI tự động" },
-          { value: "story", label: "Câu chuyện đồng cảm" },
-          { value: "education", label: "Nội dung giáo dục" },
-          { value: "product", label: "Chuyển đổi sản phẩm" },
-          { value: "quote", label: "Trích dẫn thức tỉnh" },
-          { value: "recruit", label: "Cơ hội hợp tác" }
-        ]
+  // ===== 多語系與分類映射 =====
+  const langMap = {
+    "zh-Hant": {
+      title: "📘 『彥彬 故事行銷』", subtitle: "✍️ 自動改寫 + 翻譯",
+      placeholder: "請貼上原始文章...",
+      labelTopic: "選擇分類主題『可AI自動判斷』",
+      labelOutput: "輸出語言",
+      rewriteBtn: "🚀 自動改寫 + 翻譯", shareBtn: "📤 分享文案",
+      outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
+      topicOptions: [
+        { value: "auto", label: "AI 自動判斷" },
+        { value: "story", label: "共鳴故事（信任建立）" },
+        { value: "education", label: "教育內容（知識價值）" },
+        { value: "product", label: "產品轉換（軟性銷售）" },
+        { value: "quote", label: "覺醒語錄（品牌記憶）" },
+        { value: "recruit", label: "合作機會（吸引夥伴）" }
+      ]
+    },
+    "zh-Hans": {
+      title: "📘 『彦彬 故事营销』", subtitle: "✍️ 自动改写 + 翻译",
+      placeholder: "请粘贴原始文章...",
+      labelTopic: "选择分类主题『可AI自动判断』",
+      labelOutput: "输出语言",
+      rewriteBtn: "🚀 自动改写 + 翻译", shareBtn: "📤 分享文案",
+      outputOptions: ["繁體中文", "简体中文", "英文", "越南文"],
+      topicOptions: [
+        { value: "auto", label: "AI 自动判断" },
+        { value: "story", label: "共鸣故事（信任建立）" },
+        { value: "education", label: "教育内容（知识价值）" },
+        { value: "product", label: "产品转换（软性销售）" },
+        { value: "quote", label: "觉醒语录（品牌记忆）" },
+        { value: "recruit", label: "合作机会（吸引伙伴）" }
+      ]
+    },
+    "en": {
+      title: "📘 'Yanbin Story Marketing'", subtitle: "✍️ Rewrite + Translate Automatically",
+      placeholder: "Paste your original text here...",
+      labelTopic: "Choose topic (or let AI decide)",
+      labelOutput: "Output Language",
+      rewriteBtn: "🚀 Rewrite + Translate", shareBtn: "📤 Share Copy",
+      outputOptions: ["Traditional Chinese", "Simplified Chinese", "English", "Vietnamese"],
+      topicOptions: [
+        { value: "auto", label: "AI Auto" },
+        { value: "story", label: "Emotional Story" },
+        { value: "education", label: "Educational Content" },
+        { value: "product", label: "Product Conversion" },
+        { value: "quote", label: "Quote & Awakening" },
+        { value: "recruit", label: "Collaboration" }
+      ]
+    },
+    "vi": {
+      title: "📘 'Yanbin Tiếp thị bằng câu chuyện'", subtitle: "✍️ Viết lại và Dịch tự động",
+      placeholder: "Vui lòng dán văn bản gốc...",
+      labelTopic: "Chọn chủ đề (hoặc AI tự động)",
+      labelOutput: "Ngôn ngữ đầu ra",
+      rewriteBtn: "🚀 Viết lại + Dịch", shareBtn: "📤 Chia sẻ",
+      outputOptions: ["Tiếng Trung Phồn thể", "Tiếng Trung Giản thể", "Tiếng Anh", "Tiếng Việt"],
+      topicOptions: [
+        { value: "auto", label: "AI tự động" },
+        { value: "story", label: "Câu chuyện đồng cảm" },
+        { value: "education", label: "Nội dung giáo dục" },
+        { value: "product", label: "Chuyển đổi sản phẩm" },
+        { value: "quote", label: "Trích dẫn thức tỉnh" },
+        { value: "recruit", label: "Cơ hội hợp tác" }
+      ]
+    }
+  };
+
+  // ===== Prompt 模板設定 =====
+  // 可依需求自由調整模板字數、語氣、風格描述
+  const promptTemplates = {
+    auto: `請依據以下文章內容，AI自動判斷適合的改寫風格與字數，保持原意且通順流暢，並在改寫後翻譯成目標語言：\n\n「{text}」`,
+    story: `請將以下內容改寫成一篇具有共鳴力的故事，能建立信任感，字數約150字左右，語氣溫暖且真誠：\n\n「{text}」`,
+    education: `請將以下內容改寫成教育性質的文章，強調知識價值，字數約180字左右，語氣專業且易懂：\n\n「{text}」`,
+    product: `請將以下內容改寫成軟性銷售文案，強調產品價值與轉換，字數約150字，語氣親切且具說服力：\n\n「{text}」`,
+    quote: `請將以下內容改寫成品牌覺醒語錄，字數約100字，語氣有力且易記：\n\n「{text}」`,
+    recruit: `請將以下內容改寫成合作邀請文案，強調吸引合作夥伴，字數約120字，語氣熱情且具號召力：\n\n「{text}」`
+  };
+
+  // ===== 根據分類產生完整 prompt =====
+  function generatePrompt(text, modelPrompts) {
+    const template = promptTemplates[modelPrompts] || promptTemplates.auto;
+    return template.replace("{text}", text);
+  }
+
+  // ===== 語言切換 =====
+  function changeLang() {
+    const lang = document.getElementById('langSelect').value;
+    const map = langMap[lang] || langMap['zh-Hant'];
+
+    document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
+    document.querySelector('#originalText').placeholder = map.placeholder;
+    document.querySelector('#labelTopic').textContent = map.labelTopic;
+    document.querySelector('#labelOutputLang').textContent = map.labelOutput;
+    document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
+    document.querySelector('#shareBtn').textContent = map.shareBtn;
+
+    // 輸出語言選項
+    const outputSelect = document.getElementById('outputLangSelect');
+    const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
+    outputSelect.innerHTML = "";
+    outputValues.forEach((val, i) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = map.outputOptions[i] || val;
+      outputSelect.appendChild(opt);
+    });
+
+    // 分類選項
+    const topicSelect = document.getElementById('topicSelect');
+    const currentValue = topicSelect.value;
+    topicSelect.innerHTML = "";
+    map.topicOptions.forEach(opt => {
+      const o = document.createElement("option");
+      o.value = opt.value;
+      o.textContent = opt.label;
+      if (opt.value === currentValue) o.selected = true;
+      topicSelect.appendChild(o);
+    });
+  }
+
+  // ===== LINE LIFF 初始化與授權檢查 =====
+  window.onload = async () => {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) return liff.login();
+
+      const profile = await liff.getProfile();
+      const idToken = liff.getDecodedIDToken();
+      liffUserId = idToken?.sub || profile?.userId || "";
+
+      if (!liffUserId) {
+        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者ID</div>`;
+        return;
       }
-    };
 
-    // ===== Prompt 模板設定 =====
-    const promptTemplates = {
-      auto: `請依據以下文章內容，AI自動判斷適合的改寫風格與字數，保持原意且通順流暢，並在改寫後翻譯成目標語言：\n\n「{text}」`,
-      story: `請將以下內容改寫成一篇具有共鳴力的故事，能建立信任感，字數約150字左右，語氣溫暖且真誠：\n\n「{text}」`,
-      education: `請將以下內容改寫成教育性質的文章，強調知識價值，字數約180字左右，語氣專業且易懂：\n\n「{text}」`,
-      product: `請將以下內容改寫成軟性銷售文案，強調產品價值與轉換，字數約150字，語氣親切且具說服力：\n\n「{text}」`,
-      quote: `請將以下內容改寫成品牌覺醒語錄，字數約30字，語氣有力且易記：\n\n「{text}」`,
-      recruit: `請將以下內容改寫成合作邀請文案，強調吸引合作夥伴，字數約120字，語氣熱情且具號召力：\n\n「{text}」`
-    };
+      checkPermission(liffUserId, profile.displayName);
 
-    // ===== 根據分類產生完整 prompt =====
-    function generatePrompt(text, modelPrompts) {
-      const template = promptTemplates[modelPrompts] || promptTemplates.auto;
-      return template.replace("{text}", text);
-    }
-
-    // ===== 語言切換 =====
-   function changeLang() {
-  const lang = document.getElementById('langSelect').value;
-  const map = langMap[lang] || langMap['zh-Hant'];
-
-  document.querySelector('#headerTitle').innerHTML = `${map.title}<br><small>${map.subtitle}</small>`;
-  document.querySelector('#originalText').placeholder = map.placeholder;
-  document.querySelector('#labelTopic').textContent = map.labelTopic;
-  document.querySelector('#labelOutputLang').textContent = map.labelOutput;
-  document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
-  document.querySelector('#shareBtn').textContent = map.shareBtn;
-
-  // 儲存使用者原本選的分類（如果有）
-  const topicSelect = document.getElementById('topicSelect');
-  const previousValue = topicSelect.value;
-
-  // 分類選項
-  topicSelect.innerHTML = "";
-  map.topicOptions.forEach(opt => {
-    const o = document.createElement("option");
-    o.value = opt.value;
-    o.textContent = opt.label;
-    if (opt.value === previousValue) o.selected = true;
-    topicSelect.appendChild(o);
-  });
-
-  // 輸出語言選項
-  const outputSelect = document.getElementById('outputLangSelect');
-  const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
-  const previousOutput = outputSelect.value;
-  outputSelect.innerHTML = "";
-  outputValues.forEach((val, i) => {
-    const opt = document.createElement("option");
-    opt.value = val;
-    opt.textContent = map.outputOptions[i] || val;
-    if (val === previousOutput) opt.selected = true;
-    outputSelect.appendChild(opt);
-  });
-}
-
-    // ===== LIFF 初始化與授權檢查 =====
-    window.onload = async () => {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) return liff.login();
-
-        const profile = await liff.getProfile();
-        const idToken = liff.getDecodedIDToken();
-        liffUserId = idToken?.sub || profile?.userId || "";
-
-        if (!liffUserId) {
-          document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者ID</div>`;
-          return;
-        }
-
-        checkPermission(liffUserId, profile.displayName);
-
-        const originalText = document.getElementById("originalText");
-        const rewriteBtn = document.getElementById("rewriteBtn");
-        originalText.addEventListener("input", () => {
-          rewriteBtn.disabled = !(hasPermission && originalText.value.trim().length >= 8);
-          rewriteBtn.setAttribute("aria-disabled", rewriteBtn.disabled.toString());
-        });
-
-        changeLang();
-      } catch (err) {
-        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗</div>`;
-      }
-    };
-
-    // 授權檢查並顯示資訊
-    function checkPermission(userId, displayName) {
-      window.handlePermission = res => {
-        const infoDiv = document.getElementById("userInfo");
-        const resultDiv = document.getElementById("rewriteResult");
-        if (res?.auth) {
-          hasPermission = true;
-          const days = calcDaysLeft(res.expiryDate);
-          const danger = typeof days === "number" && days <= 3;
-          infoDiv.innerHTML = `
-            <div class="name">👑 使用者<br>${displayName}</div>
-            <div class="daysWrapper ${danger ? "danger" : ""}">剩餘日：${days} 天</div>
-            <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>`;
-          resultDiv.innerHTML = "";
-          document.getElementById("rewriteBtn").disabled = false;
-          document.getElementById("rewriteBtn").setAttribute("aria-disabled", "false");
-        } else {
-          hasPermission = false;
-          infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
-          resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
-          document.getElementById("rewriteBtn").disabled = true;
-          document.getElementById("rewriteBtn").setAttribute("aria-disabled", "true");
-        }
-      };
-      const s = document.createElement("script");
-      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-      document.body.appendChild(s);
-    }
-
-    // 工具函式
-    function calcDaysLeft(dateStr) {
-      const d = new Date(dateStr), now = new Date();
-      return Math.floor((d - now) / (1000 * 60 * 60 * 24));
-    }
-    function formatTaipeiDate(dateStr) {
-      return new Date(dateStr).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
-    }
-
-    // 改寫主功能
-    function autoRewrite() {
       const originalText = document.getElementById("originalText");
-      const topicSelect = document.getElementById("topicSelect");
-      const outputLangSelect = document.getElementById("outputLangSelect");
-      const langSelect = document.getElementById("langSelect");
+      const rewriteBtn = document.getElementById("rewriteBtn");
+      originalText.addEventListener("input", () => {
+        rewriteBtn.disabled = !(hasPermission && originalText.value.trim().length >= 8);
+        rewriteBtn.setAttribute("aria-disabled", rewriteBtn.disabled.toString());
+      });
+
+      changeLang();
+    } catch (err) {
+      document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗</div>`;
+    }
+  };
+
+  // 授權檢查並顯示資訊
+  function checkPermission(userId, displayName) {
+    window.handlePermission = res => {
+      const infoDiv = document.getElementById("userInfo");
       const resultDiv = document.getElementById("rewriteResult");
-      const btn = document.getElementById("rewriteBtn");
-      const shareBtn = document.getElementById("shareBtn");
-
-      const text = originalText.value.trim();
-      const modelPrompts = topicSelect.value;
-      const outputLang = outputLangSelect.value;
-      const lang = langSelect.value;
-      
-
-      if (!text || !hasPermission) return;
-
-      btn.disabled = true;
-      btn.textContent = langMap[lang].rewriteBtn + "...";
-      btn.setAttribute("aria-disabled", "true");
-      resultDiv.textContent = "⏳ 改寫中...";
-      let dots = 0;
-      if (loadingInterval) clearInterval(loadingInterval);
-      loadingInterval = setInterval(() => {
-        dots = (dots + 1) % 4;
-        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-      }, 500);
-
-      // 防止多次動態注入，先移除舊的 callback
-      if (window.handleResponse) {
-        delete window.handleResponse;
-      }
-
-      window.handleResponse = res => {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = langMap[lang].rewriteBtn;
-        btn.setAttribute("aria-disabled", "false");
-
-        if (res.error) {
-          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-          shareBtn.style.display = "none";
-          return;
-        }
-        let content = res.content?.replace(/。/g, "。\n\n") || "";
-        let output = `🔖 類別：${res.topic || modelPrompts}\n\n📌 推薦標題：${res.title || "(無)"}\n\n📝 改寫內容：\n${content}`;
-        resultDiv.textContent = output;
-        shareBtn.style.display = "inline-block";
-        lastRewrite = { output };
-      };
-
-      // 動態生成 JSONP script
-      const cbName = "handleResponse";
-      const script = document.createElement("script");
-
-      const url = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
-
-      script.src = url;
-      script.onerror = () => {
-        clearInterval(loadingInterval);
-        btn.disabled = false;
-        btn.textContent = langMap[lang].rewriteBtn;
-        btn.setAttribute("aria-disabled", "false");
-        resultDiv.innerHTML = `<div class="error">❌ 網路錯誤，請稍後重試</div>`;
-        shareBtn.style.display = "none";
-      };
-      document.body.appendChild(script);
-      // 送出後刪除 script 避免重複
-      script.onload = () => {
-        setTimeout(() => {
-          document.body.removeChild(script);
-        }, 1000);
-      };
-    }
-
-    // 分享功能 (Native Share API)
-    function nativeShare() {
-      if (!lastRewrite.output) return alert("請先完成改寫內容");
-      if (navigator.share) {
-        navigator.share({
-          title: "彥彬故事行銷改寫文案",
-          text: lastRewrite.output
-        }).catch(err => {
-          alert("分享失敗：" + err.message);
-        });
+      if (res?.auth) {
+        hasPermission = true;
+        const days = calcDaysLeft(res.expiryDate);
+        const danger = typeof days === "number" && days <= 3;
+        infoDiv.innerHTML = `
+          <div class="name">👑 使用者<br>${displayName}</div>
+          <div class="daysWrapper ${danger ? "danger" : ""}">剩餘日：${days} 天</div>
+          <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>`;
+        resultDiv.innerHTML = "";
+        document.getElementById("rewriteBtn").disabled = false;
+        document.getElementById("rewriteBtn").setAttribute("aria-disabled", "false");
       } else {
-        alert("您的瀏覽器不支援原生分享功能，請手動複製文字");
+        hasPermission = false;
+        infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
+        resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
+        document.getElementById("rewriteBtn").disabled = true;
+        document.getElementById("rewriteBtn").setAttribute("aria-disabled", "true");
       }
+    };
+    const s = document.createElement("script");
+    s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+    document.body.appendChild(s);
+  }
+
+  // 工具函式
+  function calcDaysLeft(dateStr) {
+    const d = new Date(dateStr), now = new Date();
+    return Math.floor((d - now) / (1000 * 60 * 60 * 24));
+  }
+  function formatTaipeiDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+  }
+
+  // 改寫主功能
+  function autoRewrite() {
+    const originalText = document.getElementById("originalText");
+    const topicSelect = document.getElementById("topicSelect");
+    const outputLangSelect = document.getElementById("outputLangSelect");
+    const langSelect = document.getElementById("langSelect");
+    const resultDiv = document.getElementById("rewriteResult");
+    const btn = document.getElementById("rewriteBtn");
+    const shareBtn = document.getElementById("shareBtn");
+
+    const text = originalText.value.trim();
+    const modelPrompts = topicSelect.value; // 改成 modelPrompts 送後端
+    const outputLang = outputLangSelect.value;
+    const lang = langSelect.value;
+
+    if (!text || !hasPermission) return;
+
+    btn.disabled = true;
+    btn.textContent = langMap[lang].rewriteBtn + "...";
+    btn.setAttribute("aria-disabled", "true");
+    resultDiv.textContent = "⏳ 改寫中...";
+    let dots = 0;
+    loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+    }, 500);
+
+    window.handleResponse = res => {
+      clearInterval(loadingInterval);
+      btn.disabled = false;
+      btn.textContent = langMap[lang].rewriteBtn;
+      btn.setAttribute("aria-disabled", "false");
+
+      if (res.error) {
+        resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
+        shareBtn.style.display = "none";
+        return;
+      }
+      let content = res.content?.replace(/。/g, "。\n\n") || "";
+      let output = `🔖 類別：${res.topic || modelPrompts}\n\n📌 推薦標題：${res.title || "(無)"}\n\n📝 改寫內容：\n${content}`;
+      resultDiv.textContent = output;
+      shareBtn.style.display = "inline-block";
+      lastRewrite = { output };
+    };
+
+    // JSONP 動態注入
+    const cbName = "handleResponse";
+    const script = document.createElement("script");
+
+    // ** 使用 generatePrompt() 產生完整 prompt 字串，送給後端 ** //
+    const promptText = generatePrompt(text, modelPrompts);
+
+    const url = `${SCRIPT_URL}?text=${encodeURIComponent(promptText)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
+    script.src = url;
+    document.body.appendChild(script);
+    script.onload = () => { script.remove(); };
+  }
+
+  // 分享功能
+  function nativeShare() {
+    if (!lastRewrite.output) return;
+    if (navigator.share) {
+      navigator.share({
+        title: '改寫文案分享',
+        text: lastRewrite.output,
+      }).catch(() => alert("分享取消或失敗"));
+    } else {
+      // fallback copy to clipboard
+      navigator.clipboard.writeText(lastRewrite.output).then(() => {
+        alert("已複製到剪貼簿");
+      }).catch(() => {
+        alert("瀏覽器不支援分享及複製功能");
+      });
     }
-  </script>
+  }
+</script>
+
+
+
 </body>
+
 </html>
