@@ -522,13 +522,48 @@ function autoRewrite() {
       resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
       return;
     }
-    let content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
+
+    const topicType = document.getElementById('topicSelect').value;
     let output = "";
-    if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
-    if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
-    output += `📝 改寫內容：\n${content}`;
+    let title = "";
+    let content = "";
+
+    switch (topicType) {
+      case "story":
+        title = res.title || "";
+        content = `${res.storyIntro || ""}\n\n${res.storyBody || ""}`;
+        output = `🔖 類別：共鳴故事\n\n📌 推薦標題：\n${title}\n\n📝 改寫內容：\n${content}`;
+        break;
+      case "quote":
+        content = res.quoteText || res.content || "";
+        output = `🔖 類別：覺醒語錄\n\n📝 覺醒句子：\n${content}`;
+        break;
+      case "education":
+        title = res.title || "";
+        content = res.educationText || res.content || "";
+        output = `🔖 類別：教育內容\n\n📌 主題：\n${title}\n\n📖 內容：\n${content}`;
+        break;
+      case "product":
+        title = res.title || "";
+        content = res.productCopy || res.content || "";
+        output = `🔖 類別：產品轉換\n\n📌 產品標題：\n${title}\n\n🛍️ 銷售文案：\n${content}`;
+        break;
+      case "recruit":
+        content = res.recruitCopy || res.content || "";
+        output = `🔖 類別：合作機會\n\n📢 招募文案：\n${content}`;
+        break;
+      default:
+        title = res.title || "";
+        content = (res.content || res.rewrite || "").replace(/。/g, "。\n\n");
+        output = "";
+        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if (title) output += `📌 推薦標題：\n${title}\n\n`;
+        output += `📝 改寫內容：\n${content}`;
+        break;
+    }
+
     resultDiv.textContent = output;
-    lastRewrite = { title: res.title || "", content };
+    lastRewrite = { title, content };
     shareBtn.style.display = content.trim() ? "block" : "none";
   };
 
@@ -544,6 +579,7 @@ function autoRewrite() {
   };
   document.body.appendChild(script);
 }
+
 
 function nativeShare() {
   if (!lastRewrite.content.trim()) {
