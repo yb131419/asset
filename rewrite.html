@@ -294,35 +294,43 @@ button:disabled {
 
 
 <body>
-  <main class="card">
-    <select id="langSelect" onchange="changeLang()">
-      <option value="zh-Hant">繁體中文</option>
-      <option value="zh-Hans">简体中文</option>
-      <option value="en">English</option>
-      <option value="vi">Tiếng Việt</option>
-    </select>
 
-    <div id="userInfo"></div>
+  <h1 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h1>
 
-    <h2 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
+  <div id="userInfo">👑 讀取中...</div>
 
-    <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
+  <!-- 語言選擇 -->
+  <label for="langSelect">語言 Language</label>
+  <select id="langSelect" onchange="changeLang()">
+    <option value="zh-Hant">繁體中文</option>
+    <option value="zh-Hans">简体中文</option>
+    <option value="en">English</option>
+    <option value="vi">Tiếng Việt</option>
+  </select>
 
-    <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
-    <select id="topicSelect"></select>
+  <!-- 輸入文章 -->
+  <label for="originalText" id="labelOriginalText">請貼上原始文章...</label>
+  <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
-    <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
-    <select id="outputLangSelect"></select>
+  <!-- 主題選擇 -->
+  <label for="topicSelect" id="labelTopic">選擇分類主題『可AI自動判斷』</label>
+  <select id="topicSelect"></select>
 
-    <button id="rewriteBtn" onclick="autoRewrite()" disabled>🚀 自動改寫 + 翻譯</button>
-    <button id="shareBtn" onclick="nativeShare()" style="display:none;">📤 分享文案</button>
+  <!-- 輸出語言 -->
+  <label for="outputLangSelect" id="labelOutputLang">輸出語言</label>
+  <select id="outputLangSelect"></select>
 
-    <div id="rewriteResult"></div>
-    <div id="bottomSpacer" style="height:60px;"></div>
-  </main>
+  <!-- 按鈕區 -->
+  <div style="margin-top: 16px;">
+    <button id="rewriteBtn" disabled onclick="autoRewrite()">🚀 自動改寫 + 翻譯</button>
+    <button id="shareBtn" onclick="nativeShare()">📤 分享文案</button>
+  </div>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- 改寫結果 -->
+  <pre id="rewriteResult"></pre>
 
+  <!-- 引入 LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
     // ===== 設定常數 =====
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
@@ -609,9 +617,5 @@ button:disabled {
       }
     }
   </script>
-
-
-
 </body>
-
 </html>
