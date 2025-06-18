@@ -4,293 +4,232 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#1e1e1e" />
+  <meta name="theme-color" content="#1e1e2f" />
   <title>彥彬 ✍️故事行銷</title>
   <style>
-    /* ===== 全域樣式 ===== */
-* { box-sizing: border-box; margin:0; padding:0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Body 主要版面設定 */
-body {
-  padding: 24px;
-  font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #1a1a1a, #222222);
-  color: #e0e0e0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  flex-direction: column;
-  gap: 12px;
-}
+    body {
+      padding: 24px;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1b1333, #2c1b47);
+      color: #e9ddff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-/* 主要內容卡片區塊 */
-main.card {
-  background: rgba(30, 30, 30, 0.9);
-  border-radius: 20px;
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.9),
-    inset 0 0 60px rgba(255, 255, 255, 0.05);
-  max-width: 500px;
-  width: 100%;
-  padding: 28px 32px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-}
+    main.card {
+      background: rgba(40, 20, 70, 0.9);
+      border-radius: 20px;
+      box-shadow: 
+        0 8px 18px rgba(0, 0, 0, 0.8),
+        inset 0 0 60px rgba(255, 255, 255, 0.05);
+      max-width: 500px;
+      width: 100%;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
 
-/* 語言切換按鈕 */
-#langSelect {
-  position: absolute;
-  top: 4px; right: 12px;
-  font-size: 14px;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  padding: 10px 4px; width: auto;
-  border-radius: 10px;
-  background: #333; color: #fff; border: none;
-  cursor: pointer;
-  box-shadow: 0 0 8px rgba(255,255,255,0.1);
-  white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
-}
-#langSelect:hover { background: #444; }
+    #langSelect {
+      position: absolute;
+      top: 4px; right: 12px;
+      font-size: 14px;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      padding: 10px 4px;
+      border-radius: 10px;
+      background: #4b2e66; color: #fff; border: none;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(255,255,255,0.1);
+    }
+    #langSelect:hover { background: #5e3d80; }
 
+    #userInfo {
+      max-width: 500px;
+      margin: 0 auto 16px auto;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #3c2266, #6f4ba3);
+      border-radius: 20px;
+      border: 1px solid rgba(150, 100, 255, 0.3);
+      box-shadow:
+        0 4px 20px rgba(100, 50, 200, 0.6),
+        0 0 8px rgba(180, 130, 255, 0.2),
+        inset 0 0 20px rgba(255, 255, 255, 0.04);
+      color: #f5eaff;
+      text-align: center;
+      backdrop-filter: blur(5px);
+    }
 
-/* 使用者資訊區塊 - 高質感藍色背景（未來科技感版） */
-#userInfo {
-  max-width: 500px;
-  margin: 0 auto 16px auto;
-  padding: 18px 24px;
-  background: linear-gradient(135deg, #0f1c3f, #2a5298);
-  border-radius: 20px;
-  border: 1px solid rgba(90, 140, 255, 0.3);
-  box-shadow:
-    0 4px 20px rgba(0, 60, 150, 0.6),
-    0 0 8px rgba(90, 160, 255, 0.2),
-    inset 0 0 20px rgba(255, 255, 255, 0.03);
-  color: #e0f7ff;
-  text-align: center;
-  user-select: none;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
-}
+    #userInfo:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 8px 28px rgba(150, 100, 255, 0.6),
+        0 0 16px rgba(180, 130, 255, 0.4),
+        inset 0 0 30px rgba(255, 255, 255, 0.06);
+    }
 
-/* Hover 時浮起 + 光暈變強 */
-#userInfo:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 8px 28px rgba(0, 100, 255, 0.6),
-    0 0 16px rgba(120, 180, 255, 0.4),
-    inset 0 0 30px rgba(255, 255, 255, 0.06);
-}
+    #userInfo .name {
+      font-size: 24px;
+      font-weight: 800;
+      color: #f9eaff;
+      text-shadow: 0 0 12px rgba(170, 120, 255, 0.8);
+    }
 
-/* 使用者名稱文字 - 光暈感強化 */
-#userInfo .name {
-  font-size: 24px;
-  font-weight: 800;
-  color: #e6f0ff;
-  margin-bottom: 8px;
-  text-shadow: 0 0 10px rgba(90, 160, 255, 0.8),
-               0 0 4px rgba(255, 255, 255, 0.2);
-  letter-spacing: 0.5px;
-}
+    #userInfo .expiry {
+      font-size: 15px;
+      color: #d4bfff;
+      text-shadow: 0 0 4px rgba(170, 120, 255, 0.4);
+    }
 
-/* 到期日文字 - 更細緻亮感 */
-#userInfo .expiry {
-  font-size: 15px;
-  color: #a6d2ff;
-  margin-top: 6px;
-  display: block;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 4px rgba(90, 160, 255, 0.4);
-}
+    .daysWrapper {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #d8b4ff, #e0cfff);
+      color: #2c0044;
+      font-weight: 700;
+      box-shadow: 
+        0 0 14px rgba(255,255,255,0.9),
+        inset 0 0 10px rgba(0,0,0,0.1);
+    }
 
+    .daysWrapper.danger {
+      background: linear-gradient(135deg, #ff9ee0, #ff4da6);
+      color: #fff0fa;
+      box-shadow: 
+        0 0 14px rgba(255,182,250,0.6),
+        inset 0 0 12px rgba(255,255,255,0.08);
+    }
 
-/* 使用者名稱文字 */
-#userInfo .name {
-  font-size: 22px;
-  font-weight: 800;
-  color: #f0f0f0;
-  margin-bottom: 6px;
-  text-shadow: 0 0 14px rgba(74, 144, 226, 0.9);
-}
+    h2 {
+      margin-bottom: 24px;
+      color: #fef4ff;
+      font-size: 24px;
+      text-align: center;
+      text-shadow: 0 0 10px #c678dd, 0 0 20px #9d50bb;
+    }
 
-/* 天數顯示包裹盒 */
-.daysWrapper {
-  display: inline-block; padding: 8px 20px; border-radius: 20px;
-  box-shadow: 0 0 14px rgba(255,255,255,0.9), inset 0 0 10px rgba(0,0,0,0.1);
-  background: linear-gradient(135deg, #fff, #e0e0e0);
-  color: #111; font-size: 20px; font-weight: 700;
-  margin: 0 6px;
-  min-width: 90px;
-}
+    h2 small {
+      display: block;
+      font-size: 14px;
+      color: #bda8d6;
+    }
 
-/* 天數危險狀態樣式 */
-.daysWrapper.danger {
-  background: linear-gradient(135deg, #ffb6b9, #ff6f61);
-  color: #fff0f0;
-  text-shadow: 0 0 6px rgba(255,182,193,0.6);
-  box-shadow: 0 0 14px rgba(255,182,193,0.6), inset 0 0 12px rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,192,203,0.4);
-}
+    textarea {
+      font-size: 16px;
+      line-height: 1.5;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: #2e2140;
+      color: #fceeff;
+      box-shadow: inset 0 0 12px #7e57c2, 0 2px 6px rgba(0,0,0,0.5);
+    }
 
-/* 使用者資訊區的到期日文字 */
-#userInfo .expiry {
-  font-size: 15px; color: #ddd; margin-top: 6px;
-  display: block; letter-spacing: 0.04em;
-  text-shadow: 0 0 6px rgba(255,255,255,0.3);
-}
+    textarea:focus {
+      outline: none;
+      background: #3c2e50;
+      box-shadow: inset 0 0 16px #bb86fc, 0 4px 12px rgba(187,134,252,0.7);
+    }
 
-/* 頁面標題 */
-h2 {
-  margin-bottom: 24px; color: #fafafa; font-weight: 700;
-  font-size: 24px; line-height: 1.3; text-align: center;
-  letter-spacing: 0.05em;
-  text-shadow: 0 0 8px #4a90e2, 0 0 18px #4a90e2;
-}
+    label {
+      color: #ddd0ff;
+      font-weight: 600;
+      text-shadow: 0 0 4px rgba(0,0,0,0.3);
+    }
 
-/* 標題副標 */
-h2 small {
-  display: block; font-weight: 400; font-size: 14px;
-  color: #99aabb; margin-top: 4px; line-height: 1.2;
-}
+    select, button {
+      font-size: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      width: 100%;
+    }
 
-/* 多行文字輸入框 */
-textarea {
-  font-size: 16px; line-height: 1.5; padding: 16px 18px;
-  border-radius: 12px; border: none; resize: vertical;
-  min-height: 140px; background: #222831; color: #f5f5f5;
-  box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
-  transition: box-shadow 0.3s ease; margin-bottom: 20px;
-  letter-spacing: 0.03em;
-}
-textarea:focus {
-  outline: none;
-  box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
-  background: #1e272e; color: #dcdde1;
-}
+    select {
+      background: #3b2b56;
+      color: #f0e5ff;
+      box-shadow: inset 0 0 12px #7e57c2, 0 2px 6px rgba(0,0,0,0.5);
+    }
 
-/* Label 標籤 */
-label {
-  font-weight: 600; margin-bottom: 8px; display: block;
-  letter-spacing: 0.04em; color: #dcdcdc;
-  text-shadow: 0 0 4px rgba(0,0,0,0.3);
-  white-space: pre-line;
-}
+    select:focus, select:hover {
+      background: #4e3c70;
+      box-shadow: inset 0 0 16px #bb86fc, 0 4px 12px rgba(187,134,252,0.7);
+    }
 
-/* 下拉選單 & 按鈕 */
-select, button {
-  font-size: 16px; padding: 12px;
-  border-radius: 12px; border: none;
-  margin-bottom: 24px; width: 100%;
-  letter-spacing: 0.03em;
-}
+    button {
+      font-weight: 700;
+      background: linear-gradient(135deg, #7e57c2, #6a1b9a);
+      color: #f9f0ff;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 
+        0 6px 12px rgba(126, 87, 194, 0.6),
+        inset 0 0 8px rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
 
-/* 下拉選單 */
-select {
-  background: #222831; color: #f0f0f0; cursor: pointer;
-  box-shadow: inset 0 0 12px #395B64, 0 2px 6px rgba(0,0,0,0.5);
-  transition: box-shadow 0.3s ease;
-}
-select:hover, select:focus {
-  outline: none;
-  box-shadow: inset 0 0 16px #74b9ff, 0 4px 12px rgba(116,185,255,0.7);
-  background: #1e272e;
-}
+    button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #9c6eff, #7e57c2);
+      box-shadow: 
+        0 10px 22px rgba(126, 87, 194, 0.8),
+        inset 0 0 12px rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
 
-/* 一般按鈕 - 高級質感版 */
-button {
-  font-weight: 700;
-  font-size: 17px;
-  padding: 14px 26px;
-  cursor: pointer;
-  border: none;
-  border-radius: 14px;
-  width: 100%;
-  letter-spacing: 0.05em;
-  background: linear-gradient(135deg, #4a90e2, #357ABD);
-  color: #f4faff;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  box-shadow: 
-    0 6px 12px rgba(74, 144, 226, 0.6),
-    inset 0 0 8px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
-}
+    button:disabled {
+      background: #5b4a6b;
+      opacity: 0.6;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
 
-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #5aa0ff, #4d83e1);
-  box-shadow: 
-    0 10px 22px rgba(74, 144, 226, 0.8),
-    inset 0 0 12px rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
-}
+    #shareBtn {
+      display: none;
+      font-weight: 700;
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      color: #fbeeff;
+      box-shadow: 
+        0 6px 14px rgba(155, 89, 182, 0.7),
+        inset 0 0 8px rgba(255, 255, 255, 0.08);
+    }
 
-button:disabled {
-  background: #444;
-  cursor: not-allowed;
-  opacity: 0.6;
-  box-shadow: none;
-}
+    #shareBtn:hover {
+      background: linear-gradient(135deg, #be75e0, #a058cf);
+      box-shadow: 
+        0 10px 24px rgba(155, 89, 182, 0.9),
+        inset 0 0 12px rgba(255, 255, 255, 0.12);
+    }
 
-/* 分享按鈕（預設隱藏） - 高級綠色質感 */
-#shareBtn {
-  display: none;
-  font-weight: 700;
-  font-size: 17px;
-  padding: 14px 26px;
-  border: none;
-  border-radius: 14px;
-  width: 100%;
-  letter-spacing: 0.05em;
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #f0f9f1;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  box-shadow: 
-    0 6px 14px rgba(39, 174, 96, 0.7),
-    inset 0 0 8px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
-}
+    #rewriteResult {
+      white-space: pre-wrap;
+      font-size: 16px;
+      line-height: 1.7;
+      background: rgba(30, 20, 40, 0.85);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 140px;
+      color: #f2e6ff;
+      backdrop-filter: blur(6px);
+      box-shadow:
+        inset 0 0 20px rgba(255, 255, 255, 0.03),
+        0 4px 20px rgba(0, 0, 0, 0.5);
+    }
 
-#shareBtn:hover {
-  background: linear-gradient(135deg, #3acf7d, #47d88d);
-  box-shadow: 
-    0 10px 24px rgba(39, 174, 96, 0.9),
-    inset 0 0 12px rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
-}
-
-/* 改寫結果區塊 - 高級暗色玻璃質感 */
-#rewriteResult {
-  white-space: pre-wrap;
-  font-size: 16px;
-  line-height: 1.7;
-  background: rgba(24, 24, 24, 0.85);
-  border-radius: 16px;
-  padding: 24px;
-  min-height: 140px;
-  color: #e0e0e0;
-  letter-spacing: 0.04em;
-  backdrop-filter: blur(4px);
-  box-shadow:
-    inset 0 0 20px rgba(255, 255, 255, 0.03),
-    0 4px 20px rgba(0, 0, 0, 0.5);
-  transition: box-shadow 0.3s ease, background 0.3s ease;
-}
-
-/* 錯誤訊息 - 高警示強調 */
-.error {
-  color: #ff6b6b;
-  font-weight: 800;
-  text-shadow: 0 0 10px rgba(255, 107, 107, 0.8);
-  font-size: 16px;
-  margin-top: 10px;
-  text-align: center;
-}
-
+    .error {
+      color: #ff87c4;
+      font-weight: 800;
+      font-size: 16px;
+      text-align: center;
+      text-shadow: 0 0 12px rgba(255, 107, 200, 0.8);
+      margin-top: 10px;
+    }
   </style>
 </head>
+
 
 
 <body>
