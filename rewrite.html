@@ -200,93 +200,49 @@ select:hover, select:focus {
   background: #1e272e;
 }
 
-/* 一般按鈕 - 高級質感版 */
+/* 一般按鈕 */
 button {
-  font-weight: 700;
-  font-size: 17px;
-  padding: 14px 26px;
-  cursor: pointer;
-  border: none;
-  border-radius: 14px;
-  width: 100%;
-  letter-spacing: 0.05em;
+  font-weight: 600; font-size: 17px;
+  padding: 14px 26px; cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 6px 12px rgba(74,144,226,0.6);
+  color: #fff;
   background: linear-gradient(135deg, #4a90e2, #357ABD);
-  color: #f4faff;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  box-shadow: 
-    0 6px 12px rgba(74, 144, 226, 0.6),
-    inset 0 0 8px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
+  text-shadow: 0 0 4px rgba(0,0,0,0.4);
 }
-
 button:hover:not(:disabled) {
   background: linear-gradient(135deg, #5aa0ff, #4d83e1);
-  box-shadow: 
-    0 10px 22px rgba(74, 144, 226, 0.8),
-    inset 0 0 12px rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(74,144,226,0.8);
 }
-
 button:disabled {
-  background: #444;
-  cursor: not-allowed;
-  opacity: 0.6;
-  box-shadow: none;
+  background: #444; cursor: not-allowed; opacity: 0.7; box-shadow: none;
 }
 
-/* 分享按鈕（預設隱藏） - 高級綠色質感 */
+/* 分享按鈕（預設隱藏） */
 #shareBtn {
-  display: none;
-  font-weight: 700;
-  font-size: 17px;
-  padding: 14px 26px;
-  border: none;
-  border-radius: 14px;
-  width: 100%;
-  letter-spacing: 0.05em;
   background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #f0f9f1;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  box-shadow: 
-    0 6px 14px rgba(39, 174, 96, 0.7),
-    inset 0 0 8px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
+  box-shadow: 0 6px 14px rgba(39,174,96,0.7);
+  display: none; color: #f0f9f1;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
-
 #shareBtn:hover {
   background: linear-gradient(135deg, #3acf7d, #47d88d);
-  box-shadow: 
-    0 10px 24px rgba(39, 174, 96, 0.9),
-    inset 0 0 12px rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 9px 22px rgba(39,174,96,0.9);
 }
 
-/* 改寫結果區塊 - 高級暗色玻璃質感 */
+/* 改寫結果區塊 */
 #rewriteResult {
-  white-space: pre-wrap;
-  font-size: 16px;
-  line-height: 1.7;
-  background: rgba(24, 24, 24, 0.85);
-  border-radius: 16px;
-  padding: 24px;
-  min-height: 140px;
-  color: #e0e0e0;
-  letter-spacing: 0.04em;
-  backdrop-filter: blur(4px);
-  box-shadow:
-    inset 0 0 20px rgba(255, 255, 255, 0.03),
-    0 4px 20px rgba(0, 0, 0, 0.5);
-  transition: box-shadow 0.3s ease, background 0.3s ease;
+  white-space: pre-wrap; font-size: 16px; line-height: 1.6;
+  background: #181818; border-radius: 14px; padding: 20px;
+  min-height: 140px; color: #ccc;
+  box-shadow: inset 0 0 12px #222;
+  letter-spacing: 0.03em;
 }
 
-/* 錯誤訊息 - 高警示強調 */
+/* 錯誤訊息樣式 */
 .error {
-  color: #ff6b6b;
-  font-weight: 800;
-  text-shadow: 0 0 10px rgba(255, 107, 107, 0.8);
-  font-size: 16px;
-  margin-top: 10px;
-  text-align: center;
+  color: #ff6b6b; font-weight: 700;
+  text-shadow: 0 0 8px rgba(255,107,107,0.6);
 }
 
   </style>
@@ -304,7 +260,7 @@ button:disabled {
 
     <div id="userInfo"></div>
 
-    <h2 id="headerTitle">📘 『彥彬 故事行銷』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
+    <h2 id="headerTitle">📘 『彥彬 主題＋內容』<br><small>✍️ 自動改寫 + 翻譯</small></h2>
 
     <textarea id="originalText" placeholder="請貼上原始文章..."></textarea>
 
@@ -322,19 +278,14 @@ button:disabled {
   </main>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
 <script>
-  // ===== 設定常數 =====
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwRYOIicltP81EO6fQB81bCRfoEczp29qqqSbz5HjdzbsZmRrccQgxR6QmikAWuuNGl/exec";
   const LIFF_ID = "2007475335-jXmD4J3q";
+  let liffUserId="", hasPermission=false, lastRewrite={}, loadingInterval;
 
-  // ===== 全域變數 =====
-  let liffUserId = "", hasPermission = false, lastRewrite = {}, loadingInterval;
-
-  // ===== 多語系與分類映射 =====
   const langMap = {
     "zh-Hant": {
-      title: "📘 『彥彬 故事行銷』", subtitle: "✍️ 自動改寫 + 翻譯",
+      title: "📘 『彥彬 主題＋內容』", subtitle: "✍️ 自動改寫 + 翻譯",
       placeholder: "請貼上原始文章...",
       labelTopic: "選擇分類主題『可AI自動判斷』",
       labelOutput: "輸出語言",
@@ -350,7 +301,7 @@ button:disabled {
       ]
     },
     "zh-Hans": {
-      title: "📘 『彦彬 故事营销』", subtitle: "✍️ 自动改写 + 翻译",
+      title: "📘 『彦彬 主题＋内容』", subtitle: "✍️ 自动改写 + 翻译",
       placeholder: "请粘贴原始文章...",
       labelTopic: "选择分类主题『可AI自动判断』",
       labelOutput: "输出语言",
@@ -366,7 +317,7 @@ button:disabled {
       ]
     },
     "en": {
-      title: "📘 'Yanbin Story Marketing'", subtitle: "✍️ Rewrite + Translate Automatically",
+      title: "📘 'Yanbin Theme + content'", subtitle: "✍️ Rewrite + Translate Automatically",
       placeholder: "Paste your original text here...",
       labelTopic: "Choose topic (or let AI decide)",
       labelOutput: "Output Language",
@@ -382,7 +333,7 @@ button:disabled {
       ]
     },
     "vi": {
-      title: "📘 'Yanbin Tiếp thị bằng câu chuyện'", subtitle: "✍️ Viết lại và Dịch tự động",
+      title: "📘 'Yanbin Chủ đề + nội dung'", subtitle: "✍️ Viết lại và Dịch tự động",
       placeholder: "Vui lòng dán văn bản gốc...",
       labelTopic: "Chọn chủ đề (hoặc AI tự động)",
       labelOutput: "Ngôn ngữ đầu ra",
@@ -399,24 +350,6 @@ button:disabled {
     }
   };
 
-  // ===== Prompt 模板設定 =====
-  // 可依需求自由調整模板字數、語氣、風格描述
-  const promptTemplates = {
-    auto: `請依據以下文章內容，AI自動判斷適合的改寫風格與字數，保持原意且通順流暢，並在改寫後翻譯成目標語言：\n\n「{text}」`,
-    story: `請將以下內容改寫成一篇具有共鳴力的故事，能建立信任感，字數約150字左右，語氣溫暖且真誠：\n\n「{text}」`,
-    education: `請將以下內容改寫成教育性質的文章，強調知識價值，字數約180字左右，語氣專業且易懂：\n\n「{text}」`,
-    product: `請將以下內容改寫成軟性銷售文案，強調產品價值與轉換，字數約150字，語氣親切且具說服力：\n\n「{text}」`,
-    quote: `請將以下內容改寫成品牌覺醒語錄，字數約50字，語氣有力且易記：\n\n「{text}」`,
-    recruit: `請將以下內容改寫成合作邀請文案，強調吸引合作夥伴，字數約120字，語氣熱情且具號召力：\n\n「{text}」`
-  };
-
-  // ===== 根據分類產生完整 prompt =====
-  function generatePrompt(text, modelPrompts) {
-    const template = promptTemplates[modelPrompts] || promptTemplates.auto;
-    return template.replace("{text}", text);
-  }
-
-  // ===== 語言切換 =====
   function changeLang() {
     const lang = document.getElementById('langSelect').value;
     const map = langMap[lang] || langMap['zh-Hant'];
@@ -428,7 +361,6 @@ button:disabled {
     document.querySelector('#rewriteBtn').textContent = map.rewriteBtn;
     document.querySelector('#shareBtn').textContent = map.shareBtn;
 
-    // 輸出語言選項
     const outputSelect = document.getElementById('outputLangSelect');
     const outputValues = ["zh-Hant", "zh-Hans", "en", "vi"];
     outputSelect.innerHTML = "";
@@ -439,165 +371,148 @@ button:disabled {
       outputSelect.appendChild(opt);
     });
 
-    // 分類選項
     const topicSelect = document.getElementById('topicSelect');
-    const currentValue = topicSelect.value;
     topicSelect.innerHTML = "";
-    map.topicOptions.forEach(opt => {
-      const o = document.createElement("option");
-      o.value = opt.value;
-      o.textContent = opt.label;
-      if (opt.value === currentValue) o.selected = true;
-      topicSelect.appendChild(o);
+    map.topicOptions.forEach(optData => {
+      const opt = document.createElement("option");
+      opt.value = optData.value;
+      opt.textContent = optData.label;
+      topicSelect.appendChild(opt);
     });
   }
 
-  // ===== LINE LIFF 初始化與授權檢查 =====
-  window.onload = async () => {
+window.onload = async () => {
     try {
       await liff.init({ liffId: LIFF_ID });
       if (!liff.isLoggedIn()) return liff.login();
 
-      const profile = await liff.getProfile();
-      const idToken = liff.getDecodedIDToken();
-      liffUserId = idToken?.sub || profile?.userId || "";
-
-      if (!liffUserId) {
-        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者ID</div>`;
+      let profile = null, idToken = null;
+      try {
+        profile = await liff.getProfile();
+        idToken = liff.getDecodedIDToken();
+      } catch (e) {
+        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者資訊，請重新登入。</div>`;
         return;
       }
 
-      checkPermission(liffUserId, profile.displayName);
+      liffUserId = (idToken?.sub) || (profile?.userId) || "";
+      if (!liffUserId) {
+        document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 無法取得使用者 ID，請確認已登入 LINE。</div>`;
+        return;
+      }
 
-      const originalText = document.getElementById("originalText");
-      const rewriteBtn = document.getElementById("rewriteBtn");
-      originalText.addEventListener("input", () => {
-        rewriteBtn.disabled = !(hasPermission && originalText.value.trim().length >= 8);
-        rewriteBtn.setAttribute("aria-disabled", rewriteBtn.disabled.toString());
+      checkPermission(liffUserId, profile?.displayName || "使用者");
+
+      document.getElementById("originalText").addEventListener("input", () => {
+        document.getElementById("rewriteBtn").disabled = !(hasPermission && originalText.value.trim().length >= 8);
       });
 
-      changeLang();
+      changeLang(); // 初始化語言介面
+
     } catch (err) {
-      document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗</div>`;
+      document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ LIFF 初始化失敗，請稍後重試。</div>`;
+      console.error("LIFF 初始化錯誤", err);
     }
   };
 
-  // 授權檢查並顯示資訊
-  function checkPermission(userId, displayName) {
-    window.handlePermission = res => {
-      const infoDiv = document.getElementById("userInfo");
+    function checkPermission(userId, displayName="使用者") {
+      window.handlePermission = res => {
+        const infoDiv = document.getElementById("userInfo");
+        const resultDiv = document.getElementById("rewriteResult");
+        if (res?.auth) {
+          hasPermission = true;
+          const days = calcDaysLeft(res.expiryDate);
+          const danger = typeof days==="number" && days<=3;
+          infoDiv.innerHTML = `
+            <div class="name">👑 使用者<br>${displayName}</div>
+            <div class="daysWrapper ${danger?"danger":""}">剩餘日：${typeof days==="number"?days+" 天":days}</div>
+            <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>
+          `;
+          resultDiv.innerHTML = ""; document.getElementById("rewriteBtn").disabled = false;
+        } else {
+          infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
+          resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
+        }
+      };
+      const s = document.createElement("script");
+      s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
+      s.onerror = ()=> document.getElementById("rewriteResult").innerHTML = `<div class="error">❌ 權限驗證失敗</div>`;
+      document.body.appendChild(s);
+    }
+
+    function calcDaysLeft(dateStr) {
+      const d=new Date(dateStr.trim()), now=new Date();
+      const diff=Math.floor((d-now)/(1000*60*60*24));
+      return isNaN(diff) ? "無效日期" : diff<0 ? "已過期" : diff===0 ? 0 : diff;
+    }
+    function formatTaipeiDate(dateStr) {
+      const d=new Date(dateStr.trim());
+      return isNaN(d.getTime()) ? "無效日期" : d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Taipei'});
+    }
+
+    function autoRewrite() {
+      const text = document.getElementById("originalText").value.trim();
+      const topic = document.getElementById("topicSelect").value;
+      const outputLang = document.getElementById("outputLangSelect").value;
       const resultDiv = document.getElementById("rewriteResult");
-      if (res?.auth) {
-        hasPermission = true;
-        const days = calcDaysLeft(res.expiryDate);
-        const danger = typeof days === "number" && days <= 3;
-        infoDiv.innerHTML = `
-          <div class="name">👑 使用者<br>${displayName}</div>
-          <div class="daysWrapper ${danger ? "danger" : ""}">剩餘日：${days} 天</div>
-          <div class="expiry">到期日：${formatTaipeiDate(res.expiryDate)}</div>`;
-        resultDiv.innerHTML = "";
-        document.getElementById("rewriteBtn").disabled = false;
-        document.getElementById("rewriteBtn").setAttribute("aria-disabled", "false");
-      } else {
-        hasPermission = false;
-        infoDiv.innerHTML = `<div class="name">👑 使用者<br>${displayName}</div><div class="daysWrapper">無權限</div>`;
-        resultDiv.innerHTML = `<div class="error">⛔ 尚未開通使用權限</div>`;
-        document.getElementById("rewriteBtn").disabled = true;
-        document.getElementById("rewriteBtn").setAttribute("aria-disabled", "true");
-      }
-    };
-    const s = document.createElement("script");
-    s.src = `${SCRIPT_URL}?userId=${userId}&checkAuth=1&callback=handlePermission`;
-    document.body.appendChild(s);
-  }
+      const btn = document.getElementById("rewriteBtn");
+      const shareBtn = document.getElementById("shareBtn");
+      if (!text || btn.disabled || !liffUserId || !hasPermission) return;
 
-  // 工具函式
-  function calcDaysLeft(dateStr) {
-    const d = new Date(dateStr), now = new Date();
-    return Math.floor((d - now) / (1000 * 60 * 60 * 24));
-  }
-  function formatTaipeiDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
-  }
+      btn.disabled = true;
+      btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn + "...";
+      shareBtn.style.display = "none";
+      resultDiv.textContent = "⏳ 改寫中...";
+      let dots = 0;
+      loadingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
+      }, 500);
 
-  // 改寫主功能
-  function autoRewrite() {
-    const originalText = document.getElementById("originalText");
-    const topicSelect = document.getElementById("topicSelect");
-    const outputLangSelect = document.getElementById("outputLangSelect");
-    const langSelect = document.getElementById("langSelect");
-    const resultDiv = document.getElementById("rewriteResult");
-    const btn = document.getElementById("rewriteBtn");
-    const shareBtn = document.getElementById("shareBtn");
+      window.handleResponse = res => {
+        clearInterval(loadingInterval);
+        btn.disabled = false;
+        btn.textContent = langMap[document.getElementById('langSelect').value].rewriteBtn;
+        if (res.error) {
+          resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
+          return;
+        }
+        let content = (res.content||res.rewrite||"").replace(/。/g,"。\n\n");
+        let output = "";
+        if (res.topic) output += `🔖 類別：\n${res.topic}\n\n`;
+        if (res.title) output += `📌 推薦標題：\n${res.title}\n\n`;
+        output += `📝 改寫內容：\n${content}`;
+        resultDiv.textContent = output;
+        lastRewrite = { title: res.title || "", content };
+        shareBtn.style.display = content.trim() ? "block" : "none";
+      };
 
-    const text = originalText.value.trim();
-    const modelPrompts = topicSelect.value; // 改成 modelPrompts 送後端
-    const outputLang = outputLangSelect.value;
-    const lang = langSelect.value;
+      const old = document.getElementById("jsonpScript");
+      if (old) old.remove();
+      const script = document.createElement("script");
+      script.id = "jsonpScript";
+      script.src = `${SCRIPT_URL}?text=${encodeURIComponent(text)}&topic=${encodeURIComponent(topic)}&outputLang=${outputLang}&userId=${liffUserId}&callback=handleResponse`;
+      script.onerror = () => {
+        clearInterval(loadingInterval);
+        btn.disabled = false;
+        resultDiv.innerHTML = `<div class="error">❌ 無法取得回應，請稍後再試。</div>`;
+      };
+      document.body.appendChild(script);
+    }
 
-    if (!text || !hasPermission) return;
-
-    btn.disabled = true;
-    btn.textContent = langMap[lang].rewriteBtn + "...";
-    btn.setAttribute("aria-disabled", "true");
-    resultDiv.textContent = "⏳ 改寫中...";
-    let dots = 0;
-    loadingInterval = setInterval(() => {
-      dots = (dots + 1) % 4;
-      resultDiv.textContent = "⏳ 改寫中" + ".".repeat(dots);
-    }, 500);
-
-    window.handleResponse = res => {
-      clearInterval(loadingInterval);
-      btn.disabled = false;
-      btn.textContent = langMap[lang].rewriteBtn;
-      btn.setAttribute("aria-disabled", "false");
-
-      if (res.error) {
-        resultDiv.innerHTML = `<div class="error">❌ ${res.error}</div>`;
-        shareBtn.style.display = "none";
+    function nativeShare() {
+      if (!lastRewrite.content.trim()) {
+        alert("內容為空，無法分享。");
         return;
       }
-      let content = res.content?.replace(/。/g, "。\n\n") || "";
-      let output = `🔖 類別：${res.topic || modelPrompts}\n\n📌 推薦標題：${res.title || "(無)"}\n\n📝 改寫內容：\n${content}`;
-      resultDiv.textContent = output;
-      shareBtn.style.display = "inline-block";
-      lastRewrite = { output };
-    };
-
-    // JSONP 動態注入
-    const cbName = "handleResponse";
-    const script = document.createElement("script");
-
-    // ** 使用 generatePrompt() 產生完整 prompt 字串，送給後端 ** //
-    const promptText = generatePrompt(text, modelPrompts);
-
-    const url = `${SCRIPT_URL}?text=${encodeURIComponent(modelPrompts)}&modelPrompts=${encodeURIComponent(modelPrompts)}&outputLang=${encodeURIComponent(outputLang)}&userId=${encodeURIComponent(liffUserId)}&callback=${cbName}`;
-    script.src = url;
-    document.body.appendChild(script);
-    script.onload = () => { script.remove(); };
-  }
-
-  // 分享功能
-  function nativeShare() {
-    if (!lastRewrite.output) return;
-    if (navigator.share) {
-      navigator.share({
-        title: '改寫文案分享',
-        text: lastRewrite.output,
-      }).catch(() => alert("分享取消或失敗"));
-    } else {
-      // fallback copy to clipboard
-      navigator.clipboard.writeText(lastRewrite.output).then(() => {
-        alert("已複製到剪貼簿");
-      }).catch(() => {
-        alert("瀏覽器不支援分享及複製功能");
-      });
+      const shareData = {
+        title: lastRewrite.title || "文案改寫分享",
+        text: `${lastRewrite.title ? `📌 推薦標題：\n${lastRewrite.title}\n\n` : ""}📝 改寫內容：\n${lastRewrite.content}`
+      };
+      if (navigator.share) navigator.share(shareData).catch(() => alert("分享失敗"));
+      else navigator.clipboard.writeText(shareData.text).then(() => alert("已複製到剪貼簿"));
     }
-  }
-</script>
-
-
+  </script>
 
 </body>
 
