@@ -259,11 +259,6 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     return{displayDate:formattedDate,remainingDays:remainingDaysText};
   }catch(error){console.error("計算剩餘天數失敗：",error);return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};}
 };
-const saveVideoListToLocal=()=>{
-  if(!appState.currentUser)return;const storageKey=`${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
-  localStorage.setItem(storageKey,JSON.stringify(appState.videoList));
-  updateVideoCount();
-};
 const getVideoThumbnail=(url)=>{
   if(!url)return 'https://via.placeholder.com/80x50?text=No+Preview';
   const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/;
@@ -275,6 +270,7 @@ const getVideoThumbnail=(url)=>{
   return 'https://via.placeholder.com/80x50?text=Invalid';
 };
 const isManageUser=()=>{return appState.userRole==='admin';};
+const isProUser=()=>{return appState.userRole==='pro';};
 const handleDragStart=(e)=>{
   if(!isManageUser())return;
   appState.draggingItem=e.target;
@@ -307,7 +303,7 @@ const handleDrop=(e)=>{
     const draggedItem=appState.videoList[draggedIndex];
     appState.videoList.splice(draggedIndex,1);
     appState.videoList.splice(targetIndex,0,draggedItem);
-    saveVideoListToLocal();
+    syncVideoListOrderToGAS();
     renderVideoList();
     showSuccess('影片順序已即時更新！');
   }
@@ -329,26 +325,98 @@ const updateVideoCount=()=>{
   const countEl=document.getElementById('video-count');
   if(countEl)countEl.textContent=`目前 ${appState.videoList.length} 個教學影片`;
 };
-function loadSavedVideoData(){
-  if(!appState.currentUser)return;const storageKey=`${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
-  const savedContent=localStorage.getItem(storageKey);
-  if(savedContent){
-    try{
-      const videoList=JSON.parse(savedContent);
-      appState.videoList=Array.isArray(videoList)?videoList.map(video=>({
-        id:video.id||generateVideoId(),name:video.name||'',video:video.video||'',
-        note:video.note||'',updatedAt:video.updatedAt||new Date().toLocaleString('zh-TW'),
-        syncedToSheet:video.syncedToSheet||false
-      })):[{
-        id:generateVideoId(),name:videoList.name||'',video:videoList.video||'',
-        note:videoList.note||'',updatedAt:videoList.updatedAt||new Date().toLocaleString('zh-TW'),
-        syncedToSheet:videoList.syncedToSheet||false
-      }];
-    }catch(e){console.error('加載儲存的影片數據失敗：',e);appState.videoList=[];}
-  }
-  updateVideoCount();
-  renderVideoList();
-}
+// 從GAS獲取影片列表
+const fetchVideoListFromGAS=()=>{
+  setStatus('載入影片列表中...');
+  $.ajax({
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{action:'getVideoList'},
+    success:function(resp){
+      if(resp.status==="success"&&Array.isArray(resp.data)){
+        appState.videoList=resp.data.map(v=>({
+          id:v.id||generateVideoId(),name:v.name||'',video:v.video||'',
+          note:v.note||'',updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW'),
+          syncedToSheet:true
+        }));
+        updateVideoCount();
+        renderVideoList();
+        setStatus('載入完成');
+      }else{
+        appState.videoList=[];
+        updateVideoCount();
+        renderVideoList();
+      }
+    },
+    error:function(xhr,status,error){
+      console.error("獲取影片列表失敗：",status,error);
+      appState.videoList=[];
+      updateVideoCount();
+      renderVideoList();
+    }
+  });
+};
+// 同步單條影片到GAS
+const syncVideoToGAS=(videoData,callback)=>{
+  $.ajax({
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{
+      action:'saveVideo',
+      videoId:videoData.id,
+      name:videoData.name,
+      video:videoData.video,
+      note:videoData.note,
+      updatedAt:videoData.updatedAt,
+      operator:appState.currentUser?.displayName||'未知用戶'
+    },
+    success:function(resp){
+      if(resp.status==="success"){
+        if(callback)callback(true);
+      }else{
+        showError(`同步影片失敗：${resp.message||'未知錯誤'}`);
+        if(callback)callback(false);
+      }
+    },
+    error:function(xhr,status,error){
+      console.error("同步影片失敗：",status,error);
+      showError(`同步影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
+      if(callback)callback(false);
+    }
+  });
+};
+// 從GAS刪除影片
+const deleteVideoFromGAS=(videoId,callback)=>{
+  $.ajax({
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{action:'deleteVideo',videoId:videoId},
+    success:function(resp){
+      if(resp.status==="success"){
+        if(callback)callback(true);
+      }else{
+        showError(`刪除影片失敗：${resp.message||'未知錯誤'}`);
+        if(callback)callback(false);
+      }
+    },
+    error:function(xhr,status,error){
+      console.error("刪除影片失敗：",status,error);
+      showError(`刪除影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
+      if(callback)callback(false);
+    }
+  });
+};
+// 同步影片順序到GAS
+const syncVideoListOrderToGAS=()=>{
+  const videoIds=appState.videoList.map(v=>v.id);
+  $.ajax({
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{action:'updateVideoOrder',videoIds:JSON.stringify(videoIds)},
+    success:function(resp){
+      if(resp.status!=="success")console.warn("同步影片順序失敗：",resp.message);
+    },
+    error:function(xhr,status,error){
+      console.error("同步影片順序失敗：",status,error);
+    }
+  });
+};
 function renderVideoList(){
   const container=document.getElementById('video-list-container');
   const emptyEl=document.getElementById('empty-video-list');
@@ -363,7 +431,6 @@ function renderVideoList(){
   emptyEl.classList.add('hidden');
   appState.videoList.forEach((video,index)=>{
     const videoItem=document.createElement('div');
-    // 修正：專業用戶添加pro-user class，管理用戶不添加
     videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
     videoItem.onclick=(e)=>{
@@ -382,7 +449,6 @@ function renderVideoList(){
     const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
     const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
     const thumbnailUrl=getVideoThumbnail(video.video);
-    // 嚴格區分管理/專業用戶按鈕
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
@@ -423,27 +489,27 @@ function renderVideoList(){
   });
 }
 function renderResult(resp){
-  console.log("渲染用戶驗證結果：",resp);
+  console.log("渲染用戶驗證結果（來自工作表）：",resp);
   const statusEl=document.getElementById('status');const errorMsgEl=document.getElementById('error-message');
   if(statusEl)statusEl.classList.add('hidden');if(errorMsgEl)errorMsgEl.classList.add('hidden');
-  // 嚴格驗證用戶權限
   if(!resp.isAuthorized){showError('未授權使用，僅管理/專業用戶可訪問');return;}
-  // 修正：明確轉換為布林值，避免類型錯誤
-  const isAdmin = Boolean(resp.isAdmin);
-  appState.userRole=isAdmin?'admin':'pro';
+  // 嚴格基於工作表返回的角色判斷
+  const isAdmin=Boolean(resp.isAdmin);
+  const isPro=Boolean(resp.isPro)&&!isAdmin;
+  appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
   appState.currentUser={
     userId:resp.userId,
     displayName:resp.displayName,
     isAdmin:isAdmin,
-    isPro:!isAdmin&&resp.isAuthorized,
+    isPro:isPro,
     expiryDate:resp.expiryDate
   };
   const card=document.getElementById('result-card');const main=document.getElementById('result-main');
   const details=document.getElementById('result-details');if(!card||!main||!details)return;
-  const isManage=isManageUser();const userName=resp.displayName||'管理員';
+  const userName=resp.displayName||'未知用戶';
   const expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
-  // 修正：正確顯示用戶類型
-  if(isManage){
+  // 正確顯示用戶類型（基於工作表數據）
+  if(isAdmin){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
     main.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
     details.innerHTML=`
@@ -454,7 +520,7 @@ function renderResult(resp){
     `;
     document.getElementById('add-video-btn-container').style.display='flex';
     document.getElementById('preview-action-btns').style.display='flex';
-  }else{
+  }else if(isPro){
     main.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
     details.innerHTML=`
       <div><i class="fa fa-user-circle text-textPrimary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
@@ -463,13 +529,16 @@ function renderResult(resp){
     `;
     document.getElementById('add-video-btn-container').style.display='none';
     document.getElementById('preview-action-btns').style.display='none';
+  }else{
+    showError('用戶權限異常，請聯繫管理員');
+    return;
   }
   card.classList.remove('hidden');
   document.getElementById('video-list-section').classList.remove('hidden');
-  loadSavedVideoData();
+  // 加載工作表中的影片列表（跨設備可見）
+  fetchVideoListFromGAS();
 }
 function addNewVideo(){
-  // 嚴格控制：僅管理用戶可新增
   if(appState.isSubmitting||!isManageUser()){
     if(!isManageUser())showError('僅管理用戶可新增影片');
     return;
@@ -486,7 +555,6 @@ function addNewVideo(){
   if(editEl){editEl.classList.remove('hidden');editEl.scrollIntoView({behavior:'smooth'});}
 }
 function editVideo(videoId){
-  // 嚴格控制：僅管理用戶可編輯
   if(appState.isSubmitting||!isManageUser()){
     if(!isManageUser())showError('僅管理用戶可編輯影片');
     return;
@@ -531,7 +599,6 @@ function hideVideoPreview(){
   if(videoListEl){videoListEl.classList.remove('hidden');videoListEl.scrollIntoView({behavior:'smooth'});}
 }
 function editCurrentVideo(){
-  // 嚴格控制：僅管理用戶可編輯
   if(!isManageUser()){
     showError('僅管理用戶可編輯影片');
     return;
@@ -539,7 +606,6 @@ function editCurrentVideo(){
   if(appState.currentViewingVideoId)editVideo(appState.currentViewingVideoId);
 }
 function deleteVideoConfirm(videoId){
-  // 嚴格控制：僅管理用戶可刪除
   if(!isManageUser()){
     showError('僅管理用戶可刪除影片');
     return;
@@ -548,17 +614,22 @@ function deleteVideoConfirm(videoId){
 }
 function deleteVideo(videoId){
   if(appState.isSubmitting||!isManageUser())return;
-  appState.videoList=appState.videoList.filter(v=>v.id!==videoId);
-  saveVideoListToLocal();
-  if(appState.currentViewingVideoId===videoId){
-    appState.currentViewingVideoId=null;
-    document.getElementById('video-preview').classList.add('hidden');
-  }
-  renderVideoList();
-  showSuccess('影片已成功刪除！');
+  setSubmitState(true);
+  deleteVideoFromGAS(videoId,(success)=>{
+    if(success){
+      appState.videoList=appState.videoList.filter(v=>v.id!==videoId);
+      updateVideoCount();
+      if(appState.currentViewingVideoId===videoId){
+        appState.currentViewingVideoId=null;
+        document.getElementById('video-preview').classList.add('hidden');
+      }
+      renderVideoList();
+      showSuccess('影片已成功刪除！');
+    }
+    setSubmitState(false);
+  });
 }
 function deleteCurrentVideo(){
-  // 嚴格控制：僅管理用戶可刪除
   if(!isManageUser()){
     showError('僅管理用戶可刪除影片');
     return;
@@ -579,7 +650,6 @@ function copyVideoLink(){
 }
 function saveVideo(event){
   event.preventDefault();
-  // 嚴格控制：僅管理用戶可儲存
   if(appState.isSubmitting||!isManageUser()){
     if(!isManageUser())showError('僅管理用戶可儲存影片');
     return;
@@ -596,20 +666,25 @@ function saveVideo(event){
     updatedAt:new Date().toLocaleString('zh-TW',{
       year:'numeric',month:'2-digit',day:'2-digit',
       hour:'2-digit',minute:'2-digit',second:'2-digit'
-    }),syncedToSheet:false
+    }),syncedToSheet:true
   };
-  const videoIndex=appState.videoList.findIndex(v=>v.id===videoId);
-  if(videoIndex>=0)appState.videoList[videoIndex]=videoData;
-  else appState.videoList.unshift(videoData);
-  saveVideoListToLocal();
-  renderVideoList();
-  showSuccess(appState.currentEditingVideoId?'影片已成功更新！':'新影片已成功添加！');
-  appState.currentEditingVideoId=null;
-  hideEditSection();
-  setSubmitState(false);
+  // 同步到工作表
+  syncVideoToGAS(videoData,(success)=>{
+    if(success){
+      const videoIndex=appState.videoList.findIndex(v=>v.id===videoId);
+      if(videoIndex>=0)appState.videoList[videoIndex]=videoData;
+      else appState.videoList.unshift(videoData);
+      updateVideoCount();
+      renderVideoList();
+      showSuccess(appState.currentEditingVideoId?'影片已成功更新並同步到工作表！':'新影片已成功添加並同步到工作表！');
+      appState.currentEditingVideoId=null;
+      hideEditSection();
+    }
+    setSubmitState(false);
+  });
 }
 function getProfileAndVerify(){
-  setStatus('驗證使用者資訊中...');
+  setStatus('驗證使用者資訊（來自工作表）...');
   try{
     const accessToken=liff.getAccessToken();
     if(accessToken){
@@ -619,6 +694,7 @@ function getProfileAndVerify(){
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
           const userId=profile.userId;const displayName=(profile.displayName||'').trim()||'管理員';
+          // 調用GAS驗證（基於工作表數據）
           callGasBackend(userId,displayName,true);
         },
         error:function(err){console.warn("LINE API 獲取失敗，嘗試 ID Token：",err);fallbackToIdToken();}
@@ -651,17 +727,17 @@ function getProfileAndVerify(){
   }
 }
 function callGasBackend(userId,displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
+  console.log("調用 GAS 驗證用戶（讀取工作表）：",{userId,displayName,writeToSheet});
   $.ajax({
     url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
     data:{userId:userId,displayName:displayName,action:'verifyUser',needExpiryDate:true,writeToSheet:writeToSheet},
     success:function(resp){
-      console.log("GAS 驗證回應：",resp);
+      console.log("GAS 驗證回應（來自工作表）：",resp);
       if(resp.status==="error")showError(resp.message);
       else{
-        // 確保返回結果包含授權狀態
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
-        resp.isAdmin=Boolean(resp.isAdmin); // 強制轉換為布林值
+        resp.isAdmin=Boolean(resp.isAdmin);
+        resp.isPro=Boolean(resp.isPro);
         resp.displayName=displayName;
         renderResult(resp);
       }
@@ -683,7 +759,7 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!liff.isLoggedIn()){
       console.log("用戶未登錄，跳轉登錄");
       liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
-    }else{console.log("用戶已登錄，開始驗證信息");getProfileAndVerify();}
+    }else{console.log("用戶已登錄，開始驗證信息（讀取工作表）");getProfileAndVerify();}
   }).catch(err=>{console.error("LIFF 初始化失敗：",err);showError('系統初始化失敗：'+err.message);});
 });
 </script>
