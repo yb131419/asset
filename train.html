@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>🎬 彥彬 健康觀念 - 影片管理系統</title>
+  <title>🎬 彥彬 健康觀念 - 多影片管理系統</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -45,6 +45,7 @@
       .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; }
       .slide-in { animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
       .scale-in { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .slide-up { animation: slideUp 0.3s ease-out; }
     }
 
     @keyframes fadeIn { 
@@ -62,6 +63,10 @@
     @keyframes scaleIn {
       from { transform: scale(0.95); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     /* 自定義滾動條 */
@@ -106,11 +111,20 @@
       cursor: not-allowed;
       pointer-events: none;
     }
+
+    /* 影片列表項 hover 效果 */
+    .video-item {
+      transition: all 0.2s ease;
+    }
+    .video-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    }
   </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-4 md:p-8">
   <!-- 頁面容器 -->
-  <div class="max-w-3xl w-full bg-cardBg rounded-2xl shadow-elevation-2 overflow-hidden fade-in self-center">
+  <div class="max-w-4xl w-full bg-cardBg rounded-2xl shadow-elevation-2 overflow-hidden fade-in self-center">
     <!-- 頂部標題區域 -->
     <div class="bg-gradient-to-r from-primary to-[#006658] p-8 md:p-10 text-white text-center relative overflow-hidden">
       <!-- 裝飾元素 -->
@@ -122,7 +136,7 @@
           <i class="fa fa-film text-3xl text-accent"></i>
         </div>
         <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🎬 彥彬 健康觀念</h1>
-        <p class="text-white/90 text-lg md:text-xl font-light">專業影片管理系統 | 數據同步至 Google 試算表</p>
+        <p class="text-white/90 text-lg md:text-xl font-light">專業多影片管理系統 | 數據同步至 Google 試算表</p>
       </div>
     </div>
 
@@ -171,18 +185,57 @@
             身份驗證完成，所有影片數據將自動同步至 Google 試算表
           </p>
           
-          <!-- 編輯按鈕 -->
-          <button id="edit-btn" onclick="showEditSection()" class="bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
-            <i class="fa fa-film"></i> 管理影片內容
+          <!-- 管理按鈕 -->
+          <button id="manage-btn" onclick="showVideoListSection()" class="bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
+            <i class="fa fa-th-list"></i> 管理影片列表
           </button>
         </div>
       </div>
 
-      <!-- 內容編輯區域 -->
-      <div id="edit-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
+      <!-- 影片列表區域 -->
+      <div id="video-list-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold text-textPrimary flex items-center">
-            <i class="fa fa-edit text-primary mr-2"></i> 影片內容管理
+            <i class="fa fa-th-list text-primary mr-2"></i> 影片列表管理
+          </h2>
+          <div class="flex gap-2">
+            <button onclick="addNewVideo()" class="bg-primary hover:bg-[#007A69] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1.5">
+              <i class="fa fa-plus"></i> 新增影片
+            </button>
+            <button onclick="hideVideoListSection()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
+              <i class="fa fa-times-circle text-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 影片列表容器 -->
+        <div id="video-list-container" class="space-y-4 mb-4">
+          <!-- 空列表提示 -->
+          <div id="empty-video-list" class="py-8 text-center text-textSecondary">
+            <i class="fa fa-film text-4xl mb-3 text-gray-300"></i>
+            <p class="text-lg">尚未添加任何影片</p>
+            <p class="text-sm mt-1">點擊「新增影片」按鈕開始添加</p>
+          </div>
+          
+          <!-- 影片列表項將動態生成 -->
+        </div>
+
+        <!-- 列表操作按鈕 -->
+        <div class="flex justify-between pt-2">
+          <button onclick="syncAllVideosToSheet()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1.5">
+            <i class="fa fa-refresh"></i> 同步所有影片至試算表
+          </button>
+          <button onclick="hideVideoListSection()" class="bg-gray-200 hover:bg-gray-300 text-textPrimary text-sm font-medium px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-1.5">
+            <i class="fa fa-arrow-left"></i> 返回
+          </button>
+        </div>
+      </div>
+
+      <!-- 影片編輯區域 -->
+      <div id="edit-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="edit-title" class="text-xl font-bold text-textPrimary flex items-center">
+            <i class="fa fa-edit text-primary mr-2"></i> 新增影片
           </h2>
           <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
             <i class="fa fa-times-circle text-lg"></i>
@@ -190,7 +243,10 @@
         </div>
 
         <!-- 編輯表單 -->
-        <form id="content-form" onsubmit="saveContent(event)">
+        <form id="content-form" onsubmit="saveVideo(event)">
+          <!-- 隱藏的影片ID -->
+          <input type="hidden" id="video-id" value="">
+          
           <div class="space-y-5">
             <!-- 名稱輸入 -->
             <div class="space-y-2">
@@ -224,17 +280,29 @@
               </p>
             </div>
 
+            <!-- 備註資訊 -->
+            <div class="space-y-2">
+              <label class="block text-textPrimary font-medium">
+                <i class="fa fa-sticky-note text-primary mr-2"></i> 備註資訊 (選填)
+              </label>
+              <textarea 
+                id="content-note" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none"
+                rows="2"
+                placeholder="請輸入影片備註資訊（例如：上傳日期、影片分類等）"
+              ></textarea>
+            </div>
+
             <!-- 儲存按鈕 -->
-            <div class="pt-4">
-              <button type="submit" id="save-btn" class="w-full bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
+            <div class="pt-4 flex gap-3">
+              <button type="button" onclick="hideEditSection()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-textPrimary font-medium px-6 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2">
+                <i class="fa fa-times"></i> 取消
+              </button>
+              <button type="submit" id="save-btn" class="w-2/3 bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
                 <i class="fa fa-save"></i> 
                 <span id="save-btn-text">儲存並同步至試算表</span>
                 <div id="save-loading" class="hidden inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
               </button>
-              <p class="text-xs text-textSecondary mt-2 text-center">
-                <i class="fa fa-cloud-upload text-primary mr-1"></i>
-                點擊儲存後，數據將即時同步至 Google 試算表
-              </p>
             </div>
           </div>
         </form>
@@ -247,18 +315,21 @@
             <i class="fa fa-play-circle text-primary mr-2"></i> 影片預覽 & 同步狀態
           </h2>
           <div class="flex gap-2">
-            <button onclick="editAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-1 rounded-lg">
+            <button onclick="editCurrentVideo()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-1 rounded-lg">
               <i class="fa fa-pencil"></i> 編輯
             </button>
-            <button onclick="syncToSheetAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-1 rounded-lg">
-              <i class="fa fa-refresh"></i> 重新同步
+            <button onclick="deleteCurrentVideo()" class="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 bg-red-50 px-3 py-1 rounded-lg">
+              <i class="fa fa-trash"></i> 刪除
+            </button>
+            <button onclick="hideVideoPreview()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
+              <i class="fa fa-times-circle text-lg"></i>
             </button>
           </div>
         </div>
         
         <div id="preview-content" class="space-y-4">
           <!-- 同步狀態標籤 -->
-          <div id="sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-2">
+          <div id="sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-2 bg-primary/5 text-primary">
             <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
             <span>正在同步數據至 Google 試算表...</span>
           </div>
@@ -277,7 +348,7 @@
           
           <!-- 影片資訊卡片 -->
           <div class="bg-neutral rounded-lg p-4 text-sm text-textSecondary">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
               <div>
                 <div class="flex items-center justify-between">
                   <span class="font-medium text-textPrimary"><i class="fa fa-link text-primary mr-2"></i> 影片連結：</span>
@@ -288,8 +359,16 @@
                 <p id="preview-link" class="mt-1 break-all font-mono text-xs"></p>
               </div>
               <div>
-                <span class="font-medium text-textPrimary"><i class="fa fa-clock-o text-primary mr-2"></i> 最後同步時間：</span>
+                <span class="font-medium text-textPrimary"><i class="fa fa-clock-o text-primary mr-2"></i> 最後更新時間：</span>
                 <p id="preview-updated" class="mt-1 text-xs"></p>
+              </div>
+              <div>
+                <span class="font-medium text-textPrimary"><i class="fa fa-sticky-note text-primary mr-2"></i> 備註資訊：</span>
+                <p id="preview-note" class="mt-1 text-xs">- 無備註 -</p>
+              </div>
+              <div>
+                <span class="font-medium text-textPrimary"><i class="fa fa-hashtag text-primary mr-2"></i> 影片ID：</span>
+                <p id="preview-id" class="mt-1 text-xs font-mono"></p>
               </div>
             </div>
             
@@ -298,6 +377,13 @@
               <i class="fa fa-check-circle text-green-600 mr-2"></i>
               <span id="sync-status-text">數據已成功同步至 Google 試算表</span>
             </div>
+          </div>
+          
+          <!-- 返回列表按鈕 -->
+          <div class="flex justify-center mt-4">
+            <button onclick="hideVideoPreview()" class="bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1.5">
+              <i class="fa fa-arrow-left"></i> 返回影片列表
+            </button>
           </div>
         </div>
       </div>
@@ -317,8 +403,17 @@
     // 全域狀態
     let appState = {
       currentUser: null,
-      currentVideoData: null,
+      videoList: [], // 存儲多個影片數據
+      currentViewingVideoId: null, // 当前預覽的影片ID
+      currentEditingVideoId: null, // 当前編輯的影片ID
       isSubmitting: false
+    };
+
+    // 工具函數 - 生成唯一影片ID
+    const generateVideoId = () => {
+      const timestamp = new Date().getTime();
+      const random = Math.floor(Math.random() * 1000);
+      return `vid_${timestamp}_${random}`;
     };
 
     // 工具函數 - 狀態設置
@@ -332,6 +427,7 @@
       // 隱藏所有載入/成功狀態
       document.getElementById('status').classList.add('hidden');
       document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('video-list-section').classList.add('hidden');
       document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('video-preview').classList.add('hidden');
       document.getElementById('success-message').classList.add('hidden');
@@ -383,7 +479,7 @@
         saveLoading.classList.remove('hidden');
       } else {
         saveBtn.classList.remove('btn-disabled');
-        saveBtnText.textContent = "儲存並同步至試算表";
+        saveBtnText.textContent = appState.currentEditingVideoId ? "更新並同步至試算表" : "儲存並同步至試算表";
         saveLoading.classList.add('hidden');
       }
     };
@@ -472,6 +568,118 @@
       }
     };
 
+    // 核心函數 - 保存影片列表到本地存儲
+    const saveVideoListToLocal = () => {
+      if (!appState.currentUser) return;
+      
+      const storageKey = `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
+      localStorage.setItem(storageKey, JSON.stringify(appState.videoList));
+    };
+
+    // 核心函數 - 加載已儲存的影片列表
+    function loadSavedVideoData() {
+      if (!appState.currentUser) return;
+      
+      const storageKey = `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
+      const savedContent = localStorage.getItem(storageKey);
+      
+      if (savedContent) {
+        try {
+          const videoList = JSON.parse(savedContent);
+          // 驗證數據格式
+          if (Array.isArray(videoList)) {
+            appState.videoList = videoList.map(video => ({
+              id: video.id || generateVideoId(),
+              name: video.name || '',
+              video: video.video || '',
+              note: video.note || '',
+              updatedAt: video.updatedAt || new Date().toLocaleString('zh-TW'),
+              syncedToSheet: video.syncedToSheet || false
+            }));
+          } else {
+            // 兼容舊版單影片數據
+            appState.videoList = [{
+              id: generateVideoId(),
+              name: videoList.name || '',
+              video: videoList.video || '',
+              note: videoList.note || '',
+              updatedAt: videoList.updatedAt || new Date().toLocaleString('zh-TW'),
+              syncedToSheet: videoList.syncedToSheet || false
+            }];
+          }
+        } catch (e) {
+          console.error('加載儲存的影片數據失敗：', e);
+          appState.videoList = [];
+        }
+      }
+      
+      // 渲染影片列表
+      renderVideoList();
+    }
+
+    // 核心函數 - 渲染影片列表
+    function renderVideoList() {
+      const container = document.getElementById('video-list-container');
+      const emptyTip = document.getElementById('empty-video-list');
+      
+      // 清空列表
+      container.innerHTML = '';
+      
+      // 顯示空列表提示
+      if (appState.videoList.length === 0) {
+        emptyTip.classList.remove('hidden');
+        return;
+      }
+      
+      // 隱藏空列表提示
+      emptyTip.classList.add('hidden');
+      
+      // 生成影片列表項
+      appState.videoList.forEach((video, index) => {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'video-item bg-cardBg rounded-xl p-4 border border-gray-100 shadow-elevation-1 slide-up';
+        videoItem.setAttribute('data-id', video.id);
+        
+        // 截斷長標題
+        const shortTitle = video.name.length > 30 ? `${video.name.substring(0, 30)}...` : video.name;
+        // 截斷長連結
+        const shortLink = video.video.length > 40 ? `${video.video.substring(0, 40)}...` : video.video;
+        
+        videoItem.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center mb-2">
+                <span class="inline-flex items-center justify-center w-6 h-6 bg-primary/10 text-primary rounded-full text-xs mr-2">${index + 1}</span>
+                <h4 class="font-medium text-textPrimary truncate">${shortTitle}</h4>
+              </div>
+              <p class="text-xs text-textSecondary break-all mb-2">${shortLink}</p>
+              ${video.note ? `<p class="text-xs text-textSecondary/80 mb-2"><i class="fa fa-sticky-note-o mr-1"></i>${video.note}</p>` : ''}
+              <p class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1"></i>最後更新：${video.updatedAt}</p>
+            </div>
+            <div class="flex flex-col gap-1 ml-3">
+              <button onclick="viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
+                <i class="fa fa-eye"></i>
+              </button>
+              <button onclick="editVideo('${video.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="編輯影片">
+                <i class="fa fa-pencil"></i>
+              </button>
+              <button onclick="deleteVideoConfirm('${video.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="刪除影片">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mt-2 flex items-center text-xs">
+            <span class="flex items-center ${video.syncedToSheet ? 'text-green-600' : 'text-red-500'}">
+              <i class="fa ${video.syncedToSheet ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1"></i>
+              ${video.syncedToSheet ? '已同步至試算表' : '未同步至試算表'}
+            </span>
+          </div>
+        `;
+        
+        container.appendChild(videoItem);
+      });
+    }
+
     // 核心函數 - 渲染用戶驗證結果
     function renderResult(resp) {
       console.log("渲染用戶驗證結果：", resp);
@@ -504,6 +712,7 @@
           <div><i class="fa fa-user-circle text-primary mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
           <div><i class="fa fa-calendar-check-o text-primary mr-1.5"></i>使用期限：<span class="font-medium">${displayDate}</span></div>
           <div><i class="fa fa-clock-o text-primary mr-1.5"></i>剩餘天數：${remainingDays}</div>
+          <div><i class="fa fa-film text-primary mr-1.5"></i>已添加影片：<span class="font-medium text-green-600">${appState.videoList.length} 個</span></div>
           <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
         `;
       } else {
@@ -517,19 +726,21 @@
             <div><i class="fa fa-user-circle text-orange-600 mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
             <div><i class="fa fa-calendar-o text-orange-600 mr-1.5"></i>使用期限：<span class="font-medium">-</span></div>
             <div><i class="fa fa-refresh text-orange-600 mr-1.5"></i>剩餘次數：<span class="text-red-500 font-medium">${remainingTimes} 次</span></div>
+            <div><i class="fa fa-film text-primary mr-1.5"></i>已添加影片：<span class="font-medium text-green-600">${appState.videoList.length} 個</span></div>
             <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
             <div><i class="fa fa-info-circle text-orange-600 mr-1.5"></i>提示：請聯繫管理員升級為專業用戶</div>
           `;
-          // 禁用編輯按鈕
-          document.getElementById('edit-btn').classList.add('bg-gray-400', 'cursor-not-allowed');
-          document.getElementById('edit-btn').setAttribute('disabled', true);
-          document.getElementById('edit-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能管理影片';
+          // 禁用管理按鈕
+          document.getElementById('manage-btn').classList.add('bg-gray-400', 'cursor-not-allowed');
+          document.getElementById('manage-btn').setAttribute('disabled', true);
+          document.getElementById('manage-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能管理影片';
         } else {
           main.innerHTML = `<span class="text-textPrimary"><i class="fa fa-user mr-2"></i>普通用戶驗證通過</span>`;
           details.innerHTML = `
             <div><i class="fa fa-user-circle text-textPrimary mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
             <div><i class="fa fa-calendar-o text-textPrimary mr-1.5"></i>使用期限：<span class="font-medium">-</span></div>
             <div><i class="fa fa-refresh text-textPrimary mr-1.5"></i>剩餘次數：<span class="font-medium text-primary">${remainingTimes} 次</span></div>
+            <div><i class="fa fa-film text-primary mr-1.5"></i>已添加影片：<span class="font-medium text-green-600">${appState.videoList.length} 個</span></div>
             <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
           `;
         }
@@ -538,68 +749,114 @@
       // 顯示結果卡片
       card.classList.remove('hidden');
       
-      // 檢查是否有已儲存的影片資料，如果有直接顯示預覽
+      // 加載已儲存的影片資料
       loadSavedVideoData();
     }
 
-    // 核心函數 - 加載已儲存的影片數據
-    function loadSavedVideoData() {
-      if (!appState.currentUser) return;
-      
-      const storageKey = `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
-      const savedContent = localStorage.getItem(storageKey);
-      
-      if (savedContent) {
-        try {
-          const content = JSON.parse(savedContent);
-          if (content.name && content.video) {
-            appState.currentVideoData = content;
-            showVideoPreview(content);
-          }
-        } catch (e) {
-          console.error('加載儲存的影片數據失敗：', e);
-        }
-      }
-    }
-
-    // 核心函數 - 顯示編輯區域
-    function showEditSection() {
+    // 核心函數 - 顯示影片列表區域
+    function showVideoListSection() {
       if (appState.isSubmitting) return;
       
-      // 隱藏預覽區，顯示編輯區
+      // 隱藏其他區域，顯示列表區
       document.getElementById('video-preview').classList.add('hidden');
+      document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('result-card').classList.add('mb-2');
-      document.getElementById('edit-section').classList.remove('hidden');
+      document.getElementById('video-list-section').classList.remove('hidden');
       
-      // 滾動到編輯區域
-      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+      // 滾動到列表區域
+      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
       
-      // 加載已儲存的內容
-      if (appState.currentVideoData) {
-        document.getElementById('content-name').value = appState.currentVideoData.name || '';
-        document.getElementById('content-video').value = appState.currentVideoData.video || '';
-      }
+      // 重新渲染列表
+      renderVideoList();
     }
 
-    // 核心函數 - 隱藏編輯區域
-    function hideEditSection() {
-      document.getElementById('edit-section').classList.add('hidden');
+    // 核心函數 - 隱藏影片列表區域
+    function hideVideoListSection() {
+      document.getElementById('video-list-section').classList.add('hidden');
       document.getElementById('result-card').classList.remove('mb-2');
       // 滾動回結果卡片
       document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 核心函數 - 重新編輯影片
-    function editAgain() {
-      showEditSection();
+    // 核心函數 - 新增影片
+    function addNewVideo() {
+      if (appState.isSubmitting) return;
+      
+      // 重置編輯狀態
+      appState.currentEditingVideoId = null;
+      
+      // 更新編輯標題
+      document.getElementById('edit-title').innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 新增影片';
+      
+      // 清空表單
+      document.getElementById('video-id').value = '';
+      document.getElementById('content-name').value = '';
+      document.getElementById('content-video').value = '';
+      document.getElementById('content-note').value = '';
+      
+      // 設置按鈕文字
+      setSubmitState(false);
+      
+      // 隱藏列表，顯示編輯區
+      document.getElementById('video-list-section').classList.add('hidden');
+      document.getElementById('edit-section').classList.remove('hidden');
+      
+      // 滾動到編輯區域
+      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 核心函數 - 顯示影片預覽
-    function showVideoPreview(contentData) {
-      // 保存當前影片數據
-      appState.currentVideoData = contentData;
+    // 核心函數 - 編輯指定影片
+    function editVideo(videoId) {
+      if (appState.isSubmitting) return;
       
-      // 隱藏編輯區，顯示預覽區
+      // 查找影片
+      const video = appState.videoList.find(v => v.id === videoId);
+      if (!video) return;
+      
+      // 設置編輯狀態
+      appState.currentEditingVideoId = videoId;
+      
+      // 更新編輯標題
+      document.getElementById('edit-title').innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 編輯影片';
+      
+      // 填充表單
+      document.getElementById('video-id').value = video.id;
+      document.getElementById('content-name').value = video.name;
+      document.getElementById('content-video').value = video.video;
+      document.getElementById('content-note').value = video.note || '';
+      
+      // 設置按鈕文字
+      setSubmitState(false);
+      
+      // 隱藏列表，顯示編輯區
+      document.getElementById('video-list-section').classList.add('hidden');
+      document.getElementById('edit-section').classList.remove('hidden');
+      
+      // 滾動到編輯區域
+      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 核心函數 - 隱藏編輯區域
+    function hideEditSection() {
+      document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('video-list-section').classList.remove('hidden');
+      // 滾動回列表區域
+      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 核心函數 - 預覽指定影片
+    function viewVideo(videoId) {
+      if (appState.isSubmitting) return;
+      
+      // 查找影片
+      const video = appState.videoList.find(v => v.id === videoId);
+      if (!video) return;
+      
+      // 設置當前預覽影片ID
+      appState.currentViewingVideoId = videoId;
+      
+      // 隱藏其他區域，顯示預覽區
+      document.getElementById('video-list-section').classList.add('hidden');
       document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('video-preview').classList.remove('hidden');
       
@@ -607,22 +864,24 @@
       document.getElementById('video-loading').classList.remove('hidden');
       
       // 填充預覽內容
-      document.getElementById('preview-title').textContent = contentData.name;
-      document.getElementById('preview-link').textContent = contentData.video;
-      document.getElementById('preview-updated').textContent = contentData.updatedAt || '未同步';
+      document.getElementById('preview-title').textContent = video.name;
+      document.getElementById('preview-link').textContent = video.video;
+      document.getElementById('preview-updated').textContent = video.updatedAt || '未同步';
+      document.getElementById('preview-note').textContent = video.note || '無備註資訊';
+      document.getElementById('preview-id').textContent = video.id;
       
       // 轉換為嵌入鏈接並設置
-      const embedUrl = convertToEmbedUrl(contentData.video);
+      const embedUrl = convertToEmbedUrl(video.video);
       document.getElementById('preview-video').src = embedUrl;
       
       // 更新同步狀態
-      if (contentData.syncedToSheet) {
+      if (video.syncedToSheet) {
         document.getElementById('sync-status-text').textContent = '數據已成功同步至 Google 試算表';
         document.getElementById('sheet-sync-status').classList.remove('text-red-500');
         document.getElementById('sheet-sync-status').classList.add('text-green-600');
         document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-check-circle text-green-600 mr-2';
       } else {
-        document.getElementById('sync-status-text').textContent = '數據尚未同步至 Google 試算表，請點擊重新同步';
+        document.getElementById('sync-status-text').textContent = '數據尚未同步至 Google 試算表，請返回列表點擊「同步所有影片」';
         document.getElementById('sheet-sync-status').classList.remove('text-green-600');
         document.getElementById('sheet-sync-status').classList.add('text-red-500');
         document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-exclamation-circle text-red-500 mr-2';
@@ -632,20 +891,77 @@
       document.getElementById('video-preview').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 核心函數 - 隱藏影片預覽
+    function hideVideoPreview() {
+      document.getElementById('video-preview').classList.add('hidden');
+      document.getElementById('video-list-section').classList.remove('hidden');
+      // 滾動回列表區域
+      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 核心函數 - 編輯當前預覽的影片
+    function editCurrentVideo() {
+      if (appState.currentViewingVideoId) {
+        editVideo(appState.currentViewingVideoId);
+      }
+    }
+
+    // 核心函數 - 刪除確認
+    function deleteVideoConfirm(videoId) {
+      if (confirm('確定要刪除此影片嗎？此操作無法復原！')) {
+        deleteVideo(videoId);
+      }
+    }
+
+    // 核心函數 - 刪除指定影片
+    function deleteVideo(videoId) {
+      if (appState.isSubmitting) return;
+      
+      // 過濾掉要刪除的影片
+      appState.videoList = appState.videoList.filter(v => v.id !== videoId);
+      
+      // 保存到本地存儲
+      saveVideoListToLocal();
+      
+      // 如果刪除的是當前預覽的影片，隱藏預覽
+      if (appState.currentViewingVideoId === videoId) {
+        appState.currentViewingVideoId = null;
+        document.getElementById('video-preview').classList.add('hidden');
+        document.getElementById('video-list-section').classList.remove('hidden');
+      }
+      
+      // 重新渲染列表
+      renderVideoList();
+      
+      // 同步到試算表
+      syncAllVideosToSheet(false);
+      
+      // 顯示成功提示
+      showSuccess('影片已成功刪除！');
+    }
+
+    // 核心函數 - 刪除當前預覽的影片
+    function deleteCurrentVideo() {
+      if (appState.currentViewingVideoId) {
+        deleteVideoConfirm(appState.currentViewingVideoId);
+      }
+    }
+
     // 核心函數 - 複製影片連結
     function copyVideoLink() {
-      if (!appState.currentVideoData) return;
+      const video = appState.videoList.find(v => v.id === appState.currentViewingVideoId);
+      if (!video) return;
       
       try {
         // 使用現代的 clipboard API
-        navigator.clipboard.writeText(appState.currentVideoData.video)
+        navigator.clipboard.writeText(video.video)
           .then(() => {
             showSuccess('影片連結已成功複製到剪貼簿！');
           })
           .catch(() => {
             // 備用方案
             const textArea = document.createElement('textarea');
-            textArea.value = appState.currentVideoData.video;
+            textArea.value = video.video;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand('copy');
@@ -656,6 +972,89 @@
         console.error('複製連結失敗：', e);
         showError('複製連結失敗，請手動複製');
       }
+    }
+
+    // 核心函數 - 儲存/更新影片
+    function saveVideo(event) {
+      event.preventDefault();
+      
+      // 防止重複提交
+      if (appState.isSubmitting) return;
+      
+      if (!appState.currentUser) {
+        showError('用戶信息不存在，請重新驗證');
+        return;
+      }
+
+      // 获取表單數據
+      const videoId = document.getElementById('video-id').value || generateVideoId();
+      const videoName = document.getElementById('content-name').value.trim();
+      const videoUrl = document.getElementById('content-video').value.trim();
+      const videoNote = document.getElementById('content-note').value.trim();
+
+      // 驗證影片連結格式
+      if (!validateVideoUrl(videoUrl)) {
+        showError('請輸入有效的 YouTube 或 Vimeo 影片連結');
+        return;
+      }
+
+      // 構建影片數據
+      const videoData = {
+        id: videoId,
+        name: videoName,
+        video: videoUrl,
+        note: videoNote,
+        updatedAt: new Date().toLocaleString('zh-TW', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }),
+        syncedToSheet: false
+      };
+
+      // 設置提交狀態
+      setSubmitState(true);
+      
+      // 判斷是新增還是編輯
+      const videoIndex = appState.videoList.findIndex(v => v.id === videoId);
+      if (videoIndex >= 0) {
+        // 編輯現有影片
+        appState.videoList[videoIndex] = videoData;
+      } else {
+        // 新增影片
+        appState.videoList.unshift(videoData); // 新增到列表開頭
+      }
+      
+      // 保存到本地存儲
+      saveVideoListToLocal();
+
+      // 同步到 Google 試算表
+      syncToSheet(videoData)
+        .then(() => {
+          // 更新同步狀態
+          const updatedIndex = appState.videoList.findIndex(v => v.id === videoId);
+          if (updatedIndex >= 0) {
+            appState.videoList[updatedIndex].syncedToSheet = true;
+            saveVideoListToLocal();
+          }
+          
+          showSuccess(appState.currentEditingVideoId ? '影片數據已成功更新並同步至 Google 試算表！' : '新影片已成功添加並同步至 Google 試算表！');
+          
+          // 重置編輯狀態
+          appState.currentEditingVideoId = null;
+          
+          // 返回列表頁
+          hideEditSection();
+          renderVideoList();
+          setSubmitState(false);
+        })
+        .catch((error) => {
+          showError(`${appState.currentEditingVideoId ? '更新' : '新增'}失敗：${error}`);
+          setSubmitState(false);
+        });
     }
 
     // 核心函數 - 同步數據到 Google 試算表
@@ -676,14 +1075,17 @@
           action: 'saveVideoData',
           userId: appState.currentUser.userId,
           userName: appState.currentUser.displayName,
+          videoId: videoData.id,
           videoName: videoData.name,
           videoUrl: videoData.video,
+          videoNote: videoData.note,
           updatedAt: videoData.updatedAt,
           isAdmin: appState.currentUser.isAdmin ? '是' : '否',
-          expiryDate: appState.currentUser.expiryDate || '無'
+          expiryDate: appState.currentUser.expiryDate || '無',
+          videoCount: appState.videoList.length
         };
 
-        console.log('同步數據到試算表：', submitData);
+        console.log('同步單個影片數據到試算表：', submitData);
 
         // 調用 GAS 後端
         $.ajax({
@@ -716,102 +1118,66 @@
       });
     }
 
-    // 核心函數 - 重新同步到試算表
-    function syncToSheetAgain() {
-      if (!appState.currentVideoData || appState.isSubmitting) return;
+    // 核心函數 - 同步所有影片到試算表
+    function syncAllVideosToSheet() {
+      if (appState.videoList.length === 0 || appState.isSubmitting) {
+        showError('沒有可同步的影片數據');
+        return;
+      }
       
       setSubmitState(true);
       document.getElementById('sync-status').classList.remove('hidden');
       
-      syncToSheet(appState.currentVideoData)
-        .then(() => {
-          // 更新本地數據
-          appState.currentVideoData.syncedToSheet = true;
-          localStorage.setItem(
-            `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
-            JSON.stringify(appState.currentVideoData)
-          );
-          
-          showSuccess('影片數據已成功同步至 Google 試算表！');
-          showVideoPreview(appState.currentVideoData);
-          setSubmitState(false);
-        })
-        .catch((error) => {
-          showError(`同步失敗：${error}`);
-          setSubmitState(false);
-        });
-    }
-
-    // 核心函數 - 儲存影片內容
-    function saveContent(event) {
-      event.preventDefault();
-      
-      // 防止重複提交
-      if (appState.isSubmitting) return;
-      
-      if (!appState.currentUser) {
-        showError('用戶信息不存在，請重新驗證');
-        return;
-      }
-
-      // 获取表單數據
-      const videoName = document.getElementById('content-name').value.trim();
-      const videoUrl = document.getElementById('content-video').value.trim();
-
-      // 驗證影片連結格式
-      if (!validateVideoUrl(videoUrl)) {
-        showError('請輸入有效的 YouTube 或 Vimeo 影片連結');
-        return;
-      }
-
-      // 構建影片數據
-      const contentData = {
+      // 構建批量同步數據
+      const submitData = {
+        action: 'syncAllVideos',
         userId: appState.currentUser.userId,
         userName: appState.currentUser.displayName,
-        name: videoName,
-        video: videoUrl,
-        updatedAt: new Date().toLocaleString('zh-TW', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        }),
-        syncedToSheet: false
+        videoList: JSON.stringify(appState.videoList),
+        isAdmin: appState.currentUser.isAdmin ? '是' : '否',
+        expiryDate: appState.currentUser.expiryDate || '無',
+        syncTime: new Date().toLocaleString('zh-TW')
       };
 
-      // 設置提交狀態
-      setSubmitState(true);
+      console.log('批量同步影片數據到試算表：', submitData);
       
-      // 先儲存到 localStorage
-      localStorage.setItem(
-        `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
-        JSON.stringify(contentData)
-      );
-
-      // 同步到 Google 試算表
-      syncToSheet(contentData)
-        .then(() => {
-          // 更新同步狀態
-          contentData.syncedToSheet = true;
-          localStorage.setItem(
-            `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
-            JSON.stringify(contentData)
-          );
+      // 調用 GAS 後端
+      $.ajax({
+        url: CONFIG.GAS_URL,
+        dataType: 'jsonp',
+        jsonp: 'callback',
+        timeout: CONFIG.JSONP_TIMEOUT,
+        data: submitData,
+        success: function(resp) {
+          console.log('批量同步回應：', resp);
+          document.getElementById('sync-status').classList.add('hidden');
           
-          appState.currentVideoData = contentData;
-          showSuccess('影片數據已成功儲存並同步至 Google 試算表！');
-          showVideoPreview(contentData);
+          if (resp.status === "success") {
+            // 更新所有影片的同步狀態
+            appState.videoList = appState.videoList.map(video => ({
+              ...video,
+              syncedToSheet: true
+            }));
+            saveVideoListToLocal();
+            renderVideoList();
+            showSuccess('所有影片數據已成功同步至 Google 試算表！');
+          } else {
+            showError(resp.message || '批量同步失敗，請稍後重試');
+          }
           setSubmitState(false);
-        })
-        .catch((error) => {
-          // 本地儲存成功，但同步失敗
-          appState.currentVideoData = contentData;
-          showVideoPreview(contentData);
-          showError(`影片數據已儲存（本地），但同步至試算表失敗：${error}`);
+        },
+        error: function(xhr, status, error) {
+          console.error('批量同步到試算表出錯：', status, error);
+          document.getElementById('sync-status').classList.add('hidden');
+          
+          let errorMsg = '與伺服器通訊失敗';
+          if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
+          else if (status === 'parsererror') errorMsg = '數據解析錯誤';
+          
+          showError(errorMsg);
           setSubmitState(false);
-        });
+        }
+      });
     }
 
     // 核心函數 - 獲取用戶信息並驗證
