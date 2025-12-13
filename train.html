@@ -179,7 +179,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           <button onclick="editCurrentVideo()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-2 rounded-lg">
             <i class="fa fa-pencil text-sm"></i> 編輯
           </button>
-          <button onclick="deleteCurrentVideo()" class="mobile-btn-sm text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg">
+          <button onclick="event.stopPropagation();deleteCurrentVideo()" class="mobile-btn-sm text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg">
             <i class="fa fa-trash text-sm"></i> 刪除
           </button>
           <button onclick="hideVideoPreview()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
@@ -229,7 +229,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
-// 轉換UTC時間為台灣當地時間
 const convertUTCToTaiwanTime=(utcStr)=>{
   if(!utcStr) return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const date=new Date(utcStr);
@@ -325,7 +324,6 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
       const[year,month,day]=normalizedDateStr.split('/').map(Number);
       expiryDate=new Date(Date.UTC(year,month-1,day));
     }
-    // 轉換為台灣時間計算
     const today=new Date();
     const taipeiOffset=8*60*60*1000;
     const todayTaipei=new Date(today.getTime()+taipeiOffset);
@@ -562,19 +560,19 @@ function renderVideoList(){
     const thumbnailUrl=getVideoThumbnail(video.video).replace('300x180','80x50');
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
-        <button onclick="viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
+        <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
           <i class="fa fa-eye text-base"></i>
         </button>
-        <button onclick="editVideo('${video.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="編輯影片">
+        <button onclick="event.stopPropagation();editVideo('${video.id}')" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="編輯影片">
           <i class="fa fa-pencil text-base"></i>
         </button>
-        <button onclick="deleteVideoConfirm('${video.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="刪除影片">
+        <button onclick="event.stopPropagation();deleteVideoConfirm('${video.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="刪除影片">
           <i class="fa fa-trash text-base"></i>
         </button>
       </div>
     `:`
       <div class="flex flex-col gap-1 ml-2">
-        <button onclick="viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
+        <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
           <i class="fa fa-eye text-base"></i>
         </button>
       </div>
@@ -859,6 +857,14 @@ function deleteVideo(videoId){
     }
     setSubmitState(false);
   });
+}
+function deleteCurrentVideo(){
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除影片');
+    return;
+  }
+  if(!appState.currentViewingVideoId)return;
+  deleteVideoConfirm(appState.currentViewingVideoId);
 }
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
