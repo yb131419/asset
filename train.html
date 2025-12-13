@@ -365,7 +365,6 @@ function renderVideoList(){
     const videoItem=document.createElement('div');
     videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer';
     videoItem.setAttribute('data-id',video.id);
-    // 点击条目直接观看影片（排除按钮点击）
     videoItem.onclick=(e)=>{
       if(!e.target.closest('button')){
         viewVideo(video.id);
@@ -425,9 +424,17 @@ function renderResult(resp){
   console.log("渲染用戶驗證結果：",resp);
   const statusEl=document.getElementById('status');const errorMsgEl=document.getElementById('error-message');
   if(statusEl)statusEl.classList.add('hidden');if(errorMsgEl)errorMsgEl.classList.add('hidden');
-  if(!resp.isAdmin){showError('未授權使用，僅管理/專業用戶可訪問');return;}
-  appState.currentUser={userId:resp.userId,displayName:resp.displayName,isAdmin:resp.isAdmin,expiryDate:resp.expiryDate};
+  // 嚴格驗證用戶權限
+  if(!resp.isAuthorized){showError('未授權使用，僅管理/專業用戶可訪問');return;}
+  // 修正角色賦值邏輯，嚴格區分管理/專業用戶
   appState.userRole=resp.isAdmin===true?'admin':'pro';
+  appState.currentUser={
+    userId:resp.userId,
+    displayName:resp.displayName,
+    isAdmin:resp.isAdmin===true,
+    isPro:resp.isAdmin!==true&&resp.isAuthorized===true,
+    expiryDate:resp.expiryDate
+  };
   const card=document.getElementById('result-card');const main=document.getElementById('result-main');
   const details=document.getElementById('result-details');if(!card||!main||!details)return;
   const isManage=isManageUser();const userName=resp.displayName||'管理員';
@@ -617,7 +624,12 @@ function callGasBackend(userId,displayName,writeToSheet=false){
     success:function(resp){
       console.log("GAS 驗證回應：",resp);
       if(resp.status==="error")showError(resp.message);
-      else{resp.displayName=displayName;renderResult(resp);}
+      else{
+        // 確保返回結果包含授權狀態
+        resp.isAuthorized=resp.isAuthorized||resp.isAdmin||resp.isPro||false;
+        resp.displayName=displayName;
+        renderResult(resp);
+      }
     },
     error:function(xhr,status,error){
       console.error("GAS 請求錯誤：",status,error);
