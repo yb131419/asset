@@ -42,6 +42,9 @@
       .fade-in { animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
       .pulse-subtle { animation: pulseSubtle 2s infinite; }
       .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; }
+      .step-item { @apply flex items-start mb-3; }
+      .step-number { @apply w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0; }
+      .step-text { @apply text-sm text-textPrimary; }
     }
 
     @keyframes fadeIn { 
@@ -101,6 +104,48 @@
         </div>
       </div>
 
+      <!-- 權限不足專用提示 -->
+      <div id="permission-error" class="hidden bg-orange-50 border border-orange-100 text-orange-700 px-6 py-5 rounded-xl mb-6 shadow-sm">
+        <div class="flex items-start">
+          <i class="fa fa-lock text-orange-500 mt-1 mr-3 text-xl"></i>
+          <div class="w-full">
+            <h3 class="font-medium text-orange-800 mb-2">LIFF 應用權限不足</h3>
+            <p class="text-sm mb-3">無法獲取用戶資料，請管理員按照以下步驟配置權限：</p>
+            <div class="bg-white p-3 rounded-lg mb-3 text-textPrimary">
+              <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-text">登錄 <a href="https://developers.line.biz/console/" target="_blank" class="text-primary underline hover:text-[#007A69]">LINE Developers 後台</a></div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-text">進入對應的「Channel」→ 選擇「LIFF」分頁</div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-text">找到當前 LIFF 應用，點擊「編輯」按鈕</div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-text">在「Scope」區域勾選：<strong>profile、openid、offline_access</strong></div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">5</div>
+                <div class="step-text">在「Access token grant type」選擇：<strong>ID token + Access token</strong></div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">6</div>
+                <div class="step-text">點擊「更新」保存設定，等待 5-10 分鐘生效</div>
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1.5">
+                <i class="fa fa-refresh"></i> 配置完成後重新加載
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 用戶驗證結果卡片 -->
       <div id="result-card" class="hidden bg-gradient-to-r from-secondary to-[#F0FAF8] border border-primary/15 rounded-2xl p-6 mb-8 text-center fade-in relative overflow-hidden">
         <!-- 裝飾元素 -->
@@ -136,10 +181,11 @@
       if (statusText) statusText.textContent = text;
     };
 
-    // 錯誤顯示函數
+    // 通用錯誤顯示函數
     const showError = msg => {
       document.getElementById('status').classList.add('hidden');
       document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('permission-error').classList.add('hidden');
       
       const el = document.getElementById('error-message');
       const contentEl = document.getElementById('error-content');
@@ -150,6 +196,14 @@
           </button></div>`;
         el.classList.remove('hidden');
       }
+    };
+
+    // 權限不足專用提示
+    const showPermissionError = () => {
+      document.getElementById('status').classList.add('hidden');
+      document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('error-message').classList.add('hidden');
+      document.getElementById('permission-error').classList.remove('hidden');
     };
 
     // 計算剩餘天數函數
@@ -205,6 +259,7 @@
       // 隱藏狀態和錯誤信息
       document.getElementById('status').classList.add('hidden');
       document.getElementById('error-message').classList.add('hidden');
+      document.getElementById('permission-error').classList.add('hidden');
 
       // 渲染結果卡片
       const card = document.getElementById('result-card');
@@ -255,12 +310,39 @@
       console.log("結果卡片已顯示");
     }
 
-    // ===== 核心修正1：強化 LINE 暱稱獲取，確保絕不為空 =====
+    // ===== 核心修正1：增加 LIFF 權限檢查 =====
+    function checkLiffPermissions() {
+      try {
+        // 獲取當前 LIFF 配置的權限
+        const permissions = liff.getPermissions() || [];
+        console.log("當前 LIFF 權限：", permissions);
+        
+        // 檢查是否包含必要權限
+        const requiredPermissions = ['profile', 'openid'];
+        const hasAllPermissions = requiredPermissions.every(perm => permissions.includes(perm));
+        
+        if (!hasAllPermissions) {
+          console.warn("缺少必要權限：", requiredPermissions.filter(perm => !permissions.includes(perm)));
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.warn("無法檢查 LIFF 權限：", err);
+        return false;
+      }
+    }
+
+    // ===== 核心修正2：強化 LINE 暱稱獲取，確保絕不為空 =====
     /**
      * 安全獲取 LINE 暱稱（多層防禦）
      * @returns {Promise<{userId: string, displayName: string}>}
      */
     async function safeGetLineProfile() {
+      // 先檢查權限
+      if (!checkLiffPermissions()) {
+        throw new Error("permission_error"); // 標記為權限錯誤
+      }
+
       // 定義默認值
       let userId = '';
       let displayName = 'LINE暱稱未公開';
@@ -317,15 +399,19 @@
         }
       } catch (err) {
         console.error("[STEP3] 舊版 getProfile() 失敗：", err);
+        // 判斷是否是權限錯誤
+        if (err.message.includes('permission is not in LIFF app scope')) {
+          throw new Error("permission_error");
+        }
         throw new Error("無法獲取 LINE 用戶資訊：" + err.message + 
-          "<br/><br/>請確認：<br/>1. LIFF 應用已開啟 profile 權限<br/>2. 用戶已授權個人資料訪問<br/>3. 重新登錄 LINE 後再試");
+          "<br/><br/>請確認：<br/>1. 用戶已授權個人資料訪問<br/>2. 重新登錄 LINE 後再試");
       }
 
       // 所有方法都失敗
       throw new Error("無法獲取有效的 LINE 用戶 ID，請檢查 LIFF 配置或網絡連接");
     }
 
-    // ===== 核心修正2：清理暱稱特殊字符，避免空值 =====
+    // ===== 核心修正3：清理暱稱特殊字符，避免空值 =====
     /**
      * 清理 LINE 暱稱，確保非空且無特殊字符
      * @param {string} name - 原始暱稱
@@ -338,7 +424,7 @@
       return cleaned || 'LINE暱稱未公開';
     }
 
-    // ===== 核心修正3：調用 GAS 前最終校驗 =====
+    // ===== 核心修正4：調用 GAS 前最終校驗 =====
     function callGasBackend(userId, displayName, writeToSheet = false) {
       // 最終校驗：確保 userId 和 displayName 絕不為空
       const finalUserId = userId.trim() || '未知UserID';
@@ -408,12 +494,20 @@
           console.log("用戶未登錄，跳轉登錄頁面");
           liff.login({
             scope: ['profile', 'openid', 'offline_access'],
-            redirectUri: window.location.href
+            redirectUri: window.location.href,
+            prompt: 'consent' // 強制用戶授權
           });
           return;
         }
 
-        // 已登錄，安全獲取用戶資訊
+        // 已登錄，先檢查權限
+        if (!checkLiffPermissions()) {
+          console.error("LIFF 權限不足，顯示專用提示");
+          showPermissionError();
+          return;
+        }
+
+        // 安全獲取用戶資訊
         setStatus('驗證使用者資訊中...');
         try {
           // 獲取校驗後的用戶資訊
@@ -424,7 +518,12 @@
           callGasBackend(userId, displayName, true);
         } catch (err) {
           console.error("獲取用戶資訊失敗：", err);
-          showError(err.message);
+          // 判斷是否是權限錯誤
+          if (err.message === "permission_error") {
+            showPermissionError();
+          } else {
+            showError(err.message);
+          }
         }
       })
       .catch(err => {
