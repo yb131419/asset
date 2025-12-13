@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <title>🎬 彥彬 健康觀念 - 多影片管理系統</title>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -81,24 +81,23 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         </p>
       </div>
     </div>
-    <div id="video-list-section" class="bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
+    <div id="video-list-section" class="bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100 hidden">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
           <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片列表管理
           <span class="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full" id="video-count">目前 0 個教學影片</span>
         </h2>
-        <div id="add-video-btn-container" class="flex gap-2">
+        <div id="add-video-btn-container" class="flex gap-2 hidden">
           <button onclick="addNewVideo()" class="bg-primary hover:bg-[#007A69] text-white text-xs font-medium px-2.5 py-1 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
             <i class="fa fa-plus text-xs"></i> 新增影片
           </button>
         </div>
       </div>
-      <div id="video-list-container" class="space-y-2.5 mb-2">
-        <div id="empty-video-list" class="py-5 text-center text-textSecondary">
-          <i class="fa fa-film text-2xl mb-2 text-gray-300"></i>
-          <p class="text-sm">尚未添加任何教學影片</p>
-          <p id="empty-tip" class="text-xs mt-1">點擊「新增影片」按鈕開始添加</p>
-        </div>
+      <div id="video-list-container" class="space-y-2.5 mb-2"></div>
+      <div id="empty-video-list" class="py-5 text-center text-textSecondary hidden">
+        <i class="fa fa-film text-2xl mb-2 text-gray-300"></i>
+        <p class="text-sm">尚未添加任何教學影片</p>
+        <p id="empty-tip" class="text-xs mt-1">點擊「新增影片」按鈕開始添加</p>
       </div>
     </div>
     <div id="edit-section" class="hidden bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
@@ -153,7 +152,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <h2 class="text-base md:text-xl font-bold text-textPrimary flex items-center">
           <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影片預覽
         </h2>
-        <div id="preview-action-btns" class="flex gap-1">
+        <div id="preview-action-btns" class="flex gap-1 hidden">
           <button onclick="editCurrentVideo()" class="text-primary hover:text-[#007A69] text-xs font-medium flex items-center gap-1 bg-primary/5 px-2 py-1 rounded-lg">
             <i class="fa fa-pencil text-xs"></i> 編輯
           </button>
@@ -210,7 +209,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 </div>
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
-let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:'pro'};
+let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
 const generateVideoId=()=>{const timestamp=new Date().getTime();const random=Math.floor(Math.random()*1000);return `vid_${timestamp}_${random}`;};
 const setStatus=(text)=>{const statusText=document.getElementById('status-text');if(statusText)statusText.textContent=text;};
 const showError=(msg)=>{
@@ -218,7 +217,7 @@ const showError=(msg)=>{
   const videoListEl=document.getElementById('video-list-section');const editEl=document.getElementById('edit-section');
   const videoPreviewEl=document.getElementById('video-preview');const successMsgEl=document.getElementById('success-message');
   if(statusEl)statusEl.classList.add('hidden');if(resultCardEl)resultCardEl.classList.add('hidden');
-  if(videoListEl)videoListEl.classList.remove('hidden');if(editEl)editEl.classList.add('hidden');
+  if(videoListEl)videoListEl.classList.add('hidden');if(editEl)editEl.classList.add('hidden');
   if(videoPreviewEl)videoPreviewEl.classList.add('hidden');if(successMsgEl)successMsgEl.classList.add('hidden');
   const el=document.getElementById('error-message');const contentEl=document.getElementById('error-content');
   if(el&&contentEl){
@@ -286,14 +285,13 @@ const handleDragStart=(e)=>{
   e.target.classList.add('dragging');
   e.dataTransfer.effectAllowed='move';
   e.dataTransfer.setData('text/plain',e.target.getAttribute('data-id'));
-  setTimeout(()=>{e.target.style.opacity='0.5';},0);
+  e.target.style.opacity='0.5';
 };
 const handleDragOver=(e)=>{
   if(!isManageUser())return;
   e.preventDefault();
-  const draggingItem=document.querySelector('.dragging');
   const currentItem=e.target.closest('.video-item');
-  if(!currentItem||currentItem===draggingItem)return;
+  if(!currentItem||currentItem===appState.draggingItem)return;
   currentItem.classList.add('drop-zone');
 };
 const handleDragLeave=(e)=>{
@@ -307,29 +305,28 @@ const handleDrop=(e)=>{
   const draggedId=e.dataTransfer.getData('text/plain');
   const targetItem=e.target.closest('.video-item');
   if(!targetItem||targetItem.getAttribute('data-id')===draggedId)return;
-  
   const draggedIndex=appState.videoList.findIndex(v=>v.id===draggedId);
   const targetIndex=appState.videoList.findIndex(v=>v.id===targetItem.getAttribute('data-id'));
-  
   if(draggedIndex!==-1&&targetIndex!==-1){
-    const [draggedItem]=appState.videoList.splice(draggedIndex,1);
+    const draggedItem=appState.videoList[draggedIndex];
+    appState.videoList.splice(draggedIndex,1);
     appState.videoList.splice(targetIndex,0,draggedItem);
     saveVideoListToLocal();
-    renderVideoList(); 
-    showSuccess('影片順序已更新！');
+    renderVideoList();
+    showSuccess('影片順序已即時更新！');
   }
-  
   targetItem.classList.remove('drop-zone');
-  const draggingItem=document.querySelector('.dragging');
-  if(draggingItem)draggingItem.classList.remove('dragging');
+  if(appState.draggingItem){
+    appState.draggingItem.classList.remove('dragging');
+    appState.draggingItem.style.opacity='1';
+  }
+  appState.draggingItem=null;
 };
 const handleDragEnd=(e)=>{
   if(!isManageUser())return;
   e.target.classList.remove('dragging');
   e.target.style.opacity='1';
-  document.querySelectorAll('.video-item').forEach(item=>{
-    item.classList.remove('drop-zone');
-  });
+  document.querySelectorAll('.video-item').forEach(item=>item.classList.remove('drop-zone'));
   appState.draggingItem=null;
 };
 const updateVideoCount=()=>{
@@ -342,41 +339,35 @@ function loadSavedVideoData(){
   if(savedContent){
     try{
       const videoList=JSON.parse(savedContent);
-      if(Array.isArray(videoList)){
-        appState.videoList=videoList.map(video=>({
-          id:video.id||generateVideoId(),name:video.name||'',video:video.video||'',
-          note:video.note||'',updatedAt:video.updatedAt||new Date().toLocaleString('zh-TW'),
-          syncedToSheet:video.syncedToSheet||false
-        }));
-      }else{
-        appState.videoList=[{
-          id:generateVideoId(),name:videoList.name||'',video:videoList.video||'',
-          note:videoList.note||'',updatedAt:videoList.updatedAt||new Date().toLocaleString('zh-TW'),
-          syncedToSheet:videoList.syncedToSheet||false
-        }];
-      }
+      appState.videoList=Array.isArray(videoList)?videoList.map(video=>({
+        id:video.id||generateVideoId(),name:video.name||'',video:video.video||'',
+        note:video.note||'',updatedAt:video.updatedAt||new Date().toLocaleString('zh-TW'),
+        syncedToSheet:video.syncedToSheet||false
+      })):[{
+        id:generateVideoId(),name:videoList.name||'',video:videoList.video||'',
+        note:videoList.note||'',updatedAt:videoList.updatedAt||new Date().toLocaleString('zh-TW'),
+        syncedToSheet:videoList.syncedToSheet||false
+      }];
     }catch(e){console.error('加載儲存的影片數據失敗：',e);appState.videoList=[];}
   }
   updateVideoCount();
   renderVideoList();
 }
 function renderVideoList(){
-  const container=document.getElementById('video-list-container');const emptyTip=document.getElementById('empty-video-list');
-  if(!container||!emptyTip)return;container.innerHTML='';
+  const container=document.getElementById('video-list-container');
+  const emptyEl=document.getElementById('empty-video-list');
+  if(!container||!emptyEl)return;
+  container.innerHTML='';
   const isManage=isManageUser();
   if(appState.videoList.length===0){
-    emptyTip.classList.remove('hidden');
-    const emptyTipText=document.getElementById('empty-tip');
-    if(emptyTipText){
-      emptyTipText.textContent=isManage?'點擊「新增影片」按鈕開始添加':'暫無可用的教學影片';
-    }
+    emptyEl.classList.remove('hidden');
+    document.getElementById('empty-tip').textContent=isManage?'點擊「新增影片」按鈕開始添加':'暫無可用的教學影片';
     return;
   }
-  emptyTip.classList.add('hidden');
+  emptyEl.classList.add('hidden');
   appState.videoList.forEach((video,index)=>{
     const videoItem=document.createElement('div');
-    const itemClass=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
-    videoItem.className=itemClass;
+    videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
     if(isManage){
       videoItem.setAttribute('draggable','true');
@@ -432,6 +423,7 @@ function renderResult(resp){
   console.log("渲染用戶驗證結果：",resp);
   const statusEl=document.getElementById('status');const errorMsgEl=document.getElementById('error-message');
   if(statusEl)statusEl.classList.add('hidden');if(errorMsgEl)errorMsgEl.classList.add('hidden');
+  if(!resp.isAdmin){showError('未授權使用，僅管理/專業用戶可訪問');return;}
   appState.currentUser={userId:resp.userId,displayName:resp.displayName,isAdmin:resp.isAdmin,expiryDate:resp.expiryDate};
   appState.userRole=resp.isAdmin===true?'admin':'pro';
   const card=document.getElementById('result-card');const main=document.getElementById('result-main');
@@ -445,6 +437,7 @@ function renderResult(resp){
     main.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
     details.innerHTML=`
       <div><i class="fa fa-user-circle text-primary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
+      <div><i class="fa fa-user text-primary mr-1.5 text-xs"></i>用戶類型：<span class="font-medium">管理用戶</span></div>
       <div><i class="fa fa-calendar-check-o text-primary mr-1.5 text-xs"></i>使用期限：<span class="font-medium">${displayDate}</span></div>
       <div><i class="fa fa-clock-o text-primary mr-1.5 text-xs"></i>剩餘天數：${remainingDays}</div>
       <div><i class="fa fa-film text-primary mr-1.5 text-xs"></i>目前 ${appState.videoList.length} 個教學影片</div>
@@ -452,29 +445,19 @@ function renderResult(resp){
     document.getElementById('add-video-btn-container').style.display='flex';
     document.getElementById('preview-action-btns').style.display='flex';
   }else{
-    const usageCount=resp.usageCount||0;const remainingTimes=Math.max(0,30-usageCount);
-    if(remainingTimes<=0){
-      main.innerHTML=`<span class="text-orange-600"><i class="fa fa-exclamation-circle mr-2 text-sm"></i>專業用戶使用次數已用完</span>`;
-      details.innerHTML=`
-        <div><i class="fa fa-user-circle text-orange-600 mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
-        <div><i class="fa fa-calendar-o text-orange-600 mr-1.5 text-xs"></i>使用期限：<span class="font-medium">-</span></div>
-        <div><i class="fa fa-refresh text-orange-600 mr-1.5 text-xs"></i>剩餘次數：<span class="text-red-500 font-medium">${remainingTimes} 次</span></div>
-        <div><i class="fa fa-film text-primary mr-1.5 text-xs"></i>目前 ${appState.videoList.length} 個教學影片</div>
-        <div><i class="fa fa-info-circle text-orange-600 mr-1.5 text-xs"></i>提示：請聯繫管理員升級為管理用戶</div>
-      `;
-    }else{
-      main.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
-      details.innerHTML=`
-        <div><i class="fa fa-user-circle text-textPrimary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
-        <div><i class="fa fa-calendar-o text-textPrimary mr-1.5 text-xs"></i>使用期限：<span class="font-medium">-</span></div>
-        <div><i class="fa fa-refresh text-textPrimary mr-1.5 text-xs"></i>剩餘次數：<span class="font-medium text-primary">${remainingTimes} 次</span></div>
-        <div><i class="fa fa-film text-primary mr-1.5 text-xs"></i>目前 ${appState.videoList.length} 個教學影片</div>
-      `;
-    }
+    main.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
+    details.innerHTML=`
+      <div><i class="fa fa-user-circle text-textPrimary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
+      <div><i class="fa fa-user text-textPrimary mr-1.5 text-xs"></i>用戶類型：<span class="font-medium">專業用戶</span></div>
+      <div><i class="fa fa-calendar-o text-textPrimary mr-1.5 text-xs"></i>使用期限：<span class="font-medium">${expiryDateStr||'永久有效'}</span></div>
+      <div><i class="fa fa-film text-primary mr-1.5 text-xs"></i>目前 ${appState.videoList.length} 個教學影片</div>
+    `;
     document.getElementById('add-video-btn-container').style.display='none';
     document.getElementById('preview-action-btns').style.display='none';
   }
-  card.classList.remove('hidden');loadSavedVideoData();
+  card.classList.remove('hidden');
+  document.getElementById('video-list-section').classList.remove('hidden');
+  loadSavedVideoData();
 }
 function addNewVideo(){
   if(appState.isSubmitting||!isManageUser())return;appState.currentEditingVideoId=null;
@@ -536,12 +519,14 @@ function deleteVideoConfirm(videoId){
 }
 function deleteVideo(videoId){
   if(appState.isSubmitting||!isManageUser())return;
-  appState.videoList=appState.videoList.filter(v=>v.id!==videoId);saveVideoListToLocal();
+  appState.videoList=appState.videoList.filter(v=>v.id!==videoId);
+  saveVideoListToLocal();
   if(appState.currentViewingVideoId===videoId){
-    appState.currentViewingVideoId=null;const videoPreviewEl=document.getElementById('video-preview');
-    if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
+    appState.currentViewingVideoId=null;
+    document.getElementById('video-preview').classList.add('hidden');
   }
-  renderVideoList();showSuccess('影片已成功刪除！');
+  renderVideoList();
+  showSuccess('影片已成功刪除！');
 }
 function deleteCurrentVideo(){
   if(appState.currentViewingVideoId&&isManageUser())deleteVideoConfirm(appState.currentViewingVideoId);
@@ -577,9 +562,12 @@ function saveVideo(event){
   const videoIndex=appState.videoList.findIndex(v=>v.id===videoId);
   if(videoIndex>=0)appState.videoList[videoIndex]=videoData;
   else appState.videoList.unshift(videoData);
-  saveVideoListToLocal();renderVideoList();
+  saveVideoListToLocal();
+  renderVideoList();
   showSuccess(appState.currentEditingVideoId?'影片已成功更新！':'新影片已成功添加！');
-  appState.currentEditingVideoId=null;hideEditSection();setSubmitState(false);
+  appState.currentEditingVideoId=null;
+  hideEditSection();
+  setSubmitState(false);
 }
 function getProfileAndVerify(){
   setStatus('驗證使用者資訊中...');
