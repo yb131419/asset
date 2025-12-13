@@ -323,7 +323,7 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     const timeDiff=expiryDate-todayUTC;
     const remainingDays=Math.ceil(timeDiff/(1000*3600*24));
     const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{
-      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
     }).replace(/\//g,'/').replace(' ',' ');
     let remainingDaysText;
     if(remainingDays<0)remainingDaysText="<span class='text-red-500 font-medium'>已過期</span>";
@@ -418,7 +418,7 @@ const fetchVideoListFromGAS=()=>{
           name:v.name||'',
           video:v.video||'',
           note:v.note||'',
-          updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW')
+          updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
         })).filter(v=>v.video&&v.id);
         updateVideoCountDisplay();
         renderViewerVideoList();
@@ -449,7 +449,8 @@ const syncVideoToGAS=(videoData,callback)=>{
     data:{
       action:'saveVideo',
       userId:appState.currentUser?.userId||'',
-      videoId:videoData.id, // 补充videoId参数
+      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
+      videoId:videoData.id,
       name:videoData.name,
       video:videoData.video,
       note:videoData.note,
@@ -479,6 +480,7 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     data:{
       action:'deleteVideo',
       userId:appState.currentUser?.userId||'',
+      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
       videoId:videoId
     },
     success:function(resp){
@@ -506,6 +508,7 @@ const syncVideoListOrderToGAS=()=>{
     data:{
       action:'updateVideoOrder',
       userId:appState.currentUser?.userId||'',
+      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
       videoIds:JSON.stringify(videoIds)
     },
     success:function(resp){
@@ -893,8 +896,7 @@ function saveVideo(event){
     video:videoUrl,
     note:videoNote,
     updatedAt:new Date().toLocaleString('zh-TW',{
-      year:'numeric',month:'2-digit',day:'2-digit',
-      hour:'2-digit',minute:'2-digit',second:'2-digit'
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
     })
   };
   syncVideoToGAS(videoData,(success)=>{
