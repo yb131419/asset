@@ -42,6 +42,7 @@
       .fade-in { animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
       .pulse-subtle { animation: pulseSubtle 2s infinite; }
       .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; }
+      .slide-in { animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     }
 
     @keyframes fadeIn { 
@@ -51,6 +52,10 @@
     @keyframes pulseSubtle {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.8; }
+    }
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     /* 自定義滾動條 */
@@ -79,7 +84,7 @@
           <i class="fa fa-user-circle text-3xl text-accent"></i>
         </div>
         <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🧬 彥彬 健康觀念</h1>
-        <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證</p>
+        <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證 & 內容管理</p>
       </div>
     </div>
 
@@ -101,6 +106,14 @@
         </div>
       </div>
 
+      <!-- 成功提示 -->
+      <div id="success-message" class="hidden bg-green-50 border border-green-100 text-green-700 px-6 py-4 rounded-xl mb-6 shadow-sm fade-in">
+        <div class="flex items-start">
+          <i class="fa fa-check-circle text-green-500 mt-1 mr-3 text-xl"></i>
+          <div id="success-content"></div>
+        </div>
+      </div>
+
       <!-- 用戶驗證結果卡片 -->
       <div id="result-card" class="hidden bg-gradient-to-r from-secondary to-[#F0FAF8] border border-primary/15 rounded-2xl p-6 mb-8 text-center fade-in relative overflow-hidden">
         <!-- 裝飾元素 -->
@@ -115,11 +128,82 @@
           <!-- 分隔線 -->
           <div class="w-24 h-0.5 bg-primary/20 mx-auto my-4"></div>
           
-          <p class="text-sm text-textSecondary/80">
+          <p class="text-sm text-textSecondary/80 mb-4">
             <i class="fa fa-info-circle text-primary mr-1"></i>
             身份驗證完成，用戶資料已同步至工作表
           </p>
+          
+          <!-- 編輯按鈕 -->
+          <button id="edit-btn" onclick="showEditSection()" class="bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
+            <i class="fa fa-pencil"></i> 進入內容編輯
+          </button>
         </div>
+      </div>
+
+      <!-- 內容編輯區域 -->
+      <div id="edit-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-textPrimary flex items-center">
+            <i class="fa fa-edit text-primary mr-2"></i> 影片內容管理
+          </h2>
+          <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors">
+            <i class="fa fa-times-circle text-lg"></i>
+          </button>
+        </div>
+
+        <!-- 編輯表單 -->
+        <form id="content-form" onsubmit="saveContent(event)">
+          <div class="space-y-5">
+            <!-- 名稱輸入 -->
+            <div class="space-y-2">
+              <label class="block text-textPrimary font-medium">
+                <i class="fa fa-tag text-primary mr-2"></i> 內容名稱
+              </label>
+              <input 
+                type="text" 
+                id="content-name" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+                placeholder="請輸入影片/內容名稱"
+                required
+              >
+            </div>
+
+            <!-- 網址輸入 -->
+            <div class="space-y-2">
+              <label class="block text-textPrimary font-medium">
+                <i class="fa fa-link text-primary mr-2"></i> 相關網址
+              </label>
+              <input 
+                type="url" 
+                id="content-url" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+                placeholder="請輸入完整網址 (https://...)"
+                required
+              >
+            </div>
+
+            <!-- 影片連結 -->
+            <div class="space-y-2">
+              <label class="block text-textPrimary font-medium">
+                <i class="fa fa-video-camera text-primary mr-2"></i> 影片連結
+              </label>
+              <input 
+                type="url" 
+                id="content-video" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+                placeholder="請輸入YouTube/Vimeo等影片連結"
+                required
+              >
+            </div>
+
+            <!-- 儲存按鈕 -->
+            <div class="pt-4">
+              <button type="submit" class="w-full bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
+                <i class="fa fa-save"></i> 儲存設定
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -129,6 +213,9 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec";
     const JSONP_TIMEOUT = 15000;
     const PERMANENT_EXPIRY_DATE = "9999/12/31";
+
+    // 全域用戶資訊
+    let currentUser = null;
 
     // 狀態設置函數
     const setStatus = text => {
@@ -140,6 +227,8 @@
     const showError = msg => {
       document.getElementById('status').classList.add('hidden');
       document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('success-message').classList.add('hidden');
       
       const el = document.getElementById('error-message');
       const contentEl = document.getElementById('error-content');
@@ -149,6 +238,21 @@
             <i class="fa fa-refresh"></i> 重新嘗試
           </button></div>`;
         el.classList.remove('hidden');
+      }
+    };
+
+    // 成功提示函數
+    const showSuccess = msg => {
+      document.getElementById('error-message').classList.add('hidden');
+      const el = document.getElementById('success-message');
+      const contentEl = document.getElementById('success-content');
+      if (el && contentEl) {
+        contentEl.innerHTML = `<p class="font-medium">${msg}</p>`;
+        el.classList.remove('hidden');
+        // 3秒後隱藏成功提示
+        setTimeout(() => {
+          el.classList.add('hidden');
+        }, 3000);
       }
     };
 
@@ -206,6 +310,14 @@
       document.getElementById('status').classList.add('hidden');
       document.getElementById('error-message').classList.add('hidden');
 
+      // 保存當前用戶信息
+      currentUser = {
+        userId: resp.userId,
+        displayName: resp.displayName,
+        isAdmin: resp.isAdmin,
+        expiryDate: resp.expiryDate
+      };
+
       // 渲染結果卡片
       const card = document.getElementById('result-card');
       const main = document.getElementById('result-main');
@@ -238,6 +350,10 @@
             <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
             <div><i class="fa fa-info-circle text-orange-600 mr-1.5"></i>提示：請聯繫管理員升級為專業用戶</div>
           `;
+          // 禁用編輯按鈕
+          document.getElementById('edit-btn').classList.add('bg-gray-400', 'cursor-not-allowed');
+          document.getElementById('edit-btn').setAttribute('disabled', true);
+          document.getElementById('edit-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能編輯';
         } else {
           main.innerHTML = `<span class="text-textPrimary"><i class="fa fa-user mr-2"></i>普通用戶驗證通過</span>`;
           details.innerHTML = `
@@ -252,6 +368,84 @@
       // 顯示結果卡片
       card.classList.remove('hidden');
       console.log("結果卡片已顯示");
+    }
+
+    // 顯示編輯區域
+    function showEditSection() {
+      document.getElementById('result-card').classList.add('mb-2');
+      document.getElementById('edit-section').classList.remove('hidden');
+      // 滾動到編輯區域
+      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+      
+      // 加載已儲存的內容
+      const savedContent = localStorage.getItem(`user_content_${currentUser.userId}`);
+      if (savedContent) {
+        try {
+          const content = JSON.parse(savedContent);
+          document.getElementById('content-name').value = content.name || '';
+          document.getElementById('content-url').value = content.url || '';
+          document.getElementById('content-video').value = content.video || '';
+        } catch (e) {
+          console.error('加載儲存內容失敗：', e);
+        }
+      }
+    }
+
+    // 隱藏編輯區域
+    function hideEditSection() {
+      document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('result-card').classList.remove('mb-2');
+      // 滾動回結果卡片
+      document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 儲存內容
+    function saveContent(event) {
+      event.preventDefault();
+      
+      if (!currentUser) {
+        showError('用戶信息不存在，請重新驗證');
+        return;
+      }
+
+      // 获取表單數據
+      const contentData = {
+        userId: currentUser.userId,
+        userName: currentUser.displayName,
+        name: document.getElementById('content-name').value.trim(),
+        url: document.getElementById('content-url').value.trim(),
+        video: document.getElementById('content-video').value.trim(),
+        updatedAt: new Date().toLocaleString('zh-TW')
+      };
+
+      // 儲存到localStorage
+      localStorage.setItem(`user_content_${currentUser.userId}`, JSON.stringify(contentData));
+      
+      // 可選：將數據上傳到GAS後端
+      /*
+      $.ajax({
+        url: GAS_URL,
+        dataType: 'jsonp',
+        jsonp: 'callback',
+        timeout: JSONP_TIMEOUT,
+        data: { 
+          action: 'saveContent',
+          data: JSON.stringify(contentData)
+        },
+        success: function(resp) {
+          if (resp.status === "success") {
+            showSuccess('內容已成功儲存並同步到後端！');
+          } else {
+            showSuccess('內容已儲存（本地），但同步後端失敗：' + resp.message);
+          }
+        },
+        error: function() {
+          showSuccess('內容已儲存（本地），請稍後檢查網絡後重新同步');
+        }
+      });
+      */
+      
+      showSuccess('影片內容已成功儲存！');
     }
 
     // 獲取用戶信息（增強版：確保正確獲取LINE暱稱）
