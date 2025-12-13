@@ -37,6 +37,8 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .thumbnail-img{width:100%;height:100%;object-fit:cover;}
 .viewer-card{transition:all 0.3s ease;}
 .viewer-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+/* 放大立即觀看按鈕 */
+.watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -77,14 +79,14 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       <div class="relative z-10">
         <div id="result-main" class="text-lg md:text-xl font-bold mb-2 text-textPrimary"></div>
         <div id="result-details" class="text-sm text-textSecondary space-y-1 md:space-y-1.5"></div>
-        <!-- 影片數量顯示（移到這裡） -->
+        <!-- 影片數量顯示 -->
         <div id="video-count-display" class="mt-2 text-sm font-medium text-primary">
           <i class="fa fa-play-circle mr-1"></i> 可觀看影片數：<span id="video-count-num">0</span>
         </div>
         <div class="w-20 h-0.5 bg-primary/20 mx-auto my-2"></div>
       </div>
     </div>
-    <!-- 新增：影片觀看主介面（登錄成功後優先顯示） -->
+    <!-- 影片觀看主介面 -->
     <div id="video-viewer-section" class="hidden bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
@@ -104,7 +106,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <p class="text-xs mt-1 text-textSecondary/70">請聯繫管理員添加影片</p>
       </div>
     </div>
-    <!-- 原影片管理區域（管理用戶可見） -->
+    <!-- 原影片管理區域 -->
     <div id="video-list-section" class="bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100 hidden">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
@@ -220,10 +222,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-sticky-note text-primary mr-1.5 text-xs"></i> 備註：</span>
               <p id="preview-note" class="mt-1 text-xs md:text-sm">- 無備註 -</p>
             </div>
-            <div>
-              <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-hashtag text-primary mr-1.5 text-xs"></i> 影片ID：</span>
-              <p id="preview-id" class="mt-1 text-xs md:text-sm font-mono"></p>
-            </div>
           </div>
         </div>
         <div class="flex justify-center mt-2">
@@ -238,13 +236,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
-
-// 生成影片唯一ID
-const generateVideoId=()=>{
-  const timestamp=new Date().getTime();
-  const random=Math.floor(Math.random()*1000);
-  return `vid_${timestamp}_${random}`;
-};
 
 // 設置加載狀態文本
 const setStatus=(text)=>{
@@ -417,7 +408,7 @@ const handleDrop=(e)=>{
     appState.videoList.splice(targetIndex,0,draggedItem);
     syncVideoListOrderToGAS();
     renderVideoList();
-    renderViewerVideoList(); // 同步更新觀看列表
+    renderViewerVideoList();
     showSuccess('影片順序已即時更新！');
   }
   targetItem.classList.remove('drop-zone');
@@ -455,16 +446,15 @@ const fetchVideoListFromGAS=()=>{
     success:function(resp){
       if(resp.status==="success"&&Array.isArray(resp.data)){
         appState.videoList=resp.data.map(v=>({
-          id:v.id||generateVideoId(),
+          id:v.id||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`,
           name:v.name||'',
           video:v.video||'',
           note:v.note||'',
-          updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW'),
-          syncedToSheet:true
+          updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW')
         })).filter(v=>v.video&&v.id);
         updateVideoCountDisplay();
-        renderViewerVideoList(); // 優先渲染觀看列表
-        renderVideoList(); // 渲染管理列表
+        renderViewerVideoList();
+        renderVideoList();
         setStatus('載入完成');
       }else{
         appState.videoList=[];
@@ -493,12 +483,10 @@ const syncVideoToGAS=(videoData,callback)=>{
     data:{
       action:'saveVideo',
       userId:appState.currentUser?.userId||'',
-      videoId:videoData.id,
       name:videoData.name,
       video:videoData.video,
       note:videoData.note,
-      updatedAt:videoData.updatedAt,
-      operator:appState.currentUser?.displayName||'未知用戶'
+      updatedAt:videoData.updatedAt
     },
     success:function(resp){
       if(resp.status==="success"){
@@ -639,7 +627,7 @@ function renderVideoList(){
   });
 }
 
-// 渲染觀看用戶的影片列表（新介面）
+// 渲染觀看用戶的影片列表（專業用戶優化）
 function renderViewerVideoList(){
   const container=document.getElementById('viewer-video-list');
   const emptyEl=document.getElementById('viewer-empty-list');
@@ -655,9 +643,9 @@ function renderViewerVideoList(){
     viewerCard.className='viewer-card bg-cardBg rounded-xl overflow-hidden shadow-elevation-2 slide-up';
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名影片';
-    const noteText=video.note||'無備註資訊';
     const thumbnailUrl=getVideoThumbnail(video.video);
-    viewerCard.innerHTML=`
+    // 專業用戶只顯示最後更新時間，管理用戶顯示完整信息
+    const cardContent=isProUser()?`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
         <div class="absolute top-2 right-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">
@@ -668,15 +656,34 @@ function renderViewerVideoList(){
         </div>
       </div>
       <div class="p-3">
-        <p class="text-xs text-textSecondary mb-2"><i class="fa fa-sticky-note-o mr-1"></i>${noteText}</p>
         <div class="flex justify-between items-center">
           <span class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1"></i>${video.updatedAt}</span>
-          <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="bg-primary/10 text-primary text-xs px-3 py-1 rounded-lg hover:bg-primary/20 transition-colors">
+          <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="watch-btn bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+            <i class="fa fa-play mr-1"></i> 立即觀看
+          </button>
+        </div>
+      </div>
+    `:`
+      <div class="relative">
+        <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
+        <div class="absolute top-2 right-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">
+          ${index+1}
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+          <h3 class="text-white font-medium text-sm md:text-base truncate">${fullTitle}</h3>
+        </div>
+      </div>
+      <div class="p-3">
+        <p class="text-xs text-textSecondary mb-2"><i class="fa fa-sticky-note-o mr-1"></i>${video.note||'無備註資訊'}</p>
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1"></i>${video.updatedAt}</span>
+          <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="watch-btn bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
             <i class="fa fa-play mr-1"></i> 立即觀看
           </button>
         </div>
       </div>
     `;
+    viewerCard.innerHTML=cardContent;
     container.appendChild(viewerCard);
   });
 }
@@ -698,7 +705,7 @@ function toggleVideoListSection(){
 
 // 渲染用戶驗證結果
 function renderResult(resp){
-  console.log("渲染用戶驗證結果（來自工作表）：",resp);
+  console.log("渲染用戶驗證結果：",resp);
   const statusEl=document.getElementById('status');
   const errorMsgEl=document.getElementById('error-message');
   if(statusEl)statusEl.classList.add('hidden');
@@ -710,11 +717,10 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 修復：確保用戶名正確顯示（電腦/手機一致）
   const actualUserName=resp.displayName||appState.currentUser?.displayName||'未知用戶';
   appState.currentUser={
     userId:resp.userId,
-    displayName:actualUserName, // 保存真實用戶名
+    displayName:actualUserName,
     isAdmin:isAdmin,
     isPro:isPro,
     expiryDate:resp.expiryDate
@@ -752,7 +758,6 @@ function renderResult(resp){
     return;
   }
   card.classList.remove('hidden');
-  // 登錄成功後優先顯示觀看介面
   document.getElementById('video-viewer-section').classList.remove('hidden');
   fetchVideoListFromGAS();
 }
@@ -839,7 +844,6 @@ function viewVideo(videoId){
   const previewLinkEl=document.getElementById('preview-link');
   const previewUpdatedEl=document.getElementById('preview-updated');
   const previewNoteEl=document.getElementById('preview-note');
-  const previewIdEl=document.getElementById('preview-id');
   const previewVideoEl=document.getElementById('preview-video');
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
   if(videoListEl)videoListEl.classList.add('hidden');
@@ -850,7 +854,6 @@ function viewVideo(videoId){
   if(previewLinkEl)previewLinkEl.textContent=video.video;
   if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
   if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
-  if(previewIdEl)previewIdEl.textContent=video.id;
   const embedUrl=convertToEmbedUrl(video.video);
   if(previewVideoEl)previewVideoEl.src=embedUrl;
   if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
@@ -938,7 +941,7 @@ function saveVideo(event){
     showError('用戶信息不存在，請重新驗證');
     return;
   }
-  const videoId=document.getElementById('video-id').value||generateVideoId();
+  const videoId=document.getElementById('video-id').value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
   const videoName=document.getElementById('content-name').value.trim();
   const videoUrl=document.getElementById('content-video').value.trim();
   const videoNote=document.getElementById('content-note').value.trim();
@@ -955,8 +958,7 @@ function saveVideo(event){
     updatedAt:new Date().toLocaleString('zh-TW',{
       year:'numeric',month:'2-digit',day:'2-digit',
       hour:'2-digit',minute:'2-digit',second:'2-digit'
-    }),
-    syncedToSheet:true
+    })
   };
   syncVideoToGAS(videoData,(success)=>{
     if(success){
@@ -976,7 +978,7 @@ function saveVideo(event){
 
 // 获取用戶資訊並驗證
 function getProfileAndVerify(){
-  setStatus('驗證使用者資訊（來自工作表）...');
+  setStatus('驗證使用者資訊...');
   try{
     const accessToken=liff.getAccessToken();
     if(accessToken){
@@ -985,10 +987,9 @@ function getProfileAndVerify(){
         headers:{'Authorization':`Bearer ${accessToken}`},
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
-          // 修復：保留原始用戶名，不替換為固定「管理員」
           const userId=profile.userId;
           const displayName=(profile.displayName||'').trim()||'未知用戶';
-          appState.currentUser={userId:userId,displayName:displayName}; // 提前保存真實用戶名
+          appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
         },
         error:function(err){
@@ -1008,7 +1009,6 @@ function getProfileAndVerify(){
       if(idToken){
         console.log("ID Token 內容：",idToken);
         const userId=idToken.sub;
-        // 修復：優先使用真實用戶名，避免默認值覆蓋
         let displayName=idToken.nickname||idToken.name||idToken.preferred_username||
         (idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'未知用戶';
         displayName=displayName.trim()||'未知用戶';
@@ -1037,7 +1037,7 @@ function getProfileAndVerify(){
 
 // 調用GAS後端驗證
 function callGasBackend(userId,displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶（讀取工作表）：",{userId,displayName,writeToSheet});
+  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
   $.ajax({
     url:CONFIG.GAS_URL,
     dataType:'jsonp',
@@ -1051,13 +1051,13 @@ function callGasBackend(userId,displayName,writeToSheet=false){
       writeToSheet:writeToSheet
     },
     success:function(resp){
-      console.log("GAS 驗證回應（來自工作表）：",resp);
+      console.log("GAS 驗證回應：",resp);
       if(resp.status==="error")showError(resp.message);
       else{
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
         resp.isAdmin=Boolean(resp.isAdmin);
         resp.isPro=Boolean(resp.isPro);
-        resp.displayName=displayName; // 使用真實用戶名
+        resp.displayName=displayName;
         renderResult(resp);
       }
     },
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded',function(){
       console.log("用戶未登錄，跳轉登錄");
       liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
     }else{
-      console.log("用戶已登錄，開始驗證信息（讀取工作表）");
+      console.log("用戶已登錄，開始驗證信息");
       getProfileAndVerify();
     }
   }).catch(err=>{
