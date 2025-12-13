@@ -38,6 +38,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .viewer-card{transition:all 0.3s ease;}
 .viewer-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
 .watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
+/* 手机端按钮优化 */
+.mobile-btn{min-height:48px !important;padding:12px 20px !important;font-size:16px !important;border-radius:10px !important;}
+.mobile-btn-sm{min-height:40px !important;padding:8px 16px !important;font-size:15px !important;border-radius:8px !important;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -89,7 +92,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 可觀看影片列表
         </h2>
         <div id="manage-btn-container" class="flex gap-2 hidden">
-          <button onclick="toggleVideoListSection()" class="bg-primary hover:bg-[#007A69] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
+          <button onclick="toggleVideoListSection()" class="mobile-btn-sm bg-primary hover:bg-[#007A69] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
             <i class="fa fa-cog text-sm"></i> 影片管理
           </button>
         </div>
@@ -102,16 +105,16 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       </div>
     </div>
     <div id="video-list-section" class="bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100 hidden">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
-          <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片列表管理
+          <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片列表
         </h2>
-        <div id="add-video-btn-container" class="flex gap-2">
-          <button onclick="addNewVideo()" class="bg-primary hover:bg-[#007A69] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
-            <i class="fa fa-plus text-sm"></i> 新增影片
+        <div id="add-video-btn-container" class="flex gap-2 w-full md:w-auto">
+          <button onclick="addNewVideo()" class="mobile-btn bg-primary hover:bg-[#007A69] text-white text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fa fa-plus text-lg"></i> 新增
           </button>
-          <button onclick="toggleVideoListSection()" class="bg-gray-200 hover:bg-gray-300 text-textPrimary text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
-            <i class="fa fa-arrow-left text-sm"></i> 返回觀看
+          <button onclick="toggleVideoListSection()" class="mobile-btn bg-gray-200 hover:bg-gray-300 text-textPrimary text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fa fa-arrow-left text-lg"></i> 返回
           </button>
         </div>
       </div>
@@ -119,7 +122,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       <div id="empty-video-list" class="py-5 text-center text-textSecondary hidden">
         <i class="fa fa-film text-2xl mb-2 text-gray-300"></i>
         <p class="text-sm">尚未添加任何教學影片</p>
-        <p id="empty-tip" class="text-xs mt-1">點擊「新增影片」按鈕開始添加</p>
+        <p id="empty-tip" class="text-xs mt-1">點擊「新增」按鈕開始添加</p>
       </div>
     </div>
     <div id="edit-section" class="hidden bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
@@ -127,8 +130,8 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <h2 id="edit-title" class="text-base md:text-lg font-bold text-textPrimary flex items-center">
           <i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增影片
         </h2>
-        <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors p-1 rounded-full hover:bg-gray-100">
-          <i class="fa fa-times-circle text-sm"></i>
+        <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
+          <i class="fa fa-times-circle text-lg"></i>
         </button>
       </div>
       <form id="content-form" onsubmit="saveVideo(event)">
@@ -138,13 +141,13 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-tag text-primary mr-2 text-xs"></i> 影片名稱 <span class="text-red-500">*</span>
             </label>
-            <input type="text" id="content-name" class="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-xs md:text-sm" placeholder="請輸入影片名稱" required>
+            <input type="text" id="content-name" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="請輸入影片名稱" required>
           </div>
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 影片連結 <span class="text-red-500">*</span>
             </label>
-            <input type="url" id="content-video" class="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-xs md:text-sm" placeholder="YouTube/Vimeo連結" required>
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="YouTube/Vimeo連結" required>
             <p class="text-xs text-textSecondary mt-1">
               <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube (youtu.be/xxx)、Vimeo 格式
             </p>
@@ -153,13 +156,13 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-sticky-note text-primary mr-2 text-xs"></i> 備註資訊 (選填)
             </label>
-            <textarea id="content-note" class="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none text-xs md:text-sm" rows="2" placeholder="請輸入備註資訊"></textarea>
+            <textarea id="content-note" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none text-sm" rows="2" placeholder="請輸入備註資訊"></textarea>
           </div>
           <div class="pt-1 flex gap-2">
-            <button type="button" onclick="hideEditSection()" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-textPrimary font-medium px-3 py-1.5 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+            <button type="button" onclick="hideEditSection()" class="mobile-btn-sm w-1/3 bg-gray-200 hover:bg-gray-300 text-textPrimary font-medium px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 text-sm">
               <i class="fa fa-times text-sm"></i> 取消
             </button>
-            <button type="submit" id="save-btn" class="w-2/3 bg-primary hover:bg-[#007A69] text-white font-medium px-3 py-1.5 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+            <button type="submit" id="save-btn" class="mobile-btn-sm w-2/3 bg-primary hover:bg-[#007A69] text-white font-medium px-3 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1 text-sm">
               <i class="fa fa-save text-sm"></i> 
               <span id="save-btn-text">儲存影片</span>
               <div id="save-loading" class="hidden inline-block animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white"></div>
@@ -174,14 +177,14 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影片預覽
         </h2>
         <div id="preview-action-btns" class="flex gap-1 hidden">
-          <button onclick="editCurrentVideo()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-2 rounded-lg">
+          <button onclick="editCurrentVideo()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-2 rounded-lg">
             <i class="fa fa-pencil text-sm"></i> 編輯
           </button>
-          <button onclick="deleteCurrentVideo()" class="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg">
+          <button onclick="deleteCurrentVideo()" class="mobile-btn-sm text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 bg-red-50 px-3 py-2 rounded-lg">
             <i class="fa fa-trash text-sm"></i> 刪除
           </button>
-          <button onclick="hideVideoPreview()" class="text-textSecondary hover:text-textPrimary transition-colors p-1 rounded-full hover:bg-gray-100">
-            <i class="fa fa-times-circle text-sm"></i>
+          <button onclick="hideVideoPreview()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
+            <i class="fa fa-times-circle text-lg"></i>
           </button>
         </div>
       </div>
@@ -199,7 +202,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <div id="preview-link-container" class="hidden">
               <div class="flex items-center justify-between">
                 <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 影片連結：</span>
-                <button onclick="copyVideoLink()" class="text-primary hover:text-[#007A69] text-sm font-medium">
+                <button onclick="copyVideoLink()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium">
                   <i class="fa fa-copy text-sm"></i> 複製
                 </button>
               </div>
@@ -216,7 +219,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           </div>
         </div>
         <div class="flex justify-center mt-2">
-          <button onclick="hideVideoPreview()" class="bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-1">
+          <button onclick="hideVideoPreview()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-6 py-3 rounded-lg flex items-center justify-center gap-1">
             <i class="fa fa-arrow-left text-sm"></i> 返回列表
           </button>
         </div>
@@ -449,7 +452,7 @@ const syncVideoToGAS=(videoData,callback)=>{
     data:{
       action:'saveVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
+      displayName:appState.currentUser?.displayName||'',
       videoId:videoData.id,
       name:videoData.name,
       video:videoData.video,
@@ -480,7 +483,7 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     data:{
       action:'deleteVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
+      displayName:appState.currentUser?.displayName||'',
       videoId:videoId
     },
     success:function(resp){
@@ -508,7 +511,7 @@ const syncVideoListOrderToGAS=()=>{
     data:{
       action:'updateVideoOrder',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'', // 傳遞用戶名稱而非ID
+      displayName:appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
     },
     success:function(resp){
@@ -527,7 +530,7 @@ function renderVideoList(){
   const isManage=isManageUser();
   if(appState.videoList.length===0){
     emptyEl.classList.remove('hidden');
-    document.getElementById('empty-tip').textContent=isManage?'點擊「新增影片」按鈕開始添加':'暫無可用的教學影片';
+    document.getElementById('empty-tip').textContent=isManage?'點擊「新增」按鈕開始添加':'暫無可用的教學影片';
     return;
   }
   emptyEl.classList.add('hidden');
