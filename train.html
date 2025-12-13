@@ -37,14 +37,13 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .thumbnail-img{width:100%;height:100%;object-fit:cover;}
 .viewer-card{transition:all 0.3s ease;}
 .viewer-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
-/* 放大立即觀看按鈕 */
 .watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
 <div class="max-w-5xl w-full bg-cardBg rounded-xl shadow-elevation-2 overflow-hidden fade-in self-center">
   <div class="bg-gradient-to-r from-primary to-[#006658] p-4 md:p-6 text-white text-center relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-24 h-24 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute top-0 left-0 w-24 h-24 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/3"></div>
     <div class="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
     <div class="relative z-10">
       <div class="inline-flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full mb-2 pulse-subtle">
@@ -73,26 +72,22 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <div id="success-content" class="text-sm"></div>
       </div>
     </div>
-    <!-- 用戶驗證信息卡片 -->
     <div id="result-card" class="hidden bg-gradient-to-r from-secondary to-[#F0FAF8] border border-primary/15 rounded-xl p-4 mb-4 text-center fade-in relative overflow-hidden">
       <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full translate-x-1/2 -translate-y-1/2"></div>
       <div class="relative z-10">
         <div id="result-main" class="text-lg md:text-xl font-bold mb-2 text-textPrimary"></div>
         <div id="result-details" class="text-sm text-textSecondary space-y-1 md:space-y-1.5"></div>
-        <!-- 影片數量顯示 -->
         <div id="video-count-display" class="mt-2 text-sm font-medium text-primary">
           <i class="fa fa-play-circle mr-1"></i> 可觀看影片數：<span id="video-count-num">0</span>
         </div>
         <div class="w-20 h-0.5 bg-primary/20 mx-auto my-2"></div>
       </div>
     </div>
-    <!-- 影片觀看主介面 -->
     <div id="video-viewer-section" class="hidden bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
           <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 可觀看影片列表
         </h2>
-        <!-- 管理用戶可見的管理按鈕 -->
         <div id="manage-btn-container" class="flex gap-2 hidden">
           <button onclick="toggleVideoListSection()" class="bg-primary hover:bg-[#007A69] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
             <i class="fa fa-cog text-sm"></i> 影片管理
@@ -106,7 +101,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <p class="text-xs mt-1 text-textSecondary/70">請聯繫管理員添加影片</p>
       </div>
     </div>
-    <!-- 原影片管理區域 -->
     <div id="video-list-section" class="bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100 hidden">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
@@ -128,7 +122,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <p id="empty-tip" class="text-xs mt-1">點擊「新增影片」按鈕開始添加</p>
       </div>
     </div>
-    <!-- 編輯區域 -->
     <div id="edit-section" class="hidden bg-neutral rounded-xl p-2 md:p-4 mb-4 slide-in border border-gray-100">
       <div class="flex items-center justify-between mb-3">
         <h2 id="edit-title" class="text-base md:text-lg font-bold text-textPrimary flex items-center">
@@ -153,8 +146,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             </label>
             <input type="url" id="content-video" class="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-xs md:text-sm" placeholder="YouTube/Vimeo連結" required>
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i>
-              支援 YouTube (youtu.be/xxx)、Vimeo 格式
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube (youtu.be/xxx)、Vimeo 格式
             </p>
           </div>
           <div class="space-y-1">
@@ -176,7 +168,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         </div>
       </form>
     </div>
-    <!-- 影片預覽區域 -->
     <div id="video-preview" class="hidden bg-cardBg rounded-xl p-2 md:p-4 mb-4 scale-in border border-primary/20 shadow-elevation-1">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-xl font-bold text-textPrimary flex items-center">
@@ -205,7 +196,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         </div>
         <div class="bg-neutral rounded-lg p-3 text-xs md:text-sm text-textSecondary">
           <div class="grid grid-cols-1 gap-2 mb-2">
-            <div>
+            <div id="preview-link-container" class="hidden">
               <div class="flex items-center justify-between">
                 <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 影片連結：</span>
                 <button onclick="copyVideoLink()" class="text-primary hover:text-[#007A69] text-sm font-medium">
@@ -236,14 +227,10 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
-
-// 設置加載狀態文本
 const setStatus=(text)=>{
   const statusText=document.getElementById('status-text');
   if(statusText)statusText.textContent=text;
 };
-
-// 顯示錯誤訊息
 const showError=(msg)=>{
   const statusEl=document.getElementById('status');
   const resultCardEl=document.getElementById('result-card');
@@ -267,8 +254,6 @@ const showError=(msg)=>{
   }
   resetSubmitState();
 };
-
-// 顯示成功訊息
 const showSuccess=(msg)=>{
   const errorEl=document.getElementById('error-message');
   if(errorEl)errorEl.classList.add('hidden');
@@ -280,8 +265,6 @@ const showSuccess=(msg)=>{
     setTimeout(()=>{if(el)el.classList.add('hidden');},4000);
   }
 };
-
-// 設置提交狀態
 const setSubmitState=(isSubmitting)=>{
   appState.isSubmitting=isSubmitting;
   const saveBtn=document.getElementById('save-btn');
@@ -297,11 +280,7 @@ const setSubmitState=(isSubmitting)=>{
     if(saveLoading)saveLoading.classList.add('hidden');
   }
 };
-
-// 重置提交狀態
 const resetSubmitState=()=>{setSubmitState(false);};
-
-// 轉換影片連結為嵌入格式
 const convertToEmbedUrl=(url)=>{
   if(!url)return '';
   const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/|playlist\?list=))([\w-]+)/;
@@ -315,28 +294,37 @@ const convertToEmbedUrl=(url)=>{
   if(vimeoMatch&&vimeoMatch[1])return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
   return url;
 };
-
-// 驗證影片連結有效性
 const validateVideoUrl=(url)=>{
   const validDomains=['youtube.com','youtu.be','vimeo.com'];
   return validDomains.some(domain=>url.includes(domain));
 };
-
-// 計算剩餘天數
 const calculateRemainingDaysByDate=(expiryDateStr)=>{
   try{
     if(expiryDateStr===CONFIG.PERMANENT_EXPIRY_DATE)return{displayDate:"永久有效",remainingDays:"永久有效"};
-    const dateRegex=/^\d{4}[-\/]\d{2}[-\/]\d{2}$/;
-    if(!dateRegex.test(expiryDateStr))return{displayDate:"格式錯誤",remainingDays:"格式錯誤"};
+    const dateTimeRegex=/^\d{4}[-\/]\d{2}[-\/]\d{2}(?:\s+\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/;
+    if(!dateTimeRegex.test(expiryDateStr))return{displayDate:"格式錯誤",remainingDays:"格式錯誤"};
     const normalizedDateStr=expiryDateStr.replace(/-/g,'/');
-    const[year,month,day]=normalizedDateStr.split('/').map(Number);
-    const expiryDate=new Date(Date.UTC(year,month-1,day));
+    let expiryDate;
+    if(normalizedDateStr.includes(' ')){
+      const[datePart,timePart]=normalizedDateStr.split(' ');
+      const[year,month,day]=datePart.split('/').map(Number);
+      const timeParts=timePart.split(':').map(Number);
+      const hour=timeParts[0]||0;
+      const minute=timeParts[1]||0;
+      const second=timeParts[2]||0;
+      expiryDate=new Date(Date.UTC(year,month-1,day,hour,minute,second));
+    }else{
+      const[year,month,day]=normalizedDateStr.split('/').map(Number);
+      expiryDate=new Date(Date.UTC(year,month-1,day));
+    }
     const today=new Date();
     const todayUTC=new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()));
     if(isNaN(expiryDate.getTime()))return{displayDate:"日期無效",remainingDays:"日期無效"};
     const timeDiff=expiryDate-todayUTC;
     const remainingDays=Math.ceil(timeDiff/(1000*3600*24));
-    const formattedDate=`${year}/${String(month).padStart(2,'0')}/${String(day).padStart(2,'0')}`;
+    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{
+      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+    }).replace(/\//g,'/').replace(' ',' ');
     let remainingDaysText;
     if(remainingDays<0)remainingDaysText="<span class='text-red-500 font-medium'>已過期</span>";
     else if(remainingDays===0)remainingDaysText="<span class='text-orange-500 font-medium'>最後1天</span>";
@@ -348,8 +336,6 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
   }
 };
-
-// 获取影片縮略圖
 const getVideoThumbnail=(url)=>{
   if(!url)return 'https://via.placeholder.com/300x180?text=No+Preview';
   const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/;
@@ -360,14 +346,8 @@ const getVideoThumbnail=(url)=>{
   if(vimeoMatch&&vimeoMatch[1])return `https://via.placeholder.com/300x180?text=Vimeo`;
   return 'https://via.placeholder.com/300x180?text=Invalid';
 };
-
-// 判断是否管理用戶
 const isManageUser=()=>{return appState.userRole==='admin';};
-
-// 判断是否專業用戶
 const isProUser=()=>{return appState.userRole==='pro';};
-
-// 拖動開始事件
 const handleDragStart=(e)=>{
   if(!isManageUser())return;
   appState.draggingItem=e.target;
@@ -376,8 +356,6 @@ const handleDragStart=(e)=>{
   e.dataTransfer.setData('text/plain',e.target.getAttribute('data-id'));
   e.target.style.opacity='0.5';
 };
-
-// 拖動經過事件
 const handleDragOver=(e)=>{
   if(!isManageUser())return;
   e.preventDefault();
@@ -385,15 +363,11 @@ const handleDragOver=(e)=>{
   if(!currentItem||currentItem===appState.draggingItem)return;
   currentItem.classList.add('drop-zone');
 };
-
-// 拖動離開事件
 const handleDragLeave=(e)=>{
   if(!isManageUser())return;
   const currentItem=e.target.closest('.video-item');
   if(currentItem)currentItem.classList.remove('drop-zone');
 };
-
-// 拖動放下事件
 const handleDrop=(e)=>{
   if(!isManageUser())return;
   e.preventDefault();
@@ -418,8 +392,6 @@ const handleDrop=(e)=>{
   }
   appState.draggingItem=null;
 };
-
-// 拖動結束事件
 const handleDragEnd=(e)=>{
   if(!isManageUser())return;
   e.target.classList.remove('dragging');
@@ -427,14 +399,10 @@ const handleDragEnd=(e)=>{
   document.querySelectorAll('.video-item').forEach(item=>item.classList.remove('drop-zone'));
   appState.draggingItem=null;
 };
-
-// 更新驗證卡片中的影片數量顯示
 const updateVideoCountDisplay=()=>{
   const countNumEl=document.getElementById('video-count-num');
   if(countNumEl)countNumEl.textContent=appState.videoList.length;
 };
-
-// 從GAS獲取影片列表
 const fetchVideoListFromGAS=()=>{
   setStatus('載入影片列表中...');
   $.ajax({
@@ -472,8 +440,6 @@ const fetchVideoListFromGAS=()=>{
     }
   });
 };
-
-// 同步單條影片到GAS
 const syncVideoToGAS=(videoData,callback)=>{
   $.ajax({
     url:CONFIG.GAS_URL,
@@ -503,8 +469,6 @@ const syncVideoToGAS=(videoData,callback)=>{
     }
   });
 };
-
-// 從GAS刪除影片
 const deleteVideoFromGAS=(videoId,callback)=>{
   $.ajax({
     url:CONFIG.GAS_URL,
@@ -531,8 +495,6 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     }
   });
 };
-
-// 同步影片順序到GAS
 const syncVideoListOrderToGAS=()=>{
   const videoIds=appState.videoList.map(v=>v.id);
   $.ajax({
@@ -553,8 +515,6 @@ const syncVideoListOrderToGAS=()=>{
     }
   });
 };
-
-// 渲染管理用戶的影片列表
 function renderVideoList(){
   const container=document.getElementById('video-list-container');
   const emptyEl=document.getElementById('empty-video-list');
@@ -626,8 +586,6 @@ function renderVideoList(){
     container.appendChild(videoItem);
   });
 }
-
-// 渲染觀看用戶的影片列表（專業用戶優化）
 function renderViewerVideoList(){
   const container=document.getElementById('viewer-video-list');
   const emptyEl=document.getElementById('viewer-empty-list');
@@ -644,7 +602,6 @@ function renderViewerVideoList(){
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名影片';
     const thumbnailUrl=getVideoThumbnail(video.video);
-    // 專業用戶只顯示最後更新時間，管理用戶顯示完整信息
     const cardContent=isProUser()?`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
@@ -656,6 +613,7 @@ function renderViewerVideoList(){
         </div>
       </div>
       <div class="p-3">
+        <p class="text-xs text-textSecondary mb-2"><i class="fa fa-sticky-note-o mr-1"></i>${video.note||'無備註資訊'}</p>
         <div class="flex justify-between items-center">
           <span class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1"></i>${video.updatedAt}</span>
           <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="watch-btn bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
@@ -687,8 +645,6 @@ function renderViewerVideoList(){
     container.appendChild(viewerCard);
   });
 }
-
-// 切換觀看/管理列表顯示
 function toggleVideoListSection(){
   const viewerEl=document.getElementById('video-viewer-section');
   const managerEl=document.getElementById('video-list-section');
@@ -702,8 +658,6 @@ function toggleVideoListSection(){
     managerEl.classList.remove('hidden');
   }
 }
-
-// 渲染用戶驗證結果
 function renderResult(resp){
   console.log("渲染用戶驗證結果：",resp);
   const statusEl=document.getElementById('status');
@@ -742,6 +696,7 @@ function renderResult(resp){
     `;
     document.getElementById('manage-btn-container').style.display='flex';
     document.getElementById('preview-action-btns').style.display='flex';
+    document.getElementById('preview-link-container').style.display='block';
   }else if(isPro){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
     main.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
@@ -753,6 +708,7 @@ function renderResult(resp){
     `;
     document.getElementById('manage-btn-container').style.display='none';
     document.getElementById('preview-action-btns').style.display='none';
+    document.getElementById('preview-link-container').style.display='none';
   }else{
     showError('用戶權限異常，請聯繫管理員');
     return;
@@ -761,8 +717,6 @@ function renderResult(resp){
   document.getElementById('video-viewer-section').classList.remove('hidden');
   fetchVideoListFromGAS();
 }
-
-// 新增影片
 function addNewVideo(){
   if(appState.isSubmitting||!isManageUser()){
     if(!isManageUser())showError('僅管理用戶可新增影片');
@@ -788,8 +742,6 @@ function addNewVideo(){
     editEl.scrollIntoView({behavior:'smooth'});
   }
 }
-
-// 編輯影片
 function editVideo(videoId){
   if(appState.isSubmitting||!isManageUser()){
     if(!isManageUser())showError('僅管理用戶可編輯影片');
@@ -817,8 +769,6 @@ function editVideo(videoId){
     editEl.scrollIntoView({behavior:'smooth'});
   }
 }
-
-// 隱藏編輯區域
 function hideEditSection(){
   const editEl=document.getElementById('edit-section');
   const videoListEl=document.getElementById('video-list-section');
@@ -828,8 +778,6 @@ function hideEditSection(){
     videoListEl.scrollIntoView({behavior:'smooth'});
   }
 }
-
-// 預覽影片
 function viewVideo(videoId){
   if(appState.isSubmitting)return;
   const video=appState.videoList.find(v=>v.id===videoId);
@@ -858,8 +806,6 @@ function viewVideo(videoId){
   if(previewVideoEl)previewVideoEl.src=embedUrl;
   if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
 }
-
-// 隱藏影片預覽
 function hideVideoPreview(){
   const videoPreviewEl=document.getElementById('video-preview');
   const videoViewerEl=document.getElementById('video-viewer-section');
@@ -869,8 +815,6 @@ function hideVideoPreview(){
     videoViewerEl.scrollIntoView({behavior:'smooth'});
   }
 }
-
-// 編輯當前預覽的影片
 function editCurrentVideo(){
   if(!isManageUser()){
     showError('僅管理用戶可編輯影片');
@@ -878,8 +822,6 @@ function editCurrentVideo(){
   }
   if(appState.currentViewingVideoId)editVideo(appState.currentViewingVideoId);
 }
-
-// 確認刪除影片
 function deleteVideoConfirm(videoId){
   if(!isManageUser()){
     showError('僅管理用戶可刪除影片');
@@ -887,8 +829,6 @@ function deleteVideoConfirm(videoId){
   }
   if(confirm('確定要刪除此影片嗎？此操作無法復原！'))deleteVideo(videoId);
 }
-
-// 刪除影片
 function deleteVideo(videoId){
   if(appState.isSubmitting||!isManageUser())return;
   setSubmitState(true);
@@ -907,8 +847,6 @@ function deleteVideo(videoId){
     setSubmitState(false);
   });
 }
-
-// 複製影片連結
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
   if(!video)return;
@@ -929,8 +867,6 @@ function copyVideoLink(){
     showError('複製連結失敗，請手動複製');
   }
 }
-
-// 保存影片
 function saveVideo(event){
   event.preventDefault();
   if(appState.isSubmitting||!isManageUser()){
@@ -975,8 +911,6 @@ function saveVideo(event){
     setSubmitState(false);
   });
 }
-
-// 获取用戶資訊並驗證
 function getProfileAndVerify(){
   setStatus('驗證使用者資訊...');
   try{
@@ -1034,8 +968,6 @@ function getProfileAndVerify(){
     });
   }
 }
-
-// 調用GAS後端驗證
 function callGasBackend(userId,displayName,writeToSheet=false){
   console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
   $.ajax({
@@ -1070,8 +1002,6 @@ function callGasBackend(userId,displayName,writeToSheet=false){
     }
   });
 }
-
-// 頁面加載完成初始化
 document.addEventListener('DOMContentLoaded',function(){
   console.log("頁面加載完成，初始化系統");
   setStatus('正在初始化系統，請稍候...');
