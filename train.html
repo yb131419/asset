@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧬 彥彬 自檢表系統</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: '#00B900', secondary: '#E8F4EA' },
+          fontFamily: { sans: ['Noto Sans TC', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .fade-in { animation: fadeIn 0.45s ease-in-out; }
+    }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden fade-in">
+    <div class="bg-primary p-6 text-white text-center">
+      <i class="fa fa-line-chart text-4xl mb-3"></i>
+      <h1 class="text-2xl font-bold">🧬 彥彬 自檢表系統</h1>
+    </div>
+
+    <div class="p-6">
+      <div id="status" class="flex items-center justify-center py-6 text-gray-700 text-center">
+        <div class="text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mb-3"></div>
+          <p id="status-text">正在初始化 LIFF...</p>
+        </div>
+      </div>
+
+      <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4"></div>
+
+      <div id="result-card" class="hidden border border-gray-100 rounded p-4 mb-3 text-center">
+        <div id="result-main" class="text-lg font-medium mb-2"></div>
+        <div id="result-details" class="text-sm text-gray-700 mb-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LIFF_ID = "2008578880-fZdc4QTC";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec";
+    const JSONP_TIMEOUT = 15000;
+    const PERMANENT_EXPIRY_DATE = "9999/12/31"; // 用於標識永久有效的日期（自定義規範）
+
+    // 簡化狀態設置函數
+    const setStatus = text => document.getElementById('status-text').textContent = text;
+
+    // 簡化錯誤顯示函數
+    const showError = msg => {
+      document.getElementById('status').classList.add('hidden');
+      document.getElementById('result-card').classList.add('hidden');
+      const el = document.getElementById('error-message');
+      el.innerHTML = `<p>${msg}</p><div class="mt-3 flex justify-center">
+        <button onclick="window.location.reload()" class="text-primary hover:text-primary/80 font-medium">
+          <i class="fa fa-refresh mr-1"></i> 重新嘗試
+        </button></div>`;
+      el.classList.remove('hidden');
+    };
+
+    // 核心：基於使用期限日期計算剩餘天數（完全日期驅動）
+    const calculateRemainingDaysByDate = (expiryDateStr) => {
+      try {
+        // 1. 判斷是否為永久有效（使用自定義日期標識）
+        if (expiryDateStr === PERMANENT_EXPIRY_DATE) {
+          return { displayDate: "永久有效", remainingDays: "永久有效" };
+        }
+
+        // 2. 驗證並標準化日期格式（支持 yyyy/mm/dd 和 yyyy-mm-dd）
+        const dateRegex = /^\d{4}[-\/]\d{2}[-\/]\d{2}$/;
+        if (!dateRegex.test(expiryDateStr)) {
+          return { displayDate: "格式錯誤", remainingDays: "格式錯誤" };
+        }
+
+        // 3. 統一轉換為 '/' 分隔，便於解析
+        const normalizedDateStr = expiryDateStr.replace(/-/g, '/');
+        const [year, month, day] = normalizedDateStr.split('/').map(Number);
+        
+        // 4. 創建日期對象（UTC時間避免時區偏差）
+        const expiryDate = new Date(Date.UTC(year, month - 1, day));
+        const today = new Date();
+        const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+
+        // 5. 驗證日期有效性
+        if (isNaN(expiryDate.getTime())) {
+          return { displayDate: "日期無效", remainingDays: "日期無效" };
+        }
+
+        // 6. 計算剩餘天數
+        const timeDiff = expiryDate - todayUTC;
+        const remainingDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+        // 7. 格式化顯示結果
+        const formattedDate = `${year}/${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`;
+        let remainingDaysText;
+        
+        if (remainingDays < 0) {
+          remainingDaysText = "已過期";
+        } else if (remainingDays === 0) {
+          remainingDaysText = "最後1天";
+        } else {
+          remainingDaysText = `${remainingDays} 天`;
+        }
+
+        return { displayDate: formattedDate, remainingDays: remainingDaysText };
+      } catch (error) {
+        console.error("基於日期計算剩餘天數失敗：", error, "日期字符串：", expiryDateStr);
+        return { displayDate: "計算錯誤", remainingDays: "計算錯誤" };
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setStatus('正在初始化 LIFF...');
+      liff.init({ liffId: LIFF_ID }, { disableRedirect: true })
+        .then(() => {
+          if (!liff.isLoggedIn()) {
+            liff.login();
+          } else {
+            getProfileAndVerify();
+          }
+        })
+        .catch(err => showError('系統初始化失敗：' + err.message));
+    });
+
+    // 獲取用戶信息並驗證
+    function getProfileAndVerify() {
+      setStatus('驗證使用者資訊中...');
+      liff.getProfile()
+        .then(profile => {
+          callGasBackend(profile.userId, profile.displayName || '未知用戶');
+        })
+        .catch(err => showError('取得使用者資料失敗：' + err.message));
+    }
+
+    // 調用後端驗證（新增請求參數，要求後端返回使用期限日期）
+    function callGasBackend(userId, displayName) {
+      $.ajax({
+        url: GAS_URL,
+        dataType: 'jsonp',
+        jsonp: 'callback',
+        timeout: JSONP_TIMEOUT,
+        data: { 
+          userId: userId, 
+          displayName: displayName,
+          action: 'verifyUser',
+          needExpiryDate: true // 告訴後端需要返回使用期限日期
+        },
+        success: function(resp) {
+          console.log("後端返回完整數據：", resp); // 調試用
+          if (resp.status === "error") {
+            showError(resp.message);
+          } else {
+            renderResult(resp);
+          }
+        },
+        error: function(xhr, status, error) {
+          let errorMsg = '與伺服器通訊失敗';
+          if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
+          else if (status === 'parsererror') errorMsg = '數據解析錯誤';
+          showError(errorMsg);
+          console.error("AJAX錯誤：", status, error);
+        }
+      });
+    }
+
+    // 渲染驗證結果（完全基於使用期限日期）
+    function renderResult(resp) {
+      document.getElementById('status').classList.add('hidden');
+      const card = document.getElementById('result-card');
+      const main = document.getElementById('result-main');
+      const details = document.getElementById('result-details');
+
+      // 1. 獲取核心數據（確保從後端正確字段获取使用期限日期）
+      const isProUser = resp.isAdmin === true;
+      const userName = resp.displayName || '未知用戶';
+      // 優先從 resp.expiryDate 获取，兼容後端可能的字段名
+      const expiryDateStr = resp.expiryDate || resp.endDate || resp.expireDate || '';
+
+      console.log("核心數據：", { isProUser, expiryDateStr }); // 調試用
+
+      if (isProUser) {
+        // 2. 專業用戶：基於使用期限日期計算並顯示
+        const { displayDate, remainingDays } = calculateRemainingDaysByDate(expiryDateStr);
+        main.innerHTML = `<span class="text-primary"><i class="fa fa-check-circle mr-1"></i>專業用戶驗證通過</span>`;
+        details.innerHTML = `用戶名稱：${userName}<br>
+                           使用期限：${displayDate}<br>
+                           剩餘天數：${remainingDays}`;
+      } else {
+        // 3. 普通用戶：顯示剩餘次數
+        const usageCount = resp.usageCount || 0;
+        const remainingTimes = Math.max(0, 3 - usageCount); // 確保不為負數
+        main.innerHTML = `<span class="text-gray-600"><i class="fa fa-user mr-1"></i>普通用戶</span>`;
+        details.innerHTML = `用戶名稱：${userName}<br>
+                           使用期限：-<br>
+                           剩餘次數：${remainingTimes} 次`;
+      }
+
+      card.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
