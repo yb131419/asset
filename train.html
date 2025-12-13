@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"/>
-<title>🎬 彥彬 健康觀念 - 影片觀看系統</title>
+<title>🎬 彥彬 健康觀念 </title>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -38,7 +38,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .viewer-card{transition:all 0.3s ease;}
 .viewer-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
 .watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
-/* 手机端按钮优化 */
 .mobile-btn{min-height:48px !important;padding:12px 20px !important;font-size:16px !important;border-radius:10px !important;}
 .mobile-btn-sm{min-height:40px !important;padding:8px 16px !important;font-size:15px !important;border-radius:8px !important;}
 </style>
@@ -53,7 +52,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         <i class="fa fa-film text-2xl text-accent"></i>
       </div>
       <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-wide">🎬 彥彬 健康觀念</h1>
-      <p class="text-white/90 text-sm md:text-base font-light">影片觀看系統</p>
+      <p class="text-white/90 text-sm md:text-base font-light">幸福系統</p>
     </div>
   </div>
   <div class="p-3 md:p-5">
@@ -230,6 +229,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
+// 轉換UTC時間為台灣當地時間
+const convertUTCToTaiwanTime=(utcStr)=>{
+  if(!utcStr) return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const date=new Date(utcStr);
+  return date.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+};
 const setStatus=(text)=>{
   const statusText=document.getElementById('status-text');
   if(statusText)statusText.textContent=text;
@@ -320,14 +325,15 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
       const[year,month,day]=normalizedDateStr.split('/').map(Number);
       expiryDate=new Date(Date.UTC(year,month-1,day));
     }
+    // 轉換為台灣時間計算
     const today=new Date();
-    const todayUTC=new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()));
+    const taipeiOffset=8*60*60*1000;
+    const todayTaipei=new Date(today.getTime()+taipeiOffset);
+    const todayUTC=new Date(Date.UTC(todayTaipei.getFullYear(),todayTaipei.getMonth(),todayTaipei.getDate()));
     if(isNaN(expiryDate.getTime()))return{displayDate:"日期無效",remainingDays:"日期無效"};
     const timeDiff=expiryDate-todayUTC;
     const remainingDays=Math.ceil(timeDiff/(1000*3600*24));
-    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{
-      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
-    }).replace(/\//g,'/').replace(' ',' ');
+    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\//g,'/').replace(' ',' ');
     let remainingDaysText;
     if(remainingDays<0)remainingDaysText="<span class='text-red-500 font-medium'>已過期</span>";
     else if(remainingDays===0)remainingDaysText="<span class='text-orange-500 font-medium'>最後1天</span>";
@@ -421,7 +427,7 @@ const fetchVideoListFromGAS=()=>{
           name:v.name||'',
           video:v.video||'',
           note:v.note||'',
-          updatedAt:v.updatedAt||new Date().toLocaleString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+          updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString())
         })).filter(v=>v.video&&v.id);
         updateVideoCountDisplay();
         renderViewerVideoList();
@@ -898,9 +904,7 @@ function saveVideo(event){
     name:videoName,
     video:videoUrl,
     note:videoNote,
-    updatedAt:new Date().toLocaleString('zh-TW',{
-      year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'
-    })
+    updatedAt:convertUTCToTaiwanTime(new Date().toISOString())
   };
   syncVideoToGAS(videoData,(success)=>{
     if(success){
