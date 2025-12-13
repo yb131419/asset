@@ -78,7 +78,7 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4 pulse-subtle">
           <i class="fa fa-user-circle text-3xl text-accent"></i>
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🧬 彥彬 自檢表系統</h1>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🧬 彥彬 健康觀念</h1>
         <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證</p>
       </div>
     </div>
@@ -272,7 +272,8 @@
             success: function(profile) {
               console.log("從 LINE API 獲取完整用戶資訊：", profile);
               const userId = profile.userId;
-              const displayName = profile.displayName || '未知用戶';
+              // 確保用戶名稱不為空，去除多餘空格
+              const displayName = (profile.displayName || '').trim() || '未知用戶';
               // 先驗證用戶，再寫入工作表
               callGasBackend(userId, displayName, true);
             },
@@ -295,8 +296,16 @@
           if (idToken) {
             console.log("ID Token 完整內容：", idToken); // 調試用：查看所有欄位
             const userId = idToken.sub;
-            // 優先使用 ID Token 中的 nickname/name/pref_username 等欄位
-            const displayName = idToken.nickname || idToken.name || idToken.pref_username || '未知用戶';
+            // 全面獲取各種可能的用戶名稱欄位，組合並去空
+            let displayName = 
+              idToken.nickname || 
+              idToken.name || 
+              idToken.preferred_username || 
+              idToken.pref_username || 
+              (idToken.given_name ? (idToken.given_name + (idToken.family_name ? ' ' + idToken.family_name : '')) : '') || 
+              '未知用戶';
+            // 去除多餘空格，確保不是空字符串
+            displayName = displayName.trim() || '未知用戶';
             callGasBackend(userId, displayName, true);
             return;
           }
@@ -308,7 +317,9 @@
         liff.getProfile()
           .then(profile => {
             console.log("舊版 API 獲取用戶信息：", profile);
-            callGasBackend(profile.userId, profile.displayName || '未知用戶', true);
+            // 確保用戶名稱不為空，去除多餘空格
+            const displayName = (profile.displayName || '').trim() || '未知用戶';
+            callGasBackend(profile.userId, displayName, true);
           })
           .catch(err => {
             console.error("獲取使用者資料失敗：", err);
