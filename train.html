@@ -363,7 +363,8 @@ function renderVideoList(){
   emptyEl.classList.add('hidden');
   appState.videoList.forEach((video,index)=>{
     const videoItem=document.createElement('div');
-    videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer';
+    // 修正：專業用戶添加pro-user class，管理用戶不添加
+    videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
     videoItem.onclick=(e)=>{
       if(!e.target.closest('button')){
@@ -381,6 +382,7 @@ function renderVideoList(){
     const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
     const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
     const thumbnailUrl=getVideoThumbnail(video.video);
+    // 嚴格區分管理/專業用戶按鈕
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
@@ -426,19 +428,21 @@ function renderResult(resp){
   if(statusEl)statusEl.classList.add('hidden');if(errorMsgEl)errorMsgEl.classList.add('hidden');
   // 嚴格驗證用戶權限
   if(!resp.isAuthorized){showError('未授權使用，僅管理/專業用戶可訪問');return;}
-  // 修正角色賦值邏輯，嚴格區分管理/專業用戶
-  appState.userRole=resp.isAdmin===true?'admin':'pro';
+  // 修正：明確轉換為布林值，避免類型錯誤
+  const isAdmin = Boolean(resp.isAdmin);
+  appState.userRole=isAdmin?'admin':'pro';
   appState.currentUser={
     userId:resp.userId,
     displayName:resp.displayName,
-    isAdmin:resp.isAdmin===true,
-    isPro:resp.isAdmin!==true&&resp.isAuthorized===true,
+    isAdmin:isAdmin,
+    isPro:!isAdmin&&resp.isAuthorized,
     expiryDate:resp.expiryDate
   };
   const card=document.getElementById('result-card');const main=document.getElementById('result-main');
   const details=document.getElementById('result-details');if(!card||!main||!details)return;
   const isManage=isManageUser();const userName=resp.displayName||'管理員';
   const expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
+  // 修正：正確顯示用戶類型
   if(isManage){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
     main.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
@@ -465,7 +469,12 @@ function renderResult(resp){
   loadSavedVideoData();
 }
 function addNewVideo(){
-  if(appState.isSubmitting||!isManageUser())return;appState.currentEditingVideoId=null;
+  // 嚴格控制：僅管理用戶可新增
+  if(appState.isSubmitting||!isManageUser()){
+    if(!isManageUser())showError('僅管理用戶可新增影片');
+    return;
+  }
+  appState.currentEditingVideoId=null;
   const editTitleEl=document.getElementById('edit-title');const videoIdEl=document.getElementById('video-id');
   const contentNameEl=document.getElementById('content-name');const contentVideoEl=document.getElementById('content-video');
   const contentNoteEl=document.getElementById('content-note');const videoListEl=document.getElementById('video-list-section');
@@ -477,7 +486,12 @@ function addNewVideo(){
   if(editEl){editEl.classList.remove('hidden');editEl.scrollIntoView({behavior:'smooth'});}
 }
 function editVideo(videoId){
-  if(appState.isSubmitting||!isManageUser())return;const video=appState.videoList.find(v=>v.id===videoId);
+  // 嚴格控制：僅管理用戶可編輯
+  if(appState.isSubmitting||!isManageUser()){
+    if(!isManageUser())showError('僅管理用戶可編輯影片');
+    return;
+  }
+  const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;appState.currentEditingVideoId=videoId;
   const editTitleEl=document.getElementById('edit-title');const videoIdEl=document.getElementById('video-id');
   const contentNameEl=document.getElementById('content-name');const contentVideoEl=document.getElementById('content-video');
@@ -517,10 +531,20 @@ function hideVideoPreview(){
   if(videoListEl){videoListEl.classList.remove('hidden');videoListEl.scrollIntoView({behavior:'smooth'});}
 }
 function editCurrentVideo(){
-  if(appState.currentViewingVideoId&&isManageUser())editVideo(appState.currentViewingVideoId);
+  // 嚴格控制：僅管理用戶可編輯
+  if(!isManageUser()){
+    showError('僅管理用戶可編輯影片');
+    return;
+  }
+  if(appState.currentViewingVideoId)editVideo(appState.currentViewingVideoId);
 }
 function deleteVideoConfirm(videoId){
-  if(isManageUser()&&confirm('確定要刪除此影片嗎？此操作無法復原！'))deleteVideo(videoId);
+  // 嚴格控制：僅管理用戶可刪除
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除影片');
+    return;
+  }
+  if(confirm('確定要刪除此影片嗎？此操作無法復原！'))deleteVideo(videoId);
 }
 function deleteVideo(videoId){
   if(appState.isSubmitting||!isManageUser())return;
@@ -534,7 +558,12 @@ function deleteVideo(videoId){
   showSuccess('影片已成功刪除！');
 }
 function deleteCurrentVideo(){
-  if(appState.currentViewingVideoId&&isManageUser())deleteVideoConfirm(appState.currentViewingVideoId);
+  // 嚴格控制：僅管理用戶可刪除
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除影片');
+    return;
+  }
+  if(appState.currentViewingVideoId)deleteVideoConfirm(appState.currentViewingVideoId);
 }
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
@@ -549,7 +578,12 @@ function copyVideoLink(){
   }catch(e){console.error('複製連結失敗：',e);showError('複製連結失敗，請手動複製');}
 }
 function saveVideo(event){
-  event.preventDefault();if(appState.isSubmitting||!isManageUser())return;
+  event.preventDefault();
+  // 嚴格控制：僅管理用戶可儲存
+  if(appState.isSubmitting||!isManageUser()){
+    if(!isManageUser())showError('僅管理用戶可儲存影片');
+    return;
+  }
   if(!appState.currentUser){showError('用戶信息不存在，請重新驗證');return;}
   const videoId=document.getElementById('video-id').value||generateVideoId();
   const videoName=document.getElementById('content-name').value.trim();
@@ -626,7 +660,8 @@ function callGasBackend(userId,displayName,writeToSheet=false){
       if(resp.status==="error")showError(resp.message);
       else{
         // 確保返回結果包含授權狀態
-        resp.isAuthorized=resp.isAuthorized||resp.isAdmin||resp.isPro||false;
+        resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
+        resp.isAdmin=Boolean(resp.isAdmin); // 強制轉換為布林值
         resp.displayName=displayName;
         renderResult(resp);
       }
