@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>🧬 彥彬 健康觀念 </title>
+  <title>🎬 彥彬 健康觀念 - 影片管理系統</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -31,6 +31,7 @@
           boxShadow: {
             'elevation-1': '0 2px 8px rgba(0, 0, 0, 0.06)',
             'elevation-2': '0 4px 16px rgba(0, 0, 0, 0.08)',
+            'elevation-3': '0 8px 24px rgba(0, 0, 0, 0.12)',
           }
         }
       }
@@ -43,6 +44,7 @@
       .pulse-subtle { animation: pulseSubtle 2s infinite; }
       .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; }
       .slide-in { animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+      .scale-in { animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     }
 
     @keyframes fadeIn { 
@@ -56,6 +58,10 @@
     @keyframes slideIn {
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
 
     /* 自定義滾動條 */
@@ -76,6 +82,7 @@
       height: 0;
       overflow: hidden;
       border-radius: 12px;
+      background-color: #0F172A;
     }
     
     .video-container iframe {
@@ -85,12 +92,25 @@
       width: 100%;
       height: 100%;
       border: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .video-container iframe.loaded {
+      opacity: 1;
+    }
+    
+    /* 按鈕禁用狀態 */
+    .btn-disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      pointer-events: none;
     }
   </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-4 md:p-8">
   <!-- 頁面容器 -->
-  <div class="max-w-2xl w-full bg-cardBg rounded-2xl shadow-elevation-2 overflow-hidden fade-in self-center">
+  <div class="max-w-3xl w-full bg-cardBg rounded-2xl shadow-elevation-2 overflow-hidden fade-in self-center">
     <!-- 頂部標題區域 -->
     <div class="bg-gradient-to-r from-primary to-[#006658] p-8 md:p-10 text-white text-center relative overflow-hidden">
       <!-- 裝飾元素 -->
@@ -99,10 +119,10 @@
       
       <div class="relative z-10">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4 pulse-subtle">
-          <i class="fa fa-user-circle text-3xl text-accent"></i>
+          <i class="fa fa-film text-3xl text-accent"></i>
         </div>
-        <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🧬 彥彬 健康觀念</h1>
-        <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證 & 影片管理</p>
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🎬 彥彬 健康觀念</h1>
+        <p class="text-white/90 text-lg md:text-xl font-light">專業影片管理系統 | 數據同步至 Google 試算表</p>
       </div>
     </div>
 
@@ -117,7 +137,7 @@
       </div>
 
       <!-- 錯誤提示 -->
-      <div id="error-message" class="hidden bg-red-50 border border-red-100 text-red-700 px-6 py-4 rounded-xl mb-6 shadow-sm">
+      <div id="error-message" class="hidden bg-red-50 border border-red-100 text-red-700 px-6 py-4 rounded-xl mb-6 shadow-sm fade-in">
         <div class="flex items-start">
           <i class="fa fa-exclamation-circle text-red-500 mt-1 mr-3 text-xl"></i>
           <div id="error-content"></div>
@@ -148,12 +168,12 @@
           
           <p class="text-sm text-textSecondary/80 mb-4">
             <i class="fa fa-info-circle text-primary mr-1"></i>
-            身份驗證完成，用戶資料已同步至工作表
+            身份驗證完成，所有影片數據將自動同步至 Google 試算表
           </p>
           
           <!-- 編輯按鈕 -->
           <button id="edit-btn" onclick="showEditSection()" class="bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
-            <i class="fa fa-pencil"></i> 進入影片編輯
+            <i class="fa fa-film"></i> 管理影片內容
           </button>
         </div>
       </div>
@@ -164,7 +184,7 @@
           <h2 class="text-xl font-bold text-textPrimary flex items-center">
             <i class="fa fa-edit text-primary mr-2"></i> 影片內容管理
           </h2>
-          <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors">
+          <button onclick="hideEditSection()" class="text-textSecondary hover:text-textPrimary transition-colors p-2 rounded-full hover:bg-gray-100">
             <i class="fa fa-times-circle text-lg"></i>
           </button>
         </div>
@@ -175,13 +195,13 @@
             <!-- 名稱輸入 -->
             <div class="space-y-2">
               <label class="block text-textPrimary font-medium">
-                <i class="fa fa-tag text-primary mr-2"></i> 影片名稱
+                <i class="fa fa-tag text-primary mr-2"></i> 影片名稱 <span class="text-red-500">*</span>
               </label>
               <input 
                 type="text" 
                 id="content-name" 
                 class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
-                placeholder="請輸入影片名稱"
+                placeholder="請輸入影片名稱（例如：健康飲食觀念講座）"
                 required
               >
             </div>
@@ -189,7 +209,7 @@
             <!-- 影片連結 -->
             <div class="space-y-2">
               <label class="block text-textPrimary font-medium">
-                <i class="fa fa-video-camera text-primary mr-2"></i> 影片連結
+                <i class="fa fa-video-camera text-primary mr-2"></i> 影片連結 <span class="text-red-500">*</span>
               </label>
               <input 
                 type="url" 
@@ -206,43 +226,78 @@
 
             <!-- 儲存按鈕 -->
             <div class="pt-4">
-              <button type="submit" class="w-full bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
-                <i class="fa fa-save"></i> 儲存並預覽影片
+              <button type="submit" id="save-btn" class="w-full bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
+                <i class="fa fa-save"></i> 
+                <span id="save-btn-text">儲存並同步至試算表</span>
+                <div id="save-loading" class="hidden inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
               </button>
+              <p class="text-xs text-textSecondary mt-2 text-center">
+                <i class="fa fa-cloud-upload text-primary mr-1"></i>
+                點擊儲存後，數據將即時同步至 Google 試算表
+              </p>
             </div>
           </div>
         </form>
       </div>
 
       <!-- 影片預覽區域 -->
-      <div id="video-preview" class="hidden bg-cardBg rounded-2xl p-6 mb-8 slide-in border border-primary/20">
+      <div id="video-preview" class="hidden bg-cardBg rounded-2xl p-6 mb-8 scale-in border border-primary/20 shadow-elevation-1">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-textPrimary flex items-center">
-            <i class="fa fa-play-circle text-primary mr-2"></i> 影片預覽
+            <i class="fa fa-play-circle text-primary mr-2"></i> 影片預覽 & 同步狀態
           </h2>
-          <button onclick="editAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1">
-            <i class="fa fa-pencil"></i> 重新編輯
-          </button>
+          <div class="flex gap-2">
+            <button onclick="editAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-1 rounded-lg">
+              <i class="fa fa-pencil"></i> 編輯
+            </button>
+            <button onclick="syncToSheetAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1 bg-primary/5 px-3 py-1 rounded-lg">
+              <i class="fa fa-refresh"></i> 重新同步
+            </button>
+          </div>
         </div>
         
         <div id="preview-content" class="space-y-4">
+          <!-- 同步狀態標籤 -->
+          <div id="sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-2">
+            <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
+            <span>正在同步數據至 Google 試算表...</span>
+          </div>
+          
           <!-- 影片標題 -->
           <h3 id="preview-title" class="text-lg font-medium text-textPrimary text-center mb-4"></h3>
           
           <!-- 影片容器 -->
-          <div class="video-container mb-4">
-            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          <div class="video-container mb-4 flex items-center justify-center">
+            <div id="video-loading" class="absolute text-white/70">
+              <i class="fa fa-spinner animate-spin text-2xl mb-2"></i>
+              <p class="text-sm">載入影片中...</p>
+            </div>
+            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); document.getElementById('video-loading').classList.add('hidden')"></iframe>
           </div>
           
-          <!-- 影片連結顯示 -->
-          <div class="bg-neutral rounded-lg p-3 text-sm text-textSecondary">
-            <div class="flex items-center justify-between">
-              <span><i class="fa fa-link text-primary mr-2"></i> 影片連結：</span>
-              <button onclick="copyVideoLink()" class="text-primary hover:text-[#007A69] text-xs font-medium">
-                <i class="fa fa-copy"></i> 複製連結
-              </button>
+          <!-- 影片資訊卡片 -->
+          <div class="bg-neutral rounded-lg p-4 text-sm text-textSecondary">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-medium text-textPrimary"><i class="fa fa-link text-primary mr-2"></i> 影片連結：</span>
+                  <button onclick="copyVideoLink()" class="text-primary hover:text-[#007A69] text-xs font-medium">
+                    <i class="fa fa-copy"></i> 複製
+                  </button>
+                </div>
+                <p id="preview-link" class="mt-1 break-all font-mono text-xs"></p>
+              </div>
+              <div>
+                <span class="font-medium text-textPrimary"><i class="fa fa-clock-o text-primary mr-2"></i> 最後同步時間：</span>
+                <p id="preview-updated" class="mt-1 text-xs"></p>
+              </div>
             </div>
-            <p id="preview-link" class="mt-1 break-all"></p>
+            
+            <!-- 同步狀態顯示 -->
+            <div id="sheet-sync-status" class="mt-3 flex items-center text-xs">
+              <i class="fa fa-check-circle text-green-600 mr-2"></i>
+              <span id="sync-status-text">數據已成功同步至 Google 試算表</span>
+            </div>
           </div>
         </div>
       </div>
@@ -250,64 +305,107 @@
   </div>
 
   <script>
-    const LIFF_ID = "2008578880-fZdc4QTC";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec";
-    const JSONP_TIMEOUT = 15000;
-    const PERMANENT_EXPIRY_DATE = "9999/12/31";
+    // 系統配置
+    const CONFIG = {
+      LIFF_ID: "2008578880-fZdc4QTC",
+      GAS_URL: "https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",
+      JSONP_TIMEOUT: 20000,
+      PERMANENT_EXPIRY_DATE: "9999/12/31",
+      STORAGE_KEY_PREFIX: "yanbin_video_manager_"
+    };
 
-    // 全域用戶資訊
-    let currentUser = null;
-    // 當前影片資訊
-    let currentVideoData = null;
+    // 全域狀態
+    let appState = {
+      currentUser: null,
+      currentVideoData: null,
+      isSubmitting: false
+    };
 
-    // 狀態設置函數
-    const setStatus = text => {
+    // 工具函數 - 狀態設置
+    const setStatus = (text) => {
       const statusText = document.getElementById('status-text');
       if (statusText) statusText.textContent = text;
     };
 
-    // 錯誤顯示函數
-    const showError = msg => {
+    // 工具函數 - 顯示錯誤提示
+    const showError = (msg) => {
+      // 隱藏所有載入/成功狀態
       document.getElementById('status').classList.add('hidden');
       document.getElementById('result-card').classList.add('hidden');
       document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('video-preview').classList.add('hidden');
       document.getElementById('success-message').classList.add('hidden');
+      document.getElementById('sync-status').classList.add('hidden');
       
+      // 顯示錯誤
       const el = document.getElementById('error-message');
       const contentEl = document.getElementById('error-content');
       if (el && contentEl) {
-        contentEl.innerHTML = `<p class="font-medium">${msg}</p><div class="mt-4 flex justify-center">
-          <button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1.5">
-            <i class="fa fa-refresh"></i> 重新嘗試
-          </button></div>`;
+        contentEl.innerHTML = `<p class="font-medium">${msg}</p>
+          <div class="mt-4 flex justify-center">
+            <button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1.5">
+              <i class="fa fa-refresh"></i> 重新嘗試
+            </button>
+          </div>`;
         el.classList.remove('hidden');
       }
+      
+      // 重置提交狀態
+      resetSubmitState();
     };
 
-    // 成功提示函數
-    const showSuccess = msg => {
+    // 工具函數 - 顯示成功提示
+    const showSuccess = (msg) => {
       document.getElementById('error-message').classList.add('hidden');
       const el = document.getElementById('success-message');
       const contentEl = document.getElementById('success-content');
       if (el && contentEl) {
         contentEl.innerHTML = `<p class="font-medium">${msg}</p>`;
         el.classList.remove('hidden');
+        
         // 3秒後隱藏成功提示
         setTimeout(() => {
           el.classList.add('hidden');
-        }, 3000);
+        }, 4000);
       }
     };
 
-    // 轉換影片連結為嵌入格式
+    // 工具函數 - 設置提交狀態
+    const setSubmitState = (isSubmitting) => {
+      appState.isSubmitting = isSubmitting;
+      const saveBtn = document.getElementById('save-btn');
+      const saveBtnText = document.getElementById('save-btn-text');
+      const saveLoading = document.getElementById('save-loading');
+      
+      if (isSubmitting) {
+        saveBtn.classList.add('btn-disabled');
+        saveBtnText.textContent = "同步中...";
+        saveLoading.classList.remove('hidden');
+      } else {
+        saveBtn.classList.remove('btn-disabled');
+        saveBtnText.textContent = "儲存並同步至試算表";
+        saveLoading.classList.add('hidden');
+      }
+    };
+
+    // 工具函數 - 重置提交狀態
+    const resetSubmitState = () => {
+      setSubmitState(false);
+      document.getElementById('sync-status').classList.add('hidden');
+    };
+
+    // 工具函數 - 轉換影片連結為嵌入格式
     const convertToEmbedUrl = (url) => {
-      // YouTube 連結處理
-      const youtubeRegex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]+)/;
+      if (!url) return '';
+      
+      // YouTube 連結處理 (支援各種格式)
+      const youtubeRegex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/|playlist\?list=))([\w-]+)/;
       const youtubeMatch = url.match(youtubeRegex);
       
       if (youtubeMatch && youtubeMatch[1]) {
-        return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0`;
+        // 處理一般影片和 Shorts
+        const isShort = url.includes('shorts/');
+        return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0${isShort ? '&enablejsapi=1' : ''}`;
       }
       
       // Vimeo 連結處理
@@ -315,17 +413,23 @@
       const vimeoMatch = url.match(vimeoRegex);
       
       if (vimeoMatch && vimeoMatch[1]) {
-        return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+        return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
       }
       
       // 如果無法識別，直接返回原URL（適用於已為embed格式的連結）
       return url;
     };
 
-    // 計算剩餘天數函數
+    // 工具函數 - 驗證影片連結格式
+    const validateVideoUrl = (url) => {
+      const validDomains = ['youtube.com', 'youtu.be', 'vimeo.com'];
+      return validDomains.some(domain => url.includes(domain));
+    };
+
+    // 工具函數 - 計算剩餘天數
     const calculateRemainingDaysByDate = (expiryDateStr) => {
       try {
-        if (expiryDateStr === PERMANENT_EXPIRY_DATE) {
+        if (expiryDateStr === CONFIG.PERMANENT_EXPIRY_DATE) {
           return { displayDate: "永久有效", remainingDays: "永久有效" };
         }
 
@@ -363,21 +467,21 @@
 
         return { displayDate: formattedDate, remainingDays: remainingDaysText };
       } catch (error) {
-        console.error("基於日期計算剩餘天數失敗：", error, "日期字符串：", expiryDateStr);
+        console.error("計算剩餘天數失敗：", error);
         return { displayDate: "計算錯誤", remainingDays: "計算錯誤" };
       }
     };
 
-    // 渲染驗證結果
+    // 核心函數 - 渲染用戶驗證結果
     function renderResult(resp) {
-      console.log("開始渲染驗證結果");
+      console.log("渲染用戶驗證結果：", resp);
       
       // 隱藏狀態和錯誤信息
       document.getElementById('status').classList.add('hidden');
       document.getElementById('error-message').classList.add('hidden');
 
       // 保存當前用戶信息
-      currentUser = {
+      appState.currentUser = {
         userId: resp.userId,
         displayName: resp.displayName,
         isAdmin: resp.isAdmin,
@@ -419,7 +523,7 @@
           // 禁用編輯按鈕
           document.getElementById('edit-btn').classList.add('bg-gray-400', 'cursor-not-allowed');
           document.getElementById('edit-btn').setAttribute('disabled', true);
-          document.getElementById('edit-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能編輯';
+          document.getElementById('edit-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能管理影片';
         } else {
           main.innerHTML = `<span class="text-textPrimary"><i class="fa fa-user mr-2"></i>普通用戶驗證通過</span>`;
           details.innerHTML = `
@@ -433,24 +537,35 @@
 
       // 顯示結果卡片
       card.classList.remove('hidden');
-      console.log("結果卡片已顯示");
       
       // 檢查是否有已儲存的影片資料，如果有直接顯示預覽
-      const savedContent = localStorage.getItem(`user_content_${currentUser.userId}`);
+      loadSavedVideoData();
+    }
+
+    // 核心函數 - 加載已儲存的影片數據
+    function loadSavedVideoData() {
+      if (!appState.currentUser) return;
+      
+      const storageKey = `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
+      const savedContent = localStorage.getItem(storageKey);
+      
       if (savedContent) {
         try {
           const content = JSON.parse(savedContent);
           if (content.name && content.video) {
+            appState.currentVideoData = content;
             showVideoPreview(content);
           }
         } catch (e) {
-          console.error('加載儲存內容失敗：', e);
+          console.error('加載儲存的影片數據失敗：', e);
         }
       }
     }
 
-    // 顯示編輯區域
+    // 核心函數 - 顯示編輯區域
     function showEditSection() {
+      if (appState.isSubmitting) return;
+      
       // 隱藏預覽區，顯示編輯區
       document.getElementById('video-preview').classList.add('hidden');
       document.getElementById('result-card').classList.add('mb-2');
@@ -460,19 +575,13 @@
       document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
       
       // 加載已儲存的內容
-      const savedContent = localStorage.getItem(`user_content_${currentUser.userId}`);
-      if (savedContent) {
-        try {
-          const content = JSON.parse(savedContent);
-          document.getElementById('content-name').value = content.name || '';
-          document.getElementById('content-video').value = content.video || '';
-        } catch (e) {
-          console.error('加載儲存內容失敗：', e);
-        }
+      if (appState.currentVideoData) {
+        document.getElementById('content-name').value = appState.currentVideoData.name || '';
+        document.getElementById('content-video').value = appState.currentVideoData.video || '';
       }
     }
 
-    // 隱藏編輯區域
+    // 核心函數 - 隱藏編輯區域
     function hideEditSection() {
       document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('result-card').classList.remove('mb-2');
@@ -480,74 +589,232 @@
       document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 重新編輯
+    // 核心函數 - 重新編輯影片
     function editAgain() {
       showEditSection();
     }
 
-    // 顯示影片預覽
+    // 核心函數 - 顯示影片預覽
     function showVideoPreview(contentData) {
       // 保存當前影片數據
-      currentVideoData = contentData;
+      appState.currentVideoData = contentData;
       
       // 隱藏編輯區，顯示預覽區
       document.getElementById('edit-section').classList.add('hidden');
       document.getElementById('video-preview').classList.remove('hidden');
       
+      // 重置影片加載狀態
+      document.getElementById('video-loading').classList.remove('hidden');
+      
       // 填充預覽內容
       document.getElementById('preview-title').textContent = contentData.name;
       document.getElementById('preview-link').textContent = contentData.video;
+      document.getElementById('preview-updated').textContent = contentData.updatedAt || '未同步';
       
       // 轉換為嵌入鏈接並設置
       const embedUrl = convertToEmbedUrl(contentData.video);
       document.getElementById('preview-video').src = embedUrl;
       
+      // 更新同步狀態
+      if (contentData.syncedToSheet) {
+        document.getElementById('sync-status-text').textContent = '數據已成功同步至 Google 試算表';
+        document.getElementById('sheet-sync-status').classList.remove('text-red-500');
+        document.getElementById('sheet-sync-status').classList.add('text-green-600');
+        document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-check-circle text-green-600 mr-2';
+      } else {
+        document.getElementById('sync-status-text').textContent = '數據尚未同步至 Google 試算表，請點擊重新同步';
+        document.getElementById('sheet-sync-status').classList.remove('text-green-600');
+        document.getElementById('sheet-sync-status').classList.add('text-red-500');
+        document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-exclamation-circle text-red-500 mr-2';
+      }
+      
       // 滾動到預覽區域
       document.getElementById('video-preview').scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 複製影片連結
+    // 核心函數 - 複製影片連結
     function copyVideoLink() {
-      if (!currentVideoData) return;
+      if (!appState.currentVideoData) return;
       
-      const textArea = document.createElement('textarea');
-      textArea.value = currentVideoData.video;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      showSuccess('影片連結已複製到剪貼簿！');
+      try {
+        // 使用現代的 clipboard API
+        navigator.clipboard.writeText(appState.currentVideoData.video)
+          .then(() => {
+            showSuccess('影片連結已成功複製到剪貼簿！');
+          })
+          .catch(() => {
+            // 備用方案
+            const textArea = document.createElement('textarea');
+            textArea.value = appState.currentVideoData.video;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showSuccess('影片連結已成功複製到剪貼簿！');
+          });
+      } catch (e) {
+        console.error('複製連結失敗：', e);
+        showError('複製連結失敗，請手動複製');
+      }
     }
 
-    // 儲存內容
+    // 核心函數 - 同步數據到 Google 試算表
+    function syncToSheet(videoData, showLoading = true) {
+      return new Promise((resolve, reject) => {
+        if (!appState.currentUser) {
+          reject('用戶信息不存在，請重新驗證');
+          return;
+        }
+
+        // 顯示同步狀態
+        if (showLoading) {
+          document.getElementById('sync-status').classList.remove('hidden');
+        }
+
+        // 構建提交數據
+        const submitData = {
+          action: 'saveVideoData',
+          userId: appState.currentUser.userId,
+          userName: appState.currentUser.displayName,
+          videoName: videoData.name,
+          videoUrl: videoData.video,
+          updatedAt: videoData.updatedAt,
+          isAdmin: appState.currentUser.isAdmin ? '是' : '否',
+          expiryDate: appState.currentUser.expiryDate || '無'
+        };
+
+        console.log('同步數據到試算表：', submitData);
+
+        // 調用 GAS 後端
+        $.ajax({
+          url: CONFIG.GAS_URL,
+          dataType: 'jsonp',
+          jsonp: 'callback',
+          timeout: CONFIG.JSONP_TIMEOUT,
+          data: submitData,
+          success: function(resp) {
+            console.log('試算表同步回應：', resp);
+            document.getElementById('sync-status').classList.add('hidden');
+            
+            if (resp.status === "success") {
+              resolve(resp);
+            } else {
+              reject(resp.message || '同步失敗，請稍後重試');
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('同步到試算表出錯：', status, error);
+            document.getElementById('sync-status').classList.add('hidden');
+            
+            let errorMsg = '與伺服器通訊失敗';
+            if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
+            else if (status === 'parsererror') errorMsg = '數據解析錯誤';
+            
+            reject(errorMsg);
+          }
+        });
+      });
+    }
+
+    // 核心函數 - 重新同步到試算表
+    function syncToSheetAgain() {
+      if (!appState.currentVideoData || appState.isSubmitting) return;
+      
+      setSubmitState(true);
+      document.getElementById('sync-status').classList.remove('hidden');
+      
+      syncToSheet(appState.currentVideoData)
+        .then(() => {
+          // 更新本地數據
+          appState.currentVideoData.syncedToSheet = true;
+          localStorage.setItem(
+            `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
+            JSON.stringify(appState.currentVideoData)
+          );
+          
+          showSuccess('影片數據已成功同步至 Google 試算表！');
+          showVideoPreview(appState.currentVideoData);
+          setSubmitState(false);
+        })
+        .catch((error) => {
+          showError(`同步失敗：${error}`);
+          setSubmitState(false);
+        });
+    }
+
+    // 核心函數 - 儲存影片內容
     function saveContent(event) {
       event.preventDefault();
       
-      if (!currentUser) {
+      // 防止重複提交
+      if (appState.isSubmitting) return;
+      
+      if (!appState.currentUser) {
         showError('用戶信息不存在，請重新驗證');
         return;
       }
 
       // 获取表單數據
+      const videoName = document.getElementById('content-name').value.trim();
+      const videoUrl = document.getElementById('content-video').value.trim();
+
+      // 驗證影片連結格式
+      if (!validateVideoUrl(videoUrl)) {
+        showError('請輸入有效的 YouTube 或 Vimeo 影片連結');
+        return;
+      }
+
+      // 構建影片數據
       const contentData = {
-        userId: currentUser.userId,
-        userName: currentUser.displayName,
-        name: document.getElementById('content-name').value.trim(),
-        video: document.getElementById('content-video').value.trim(),
-        updatedAt: new Date().toLocaleString('zh-TW')
+        userId: appState.currentUser.userId,
+        userName: appState.currentUser.displayName,
+        name: videoName,
+        video: videoUrl,
+        updatedAt: new Date().toLocaleString('zh-TW', { 
+          year: 'numeric', 
+          month: '2-digit', 
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        }),
+        syncedToSheet: false
       };
 
-      // 儲存到localStorage
-      localStorage.setItem(`user_content_${currentUser.userId}`, JSON.stringify(contentData));
+      // 設置提交狀態
+      setSubmitState(true);
       
-      showSuccess('影片內容已成功儲存！');
-      
-      // 顯示影片預覽
-      showVideoPreview(contentData);
+      // 先儲存到 localStorage
+      localStorage.setItem(
+        `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
+        JSON.stringify(contentData)
+      );
+
+      // 同步到 Google 試算表
+      syncToSheet(contentData)
+        .then(() => {
+          // 更新同步狀態
+          contentData.syncedToSheet = true;
+          localStorage.setItem(
+            `${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`,
+            JSON.stringify(contentData)
+          );
+          
+          appState.currentVideoData = contentData;
+          showSuccess('影片數據已成功儲存並同步至 Google 試算表！');
+          showVideoPreview(contentData);
+          setSubmitState(false);
+        })
+        .catch((error) => {
+          // 本地儲存成功，但同步失敗
+          appState.currentVideoData = contentData;
+          showVideoPreview(contentData);
+          showError(`影片數據已儲存（本地），但同步至試算表失敗：${error}`);
+          setSubmitState(false);
+        });
     }
 
-    // 獲取用戶信息（增強版：確保正確獲取LINE暱稱）
+    // 核心函數 - 獲取用戶信息並驗證
     function getProfileAndVerify() {
       setStatus('驗證使用者資訊中...');
       
@@ -563,11 +830,10 @@
               'Authorization': `Bearer ${accessToken}`
             },
             success: function(profile) {
-              console.log("從 LINE API 獲取完整用戶資訊：", profile);
+              console.log("從 LINE API 獲取用戶資訊：", profile);
               const userId = profile.userId;
-              // 確保用戶名稱不為空，去除多餘空格
               const displayName = (profile.displayName || '').trim() || '未知用戶';
-              // 先驗證用戶，再寫入工作表
+              // 驗證用戶並寫入工作表
               callGasBackend(userId, displayName, true);
             },
             error: function(err) {
@@ -587,17 +853,15 @@
         try {
           const idToken = liff.getDecodedIDToken();
           if (idToken) {
-            console.log("ID Token 完整內容：", idToken); // 調試用：查看所有欄位
+            console.log("ID Token 內容：", idToken);
             const userId = idToken.sub;
-            // 全面獲取各種可能的用戶名稱欄位，組合並去空
+            // 全面獲取各種可能的用戶名稱欄位
             let displayName = 
               idToken.nickname || 
               idToken.name || 
               idToken.preferred_username || 
-              idToken.pref_username || 
               (idToken.given_name ? (idToken.given_name + (idToken.family_name ? ' ' + idToken.family_name : '')) : '') || 
               '未知用戶';
-            // 去除多餘空格，確保不是空字符串
             displayName = displayName.trim() || '未知用戶';
             callGasBackend(userId, displayName, true);
             return;
@@ -610,7 +874,6 @@
         liff.getProfile()
           .then(profile => {
             console.log("舊版 API 獲取用戶信息：", profile);
-            // 確保用戶名稱不為空，去除多餘空格
             const displayName = (profile.displayName || '').trim() || '未知用戶';
             callGasBackend(profile.userId, displayName, true);
           })
@@ -625,33 +888,34 @@
       }
     }
 
-    // 調用 GAS 後端（新增寫入工作表參數）
+    // 核心函數 - 調用 GAS 後端驗證用戶
     function callGasBackend(userId, displayName, writeToSheet = false) {
-      console.log("調用後端驗證用戶：", {userId, displayName, writeToSheet});
+      console.log("調用 GAS 驗證用戶：", {userId, displayName, writeToSheet});
+      
       $.ajax({
-        url: GAS_URL,
+        url: CONFIG.GAS_URL,
         dataType: 'jsonp',
         jsonp: 'callback',
-        timeout: JSONP_TIMEOUT,
+        timeout: CONFIG.JSONP_TIMEOUT,
         data: { 
           userId: userId, 
           displayName: displayName,
           action: 'verifyUser',
           needExpiryDate: true,
-          writeToSheet: writeToSheet // 告訴 GAS 需要寫入工作表
+          writeToSheet: writeToSheet
         },
         success: function(resp) {
-          console.log("後端返回數據：", resp);
+          console.log("GAS 驗證回應：", resp);
           if (resp.status === "error") {
             showError(resp.message);
           } else {
-            // 將實際獲取的名稱回寫到回應中（確保顯示正確）
+            // 確保顯示正確的用戶名稱
             resp.displayName = displayName;
             renderResult(resp);
           }
         },
         error: function(xhr, status, error) {
-          console.error("AJAX 錯誤：", status, error);
+          console.error("GAS 請求錯誤：", status, error);
           let errorMsg = '與伺服器通訊失敗';
           if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
           else if (status === 'parsererror') errorMsg = '數據解析錯誤';
@@ -660,24 +924,24 @@
       });
     }
 
-    // 頁面加載完成後初始化
+    // 頁面初始化
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("頁面加載完成，開始初始化");
+      console.log("頁面加載完成，初始化系統");
 
-      // 初始化 LIFF（完整權限配置）
+      // 初始化 LIFF
       setStatus('正在初始化系統，請稍候...');
       liff.init({ 
-        liffId: LIFF_ID,
-        scope: ['profile', 'openid', 'offline_access'] // 增加 offline_access 確保權限充足
-      }, { disableRedirect: false }) // 還原預設重定向（更穩定）
+        liffId: CONFIG.LIFF_ID,
+        scope: ['profile', 'openid', 'offline_access']
+      }, { disableRedirect: false })
         .then(() => {
           console.log("LIFF 初始化成功");
           if (!liff.isLoggedIn()) {
-            console.log("用戶未登錄，跳轉登錄（帶完整權限）");
+            console.log("用戶未登錄，跳轉登錄");
             // 登錄時請求完整權限
             liff.login({
               scope: ['profile', 'openid', 'offline_access'],
-              redirectUri: window.location.href // 指定回調地址
+              redirectUri: window.location.href
             });
           } else {
             console.log("用戶已登錄，開始驗證信息");
