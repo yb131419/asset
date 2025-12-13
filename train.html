@@ -27,8 +27,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
 .video-container iframe.loaded{opacity:1;}
 .btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
-.video-item{transition:all 0.2s ease;}
+.video-item{transition:all 0.2s ease;cursor:grab;}
 .video-item:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.08);}
+.video-item.dragging{opacity:0.5;border:2px dashed #008C76;cursor:grabbing;}
+.drop-zone{border:2px dashed #008C76 !important;background-color:#E8F9F7 !important;}
+.thumbnail-container{width:60px;height:40px;border-radius:4px;overflow:hidden;background:#f1f1f1;flex-shrink:0;}
+.thumbnail-img{width:100%;height:100%;object-fit:cover;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -79,6 +83,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base md:text-lg font-bold text-textPrimary flex items-center">
           <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片列表管理
+          <span class="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full" id="video-count">0 個影片</span>
         </h2>
         <div class="flex gap-2">
           <button onclick="addNewVideo()" class="bg-primary hover:bg-[#007A69] text-white text-xs font-medium px-2.5 py-1 rounded-lg shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
@@ -203,7 +208,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 </div>
 <script>
 const CONFIG={LIFF_ID:"2008578880-fZdc4QTC",GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
-let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false};
+let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null};
 const generateVideoId=()=>{const timestamp=new Date().getTime();const random=Math.floor(Math.random()*1000);return `vid_${timestamp}_${random}`;};
 const setStatus=(text)=>{const statusText=document.getElementById('status-text');if(statusText)statusText.textContent=text;};
 const showError=(msg)=>{
@@ -260,6 +265,67 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
 const saveVideoListToLocal=()=>{
   if(!appState.currentUser)return;const storageKey=`${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
   localStorage.setItem(storageKey,JSON.stringify(appState.videoList));
+  updateVideoCount();
+};
+const getVideoThumbnail=(url)=>{
+  if(!url)return 'https://via.placeholder.com/60x40?text=No+Preview';
+  const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/;
+  const youtubeMatch=url.match(youtubeRegex);
+  if(youtubeMatch&&youtubeMatch[1])return `https://img.youtube.com/vi/${youtubeMatch[1]}/default.jpg`;
+  const vimeoRegex=/vimeo\.com\/(\d+)/;
+  const vimeoMatch=url.match(vimeoRegex);
+  if(vimeoMatch&&vimeoMatch[1])return `https://via.placeholder.com/60x40?text=Vimeo`;
+  return 'https://via.placeholder.com/60x40?text=Invalid';
+};
+const handleDragStart=(e)=>{
+  appState.draggingItem=e.target;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',e.target.getAttribute('data-id'));
+  setTimeout(()=>{e.target.style.opacity='0.5';},0);
+};
+const handleDragOver=(e)=>{
+  e.preventDefault();
+  const draggingItem=document.querySelector('.dragging');
+  const currentItem=e.target.closest('.video-item');
+  if(!currentItem||currentItem===draggingItem)return;
+  currentItem.classList.add('drop-zone');
+};
+const handleDragLeave=(e)=>{
+  const currentItem=e.target.closest('.video-item');
+  if(currentItem)currentItem.classList.remove('drop-zone');
+};
+const handleDrop=(e)=>{
+  e.preventDefault();
+  const draggedId=e.dataTransfer.getData('text/plain');
+  const targetItem=e.target.closest('.video-item');
+  if(!targetItem||targetItem.getAttribute('data-id')===draggedId)return;
+  
+  const draggedIndex=appState.videoList.findIndex(v=>v.id===draggedId);
+  const targetIndex=appState.videoList.findIndex(v=>v.id===targetItem.getAttribute('data-id'));
+  
+  if(draggedIndex!==-1&&targetIndex!==-1){
+    const [draggedItem]=appState.videoList.splice(draggedIndex,1);
+    appState.videoList.splice(targetIndex,0,draggedItem);
+    saveVideoListToLocal();
+    renderVideoList();
+  }
+  
+  targetItem.classList.remove('drop-zone');
+  const draggingItem=document.querySelector('.dragging');
+  if(draggingItem)draggingItem.classList.remove('dragging');
+};
+const handleDragEnd=(e)=>{
+  e.target.classList.remove('dragging');
+  e.target.style.opacity='1';
+  document.querySelectorAll('.video-item').forEach(item=>{
+    item.classList.remove('drop-zone');
+  });
+  appState.draggingItem=null;
+};
+const updateVideoCount=()=>{
+  const countEl=document.getElementById('video-count');
+  if(countEl)countEl.textContent=`${appState.videoList.length} 個影片`;
 };
 function loadSavedVideoData(){
   if(!appState.currentUser)return;const storageKey=`${CONFIG.STORAGE_KEY_PREFIX}${appState.currentUser.userId}`;
@@ -282,6 +348,7 @@ function loadSavedVideoData(){
       }
     }catch(e){console.error('加載儲存的影片數據失敗：',e);appState.videoList=[];}
   }
+  updateVideoCount();
   renderVideoList();
 }
 function renderVideoList(){
@@ -293,18 +360,28 @@ function renderVideoList(){
     const videoItem=document.createElement('div');
     videoItem.className='video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
-    const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
-    const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
+    videoItem.setAttribute('draggable','true');
+    videoItem.addEventListener('dragstart',handleDragStart);
+    videoItem.addEventListener('dragover',handleDragOver);
+    videoItem.addEventListener('dragleave',handleDragLeave);
+    videoItem.addEventListener('drop',handleDrop);
+    videoItem.addEventListener('dragend',handleDragEnd);
+    const shortTitle=video.name.length>20?`${video.name.substring(0,20)}...`:video.name;
+    const shortLink=video.video.length>25?`${video.video.substring(0,25)}...`:video.video;
+    const thumbnailUrl=getVideoThumbnail(video.video);
     videoItem.innerHTML=`
-      <div class="flex items-start justify-between">
+      <div class="flex items-start gap-2">
+        <div class="thumbnail-container">
+          <img src="${thumbnailUrl}" alt="${video.name}" class="thumbnail-img" loading="lazy">
+        </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center mb-1">
             <span class="inline-flex items-center justify-center w-4 h-4 bg-primary/10 text-primary rounded-full text-xs mr-1">${index+1}</span>
             <h4 class="font-medium text-textPrimary truncate text-xs md:text-sm">${shortTitle}</h4>
           </div>
           <p class="text-xs text-textSecondary break-all mb-1">${shortLink}</p>
-          ${video.note?`<p class="text-xs text-textSecondary/80 mb-1"><i class="fa fa-sticky-note-o mr-1 text-xs"></i>${video.note}</p>`:''}
-          <p class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1 text-xs"></i>最後更新：${video.updatedAt}</p>
+          ${video.note?`<p class="text-xs text-textSecondary/80 mb-1"><i class="fa fa-sticky-note-o mr-1 text-xs"></i>${video.note.substring(0,15)}${video.note.length>15?'...':''}</p>`:''}
+          <p class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1 text-xs"></i>${video.updatedAt}</p>
         </div>
         <div class="flex flex-col gap-1 ml-2">
           <button onclick="viewVideo('${video.id}')" class="p-1 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽影片">
