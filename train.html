@@ -251,21 +251,43 @@
       console.log("結果卡片已顯示");
     }
 
-    // 獲取用戶信息並驗證
+    // 獲取用戶信息（改用 ID Token 方式，替代棄用的 getProfile()）
     function getProfileAndVerify() {
       setStatus('驗證使用者資訊中...');
+      
+      // 優先從 ID Token 獲取用戶資訊（新版推薦方式）
+      try {
+        const idToken = liff.getDecodedIDToken();
+        if (idToken) {
+          console.log("從 ID Token 獲取用戶信息成功：", idToken);
+          // ID Token 中的 sub 是用戶唯一 ID，name 是用戶暱稱
+          const userId = idToken.sub;
+          const displayName = idToken.name || '未知用戶';
+          callGasBackend(userId, displayName);
+          return;
+        }
+      } catch (err) {
+        console.warn("從 ID Token 獲取信息失敗，嘗試備用方式：", err);
+      }
+
+      // 備用方式：嘗試舊版 getProfile()（需配置對應權限）
       liff.getProfile()
         .then(profile => {
-          console.log("獲取用戶信息成功：", profile);
+          console.log("獲取用戶信息成功（舊版 API）：", profile);
           callGasBackend(profile.userId, profile.displayName || '未知用戶');
         })
         .catch(err => {
           console.error("獲取使用者資料失敗：", err);
-          showError('取得使用者資料失敗：' + err.message);
+          // 給出更詳細的錯誤提示
+          let errorMsg = '取得使用者資料失敗：' + err.message;
+          if (err.message.includes('permission is not in LIFF app scope')) {
+            errorMsg += '<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile 和 openid 權限<br/>4. 保存後等待幾分鐘再測試';
+          }
+          showError(errorMsg);
         });
     }
 
-    // 調用GAS後端
+    // 調用 GAS 後端
     function callGasBackend(userId, displayName) {
       console.log("調用後端驗證用戶：", userId, displayName);
       $.ajax({
@@ -301,14 +323,21 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log("頁面加載完成，開始初始化");
 
-      // 初始化 LIFF
+      // 初始化 LIFF（指定需要的權限）
       setStatus('正在初始化系統，請稍候...');
-      liff.init({ liffId: LIFF_ID }, { disableRedirect: true })
+      liff.init({ 
+        liffId: LIFF_ID,
+        // 明確請求需要的權限
+        scope: ['profile', 'openid']
+      }, { disableRedirect: true })
         .then(() => {
           console.log("LIFF 初始化成功");
           if (!liff.isLoggedIn()) {
-            console.log("用戶未登錄，跳轉登錄");
-            liff.login();
+            console.log("用戶未登錄，跳轉登錄（帶權限請求）");
+            // 登錄時明確請求權限
+            liff.login({
+              scope: ['profile', 'openid']
+            });
           } else {
             console.log("用戶已登錄，開始驗證信息");
             getProfileAndVerify();
