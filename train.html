@@ -68,6 +68,24 @@
       font-feature-settings: "palt";
       letter-spacing: 0.02em;
     }
+    
+    /* 影片容器比例 */
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 比例 */
+      height: 0;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
   </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-4 md:p-8">
@@ -84,7 +102,7 @@
           <i class="fa fa-user-circle text-3xl text-accent"></i>
         </div>
         <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-wide">🧬 彥彬 健康觀念</h1>
-        <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證 & 內容管理</p>
+        <p class="text-white/90 text-lg md:text-xl font-light">用戶身份驗證 & 影片管理</p>
       </div>
     </div>
 
@@ -135,7 +153,7 @@
           
           <!-- 編輯按鈕 -->
           <button id="edit-btn" onclick="showEditSection()" class="bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
-            <i class="fa fa-pencil"></i> 進入內容編輯
+            <i class="fa fa-pencil"></i> 進入影片編輯
           </button>
         </div>
       </div>
@@ -157,27 +175,13 @@
             <!-- 名稱輸入 -->
             <div class="space-y-2">
               <label class="block text-textPrimary font-medium">
-                <i class="fa fa-tag text-primary mr-2"></i> 內容名稱
+                <i class="fa fa-tag text-primary mr-2"></i> 影片名稱
               </label>
               <input 
                 type="text" 
                 id="content-name" 
                 class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
-                placeholder="請輸入影片/內容名稱"
-                required
-              >
-            </div>
-
-            <!-- 網址輸入 -->
-            <div class="space-y-2">
-              <label class="block text-textPrimary font-medium">
-                <i class="fa fa-link text-primary mr-2"></i> 相關網址
-              </label>
-              <input 
-                type="url" 
-                id="content-url" 
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
-                placeholder="請輸入完整網址 (https://...)"
+                placeholder="請輸入影片名稱"
                 required
               >
             </div>
@@ -194,16 +198,53 @@
                 placeholder="請輸入YouTube/Vimeo等影片連結"
                 required
               >
+              <p class="text-xs text-textSecondary mt-1">
+                <i class="fa fa-lightbulb-o text-accent mr-1"></i> 
+                支援格式：YouTube (https://youtu.be/xxx 或 https://www.youtube.com/watch?v=xxx)、Vimeo 等
+              </p>
             </div>
 
             <!-- 儲存按鈕 -->
             <div class="pt-4">
               <button type="submit" class="w-full bg-primary hover:bg-[#007A69] text-white font-medium px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-2">
-                <i class="fa fa-save"></i> 儲存設定
+                <i class="fa fa-save"></i> 儲存並預覽影片
               </button>
             </div>
           </div>
         </form>
+      </div>
+
+      <!-- 影片預覽區域 -->
+      <div id="video-preview" class="hidden bg-cardBg rounded-2xl p-6 mb-8 slide-in border border-primary/20">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-textPrimary flex items-center">
+            <i class="fa fa-play-circle text-primary mr-2"></i> 影片預覽
+          </h2>
+          <button onclick="editAgain()" class="text-primary hover:text-[#007A69] text-sm font-medium flex items-center gap-1">
+            <i class="fa fa-pencil"></i> 重新編輯
+          </button>
+        </div>
+        
+        <div id="preview-content" class="space-y-4">
+          <!-- 影片標題 -->
+          <h3 id="preview-title" class="text-lg font-medium text-textPrimary text-center mb-4"></h3>
+          
+          <!-- 影片容器 -->
+          <div class="video-container mb-4">
+            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          </div>
+          
+          <!-- 影片連結顯示 -->
+          <div class="bg-neutral rounded-lg p-3 text-sm text-textSecondary">
+            <div class="flex items-center justify-between">
+              <span><i class="fa fa-link text-primary mr-2"></i> 影片連結：</span>
+              <button onclick="copyVideoLink()" class="text-primary hover:text-[#007A69] text-xs font-medium">
+                <i class="fa fa-copy"></i> 複製連結
+              </button>
+            </div>
+            <p id="preview-link" class="mt-1 break-all"></p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -216,6 +257,8 @@
 
     // 全域用戶資訊
     let currentUser = null;
+    // 當前影片資訊
+    let currentVideoData = null;
 
     // 狀態設置函數
     const setStatus = text => {
@@ -228,6 +271,7 @@
       document.getElementById('status').classList.add('hidden');
       document.getElementById('result-card').classList.add('hidden');
       document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('video-preview').classList.add('hidden');
       document.getElementById('success-message').classList.add('hidden');
       
       const el = document.getElementById('error-message');
@@ -254,6 +298,28 @@
           el.classList.add('hidden');
         }, 3000);
       }
+    };
+
+    // 轉換影片連結為嵌入格式
+    const convertToEmbedUrl = (url) => {
+      // YouTube 連結處理
+      const youtubeRegex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]+)/;
+      const youtubeMatch = url.match(youtubeRegex);
+      
+      if (youtubeMatch && youtubeMatch[1]) {
+        return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0`;
+      }
+      
+      // Vimeo 連結處理
+      const vimeoRegex = /vimeo\.com\/(\d+)/;
+      const vimeoMatch = url.match(vimeoRegex);
+      
+      if (vimeoMatch && vimeoMatch[1]) {
+        return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+      }
+      
+      // 如果無法識別，直接返回原URL（適用於已為embed格式的連結）
+      return url;
     };
 
     // 計算剩餘天數函數
@@ -368,12 +434,28 @@
       // 顯示結果卡片
       card.classList.remove('hidden');
       console.log("結果卡片已顯示");
+      
+      // 檢查是否有已儲存的影片資料，如果有直接顯示預覽
+      const savedContent = localStorage.getItem(`user_content_${currentUser.userId}`);
+      if (savedContent) {
+        try {
+          const content = JSON.parse(savedContent);
+          if (content.name && content.video) {
+            showVideoPreview(content);
+          }
+        } catch (e) {
+          console.error('加載儲存內容失敗：', e);
+        }
+      }
     }
 
     // 顯示編輯區域
     function showEditSection() {
+      // 隱藏預覽區，顯示編輯區
+      document.getElementById('video-preview').classList.add('hidden');
       document.getElementById('result-card').classList.add('mb-2');
       document.getElementById('edit-section').classList.remove('hidden');
+      
       // 滾動到編輯區域
       document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
       
@@ -383,7 +465,6 @@
         try {
           const content = JSON.parse(savedContent);
           document.getElementById('content-name').value = content.name || '';
-          document.getElementById('content-url').value = content.url || '';
           document.getElementById('content-video').value = content.video || '';
         } catch (e) {
           console.error('加載儲存內容失敗：', e);
@@ -397,6 +478,46 @@
       document.getElementById('result-card').classList.remove('mb-2');
       // 滾動回結果卡片
       document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 重新編輯
+    function editAgain() {
+      showEditSection();
+    }
+
+    // 顯示影片預覽
+    function showVideoPreview(contentData) {
+      // 保存當前影片數據
+      currentVideoData = contentData;
+      
+      // 隱藏編輯區，顯示預覽區
+      document.getElementById('edit-section').classList.add('hidden');
+      document.getElementById('video-preview').classList.remove('hidden');
+      
+      // 填充預覽內容
+      document.getElementById('preview-title').textContent = contentData.name;
+      document.getElementById('preview-link').textContent = contentData.video;
+      
+      // 轉換為嵌入鏈接並設置
+      const embedUrl = convertToEmbedUrl(contentData.video);
+      document.getElementById('preview-video').src = embedUrl;
+      
+      // 滾動到預覽區域
+      document.getElementById('video-preview').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 複製影片連結
+    function copyVideoLink() {
+      if (!currentVideoData) return;
+      
+      const textArea = document.createElement('textarea');
+      textArea.value = currentVideoData.video;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      showSuccess('影片連結已複製到剪貼簿！');
     }
 
     // 儲存內容
@@ -413,7 +534,6 @@
         userId: currentUser.userId,
         userName: currentUser.displayName,
         name: document.getElementById('content-name').value.trim(),
-        url: document.getElementById('content-url').value.trim(),
         video: document.getElementById('content-video').value.trim(),
         updatedAt: new Date().toLocaleString('zh-TW')
       };
@@ -421,31 +541,10 @@
       // 儲存到localStorage
       localStorage.setItem(`user_content_${currentUser.userId}`, JSON.stringify(contentData));
       
-      // 可選：將數據上傳到GAS後端
-      /*
-      $.ajax({
-        url: GAS_URL,
-        dataType: 'jsonp',
-        jsonp: 'callback',
-        timeout: JSONP_TIMEOUT,
-        data: { 
-          action: 'saveContent',
-          data: JSON.stringify(contentData)
-        },
-        success: function(resp) {
-          if (resp.status === "success") {
-            showSuccess('內容已成功儲存並同步到後端！');
-          } else {
-            showSuccess('內容已儲存（本地），但同步後端失敗：' + resp.message);
-          }
-        },
-        error: function() {
-          showSuccess('內容已儲存（本地），請稍後檢查網絡後重新同步');
-        }
-      });
-      */
-      
       showSuccess('影片內容已成功儲存！');
+      
+      // 顯示影片預覽
+      showVideoPreview(contentData);
     }
 
     // 獲取用戶信息（增強版：確保正確獲取LINE暱稱）
