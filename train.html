@@ -212,7 +212,8 @@
       const details = document.getElementById('result-details');
 
       const isProUser = resp.isAdmin === true;
-      const userName = resp.displayName || '未知用戶';
+      // 核心修正：優先使用前端獲取的真實暱稱，避免後端返回空值
+      const userName = resp.displayName || window.userDisplayName || 'LINE暱稱未公開';
       const expiryDateStr = resp.expiryDate || resp.endDate || resp.expireDate || '';
 
       if (isProUser) {
@@ -254,136 +255,183 @@
       console.log("結果卡片已顯示");
     }
 
-    // 獲取用戶信息（增強版：確保正確獲取LINE暱稱）
-    function getProfileAndVerify() {
-      setStatus('驗證使用者資訊中...');
-      
-      // 方案1：優先使用新版 ID Token + 獲取完整用戶資訊
+    // ===== 核心修正1：強化 LINE 暱稱獲取，確保絕不為空 =====
+    /**
+     * 安全獲取 LINE 暱稱（多層防禦）
+     * @returns {Promise<{userId: string, displayName: string}>}
+     */
+    async function safeGetLineProfile() {
+      // 定義默認值
+      let userId = '';
+      let displayName = 'LINE暱稱未公開';
+
+      // 步驟1：嘗試新版 LIFF v2.21+ 的 getDecodedIDToken（最優先）
       try {
-        // 獲取 access token 用於調用 LINE Profile API
-        const accessToken = liff.getAccessToken();
-        if (accessToken) {
-          // 調用 LINE 官方 API 獲取完整用戶資訊（最可靠）
-          $.ajax({
-            url: 'https://api.line.me/v2/profile',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`
-            },
-            success: function(profile) {
-              console.log("從 LINE API 獲取完整用戶資訊：", profile);
-              const userId = profile.userId;
-              const displayName = profile.displayName || '未知用戶';
-              // 先驗證用戶，再寫入工作表
-              callGasBackend(userId, displayName, true);
-            },
-            error: function(err) {
-              console.warn("LINE API 獲取失敗，嘗試 ID Token：", err);
-              fallbackToIdToken();
-            }
-          });
-          return;
+        const idToken = liff.getDecodedIDToken();
+        if (idToken) {
+          console.log("[STEP1] 從 ID Token 獲取信息：", idToken);
+          userId = idToken.sub || userId;
+          // 遍歷所有可能的暱稱欄位
+          displayName = idToken.nickname || idToken.name || idToken.pref_username || idToken.displayName || displayName;
+          if (userId && displayName !== 'LINE暱稱未公開') {
+            return { userId, displayName: cleanDisplayName(displayName) };
+          }
         }
       } catch (err) {
-        console.warn("獲取 access token 失敗：", err);
-        fallbackToIdToken();
+        console.warn("[STEP1] ID Token 獲取失敗：", err);
       }
 
-      // 方案2：備用 - ID Token 解析
-      function fallbackToIdToken() {
-        try {
-          const idToken = liff.getDecodedIDToken();
-          if (idToken) {
-            console.log("ID Token 完整內容：", idToken); // 調試用：查看所有欄位
-            const userId = idToken.sub;
-            // 優先使用 ID Token 中的 nickname/name/pref_username 等欄位
-            const displayName = idToken.nickname || idToken.name || idToken.pref_username || '未知用戶';
-            callGasBackend(userId, displayName, true);
-            return;
-          }
-        } catch (err) {
-          console.warn("從 ID Token 獲取信息失敗，嘗試舊版 getProfile()：", err);
-        }
-
-        // 方案3：最後備用 - 舊版 getProfile()
-        liff.getProfile()
-          .then(profile => {
-            console.log("舊版 API 獲取用戶信息：", profile);
-            callGasBackend(profile.userId, profile.displayName || '未知用戶', true);
-          })
-          .catch(err => {
-            console.error("獲取使用者資料失敗：", err);
-            let errorMsg = '取得使用者資料失敗：' + err.message;
-            if (err.message.includes('permission is not in LIFF app scope')) {
-              errorMsg += '<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
-            }
-            showError(errorMsg);
+      // 步驟2：嘗試 Access Token 調用 LINE Profile API
+      try {
+        const accessToken = liff.getAccessToken();
+        if (accessToken) {
+          console.log("[STEP2] 嘗試使用 Access Token 調用 LINE API");
+          const profile = await new Promise((resolve, reject) => {
+            $.ajax({
+              url: 'https://api.line.me/v2/profile',
+              headers: { 'Authorization': `Bearer ${accessToken}` },
+              success: resolve,
+              error: reject
+            });
           });
+          console.log("[STEP2] LINE API 返回：", profile);
+          userId = profile.userId || userId;
+          displayName = profile.displayName || displayName;
+          if (userId) {
+            return { userId, displayName: cleanDisplayName(displayName) };
+          }
+        }
+      } catch (err) {
+        console.warn("[STEP2] LINE API 調用失敗：", err);
       }
+
+      // 步驟3：最後備用 - 舊版 liff.getProfile()
+      try {
+        console.log("[STEP3] 嘗試舊版 getProfile()");
+        const profile = await liff.getProfile();
+        console.log("[STEP3] 舊版 API 返回：", profile);
+        userId = profile.userId || userId;
+        displayName = profile.displayName || displayName;
+        if (userId) {
+          return { userId, displayName: cleanDisplayName(displayName) };
+        }
+      } catch (err) {
+        console.error("[STEP3] 舊版 getProfile() 失敗：", err);
+        throw new Error("無法獲取 LINE 用戶資訊：" + err.message + 
+          "<br/><br/>請確認：<br/>1. LIFF 應用已開啟 profile 權限<br/>2. 用戶已授權個人資料訪問<br/>3. 重新登錄 LINE 後再試");
+      }
+
+      // 所有方法都失敗
+      throw new Error("無法獲取有效的 LINE 用戶 ID，請檢查 LIFF 配置或網絡連接");
     }
 
-    // 調用 GAS 後端（新增寫入工作表參數）
+    // ===== 核心修正2：清理暱稱特殊字符，避免空值 =====
+    /**
+     * 清理 LINE 暱稱，確保非空且無特殊字符
+     * @param {string} name - 原始暱稱
+     * @returns {string} 清理後的暱稱
+     */
+    function cleanDisplayName(name) {
+      // 1. 去除空白/換行/零寬空格等無效字符
+      const cleaned = (name || '').trim().replace(/[\n\r\t\u200B]/g, ' ');
+      // 2. 若為空，返回默認值
+      return cleaned || 'LINE暱稱未公開';
+    }
+
+    // ===== 核心修正3：調用 GAS 前最終校驗 =====
     function callGasBackend(userId, displayName, writeToSheet = false) {
-      console.log("調用後端驗證用戶：", {userId, displayName, writeToSheet});
+      // 最終校驗：確保 userId 和 displayName 絕不為空
+      const finalUserId = userId.trim() || '未知UserID';
+      const finalDisplayName = cleanDisplayName(displayName);
+      
+      console.log("[最終校驗] 準備傳送給 GAS 的參數：", {
+        userId: finalUserId,
+        displayName: finalDisplayName,
+        writeToSheet
+      });
+
+      // 保存到全域變量，供渲染時使用
+      window.userDisplayName = finalDisplayName;
+
+      // 調用 GAS 後端
       $.ajax({
         url: GAS_URL,
         dataType: 'jsonp',
         jsonp: 'callback',
         timeout: JSONP_TIMEOUT,
+        // 核心：傳送校驗後的參數，絕不為空
         data: { 
-          userId: userId, 
-          displayName: displayName,
+          userId: finalUserId, 
+          displayName: finalDisplayName,
           action: 'verifyUser',
           needExpiryDate: true,
-          writeToSheet: writeToSheet // 告訴 GAS 需要寫入工作表
+          writeToSheet: writeToSheet
         },
         success: function(resp) {
-          console.log("後端返回數據：", resp);
+          console.log("GAS 後端返回：", resp);
           if (resp.status === "error") {
             showError(resp.message);
           } else {
-            // 將實際獲取的名稱回寫到回應中（確保顯示正確）
-            resp.displayName = displayName;
+            // 強制覆蓋後端返回的 displayName（確保使用前端真實值）
+            resp.displayName = finalDisplayName;
             renderResult(resp);
           }
         },
         error: function(xhr, status, error) {
-          console.error("AJAX 錯誤：", status, error);
+          console.error("AJAX 請求失敗：", {xhr, status, error});
           let errorMsg = '與伺服器通訊失敗';
           if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
-          else if (status === 'parsererror') errorMsg = '數據解析錯誤';
+          else if (status === 'parsererror') errorMsg = '數據解析錯誤，請稍後再試';
           showError(errorMsg);
         }
       });
     }
 
-    // 頁面加載完成後初始化
+    // ===== 初始化流程優化 =====
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("頁面加載完成，開始初始化");
+      console.log("頁面加載完成，開始初始化 LIFF");
 
-      // 初始化 LIFF（完整權限配置）
+      // 初始化 LIFF（強化權限配置）
       setStatus('正在初始化系統，請稍候...');
       liff.init({ 
         liffId: LIFF_ID,
-        scope: ['profile', 'openid', 'offline_access'] // 增加 offline_access 確保權限充足
-      }, { disableRedirect: false }) // 還原預設重定向（更穩定）
-        .then(() => {
-          console.log("LIFF 初始化成功");
-          if (!liff.isLoggedIn()) {
-            console.log("用戶未登錄，跳轉登錄（帶完整權限）");
-            // 登錄時請求完整權限
-            liff.login({
-              scope: ['profile', 'openid', 'offline_access'],
-              redirectUri: window.location.href // 指定回調地址
-            });
-          } else {
-            console.log("用戶已登錄，開始驗證信息");
-            getProfileAndVerify();
-          }
-        })
-        .catch(err => {
-          console.error("LIFF 初始化失敗：", err);
-          showError('系統初始化失敗：' + err.message);
-        });
+        // 明確請求所需權限
+        scope: ['profile', 'openid', 'offline_access'],
+        // 強制使用最新版本
+        version: '2.21.0'
+      })
+      .then(async () => {
+        console.log("LIFF 初始化成功，當前登錄狀態：", liff.isLoggedIn());
+        
+        // 未登錄則引導登錄（帶完整權限）
+        if (!liff.isLoggedIn()) {
+          console.log("用戶未登錄，跳轉登錄頁面");
+          liff.login({
+            scope: ['profile', 'openid', 'offline_access'],
+            redirectUri: window.location.href
+          });
+          return;
+        }
+
+        // 已登錄，安全獲取用戶資訊
+        setStatus('驗證使用者資訊中...');
+        try {
+          // 獲取校驗後的用戶資訊
+          const { userId, displayName } = await safeGetLineProfile();
+          console.log("最終獲取的用戶資訊：", {userId, displayName});
+          
+          // 調用 GAS 後端驗證
+          callGasBackend(userId, displayName, true);
+        } catch (err) {
+          console.error("獲取用戶資訊失敗：", err);
+          showError(err.message);
+        }
+      })
+      .catch(err => {
+        console.error("LIFF 初始化失敗：", err);
+        showError('系統初始化失敗：' + err.message + 
+          '<br/><br/>請檢查網絡連接或稍後再試');
+      });
     });
   </script>
 </body>
