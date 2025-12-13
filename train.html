@@ -194,6 +194,12 @@
 
       <!-- 影片列表區域 -->
       <div id="video-list-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
+        <!-- 列表同步狀態提示 -->
+        <div id="list-sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-4 bg-primary/5 text-primary">
+          <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
+          <span>正在同步數據至 Google 試算表...</span>
+        </div>
+        
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold text-textPrimary flex items-center">
             <i class="fa fa-th-list text-primary mr-2"></i> 影片列表管理
@@ -233,6 +239,12 @@
 
       <!-- 影片編輯區域 -->
       <div id="edit-section" class="hidden bg-neutral rounded-2xl p-6 mb-8 slide-in border border-gray-100">
+        <!-- 編輯同步狀態提示 -->
+        <div id="edit-sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-4 bg-primary/5 text-primary">
+          <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
+          <span>正在同步數據至 Google 試算表...</span>
+        </div>
+        
         <div class="flex items-center justify-between mb-6">
           <h2 id="edit-title" class="text-xl font-bold text-textPrimary flex items-center">
             <i class="fa fa-edit text-primary mr-2"></i> 新增影片
@@ -310,6 +322,12 @@
 
       <!-- 影片預覽區域 -->
       <div id="video-preview" class="hidden bg-cardBg rounded-2xl p-6 mb-8 scale-in border border-primary/20 shadow-elevation-1">
+        <!-- 預覽同步狀態提示 -->
+        <div id="preview-sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-2 bg-primary/5 text-primary">
+          <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
+          <span>正在同步數據至 Google 試算表...</span>
+        </div>
+        
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-textPrimary flex items-center">
             <i class="fa fa-play-circle text-primary mr-2"></i> 影片預覽 & 同步狀態
@@ -328,12 +346,6 @@
         </div>
         
         <div id="preview-content" class="space-y-4">
-          <!-- 同步狀態標籤 -->
-          <div id="sync-status" class="hidden flex items-center justify-center py-2 px-4 rounded-lg text-sm font-medium mb-2 bg-primary/5 text-primary">
-            <i class="fa fa-circle-o-notch animate-spin mr-2"></i>
-            <span>正在同步數據至 Google 試算表...</span>
-          </div>
-          
           <!-- 影片標題 -->
           <h3 id="preview-title" class="text-lg font-medium text-textPrimary text-center mb-4"></h3>
           
@@ -343,7 +355,7 @@
               <i class="fa fa-spinner animate-spin text-2xl mb-2"></i>
               <p class="text-sm">載入影片中...</p>
             </div>
-            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); document.getElementById('video-loading').classList.add('hidden')"></iframe>
+            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="if(this) {this.classList.add('loaded');} const loadingEl = document.getElementById('video-loading'); if(loadingEl) loadingEl.classList.add('hidden');"></iframe>
           </div>
           
           <!-- 影片資訊卡片 -->
@@ -425,13 +437,25 @@
     // 工具函數 - 顯示錯誤提示
     const showError = (msg) => {
       // 隱藏所有載入/成功狀態
-      document.getElementById('status').classList.add('hidden');
-      document.getElementById('result-card').classList.add('hidden');
-      document.getElementById('video-list-section').classList.add('hidden');
-      document.getElementById('edit-section').classList.add('hidden');
-      document.getElementById('video-preview').classList.add('hidden');
-      document.getElementById('success-message').classList.add('hidden');
-      document.getElementById('sync-status').classList.add('hidden');
+      const statusEl = document.getElementById('status');
+      const resultCardEl = document.getElementById('result-card');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      const editSectionEl = document.getElementById('edit-section');
+      const videoPreviewEl = document.getElementById('video-preview');
+      const successMessageEl = document.getElementById('success-message');
+      const listSyncStatusEl = document.getElementById('list-sync-status');
+      const editSyncStatusEl = document.getElementById('edit-sync-status');
+      const previewSyncStatusEl = document.getElementById('preview-sync-status');
+      
+      if (statusEl) statusEl.classList.add('hidden');
+      if (resultCardEl) resultCardEl.classList.add('hidden');
+      if (videoListSectionEl) videoListSectionEl.classList.add('hidden');
+      if (editSectionEl) editSectionEl.classList.add('hidden');
+      if (videoPreviewEl) videoPreviewEl.classList.add('hidden');
+      if (successMessageEl) successMessageEl.classList.add('hidden');
+      if (listSyncStatusEl) listSyncStatusEl.classList.add('hidden');
+      if (editSyncStatusEl) editSyncStatusEl.classList.add('hidden');
+      if (previewSyncStatusEl) previewSyncStatusEl.classList.add('hidden');
       
       // 顯示錯誤
       const el = document.getElementById('error-message');
@@ -452,7 +476,9 @@
 
     // 工具函數 - 顯示成功提示
     const showSuccess = (msg) => {
-      document.getElementById('error-message').classList.add('hidden');
+      const errorEl = document.getElementById('error-message');
+      if (errorEl) errorEl.classList.add('hidden');
+      
       const el = document.getElementById('success-message');
       const contentEl = document.getElementById('success-content');
       if (el && contentEl) {
@@ -461,8 +487,31 @@
         
         // 3秒後隱藏成功提示
         setTimeout(() => {
-          el.classList.add('hidden');
+          if (el) el.classList.add('hidden');
         }, 4000);
+      }
+    };
+
+    // 工具函數 - 顯示同步狀態
+    const showSyncStatus = (type = 'edit', show = true) => {
+      let syncEl = null;
+      switch(type) {
+        case 'list':
+          syncEl = document.getElementById('list-sync-status');
+          break;
+        case 'preview':
+          syncEl = document.getElementById('preview-sync-status');
+          break;
+        default:
+          syncEl = document.getElementById('edit-sync-status');
+      }
+      
+      if (syncEl) {
+        if (show) {
+          syncEl.classList.remove('hidden');
+        } else {
+          syncEl.classList.add('hidden');
+        }
       }
     };
 
@@ -473,21 +522,25 @@
       const saveBtnText = document.getElementById('save-btn-text');
       const saveLoading = document.getElementById('save-loading');
       
-      if (isSubmitting) {
-        saveBtn.classList.add('btn-disabled');
-        saveBtnText.textContent = "同步中...";
-        saveLoading.classList.remove('hidden');
-      } else {
-        saveBtn.classList.remove('btn-disabled');
-        saveBtnText.textContent = appState.currentEditingVideoId ? "更新並同步至試算表" : "儲存並同步至試算表";
-        saveLoading.classList.add('hidden');
+      if (saveBtn && saveBtnText && saveLoading) {
+        if (isSubmitting) {
+          saveBtn.classList.add('btn-disabled');
+          saveBtnText.textContent = "同步中...";
+          saveLoading.classList.remove('hidden');
+        } else {
+          saveBtn.classList.remove('btn-disabled');
+          saveBtnText.textContent = appState.currentEditingVideoId ? "更新並同步至試算表" : "儲存並同步至試算表";
+          saveLoading.classList.add('hidden');
+        }
       }
     };
 
     // 工具函數 - 重置提交狀態
     const resetSubmitState = () => {
       setSubmitState(false);
-      document.getElementById('sync-status').classList.add('hidden');
+      showSyncStatus('list', false);
+      showSyncStatus('edit', false);
+      showSyncStatus('preview', false);
     };
 
     // 工具函數 - 轉換影片連結為嵌入格式
@@ -622,6 +675,8 @@
       const container = document.getElementById('video-list-container');
       const emptyTip = document.getElementById('empty-video-list');
       
+      if (!container || !emptyTip) return;
+      
       // 清空列表
       container.innerHTML = '';
       
@@ -685,8 +740,10 @@
       console.log("渲染用戶驗證結果：", resp);
       
       // 隱藏狀態和錯誤信息
-      document.getElementById('status').classList.add('hidden');
-      document.getElementById('error-message').classList.add('hidden');
+      const statusEl = document.getElementById('status');
+      const errorEl = document.getElementById('error-message');
+      if (statusEl) statusEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.add('hidden');
 
       // 保存當前用戶信息
       appState.currentUser = {
@@ -700,6 +757,9 @@
       const card = document.getElementById('result-card');
       const main = document.getElementById('result-main');
       const details = document.getElementById('result-details');
+      const manageBtn = document.getElementById('manage-btn');
+
+      if (!card || !main || !details || !manageBtn) return;
 
       const isProUser = resp.isAdmin === true;
       const userName = resp.displayName || '未知用戶';
@@ -731,9 +791,9 @@
             <div><i class="fa fa-info-circle text-orange-600 mr-1.5"></i>提示：請聯繫管理員升級為專業用戶</div>
           `;
           // 禁用管理按鈕
-          document.getElementById('manage-btn').classList.add('bg-gray-400', 'cursor-not-allowed');
-          document.getElementById('manage-btn').setAttribute('disabled', true);
-          document.getElementById('manage-btn').innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能管理影片';
+          manageBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+          manageBtn.setAttribute('disabled', true);
+          manageBtn.innerHTML = '<i class="fa fa-lock"></i> 需要升級為專業用戶才能管理影片';
         } else {
           main.innerHTML = `<span class="text-textPrimary"><i class="fa fa-user mr-2"></i>普通用戶驗證通過</span>`;
           details.innerHTML = `
@@ -758,13 +818,20 @@
       if (appState.isSubmitting) return;
       
       // 隱藏其他區域，顯示列表區
-      document.getElementById('video-preview').classList.add('hidden');
-      document.getElementById('edit-section').classList.add('hidden');
-      document.getElementById('result-card').classList.add('mb-2');
-      document.getElementById('video-list-section').classList.remove('hidden');
+      const videoPreviewEl = document.getElementById('video-preview');
+      const editSectionEl = document.getElementById('edit-section');
+      const resultCardEl = document.getElementById('result-card');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      
+      if (videoPreviewEl) videoPreviewEl.classList.add('hidden');
+      if (editSectionEl) editSectionEl.classList.add('hidden');
+      if (resultCardEl) resultCardEl.classList.add('mb-2');
+      if (videoListSectionEl) videoListSectionEl.classList.remove('hidden');
       
       // 滾動到列表區域
-      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
+      if (videoListSectionEl) {
+        videoListSectionEl.scrollIntoView({ behavior: 'smooth' });
+      }
       
       // 重新渲染列表
       renderVideoList();
@@ -772,10 +839,16 @@
 
     // 核心函數 - 隱藏影片列表區域
     function hideVideoListSection() {
-      document.getElementById('video-list-section').classList.add('hidden');
-      document.getElementById('result-card').classList.remove('mb-2');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      const resultCardEl = document.getElementById('result-card');
+      
+      if (videoListSectionEl) videoListSectionEl.classList.add('hidden');
+      if (resultCardEl) resultCardEl.classList.remove('mb-2');
+      
       // 滾動回結果卡片
-      document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+      if (resultCardEl) {
+        resultCardEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 新增影片
@@ -786,23 +859,36 @@
       appState.currentEditingVideoId = null;
       
       // 更新編輯標題
-      document.getElementById('edit-title').innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 新增影片';
+      const editTitleEl = document.getElementById('edit-title');
+      if (editTitleEl) {
+        editTitleEl.innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 新增影片';
+      }
       
       // 清空表單
-      document.getElementById('video-id').value = '';
-      document.getElementById('content-name').value = '';
-      document.getElementById('content-video').value = '';
-      document.getElementById('content-note').value = '';
+      const videoIdEl = document.getElementById('video-id');
+      const contentNameEl = document.getElementById('content-name');
+      const contentVideoEl = document.getElementById('content-video');
+      const contentNoteEl = document.getElementById('content-note');
+      
+      if (videoIdEl) videoIdEl.value = '';
+      if (contentNameEl) contentNameEl.value = '';
+      if (contentVideoEl) contentVideoEl.value = '';
+      if (contentNoteEl) contentNoteEl.value = '';
       
       // 設置按鈕文字
       setSubmitState(false);
       
       // 隱藏列表，顯示編輯區
-      document.getElementById('video-list-section').classList.add('hidden');
-      document.getElementById('edit-section').classList.remove('hidden');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      const editSectionEl = document.getElementById('edit-section');
+      
+      if (videoListSectionEl) videoListSectionEl.classList.add('hidden');
+      if (editSectionEl) editSectionEl.classList.remove('hidden');
       
       // 滾動到編輯區域
-      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+      if (editSectionEl) {
+        editSectionEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 編輯指定影片
@@ -817,31 +903,50 @@
       appState.currentEditingVideoId = videoId;
       
       // 更新編輯標題
-      document.getElementById('edit-title').innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 編輯影片';
+      const editTitleEl = document.getElementById('edit-title');
+      if (editTitleEl) {
+        editTitleEl.innerHTML = '<i class="fa fa-edit text-primary mr-2"></i> 編輯影片';
+      }
       
       // 填充表單
-      document.getElementById('video-id').value = video.id;
-      document.getElementById('content-name').value = video.name;
-      document.getElementById('content-video').value = video.video;
-      document.getElementById('content-note').value = video.note || '';
+      const videoIdEl = document.getElementById('video-id');
+      const contentNameEl = document.getElementById('content-name');
+      const contentVideoEl = document.getElementById('content-video');
+      const contentNoteEl = document.getElementById('content-note');
+      
+      if (videoIdEl) videoIdEl.value = video.id;
+      if (contentNameEl) contentNameEl.value = video.name;
+      if (contentVideoEl) contentVideoEl.value = video.video;
+      if (contentNoteEl) contentNoteEl.value = video.note || '';
       
       // 設置按鈕文字
       setSubmitState(false);
       
       // 隱藏列表，顯示編輯區
-      document.getElementById('video-list-section').classList.add('hidden');
-      document.getElementById('edit-section').classList.remove('hidden');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      const editSectionEl = document.getElementById('edit-section');
+      
+      if (videoListSectionEl) videoListSectionEl.classList.add('hidden');
+      if (editSectionEl) editSectionEl.classList.remove('hidden');
       
       // 滾動到編輯區域
-      document.getElementById('edit-section').scrollIntoView({ behavior: 'smooth' });
+      if (editSectionEl) {
+        editSectionEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 隱藏編輯區域
     function hideEditSection() {
-      document.getElementById('edit-section').classList.add('hidden');
-      document.getElementById('video-list-section').classList.remove('hidden');
+      const editSectionEl = document.getElementById('edit-section');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      
+      if (editSectionEl) editSectionEl.classList.add('hidden');
+      if (videoListSectionEl) videoListSectionEl.classList.remove('hidden');
+      
       // 滾動回列表區域
-      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
+      if (videoListSectionEl) {
+        videoListSectionEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 預覽指定影片
@@ -856,47 +961,79 @@
       appState.currentViewingVideoId = videoId;
       
       // 隱藏其他區域，顯示預覽區
-      document.getElementById('video-list-section').classList.add('hidden');
-      document.getElementById('edit-section').classList.add('hidden');
-      document.getElementById('video-preview').classList.remove('hidden');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      const editSectionEl = document.getElementById('edit-section');
+      const videoPreviewEl = document.getElementById('video-preview');
+      
+      if (videoListSectionEl) videoListSectionEl.classList.add('hidden');
+      if (editSectionEl) editSectionEl.classList.add('hidden');
+      if (videoPreviewEl) videoPreviewEl.classList.remove('hidden');
       
       // 重置影片加載狀態
-      document.getElementById('video-loading').classList.remove('hidden');
+      const videoLoadingEl = document.getElementById('video-loading');
+      if (videoLoadingEl) {
+        videoLoadingEl.classList.remove('hidden');
+      }
       
       // 填充預覽內容
-      document.getElementById('preview-title').textContent = video.name;
-      document.getElementById('preview-link').textContent = video.video;
-      document.getElementById('preview-updated').textContent = video.updatedAt || '未同步';
-      document.getElementById('preview-note').textContent = video.note || '無備註資訊';
-      document.getElementById('preview-id').textContent = video.id;
+      const previewTitleEl = document.getElementById('preview-title');
+      const previewLinkEl = document.getElementById('preview-link');
+      const previewUpdatedEl = document.getElementById('preview-updated');
+      const previewNoteEl = document.getElementById('preview-note');
+      const previewIdEl = document.getElementById('preview-id');
+      const previewVideoEl = document.getElementById('preview-video');
+      const syncStatusTextEl = document.getElementById('sync-status-text');
+      const sheetSyncStatusEl = document.getElementById('sheet-sync-status');
+      
+      if (previewTitleEl) previewTitleEl.textContent = video.name;
+      if (previewLinkEl) previewLinkEl.textContent = video.video;
+      if (previewUpdatedEl) previewUpdatedEl.textContent = video.updatedAt || '未同步';
+      if (previewNoteEl) previewNoteEl.textContent = video.note || '無備註資訊';
+      if (previewIdEl) previewIdEl.textContent = video.id;
       
       // 轉換為嵌入鏈接並設置
       const embedUrl = convertToEmbedUrl(video.video);
-      document.getElementById('preview-video').src = embedUrl;
+      if (previewVideoEl) previewVideoEl.src = embedUrl;
       
       // 更新同步狀態
-      if (video.syncedToSheet) {
-        document.getElementById('sync-status-text').textContent = '數據已成功同步至 Google 試算表';
-        document.getElementById('sheet-sync-status').classList.remove('text-red-500');
-        document.getElementById('sheet-sync-status').classList.add('text-green-600');
-        document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-check-circle text-green-600 mr-2';
-      } else {
-        document.getElementById('sync-status-text').textContent = '數據尚未同步至 Google 試算表，請返回列表點擊「同步所有影片」';
-        document.getElementById('sheet-sync-status').classList.remove('text-green-600');
-        document.getElementById('sheet-sync-status').classList.add('text-red-500');
-        document.getElementById('sheet-sync-status').querySelector('i').className = 'fa fa-exclamation-circle text-red-500 mr-2';
+      if (syncStatusTextEl && sheetSyncStatusEl) {
+        if (video.syncedToSheet) {
+          syncStatusTextEl.textContent = '數據已成功同步至 Google 試算表';
+          sheetSyncStatusEl.classList.remove('text-red-500');
+          sheetSyncStatusEl.classList.add('text-green-600');
+          const iconEl = sheetSyncStatusEl.querySelector('i');
+          if (iconEl) {
+            iconEl.className = 'fa fa-check-circle text-green-600 mr-2';
+          }
+        } else {
+          syncStatusTextEl.textContent = '數據尚未同步至 Google 試算表，請返回列表點擊「同步所有影片」';
+          sheetSyncStatusEl.classList.remove('text-green-600');
+          sheetSyncStatusEl.classList.add('text-red-500');
+          const iconEl = sheetSyncStatusEl.querySelector('i');
+          if (iconEl) {
+            iconEl.className = 'fa fa-exclamation-circle text-red-500 mr-2';
+          }
+        }
       }
       
       // 滾動到預覽區域
-      document.getElementById('video-preview').scrollIntoView({ behavior: 'smooth' });
+      if (videoPreviewEl) {
+        videoPreviewEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 隱藏影片預覽
     function hideVideoPreview() {
-      document.getElementById('video-preview').classList.add('hidden');
-      document.getElementById('video-list-section').classList.remove('hidden');
+      const videoPreviewEl = document.getElementById('video-preview');
+      const videoListSectionEl = document.getElementById('video-list-section');
+      
+      if (videoPreviewEl) videoPreviewEl.classList.add('hidden');
+      if (videoListSectionEl) videoListSectionEl.classList.remove('hidden');
+      
       // 滾動回列表區域
-      document.getElementById('video-list-section').scrollIntoView({ behavior: 'smooth' });
+      if (videoListSectionEl) {
+        videoListSectionEl.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     // 核心函數 - 編輯當前預覽的影片
@@ -926,8 +1063,11 @@
       // 如果刪除的是當前預覽的影片，隱藏預覽
       if (appState.currentViewingVideoId === videoId) {
         appState.currentViewingVideoId = null;
-        document.getElementById('video-preview').classList.add('hidden');
-        document.getElementById('video-list-section').classList.remove('hidden');
+        const videoPreviewEl = document.getElementById('video-preview');
+        const videoListSectionEl = document.getElementById('video-list-section');
+        
+        if (videoPreviewEl) videoPreviewEl.classList.add('hidden');
+        if (videoListSectionEl) videoListSectionEl.classList.remove('hidden');
       }
       
       // 重新渲染列表
@@ -987,10 +1127,20 @@
       }
 
       // 获取表單數據
-      const videoId = document.getElementById('video-id').value || generateVideoId();
-      const videoName = document.getElementById('content-name').value.trim();
-      const videoUrl = document.getElementById('content-video').value.trim();
-      const videoNote = document.getElementById('content-note').value.trim();
+      const videoIdEl = document.getElementById('video-id');
+      const contentNameEl = document.getElementById('content-name');
+      const contentVideoEl = document.getElementById('content-video');
+      const contentNoteEl = document.getElementById('content-note');
+      
+      if (!videoIdEl || !contentNameEl || !contentVideoEl || !contentNoteEl) {
+        showError('表單元素加載異常，請刷新頁面');
+        return;
+      }
+      
+      const videoId = videoIdEl.value || generateVideoId();
+      const videoName = contentNameEl.value.trim();
+      const videoUrl = contentVideoEl.value.trim();
+      const videoNote = contentNoteEl.value.trim();
 
       // 驗證影片連結格式
       if (!validateVideoUrl(videoUrl)) {
@@ -1017,6 +1167,8 @@
 
       // 設置提交狀態
       setSubmitState(true);
+      // 顯示同步狀態
+      showSyncStatus('edit', true);
       
       // 判斷是新增還是編輯
       const videoIndex = appState.videoList.findIndex(v => v.id === videoId);
@@ -1032,7 +1184,7 @@
       saveVideoListToLocal();
 
       // 同步到 Google 試算表
-      syncToSheet(videoData)
+      syncToSheet(videoData, 'edit')
         .then(() => {
           // 更新同步狀態
           const updatedIndex = appState.videoList.findIndex(v => v.id === videoId);
@@ -1050,15 +1202,17 @@
           hideEditSection();
           renderVideoList();
           setSubmitState(false);
+          showSyncStatus('edit', false);
         })
         .catch((error) => {
           showError(`${appState.currentEditingVideoId ? '更新' : '新增'}失敗：${error}`);
           setSubmitState(false);
+          showSyncStatus('edit', false);
         });
     }
 
     // 核心函數 - 同步數據到 Google 試算表
-    function syncToSheet(videoData, showLoading = true) {
+    function syncToSheet(videoData, syncType = 'edit') {
       return new Promise((resolve, reject) => {
         if (!appState.currentUser) {
           reject('用戶信息不存在，請重新驗證');
@@ -1066,9 +1220,7 @@
         }
 
         // 顯示同步狀態
-        if (showLoading) {
-          document.getElementById('sync-status').classList.remove('hidden');
-        }
+        showSyncStatus(syncType, true);
 
         // 構建提交數據
         const submitData = {
@@ -1096,7 +1248,7 @@
           data: submitData,
           success: function(resp) {
             console.log('試算表同步回應：', resp);
-            document.getElementById('sync-status').classList.add('hidden');
+            showSyncStatus(syncType, false);
             
             if (resp.status === "success") {
               resolve(resp);
@@ -1106,7 +1258,7 @@
           },
           error: function(xhr, status, error) {
             console.error('同步到試算表出錯：', status, error);
-            document.getElementById('sync-status').classList.add('hidden');
+            showSyncStatus(syncType, false);
             
             let errorMsg = '與伺服器通訊失敗';
             if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
@@ -1126,7 +1278,7 @@
       }
       
       setSubmitState(true);
-      document.getElementById('sync-status').classList.remove('hidden');
+      showSyncStatus('list', true);
       
       // 構建批量同步數據
       const submitData = {
@@ -1150,7 +1302,7 @@
         data: submitData,
         success: function(resp) {
           console.log('批量同步回應：', resp);
-          document.getElementById('sync-status').classList.add('hidden');
+          showSyncStatus('list', false);
           
           if (resp.status === "success") {
             // 更新所有影片的同步狀態
@@ -1168,7 +1320,7 @@
         },
         error: function(xhr, status, error) {
           console.error('批量同步到試算表出錯：', status, error);
-          document.getElementById('sync-status').classList.add('hidden');
+          showSyncStatus('list', false);
           
           let errorMsg = '與伺服器通訊失敗';
           if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
@@ -1214,110 +1366,149 @@
         fallbackToIdToken();
       }
 
-      // 方案2：備用 - ID Token 解析
+            // 方案2：備用 - ID Token 解析
       function fallbackToIdToken() {
         try {
-          const idToken = liff.getDecodedIDToken();
-          if (idToken) {
-            console.log("ID Token 內容：", idToken);
-            const userId = idToken.sub;
-            // 全面獲取各種可能的用戶名稱欄位
-            let displayName = 
-              idToken.nickname || 
-              idToken.name || 
-              idToken.preferred_username || 
-              (idToken.given_name ? (idToken.given_name + (idToken.family_name ? ' ' + idToken.family_name : '')) : '') || 
-              '未知用戶';
-            displayName = displayName.trim() || '未知用戶';
-            callGasBackend(userId, displayName, true);
-            return;
+          const idToken = liff.getIDToken(); // 獲取 LINE ID Token
+          if (!idToken) {
+            throw new Error("無法獲取 ID Token，請重新登入");
           }
-        } catch (err) {
-          console.warn("從 ID Token 獲取信息失敗，嘗試舊版 getProfile()：", err);
-        }
-
-        // 方案3：最後備用 - 舊版 getProfile()
-        liff.getProfile()
-          .then(profile => {
-            console.log("舊版 API 獲取用戶信息：", profile);
-            const displayName = (profile.displayName || '').trim() || '未知用戶';
-            callGasBackend(profile.userId, displayName, true);
-          })
-          .catch(err => {
-            console.error("獲取使用者資料失敗：", err);
-            let errorMsg = '取得使用者資料失敗：' + err.message;
-            if (err.message.includes('permission is not in LIFF app scope')) {
-              errorMsg += '<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
+          
+          // 解析 JWT 格式的 ID Token (無需驗證簽名，因來自 LINE 官方 SDK)
+          const decodeJwt = (token) => {
+            try {
+              const base64Url = token.split('.')[1]; // JWT 第二部分是 payload
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonPayload = decodeURIComponent(
+                atob(base64).split('').map(c => {
+                  return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join('')
+              );
+              return JSON.parse(jsonPayload);
+            } catch (e) {
+              console.error("解析 JWT 失敗：", e);
+              return null;
             }
+          };
+          
+          const payload = decodeJwt(idToken);
+          if (!payload || !payload.sub) {
+            throw new Error("ID Token 解析失敗，無法提取用戶 ID");
+          }
+          
+          // 從 JWT Payload 提取用戶資訊
+          const userId = payload.sub; // LINE 唯一用戶 ID (sub = subject)
+          const displayName = (payload.name || payload.nickname || '').trim() || '未知用戶';
+          
+          console.log("從 ID Token 解析用戶資訊：", { userId, displayName });
+          // 調用 GAS 後端驗證用戶權限
+          callGasBackend(userId, displayName, false);
+          
+        } catch (err) {
+          console.warn("備用方案(ID Token)獲取用戶資訊失敗：", err);
+          // 方案3：最後備用 - 使用舊版 LIFF getProfile API
+          try {
+            liff.getProfile().then(profile => {
+              console.log("從舊版 LIFF getProfile 獲取資訊：", profile);
+              const userId = profile.userId;
+              const displayName = (profile.displayName || '').trim() || '未知用戶';
+              callGasBackend(userId, displayName, false);
+            }).catch(profileErr => {
+              console.error("舊版 getProfile API 也失敗：", profileErr);
+              showError(`用戶資訊獲取失敗：${profileErr.message || '請重新登入 LINE 後再試'}`);
+            });
+          } catch (finalErr) {
+            showError(`用戶驗證流程完全失敗：${finalErr.message || '無法獲取任何用戶資訊'}`);
+          }
+        }
+      }
+
+      // 核心函數 - 調用 GAS 後端驗證用戶並獲取權限
+      function callGasBackend(userId, displayName, isFromLineApi) {
+        setStatus('正在驗證用戶權限並同步數據...');
+        
+        // 構建驗證請求參數
+        const requestData = {
+          action: 'verifyUser',
+          userId: userId,
+          displayName: displayName,
+          source: isFromLineApi ? 'LINE_API' : (liff.getIDToken() ? 'ID_TOKEN' : 'LIFF_PROFILE'),
+          timestamp: new Date().getTime(),
+          version: 'v2.0'
+        };
+        
+        console.log("發送驗證請求到 GAS：", requestData);
+        
+        // 透過 JSONP 調用 Google Apps Script 後端
+        $.ajax({
+          url: CONFIG.GAS_URL,
+          dataType: 'jsonp',
+          jsonp: 'callback', // GAS 預期的 callback 參數名
+          timeout: CONFIG.JSONP_TIMEOUT,
+          data: requestData,
+          success: function(response) {
+            console.log("GAS 驗證回應：", response);
+            
+            if (response.status === "success") {
+              // 驗證成功，渲染用戶結果卡片
+              renderResult(response.data);
+            } else {
+              // 驗證失敗（如用戶未授權、過期等）
+              showError(`用戶驗證失敗：${response.message || '未知錯誤，請聯繫管理員'}`);
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error("GAS 請求出錯：", status, error);
+            
+            let errorMsg = '與驗證伺服器通訊失敗';
+            if (status === 'timeout') {
+              errorMsg = '請求超時，請檢查網絡連接後重新加載頁面';
+            } else if (status === 'parsererror') {
+              errorMsg = '伺服器回應格式錯誤，請稍後再試';
+            } else if (status === 'error') {
+              errorMsg = `伺服器內部錯誤：${error || '未知錯誤'}`;
+            }
+            
             showError(errorMsg);
-          });
+          }
+        });
       }
     }
 
-    // 核心函數 - 調用 GAS 後端驗證用戶
-    function callGasBackend(userId, displayName, writeToSheet = false) {
-      console.log("調用 GAS 驗證用戶：", {userId, displayName, writeToSheet});
-      
-      $.ajax({
-        url: CONFIG.GAS_URL,
-        dataType: 'jsonp',
-        jsonp: 'callback',
-        timeout: CONFIG.JSONP_TIMEOUT,
-        data: { 
-          userId: userId, 
-          displayName: displayName,
-          action: 'verifyUser',
-          needExpiryDate: true,
-          writeToSheet: writeToSheet
-        },
-        success: function(resp) {
-          console.log("GAS 驗證回應：", resp);
-          if (resp.status === "error") {
-            showError(resp.message);
-          } else {
-            // 確保顯示正確的用戶名稱
-            resp.displayName = displayName;
-            renderResult(resp);
-          }
-        },
-        error: function(xhr, status, error) {
-          console.error("GAS 請求錯誤：", status, error);
-          let errorMsg = '與伺服器通訊失敗';
-          if (status === 'timeout') errorMsg = '請求超時，請檢查網絡連接';
-          else if (status === 'parsererror') errorMsg = '數據解析錯誤';
-          showError(errorMsg);
-        }
-      });
-    }
-
-    // 頁面初始化
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log("頁面加載完成，初始化系統");
-
-      // 初始化 LIFF
-      setStatus('正在初始化系統，請稍候...');
-      liff.init({ 
-        liffId: CONFIG.LIFF_ID,
-        scope: ['profile', 'openid', 'offline_access']
-      }, { disableRedirect: false })
-        .then(() => {
+    // 頁面初始化 - LIFF 加載與登錄檢查
+    $(document).ready(function() {
+      // 檢查 LIFF SDK 是否加載完成
+      if (window.liff) {
+        setStatus('正在初始化 LINE 授權系統...');
+        
+        // 初始化 LIFF 環境
+        liff.init({
+          liffId: CONFIG.LIFF_ID,
+          withLoginOnExternalBrowser: true, // 外部瀏覽器自動跳轉 LINE 登錄
+          redirectUri: window.location.href // 登錄後返回當前頁面
+        }).then(() => {
           console.log("LIFF 初始化成功");
+          
+          // 檢查用戶是否已登錄
           if (!liff.isLoggedIn()) {
-            console.log("用戶未登錄，跳轉登錄");
-            // 登錄時請求完整權限
+            setStatus('跳轉至 LINE 登錄頁面...');
+            // 未登錄則引導登錄
             liff.login({
-              scope: ['profile', 'openid', 'offline_access'],
               redirectUri: window.location.href
             });
-          } else {
-            console.log("用戶已登錄，開始驗證信息");
-            getProfileAndVerify();
+            return;
           }
-        })
-        .catch(err => {
+          
+          // 已登錄，開始獲取用戶資訊並驗證
+          getProfileAndVerify();
+          
+        }).catch((err) => {
           console.error("LIFF 初始化失敗：", err);
-          showError('系統初始化失敗：' + err.message);
+          showError(`LINE 授權系統初始化失敗：${err.message || '請檢查 LIFF ID 是否正確'}`);
         });
+      } else {
+        showError("LINE 授權 SDK 加載失敗，請檢查網絡連接或重新加載頁面");
+      }
     });
   </script>
 </body>
