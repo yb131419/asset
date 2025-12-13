@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
-  <title>🧬 彥彬 自檢表系統 - 用戶驗證</title>
+  <title>🧬 彥彬 健康觀念 </title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -117,7 +117,7 @@
           
           <p class="text-sm text-textSecondary/80">
             <i class="fa fa-info-circle text-primary mr-1"></i>
-            身份驗證完成，請聯繫管理員獲取後續操作權限
+            身份驗證完成，用戶資料已同步至工作表
           </p>
         </div>
       </div>
@@ -222,6 +222,7 @@
           <div><i class="fa fa-user-circle text-primary mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
           <div><i class="fa fa-calendar-check-o text-primary mr-1.5"></i>使用期限：<span class="font-medium">${displayDate}</span></div>
           <div><i class="fa fa-clock-o text-primary mr-1.5"></i>剩餘天數：${remainingDays}</div>
+          <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
         `;
       } else {
         const usageCount = resp.usageCount || 0;
@@ -234,6 +235,7 @@
             <div><i class="fa fa-user-circle text-orange-600 mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
             <div><i class="fa fa-calendar-o text-orange-600 mr-1.5"></i>使用期限：<span class="font-medium">-</span></div>
             <div><i class="fa fa-refresh text-orange-600 mr-1.5"></i>剩餘次數：<span class="text-red-500 font-medium">${remainingTimes} 次</span></div>
+            <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
             <div><i class="fa fa-info-circle text-orange-600 mr-1.5"></i>提示：請聯繫管理員升級為專業用戶</div>
           `;
         } else {
@@ -242,6 +244,7 @@
             <div><i class="fa fa-user-circle text-textPrimary mr-1.5"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
             <div><i class="fa fa-calendar-o text-textPrimary mr-1.5"></i>使用期限：<span class="font-medium">-</span></div>
             <div><i class="fa fa-refresh text-textPrimary mr-1.5"></i>剩餘次數：<span class="font-medium text-primary">${remainingTimes} 次</span></div>
+            <div><i class="fa fa-database text-primary mr-1.5"></i>資料狀態：<span class="font-medium text-green-600">已同步至工作表</span></div>
           `;
         }
       }
@@ -251,45 +254,76 @@
       console.log("結果卡片已顯示");
     }
 
-    // 獲取用戶信息（改用 ID Token 方式，替代棄用的 getProfile()）
+    // 獲取用戶信息（增強版：確保正確獲取LINE暱稱）
     function getProfileAndVerify() {
       setStatus('驗證使用者資訊中...');
       
-      // 優先從 ID Token 獲取用戶資訊（新版推薦方式）
+      // 方案1：優先使用新版 ID Token + 獲取完整用戶資訊
       try {
-        const idToken = liff.getDecodedIDToken();
-        if (idToken) {
-          console.log("從 ID Token 獲取用戶信息成功：", idToken);
-          // ID Token 中的 sub 是用戶唯一 ID，name 是用戶暱稱
-          const userId = idToken.sub;
-          const displayName = idToken.name || '未知用戶';
-          callGasBackend(userId, displayName);
+        // 獲取 access token 用於調用 LINE Profile API
+        const accessToken = liff.getAccessToken();
+        if (accessToken) {
+          // 調用 LINE 官方 API 獲取完整用戶資訊（最可靠）
+          $.ajax({
+            url: 'https://api.line.me/v2/profile',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`
+            },
+            success: function(profile) {
+              console.log("從 LINE API 獲取完整用戶資訊：", profile);
+              const userId = profile.userId;
+              const displayName = profile.displayName || '未知用戶';
+              // 先驗證用戶，再寫入工作表
+              callGasBackend(userId, displayName, true);
+            },
+            error: function(err) {
+              console.warn("LINE API 獲取失敗，嘗試 ID Token：", err);
+              fallbackToIdToken();
+            }
+          });
           return;
         }
       } catch (err) {
-        console.warn("從 ID Token 獲取信息失敗，嘗試備用方式：", err);
+        console.warn("獲取 access token 失敗：", err);
+        fallbackToIdToken();
       }
 
-      // 備用方式：嘗試舊版 getProfile()（需配置對應權限）
-      liff.getProfile()
-        .then(profile => {
-          console.log("獲取用戶信息成功（舊版 API）：", profile);
-          callGasBackend(profile.userId, profile.displayName || '未知用戶');
-        })
-        .catch(err => {
-          console.error("獲取使用者資料失敗：", err);
-          // 給出更詳細的錯誤提示
-          let errorMsg = '取得使用者資料失敗：' + err.message;
-          if (err.message.includes('permission is not in LIFF app scope')) {
-            errorMsg += '<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile 和 openid 權限<br/>4. 保存後等待幾分鐘再測試';
+      // 方案2：備用 - ID Token 解析
+      function fallbackToIdToken() {
+        try {
+          const idToken = liff.getDecodedIDToken();
+          if (idToken) {
+            console.log("ID Token 完整內容：", idToken); // 調試用：查看所有欄位
+            const userId = idToken.sub;
+            // 優先使用 ID Token 中的 nickname/name/pref_username 等欄位
+            const displayName = idToken.nickname || idToken.name || idToken.pref_username || '未知用戶';
+            callGasBackend(userId, displayName, true);
+            return;
           }
-          showError(errorMsg);
-        });
+        } catch (err) {
+          console.warn("從 ID Token 獲取信息失敗，嘗試舊版 getProfile()：", err);
+        }
+
+        // 方案3：最後備用 - 舊版 getProfile()
+        liff.getProfile()
+          .then(profile => {
+            console.log("舊版 API 獲取用戶信息：", profile);
+            callGasBackend(profile.userId, profile.displayName || '未知用戶', true);
+          })
+          .catch(err => {
+            console.error("獲取使用者資料失敗：", err);
+            let errorMsg = '取得使用者資料失敗：' + err.message;
+            if (err.message.includes('permission is not in LIFF app scope')) {
+              errorMsg += '<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
+            }
+            showError(errorMsg);
+          });
+      }
     }
 
-    // 調用 GAS 後端
-    function callGasBackend(userId, displayName) {
-      console.log("調用後端驗證用戶：", userId, displayName);
+    // 調用 GAS 後端（新增寫入工作表參數）
+    function callGasBackend(userId, displayName, writeToSheet = false) {
+      console.log("調用後端驗證用戶：", {userId, displayName, writeToSheet});
       $.ajax({
         url: GAS_URL,
         dataType: 'jsonp',
@@ -299,13 +333,16 @@
           userId: userId, 
           displayName: displayName,
           action: 'verifyUser',
-          needExpiryDate: true
+          needExpiryDate: true,
+          writeToSheet: writeToSheet // 告訴 GAS 需要寫入工作表
         },
         success: function(resp) {
           console.log("後端返回數據：", resp);
           if (resp.status === "error") {
             showError(resp.message);
           } else {
+            // 將實際獲取的名稱回寫到回應中（確保顯示正確）
+            resp.displayName = displayName;
             renderResult(resp);
           }
         },
@@ -323,20 +360,20 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log("頁面加載完成，開始初始化");
 
-      // 初始化 LIFF（指定需要的權限）
+      // 初始化 LIFF（完整權限配置）
       setStatus('正在初始化系統，請稍候...');
       liff.init({ 
         liffId: LIFF_ID,
-        // 明確請求需要的權限
-        scope: ['profile', 'openid']
-      }, { disableRedirect: true })
+        scope: ['profile', 'openid', 'offline_access'] // 增加 offline_access 確保權限充足
+      }, { disableRedirect: false }) // 還原預設重定向（更穩定）
         .then(() => {
           console.log("LIFF 初始化成功");
           if (!liff.isLoggedIn()) {
-            console.log("用戶未登錄，跳轉登錄（帶權限請求）");
-            // 登錄時明確請求權限
+            console.log("用戶未登錄，跳轉登錄（帶完整權限）");
+            // 登錄時請求完整權限
             liff.login({
-              scope: ['profile', 'openid']
+              scope: ['profile', 'openid', 'offline_access'],
+              redirectUri: window.location.href // 指定回調地址
             });
           } else {
             console.log("用戶已登錄，開始驗證信息");
