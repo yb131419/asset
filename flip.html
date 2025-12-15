@@ -682,7 +682,7 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  const actualUserName=resp.displayName||appState.currentUser?.displayName||'未知用戶';
+  const actualUserName=resp.displayName||appState.currentUser?.displayName;
   appState.currentUser={
     userId:resp.userId,
     displayName:actualUserName,
@@ -938,7 +938,7 @@ function getProfileAndVerify(){
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
           const userId=profile.userId;
-          const displayName=(profile.displayName||'').trim()||'未知用戶';
+          const displayName=profile.displayName.trim();
           appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
         },
@@ -959,9 +959,8 @@ function getProfileAndVerify(){
       if(idToken){
         console.log("ID Token 內容：",idToken);
         const userId=idToken.sub;
-        let displayName=idToken.nickname||idToken.name||idToken.preferred_username||
-        (idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'未知用戶';
-        displayName=displayName.trim()||'未知用戶';
+        let displayName=idToken.nickname||idToken.name||idToken.preferred_username||(idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'';
+        displayName=displayName.trim();
         appState.currentUser={userId:userId,displayName:displayName};
         callGasBackend(userId,displayName,true);
         return;
@@ -971,7 +970,7 @@ function getProfileAndVerify(){
     }
     liff.getProfile().then(profile=>{
       console.log("舊版 API 獲取用戶信息：",profile);
-      const displayName=(profile.displayName||'').trim()||'未知用戶';
+      const displayName=profile.displayName.trim();
       appState.currentUser={userId:profile.userId,displayName:displayName};
       callGasBackend(profile.userId,displayName,true);
     }).catch(err=>{
