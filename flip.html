@@ -682,8 +682,7 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 優先使用GAS返回的displayName，其次使用LIFF獲取的真實名稱，最後才用userId後綴
-  const actualUserName=resp.displayName || appState.currentUser?.displayName || `LINE用戶(${resp.userId.slice(-6)})`;
+  const actualUserName=appState.currentUser?.displayName || resp.displayName || '未設定顯示名稱';
   appState.currentUser={
     userId:resp.userId,
     displayName:actualUserName,
@@ -931,24 +930,20 @@ function saveVideo(event){
 function getProfileAndVerify(){
   setStatus('驗證使用者資訊...');
   try{
-    // 優先使用新版LIFF API獲取用戶資訊
     liff.getProfile().then(profile => {
       console.log("從 LIFF API 獲取用戶資訊：",profile);
       const userId=profile.userId;
-      // 直接使用LIFF返回的真實displayName，無值時才用userId後綴（不再默認為LINE用戶）
-      const displayName=profile.displayName?.trim() || `LINE用戶(${userId.slice(-6)})`;
+      const displayName=profile.displayName?.trim() || '未設定顯示名稱';
       appState.currentUser={userId:userId,displayName:displayName};
       callGasBackend(userId,displayName,true);
     }).catch(err=>{
       console.warn("LIFF getProfile 失敗，嘗試 ID Token：",err);
-      // 備用方案：從ID Token獲取
       try{
         const idToken=liff.getDecodedIDToken();
         if(idToken){
           console.log("ID Token 內容：",idToken);
           const userId=idToken.sub;
-          // 優先使用各類真實名稱字段，無值時才用userId後綴
-          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || idToken.given_name?.trim() || `LINE用戶(${userId.slice(-6)})`;
+          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || '未設定顯示名稱';
           appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
           return;
@@ -984,7 +979,6 @@ function callGasBackend(userId,displayName,writeToSheet=false){
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
         resp.isAdmin=Boolean(resp.isAdmin);
         resp.isPro=Boolean(resp.isPro);
-        // 保留GAS返回的displayName，確保一致性
         resp.displayName=resp.displayName || displayName;
         renderResult(resp);
       }
