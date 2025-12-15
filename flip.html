@@ -227,65 +227,79 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
   </div>
 </div>
 <script>
-const CONFIG={LIFF_ID:"2008578880-XCYH8lpf",GAS_URL:"https://script.google.com/macros/s/AKfycbyVtlgh9kTff-znBgzK0ph1mrspcfTauqrqKck5DPcVG0k0wP_opYCAG3Kfh1VS9oh86A/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
+const CONFIG={LIFF_ID:"2008578880-XCYH8lpf",GAS_URL:"https://script.google.com/macros/s/AKfycbyVtlgh9kTff-znBgzK0ph1mrspcfTauqrqKck5DPcVG0k0wP_opYCAG3Kfh1VS9oh86A/exec",JSONP_TIMEOUT:10000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
+// 緩存常用DOM元素
+const DOM={
+  statusText:document.getElementById('status-text'),
+  errorMessage:document.getElementById('error-message'),
+  errorContent:document.getElementById('error-content'),
+  successMessage:document.getElementById('success-message'),
+  successContent:document.getElementById('success-content'),
+  resultCard:document.getElementById('result-card'),
+  resultMain:document.getElementById('result-main'),
+  resultDetails:document.getElementById('result-details'),
+  videoCountNum:document.getElementById('video-count-num'),
+  videoViewerSection:document.getElementById('video-viewer-section'),
+  videoListSection:document.getElementById('video-list-section'),
+  editSection:document.getElementById('edit-section'),
+  videoPreview:document.getElementById('video-preview'),
+  manageBtnContainer:document.getElementById('manage-btn-container'),
+  previewActionBtns:document.getElementById('preview-action-btns'),
+  previewLinkContainer:document.getElementById('preview-link-container'),
+  viewerVideoList:document.getElementById('viewer-video-list'),
+  viewerEmptyList:document.getElementById('viewer-empty-list'),
+  videoListContainer:document.getElementById('video-list-container'),
+  emptyVideoList:document.getElementById('empty-video-list'),
+  emptyTip:document.getElementById('empty-tip'),
+  editTitle:document.getElementById('edit-title'),
+  videoId:document.getElementById('video-id'),
+  contentName:document.getElementById('content-name'),
+  contentVideo:document.getElementById('content-video'),
+  contentNote:document.getElementById('content-note'),
+  saveBtn:document.getElementById('save-btn'),
+  saveBtnText:document.getElementById('save-btn-text'),
+  saveLoading:document.getElementById('save-loading'),
+  videoLoading:document.getElementById('video-loading'),
+  previewTitle:document.getElementById('preview-title'),
+  previewLink:document.getElementById('preview-link'),
+  previewUpdated:document.getElementById('preview-updated'),
+  previewNote:document.getElementById('preview-note'),
+  previewVideo:document.getElementById('preview-video')
+};
 const convertUTCToTaiwanTime=(utcStr)=>{
-  if(!utcStr)return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if(!utcStr) return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
   const date=new Date(utcStr);
-  return date.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  return date.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
 };
-const setStatus=(text)=>{
-  const statusText=document.getElementById('status-text');
-  if(statusText)statusText.textContent=text;
-};
+const setStatus=(text)=>{if(DOM.statusText)DOM.statusText.textContent=text;};
 const showError=(msg)=>{
-  const statusEl=document.getElementById('status');
-  const resultCardEl=document.getElementById('result-card');
-  const videoViewerEl=document.getElementById('video-viewer-section');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  const videoPreviewEl=document.getElementById('video-preview');
-  const successMsgEl=document.getElementById('success-message');
-  if(statusEl)statusEl.classList.add('hidden');
-  if(resultCardEl)resultCardEl.classList.add('hidden');
-  if(videoViewerEl)videoViewerEl.classList.add('hidden');
-  if(videoListEl)videoListEl.classList.add('hidden');
-  if(editEl)editEl.classList.add('hidden');
-  if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
-  if(successMsgEl)successMsgEl.classList.add('hidden');
-  const el=document.getElementById('error-message');
-  const contentEl=document.getElementById('error-content');
-  if(el&&contentEl){
-    contentEl.innerHTML=`<p class="font-medium">${msg}</p><div class="mt-2 flex justify-center"><button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1 text-xs"><i class="fa fa-refresh text-xs"></i> 重新嘗試</button></div>`;
-    el.classList.remove('hidden');
+  DOM.statusText?.closest('#status').classList.add('hidden');
+  DOM.resultCard?.classList.add('hidden');
+  DOM.videoViewerSection?.classList.add('hidden');
+  DOM.videoListSection?.classList.add('hidden');
+  DOM.editSection?.classList.add('hidden');
+  DOM.videoPreview?.classList.add('hidden');
+  DOM.successMessage?.classList.add('hidden');
+  if(DOM.errorMessage&&DOM.errorContent){
+    DOM.errorContent.innerHTML=`<p class="font-medium">${msg}</p><div class="mt-2 flex justify-center"><button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1 text-xs"><i class="fa fa-refresh text-xs"></i> 重新嘗試</button></div>`;
+    DOM.errorMessage.classList.remove('hidden');
   }
   resetSubmitState();
 };
 const showSuccess=(msg)=>{
-  const errorEl=document.getElementById('error-message');
-  if(errorEl)errorEl.classList.add('hidden');
-  const el=document.getElementById('success-message');
-  const contentEl=document.getElementById('success-content');
-  if(el&&contentEl){
-    contentEl.innerHTML=`<p class="font-medium">${msg}</p>`;
-    el.classList.remove('hidden');
-    setTimeout(()=>{if(el)el.classList.add('hidden');},4000);
+  DOM.errorMessage?.classList.add('hidden');
+  if(DOM.successMessage&&DOM.successContent){
+    DOM.successContent.innerHTML=`<p class="font-medium">${msg}</p>`;
+    DOM.successMessage.classList.remove('hidden');
+    setTimeout(()=>{DOM.successMessage?.classList.add('hidden');},4000);
   }
 };
 const setSubmitState=(isSubmitting)=>{
   appState.isSubmitting=isSubmitting;
-  const saveBtn=document.getElementById('save-btn');
-  const saveBtnText=document.getElementById('save-btn-text');
-  const saveLoading=document.getElementById('save-loading');
-  if(isSubmitting){
-    if(saveBtn)saveBtn.classList.add('btn-disabled');
-    if(saveBtnText)saveBtnText.textContent="儲存中...";
-    if(saveLoading)saveLoading.classList.remove('hidden');
-  }else{
-    if(saveBtn)saveBtn.classList.remove('btn-disabled');
-    if(saveBtnText)saveBtnText.textContent=appState.currentEditingVideoId?"更新影片":"儲存影片";
-    if(saveLoading)saveLoading.classList.add('hidden');
-  }
+  if(DOM.saveBtn)DOM.saveBtn.classList.toggle('btn-disabled',isSubmitting);
+  if(DOM.saveBtnText)DOM.saveBtnText.textContent=isSubmitting?"儲存中...":(appState.currentEditingVideoId?"更新影片":"儲存影片");
+  if(DOM.saveLoading)DOM.saveLoading.classList.toggle('hidden',!isSubmitting);
 };
 const resetSubmitState=()=>{setSubmitState(false);};
 const convertToEmbedUrl=(url)=>{
@@ -308,30 +322,17 @@ const validateVideoUrl=(url)=>{
 const calculateRemainingDaysByDate=(expiryDateStr)=>{
   try{
     if(expiryDateStr===CONFIG.PERMANENT_EXPIRY_DATE)return{displayDate:"永久有效",remainingDays:"永久有效"};
-    const dateTimeRegex=/^\d{4}[-\/]\d{2}[-\/]\d{2}(?:\s+\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/;
-    if(!dateTimeRegex.test(expiryDateStr))return{displayDate:"格式錯誤",remainingDays:"格式錯誤"};
-    const normalizedDateStr=expiryDateStr.replace(/-/g,'/');
-    let expiryDate;
-    if(normalizedDateStr.includes(' ')){
-      const[datePart,timePart]=normalizedDateStr.split(' ');
-      const[year,month,day]=datePart.split('/').map(Number);
-      const timeParts=timePart.split(':').map(Number);
-      const hour=timeParts[0]||0;
-      const minute=timeParts[1]||0;
-      const second=timeParts[2]||0;
-      expiryDate=new Date(Date.UTC(year,month-1,day,hour,minute,second));
-    }else{
-      const[year,month,day]=normalizedDateStr.split('/').map(Number);
-      expiryDate=new Date(Date.UTC(year,month-1,day));
-    }
-    const today=new Date();
-    const taipeiOffset=8*60*60*1000;
-    const todayTaipei=new Date(today.getTime()+taipeiOffset);
-    const todayUTC=new Date(Date.UTC(todayTaipei.getFullYear(),todayTaipei.getMonth(),todayTaipei.getDate()));
+    const dateRegex=/^\d{4}[-\/]\d{2}[-\/]\d{2}/;
+    if(!dateRegex.test(expiryDateStr))return{displayDate:"格式錯誤",remainingDays:"格式錯誤"};
+    const normalizedDate=expiryDateStr.replace(/-/g,'/').split(' ')[0];
+    const [year,month,day]=normalizedDate.split('/').map(Number);
+    const expiryDate=new Date(Date.UTC(year,month-1,day));
     if(isNaN(expiryDate.getTime()))return{displayDate:"日期無效",remainingDays:"日期無效"};
+    const today=new Date();
+    const todayUTC=new Date(Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()));
     const timeDiff=expiryDate-todayUTC;
     const remainingDays=Math.ceil(timeDiff/(1000*3600*24));
-    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).replace(/\//g,'/').replace(' ',' ');
+    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'});
     let remainingDaysText;
     if(remainingDays<0)remainingDaysText="<span class='text-red-500 font-medium'>已過期</span>";
     else if(remainingDays===0)remainingDaysText="<span class='text-orange-500 font-medium'>最後1天</span>";
@@ -339,7 +340,6 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     else remainingDaysText=`${remainingDays} 天`;
     return{displayDate:formattedDate,remainingDays:remainingDaysText};
   }catch(error){
-    console.error("計算剩餘天數失敗：",error);
     return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
   }
 };
@@ -407,8 +407,7 @@ const handleDragEnd=(e)=>{
   appState.draggingItem=null;
 };
 const updateVideoCountDisplay=()=>{
-  const countNumEl=document.getElementById('video-count-num');
-  if(countNumEl)countNumEl.textContent=appState.videoList.length;
+  if(DOM.videoCountNum)DOM.videoCountNum.textContent=appState.videoList.length;
 };
 const fetchVideoListFromGAS=()=>{
   setStatus('載入影片列表中...');
@@ -438,8 +437,7 @@ const fetchVideoListFromGAS=()=>{
         renderVideoList();
       }
     },
-    error:function(xhr,status,error){
-      console.error("獲取影片列表失敗：",status,error);
+    error:function(){
       appState.videoList=[];
       updateVideoCountDisplay();
       renderViewerVideoList();
@@ -464,17 +462,15 @@ const syncVideoToGAS=(videoData,callback)=>{
       updatedAt:videoData.updatedAt
     },
     success:function(resp){
-      if(resp.status==="success"){
-        if(callback)callback(true);
-      }else{
+      if(resp.status==="success")callback(true);
+      else{
         showError(`同步影片失敗：${resp.message||'未知錯誤'}`);
-        if(callback)callback(false);
+        callback(false);
       }
     },
-    error:function(xhr,status,error){
-      console.error("同步影片失敗：",status,error);
+    error:function(xhr,status){
       showError(`同步影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
-      if(callback)callback(false);
+      callback(false);
     }
   });
 };
@@ -491,17 +487,15 @@ const deleteVideoFromGAS=(videoId,callback)=>{
       videoId:videoId
     },
     success:function(resp){
-      if(resp.status==="success"){
-        if(callback)callback(true);
-      }else{
+      if(resp.status==="success")callback(true);
+      else{
         showError(`刪除影片失敗：${resp.message||'未知錯誤'}`);
-        if(callback)callback(false);
+        callback(false);
       }
     },
-    error:function(xhr,status,error){
-      console.error("刪除影片失敗：",status,error);
+    error:function(xhr,status){
       showError(`刪除影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
-      if(callback)callback(false);
+      callback(false);
     }
   });
 };
@@ -517,36 +511,24 @@ const syncVideoListOrderToGAS=()=>{
       userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
-    },
-    success:function(resp){
-      if(resp.status!=="success")console.warn("同步影片順序失敗：",resp.message);
-    },
-    error:function(xhr,status,error){
-      console.error("同步影片順序失敗：",status,error);
     }
   });
 };
 function renderVideoList(){
-  const container=document.getElementById('video-list-container');
-  const emptyEl=document.getElementById('empty-video-list');
-  if(!container||!emptyEl)return;
-  container.innerHTML='';
+  if(!DOM.videoListContainer||!DOM.emptyVideoList)return;
+  DOM.videoListContainer.innerHTML='';
   const isManage=isManageUser();
   if(appState.videoList.length===0){
-    emptyEl.classList.remove('hidden');
-    document.getElementById('empty-tip').textContent=isManage?'點擊「新增」按鈕開始添加':'暫無可用的教學影片';
+    DOM.emptyVideoList.classList.remove('hidden');
+    DOM.emptyTip.textContent=isManage?'點擊「新增」按鈕開始添加':'暫無可用的教學影片';
     return;
   }
-  emptyEl.classList.add('hidden');
+  DOM.emptyVideoList.classList.add('hidden');
   appState.videoList.forEach((video,index)=>{
     const videoItem=document.createElement('div');
     videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
-    videoItem.onclick=(e)=>{
-      if(!e.target.closest('button')){
-        viewVideo(video.id);
-      }
-    };
+    videoItem.onclick=(e)=>{if(!e.target.closest('button'))viewVideo(video.id);};
     if(isManage){
       videoItem.setAttribute('draggable','true');
       videoItem.addEventListener('dragstart',handleDragStart);
@@ -594,45 +576,24 @@ function renderVideoList(){
         ${actionBtns}
       </div>
     `;
-    container.appendChild(videoItem);
+    DOM.videoListContainer.appendChild(videoItem);
   });
 }
 function renderViewerVideoList(){
-  const container=document.getElementById('viewer-video-list');
-  const emptyEl=document.getElementById('viewer-empty-list');
-  if(!container||!emptyEl)return;
-  container.innerHTML='';
+  if(!DOM.viewerVideoList||!DOM.viewerEmptyList)return;
+  DOM.viewerVideoList.innerHTML='';
   if(appState.videoList.length===0){
-    emptyEl.classList.remove('hidden');
+    DOM.viewerEmptyList.classList.remove('hidden');
     return;
   }
-  emptyEl.classList.add('hidden');
+  DOM.viewerEmptyList.classList.add('hidden');
   appState.videoList.forEach((video,index)=>{
     const viewerCard=document.createElement('div');
     viewerCard.className='viewer-card bg-cardBg rounded-xl overflow-hidden shadow-elevation-2 slide-up';
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名影片';
     const thumbnailUrl=getVideoThumbnail(video.video);
-    const cardContent=isProUser()?`
-      <div class="relative">
-        <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
-        <div class="absolute top-2 right-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">
-          ${index+1}
-        </div>
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-          <h3 class="text-white font-medium text-sm md:text-base truncate">${fullTitle}</h3>
-        </div>
-      </div>
-      <div class="p-3">
-        <p class="text-xs text-textSecondary mb-2"><i class="fa fa-sticky-note-o mr-1"></i>${video.note||'無備註資訊'}</p>
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-textSecondary/70"><i class="fa fa-clock-o mr-1"></i>${video.updatedAt}</span>
-          <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="watch-btn bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-            <i class="fa fa-play mr-1"></i> 立即觀看
-          </button>
-        </div>
-      </div>
-    `:`
+    viewerCard.innerHTML=`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
         <div class="absolute top-2 right-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">
@@ -652,29 +613,22 @@ function renderViewerVideoList(){
         </div>
       </div>
     `;
-    viewerCard.innerHTML=cardContent;
-    container.appendChild(viewerCard);
+    DOM.viewerVideoList.appendChild(viewerCard);
   });
 }
 function toggleVideoListSection(){
-  const viewerEl=document.getElementById('video-viewer-section');
-  const managerEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  if(editEl)editEl.classList.add('hidden');
-  if(viewerEl.classList.contains('hidden')){
-    viewerEl.classList.remove('hidden');
-    managerEl.classList.add('hidden');
+  DOM.editSection?.classList.add('hidden');
+  if(DOM.videoViewerSection.classList.contains('hidden')){
+    DOM.videoViewerSection.classList.remove('hidden');
+    DOM.videoListSection.classList.add('hidden');
   }else{
-    viewerEl.classList.add('hidden');
-    managerEl.classList.remove('hidden');
+    DOM.videoViewerSection.classList.add('hidden');
+    DOM.videoListSection.classList.remove('hidden');
   }
 }
 function renderResult(resp){
-  console.log("渲染用戶驗證結果：",resp);
-  const statusEl=document.getElementById('status');
-  const errorMsgEl=document.getElementById('error-message');
-  if(statusEl)statusEl.classList.add('hidden');
-  if(errorMsgEl)errorMsgEl.classList.add('hidden');
+  DOM.statusText?.closest('#status').classList.add('hidden');
+  DOM.errorMessage?.classList.add('hidden');
   if(!resp.isAuthorized){
     showError('未授權使用，僅管理/專業用戶可訪問');
     return;
@@ -682,7 +636,6 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 優先使用GAS返回的displayName，其次使用LIFF獲取的名稱，確保完整顯示
   const actualUserName=resp.displayName || appState.currentUser?.displayName || '未知用戶';
   appState.currentUser={
     userId:resp.userId,
@@ -691,42 +644,38 @@ function renderResult(resp){
     isPro:isPro,
     expiryDate:resp.expiryDate
   };
-  const card=document.getElementById('result-card');
-  const main=document.getElementById('result-main');
-  const details=document.getElementById('result-details');
-  if(!card||!main||!details)return;
-  const userName=actualUserName;
-  const expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
+  if(!DOM.resultCard||!DOM.resultMain||!DOM.resultDetails)return;
+  const expiryDateStr=resp.expiryDate||'';
   if(isAdmin){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
-    main.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
-    details.innerHTML=`
-      <div><i class="fa fa-user-circle text-primary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
+    DOM.resultMain.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
+    DOM.resultDetails.innerHTML=`
+      <div><i class="fa fa-user-circle text-primary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${actualUserName}</span></div>
       <div><i class="fa fa-user text-primary mr-1.5 text-xs"></i>用戶類型：<span class="font-medium">管理用戶</span></div>
       <div><i class="fa fa-calendar-check-o text-primary mr-1.5 text-xs"></i>使用期限：<span class="font-medium">${displayDate}</span></div>
       <div><i class="fa fa-clock-o text-primary mr-1.5 text-xs"></i>剩餘天數：${remainingDays}</div>
     `;
-    document.getElementById('manage-btn-container').style.display='flex';
-    document.getElementById('preview-action-btns').style.display='flex';
-    document.getElementById('preview-link-container').style.display='block';
+    DOM.manageBtnContainer.style.display='flex';
+    DOM.previewActionBtns.style.display='flex';
+    DOM.previewLinkContainer.style.display='block';
   }else if(isPro){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
-    main.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
-    details.innerHTML=`
-      <div><i class="fa fa-user-circle text-textPrimary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${userName}</span></div>
+    DOM.resultMain.innerHTML=`<span class="text-textPrimary"><i class="fa fa-user mr-2 text-sm"></i>專業用戶驗證通過</span>`;
+    DOM.resultDetails.innerHTML=`
+      <div><i class="fa fa-user-circle text-textPrimary mr-1.5 text-xs"></i>用戶名稱：<span class="font-medium">${actualUserName}</span></div>
       <div><i class="fa fa-user text-textPrimary mr-1.5 text-xs"></i>用戶類型：<span class="font-medium">專業用戶</span></div>
       <div><i class="fa fa-calendar-o text-textPrimary mr-1.5 text-xs"></i>使用期限：<span class="font-medium">${displayDate}</span></div>
       <div><i class="fa fa-clock-o text-textPrimary mr-1.5 text-xs"></i>剩餘天數：${remainingDays}</div>
     `;
-    document.getElementById('manage-btn-container').style.display='none';
-    document.getElementById('preview-action-btns').style.display='none';
-    document.getElementById('preview-link-container').style.display='none';
+    DOM.manageBtnContainer.style.display='none';
+    DOM.previewActionBtns.style.display='none';
+    DOM.previewLinkContainer.style.display='none';
   }else{
     showError('用戶權限異常，請聯繫管理員');
     return;
   }
-  card.classList.remove('hidden');
-  document.getElementById('video-viewer-section').classList.remove('hidden');
+  DOM.resultCard.classList.remove('hidden');
+  DOM.videoViewerSection.classList.remove('hidden');
   fetchVideoListFromGAS();
 }
 function addNewVideo(){
@@ -735,24 +684,15 @@ function addNewVideo(){
     return;
   }
   appState.currentEditingVideoId=null;
-  const editTitleEl=document.getElementById('edit-title');
-  const videoIdEl=document.getElementById('video-id');
-  const contentNameEl=document.getElementById('content-name');
-  const contentVideoEl=document.getElementById('content-video');
-  const contentNoteEl=document.getElementById('content-note');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增影片';
-  if(videoIdEl)videoIdEl.value='';
-  if(contentNameEl)contentNameEl.value='';
-  if(contentVideoEl)contentVideoEl.value='';
-  if(contentNoteEl)contentNoteEl.value='';
+  if(DOM.editTitle)DOM.editTitle.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增影片';
+  if(DOM.videoId)DOM.videoId.value='';
+  if(DOM.contentName)DOM.contentName.value='';
+  if(DOM.contentVideo)DOM.contentVideo.value='';
+  if(DOM.contentNote)DOM.contentNote.value='';
   setSubmitState(false);
-  if(videoListEl)videoListEl.classList.add('hidden');
-  if(editEl){
-    editEl.classList.remove('hidden');
-    editEl.scrollIntoView({behavior:'smooth'});
-  }
+  DOM.videoListSection?.classList.add('hidden');
+  DOM.editSection?.classList.remove('hidden');
+  DOM.editSection?.scrollIntoView({behavior:'smooth'});
 }
 function editVideo(videoId){
   if(appState.isSubmitting||!isManageUser()){
@@ -762,70 +702,43 @@ function editVideo(videoId){
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
   appState.currentEditingVideoId=videoId;
-  const editTitleEl=document.getElementById('edit-title');
-  const videoIdEl=document.getElementById('video-id');
-  const contentNameEl=document.getElementById('content-name');
-  const contentVideoEl=document.getElementById('content-video');
-  const contentNoteEl=document.getElementById('content-note');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 編輯影片';
-  if(videoIdEl)videoIdEl.value=video.id;
-  if(contentNameEl)contentNameEl.value=video.name;
-  if(contentVideoEl)contentVideoEl.value=video.video;
-  if(contentNoteEl)contentNoteEl.value=video.note||'';
+  if(DOM.editTitle)DOM.editTitle.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 編輯影片';
+  if(DOM.videoId)DOM.videoId.value=video.id;
+  if(DOM.contentName)DOM.contentName.value=video.name;
+  if(DOM.contentVideo)DOM.contentVideo.value=video.video;
+  if(DOM.contentNote)DOM.contentNote.value=video.note||'';
   setSubmitState(false);
-  if(videoListEl)videoListEl.classList.add('hidden');
-  if(editEl){
-    editEl.classList.remove('hidden');
-    editEl.scrollIntoView({behavior:'smooth'});
-  }
+  DOM.videoListSection?.classList.add('hidden');
+  DOM.editSection?.classList.remove('hidden');
+  DOM.editSection?.scrollIntoView({behavior:'smooth'});
 }
 function hideEditSection(){
-  const editEl=document.getElementById('edit-section');
-  const videoListEl=document.getElementById('video-list-section');
-  if(editEl)editEl.classList.add('hidden');
-  if(videoListEl){
-    videoListEl.classList.remove('hidden');
-    videoListEl.scrollIntoView({behavior:'smooth'});
-  }
+  DOM.editSection?.classList.add('hidden');
+  DOM.videoListSection?.classList.remove('hidden');
+  DOM.videoListSection?.scrollIntoView({behavior:'smooth'});
 }
 function viewVideo(videoId){
   if(appState.isSubmitting)return;
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
   appState.currentViewingVideoId=videoId;
-  const videoViewerEl=document.getElementById('video-viewer-section');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  const videoPreviewEl=document.getElementById('video-preview');
-  const videoLoadingEl=document.getElementById('video-loading');
-  const previewTitleEl=document.getElementById('preview-title');
-  const previewLinkEl=document.getElementById('preview-link');
-  const previewUpdatedEl=document.getElementById('preview-updated');
-  const previewNoteEl=document.getElementById('preview-note');
-  const previewVideoEl=document.getElementById('preview-video');
-  if(videoViewerEl)videoViewerEl.classList.add('hidden');
-  if(videoListEl)videoListEl.classList.add('hidden');
-  if(editEl)editEl.classList.add('hidden');
-  if(videoPreviewEl)videoPreviewEl.classList.remove('hidden');
-  if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
-  if(previewTitleEl)previewTitleEl.textContent=video.name;
-  if(previewLinkEl)previewLinkEl.textContent=video.video;
-  if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
-  if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
+  DOM.videoViewerSection?.classList.add('hidden');
+  DOM.videoListSection?.classList.add('hidden');
+  DOM.editSection?.classList.add('hidden');
+  DOM.videoPreview?.classList.remove('hidden');
+  DOM.videoLoading?.classList.remove('hidden');
+  if(DOM.previewTitle)DOM.previewTitle.textContent=video.name;
+  if(DOM.previewLink)DOM.previewLink.textContent=video.video;
+  if(DOM.previewUpdated)DOM.previewUpdated.textContent=video.updatedAt||'未同步';
+  if(DOM.previewNote)DOM.previewNote.textContent=video.note||'無備註資訊';
   const embedUrl=convertToEmbedUrl(video.video);
-  if(previewVideoEl)previewVideoEl.src=embedUrl;
-  if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
+  if(DOM.previewVideo)DOM.previewVideo.src=embedUrl;
+  DOM.videoPreview?.scrollIntoView({behavior:'smooth'});
 }
 function hideVideoPreview(){
-  const videoPreviewEl=document.getElementById('video-preview');
-  const videoViewerEl=document.getElementById('video-viewer-section');
-  if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
-  if(videoViewerEl){
-    videoViewerEl.classList.remove('hidden');
-    videoViewerEl.scrollIntoView({behavior:'smooth'});
-  }
+  DOM.videoPreview?.classList.add('hidden');
+  DOM.videoViewerSection?.classList.remove('hidden');
+  DOM.videoViewerSection?.scrollIntoView({behavior:'smooth'});
 }
 function editCurrentVideo(){
   if(!isManageUser()){
@@ -850,7 +763,7 @@ function deleteVideo(videoId){
       updateVideoCountDisplay();
       if(appState.currentViewingVideoId===videoId){
         appState.currentViewingVideoId=null;
-        document.getElementById('video-preview').classList.add('hidden');
+        DOM.videoPreview?.classList.add('hidden');
       }
       renderVideoList();
       renderViewerVideoList();
@@ -864,8 +777,7 @@ function deleteCurrentVideo(){
     showError('僅管理用戶可刪除影片');
     return;
   }
-  if(!appState.currentViewingVideoId)return;
-  deleteVideoConfirm(appState.currentViewingVideoId);
+  if(appState.currentViewingVideoId)deleteVideoConfirm(appState.currentViewingVideoId);
 }
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
@@ -883,7 +795,6 @@ function copyVideoLink(){
       showSuccess('影片連結已成功複製到剪貼簿！');
     });
   }catch(e){
-    console.error('複製連結失敗：',e);
     showError('複製連結失敗，請手動複製');
   }
 }
@@ -897,10 +808,10 @@ function saveVideo(event){
     showError('用戶信息不存在，請重新驗證');
     return;
   }
-  const videoId=document.getElementById('video-id').value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
-  const videoName=document.getElementById('content-name').value.trim();
-  const videoUrl=document.getElementById('content-video').value.trim();
-  const videoNote=document.getElementById('content-note').value.trim();
+  const videoId=DOM.videoId?.value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
+  const videoName=DOM.contentName?.value.trim()||'';
+  const videoUrl=DOM.contentVideo?.value.trim()||'';
+  const videoNote=DOM.contentNote?.value.trim()||'';
   if(!validateVideoUrl(videoUrl)){
     showError('請輸入有效的 YouTube 或 Vimeo 影片連結');
     return;
@@ -928,43 +839,32 @@ function saveVideo(event){
     setSubmitState(false);
   });
 }
-function getProfileAndVerify(){
+function fastVerifyUser(){
   setStatus('驗證使用者資訊...');
   try{
-    // 優先使用新版LIFF API獲取用戶資訊
-    liff.getProfile().then(profile => {
-      console.log("從 LIFF API 獲取用戶資訊：",profile);
-      const userId=profile.userId;
-      // 完整保留LINE返回的暱稱，不做默認替換
-      const displayName=profile.displayName || '未知用戶';
+    // 優先使用本地ID Token（無網絡請求，最快）
+    const idToken=liff.getDecodedIDToken();
+    if(idToken){
+      const userId=idToken.sub;
+      const displayName=idToken.nickname?.trim() || idToken.name?.trim() || 'LINE用戶';
       appState.currentUser={userId:userId,displayName:displayName};
       callGasBackend(userId,displayName,true);
-    }).catch(err=>{
-      console.warn("LIFF getProfile 失敗，嘗試 ID Token：",err);
-      // 備用方案：從ID Token獲取
-      try{
-        const idToken=liff.getDecodedIDToken();
-        if(idToken){
-          console.log("ID Token 內容：",idToken);
-          const userId=idToken.sub;
-          // 優先使用nickname，其次是name/given_name，完整保留原始名稱
-          const displayName=idToken.nickname || idToken.name || idToken.given_name || '未知用戶';
-          appState.currentUser={userId:userId,displayName:displayName};
-          callGasBackend(userId,displayName,true);
-          return;
-        }
-      }catch(idErr){
-        console.error("從 ID Token 獲取信息失敗：",idErr);
-        showError('無法獲取使用者名稱，請確保LIFF已授權profile權限');
-      }
+      return;
+    }
+    // 備用方案：快速獲取Profile（減少錯誤處理，加快執行）
+    liff.getProfile().then(profile => {
+      const userId=profile.userId;
+      const displayName=profile.displayName?.trim() || 'LINE用戶';
+      appState.currentUser={userId:userId,displayName:displayName};
+      callGasBackend(userId,displayName,true);
+    }).catch(()=>{
+      showError('無法獲取使用者資訊，請重新授權');
     });
   }catch(err){
-    console.error("獲取使用者資料失敗：",err);
     showError('取得使用者資料失敗：'+err.message);
   }
 }
 function callGasBackend(userId,displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
   $.ajax({
     url:CONFIG.GAS_URL,
     dataType:'jsonp',
@@ -978,19 +878,13 @@ function callGasBackend(userId,displayName,writeToSheet=false){
       writeToSheet:writeToSheet
     },
     success:function(resp){
-      console.log("GAS 驗證回應：",resp);
-      if(resp.status==="error")showError(resp.message);
-      else{
-        resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
-        resp.isAdmin=Boolean(resp.isAdmin);
-        resp.isPro=Boolean(resp.isPro);
-        // 保留GAS返回的displayName，確保一致性
-        resp.displayName=resp.displayName || displayName;
-        renderResult(resp);
-      }
+      resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
+      resp.isAdmin=Boolean(resp.isAdmin);
+      resp.isPro=Boolean(resp.isPro);
+      resp.displayName=resp.displayName || displayName;
+      renderResult(resp);
     },
-    error:function(xhr,status,error){
-      console.error("GAS 請求錯誤：",status,error);
+    error:function(xhr,status){
       let errorMsg='與伺服器通訊失敗';
       if(status==='timeout')errorMsg='請求超時，請檢查網絡連接';
       else if(status==='parsererror')errorMsg='數據解析錯誤';
@@ -999,20 +893,13 @@ function callGasBackend(userId,displayName,writeToSheet=false){
   });
 }
 document.addEventListener('DOMContentLoaded',function(){
-  console.log("頁面加載完成，初始化系統");
   setStatus('正在初始化系統，請稍候...');
-  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid','offline_access']},{disableRedirect:false})
+  // 優化LIFF初始化：禁用多餘重定向，加快初始化
+  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid']},{disableRedirect:false})
   .then(()=>{
-    console.log("LIFF 初始化成功");
-    if(!liff.isLoggedIn()){
-      console.log("用戶未登錄，跳轉登錄");
-      liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
-    }else{
-      console.log("用戶已登錄，開始驗證信息");
-      getProfileAndVerify();
-    }
+    if(!liff.isLoggedIn())liff.login({scope:['profile','openid'],redirectUri:window.location.href});
+    else fastVerifyUser();
   }).catch(err=>{
-    console.error("LIFF 初始化失敗：",err);
     showError('系統初始化失敗：'+err.message);
   });
 });
