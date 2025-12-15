@@ -682,7 +682,6 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 修正：優先顯示LIFF獲取的原始暱稱
   const userName=appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'未知用戶';
   appState.currentUser={
     ...appState.currentUser,
@@ -929,7 +928,7 @@ function getProfileAndVerify(){
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
           const userId=profile.userId;
-          const displayName=profile.displayName.trim()||'未知用戶';
+          const displayName=(profile.displayName||'').trim()||'未知用戶';
           appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
           callGasBackend(userId,displayName,true);
         },
@@ -950,8 +949,7 @@ function getProfileAndVerify(){
       if(idToken){
         console.log("ID Token 內容：",idToken);
         const userId=idToken.sub;
-        let displayName=idToken.nickname||idToken.name||idToken.preferred_username||(idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'';
-        displayName=displayName.trim()||'未知用戶';
+        const displayName=(idToken.name||'').trim()||'未知用戶';
         appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
         callGasBackend(userId,displayName,true);
         return;
@@ -959,19 +957,23 @@ function getProfileAndVerify(){
     }catch(err){
       console.warn("從 ID Token 獲取信息失敗，嘗試舊版 getProfile()：",err);
     }
-    liff.getProfile().then(profile=>{
-      console.log("舊版 API 獲取用戶信息：",profile);
-      const displayName=profile.displayName.trim()||'未知用戶';
-      appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
-      callGasBackend(profile.userId,displayName,true);
-    }).catch(err=>{
-      console.error("獲取使用者資料失敗：",err);
-      let errorMsg='取得使用者資料失敗：'+err.message;
-      if(err.message.includes('permission is not in LIFF app scope')){
-        errorMsg+='<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
-      }
-      showError(errorMsg);
-    });
+    if(liff.getProfile){
+      liff.getProfile().then(profile=>{
+        console.log("舊版 API 獲取用戶信息：",profile);
+        const displayName=(profile.displayName||'').trim()||'未知用戶';
+        appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
+        callGasBackend(profile.userId,displayName,true);
+      }).catch(err=>{
+        console.error("獲取使用者資料失敗：",err);
+        let errorMsg='取得使用者資料失敗：'+err.message;
+        if(err.message.includes('permission is not in LIFF app scope')){
+          errorMsg+='<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
+        }
+        showError(errorMsg);
+      });
+    }else{
+      showError('當前 LIFF 版本不支援獲取用戶信息，請升級或檢查配置');
+    }
   }
 }
 function callGasBackend(userId,displayName,writeToSheet=false){
@@ -1010,12 +1012,12 @@ function callGasBackend(userId,displayName,writeToSheet=false){
 document.addEventListener('DOMContentLoaded',function(){
   console.log("頁面加載完成，初始化系統");
   setStatus('正在初始化系統，請稍候...');
-  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid','offline_access']},{disableRedirect:false})
+  liff.init({liffId:CONFIG.LIFF_ID,scope:['openid','offline_access']},{disableRedirect:false})
   .then(()=>{
     console.log("LIFF 初始化成功");
     if(!liff.isLoggedIn()){
       console.log("用戶未登錄，跳轉登錄");
-      liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
+      liff.login({scope:['openid','offline_access'],redirectUri:window.location.href});
     }else{
       console.log("用戶已登錄，開始驗證信息");
       getProfileAndVerify();
