@@ -682,7 +682,8 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  const actualUserName=resp.displayName||appState.currentUser?.displayName||'未知用戶';
+  // 修正：優先使用GAS返回的displayName，確保顯示正確的用戶名
+  const actualUserName=resp.displayName || appState.currentUser?.displayName || '未知用戶';
   appState.currentUser={
     userId:resp.userId,
     displayName:actualUserName,
@@ -938,7 +939,8 @@ function getProfileAndVerify(){
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
           const userId=profile.userId;
-          const displayName=(profile.displayName||'').trim()||'未知用戶';
+          // 修正：確保displayName不為空，並且正確處理空白字元
+          const displayName=(profile.displayName || '').trim() || `用戶_${userId.slice(-4)}`;
           appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
         },
@@ -959,9 +961,15 @@ function getProfileAndVerify(){
       if(idToken){
         console.log("ID Token 內容：",idToken);
         const userId=idToken.sub;
-        let displayName=idToken.nickname||idToken.name||idToken.preferred_username||
-        (idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'未知用戶';
-        displayName=displayName.trim()||'未知用戶';
+        // 修正：優化ID Token中用戶名稱的提取邏輯，確保不會返回未知用戶
+        let displayName = '';
+        if (idToken.nickname) displayName = idToken.nickname.trim();
+        else if (idToken.name) displayName = idToken.name.trim();
+        else if (idToken.given_name || idToken.family_name) {
+          displayName = `${idToken.given_name || ''} ${idToken.family_name || ''}`.trim();
+        }
+        // 如果所有欄位都為空，使用UserID尾碼生成用戶名
+        displayName = displayName || `用戶_${userId.slice(-4)}`;
         appState.currentUser={userId:userId,displayName:displayName};
         callGasBackend(userId,displayName,true);
         return;
@@ -971,7 +979,8 @@ function getProfileAndVerify(){
     }
     liff.getProfile().then(profile=>{
       console.log("舊版 API 獲取用戶信息：",profile);
-      const displayName=(profile.displayName||'').trim()||'未知用戶';
+      // 修正：確保displayName不為空
+      const displayName=(profile.displayName || '').trim() || `用戶_${profile.userId.slice(-4)}`;
       appState.currentUser={userId:profile.userId,displayName:displayName};
       callGasBackend(profile.userId,displayName,true);
     }).catch(err=>{
@@ -1005,7 +1014,8 @@ function callGasBackend(userId,displayName,writeToSheet=false){
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
         resp.isAdmin=Boolean(resp.isAdmin);
         resp.isPro=Boolean(resp.isPro);
-        resp.displayName=displayName;
+        // 修正：保留GAS返回的displayName，確保顯示正確
+        resp.displayName = resp.displayName || displayName;
         renderResult(resp);
       }
     },
