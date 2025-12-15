@@ -51,7 +51,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       <div class="inline-flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full mb-2 pulse-subtle">
         <i class="fa fa-film text-2xl text-accent"></i>
       </div>
-      <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-wide">🎬 彥彬 翻轉人生</h1>
+      <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-wide"> 🎬 彥彬 翻轉人生 </h1>
       <p class="text-white/90 text-sm md:text-base font-light">幸福系統</p>
     </div>
   </div>
@@ -456,7 +456,7 @@ const syncVideoToGAS=(videoData,callback)=>{
     data:{
       action:'saveVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.displayName||'',
       videoId:videoData.id,
       name:videoData.name,
       video:videoData.video,
@@ -487,7 +487,7 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     data:{
       action:'deleteVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.displayName||'',
       videoId:videoId
     },
     success:function(resp){
@@ -515,7 +515,7 @@ const syncVideoListOrderToGAS=()=>{
     data:{
       action:'updateVideoOrder',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
     },
     success:function(resp){
@@ -682,9 +682,11 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  const userName=appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'未知用戶';
+  // 優先使用GAS返回的displayName，其次使用LIFF獲取的名稱
+  const actualUserName=resp.displayName || appState.currentUser?.displayName || '未知用戶';
   appState.currentUser={
-    ...appState.currentUser,
+    userId:resp.userId,
+    displayName:actualUserName,
     isAdmin:isAdmin,
     isPro:isPro,
     expiryDate:resp.expiryDate
@@ -693,6 +695,7 @@ function renderResult(resp){
   const main=document.getElementById('result-main');
   const details=document.getElementById('result-details');
   if(!card||!main||!details)return;
+  const userName=actualUserName;
   const expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
   if(isAdmin){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
@@ -856,6 +859,14 @@ function deleteVideo(videoId){
     setSubmitState(false);
   });
 }
+function deleteCurrentVideo(){
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除影片');
+    return;
+  }
+  if(!appState.currentViewingVideoId)return;
+  deleteVideoConfirm(appState.currentViewingVideoId);
+}
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
   if(!video)return;
@@ -920,60 +931,36 @@ function saveVideo(event){
 function getProfileAndVerify(){
   setStatus('驗證使用者資訊...');
   try{
-    const accessToken=liff.getAccessToken();
-    if(accessToken){
-      $.ajax({
-        url:'https://api.line.me/v2/profile',
-        headers:{'Authorization':`Bearer ${accessToken}`},
-        success:function(profile){
-          console.log("從 LINE API 獲取用戶資訊：",profile);
-          const userId=profile.userId;
-          const displayName=(profile.displayName||'').trim()||'未知用戶';
-          appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
+    // 優先使用新版LIFF API獲取用戶資訊
+    liff.getProfile().then(profile => {
+      console.log("從 LIFF API 獲取用戶資訊：",profile);
+      const userId=profile.userId;
+      // 直接使用LIFF返回的displayName，不再默認為未知用戶
+      const displayName=profile.displayName?.trim() || 'LINE用戶';
+      appState.currentUser={userId:userId,displayName:displayName};
+      callGasBackend(userId,displayName,true);
+    }).catch(err=>{
+      console.warn("LIFF getProfile 失敗，嘗試 ID Token：",err);
+      // 備用方案：從ID Token獲取
+      try{
+        const idToken=liff.getDecodedIDToken();
+        if(idToken){
+          console.log("ID Token 內容：",idToken);
+          const userId=idToken.sub;
+          // 優先使用nickname，其次是name，確保顯示真實名稱
+          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || idToken.given_name || 'LINE用戶';
+          appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
-        },
-        error:function(err){
-          console.warn("LINE API 獲取失敗，嘗試 ID Token：",err);
-          fallbackToIdToken();
+          return;
         }
-      });
-      return;
-    }
-  }catch(err){
-    console.warn("獲取 access token 失敗：",err);
-    fallbackToIdToken();
-  }
-  function fallbackToIdToken(){
-    try{
-      const idToken=liff.getDecodedIDToken();
-      if(idToken){
-        console.log("ID Token 內容：",idToken);
-        const userId=idToken.sub;
-        const displayName=(idToken.name||'').trim()||'未知用戶';
-        appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
-        callGasBackend(userId,displayName,true);
-        return;
+      }catch(idErr){
+        console.error("從 ID Token 獲取信息失敗：",idErr);
+        showError('無法獲取使用者名稱，請確保LIFF已授權profile權限');
       }
-    }catch(err){
-      console.warn("從 ID Token 獲取信息失敗，嘗試舊版 getProfile()：",err);
-    }
-    if(liff.getProfile){
-      liff.getProfile().then(profile=>{
-        console.log("舊版 API 獲取用戶信息：",profile);
-        const displayName=(profile.displayName||'').trim()||'未知用戶';
-        appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
-        callGasBackend(profile.userId,displayName,true);
-      }).catch(err=>{
-        console.error("獲取使用者資料失敗：",err);
-        let errorMsg='取得使用者資料失敗：'+err.message;
-        if(err.message.includes('permission is not in LIFF app scope')){
-          errorMsg+='<br/><br/><strong>解決方案：</strong><br/>1. 登錄 LINE Developers 後台<br/>2. 進入對應 LIFF 應用編輯頁面<br/>3. 勾選 Scope 中的 profile、openid、email 權限<br/>4. Access token grant type 選擇 ID token + Access token<br/>5. 保存後等待5-10分鐘再測試';
-        }
-        showError(errorMsg);
-      });
-    }else{
-      showError('當前 LIFF 版本不支援獲取用戶信息，請升級或檢查配置');
-    }
+    });
+  }catch(err){
+    console.error("獲取使用者資料失敗：",err);
+    showError('取得使用者資料失敗：'+err.message);
   }
 }
 function callGasBackend(userId,displayName,writeToSheet=false){
@@ -997,6 +984,8 @@ function callGasBackend(userId,displayName,writeToSheet=false){
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
         resp.isAdmin=Boolean(resp.isAdmin);
         resp.isPro=Boolean(resp.isPro);
+        // 保留GAS返回的displayName，確保一致性
+        resp.displayName=resp.displayName || displayName;
         renderResult(resp);
       }
     },
@@ -1012,12 +1001,12 @@ function callGasBackend(userId,displayName,writeToSheet=false){
 document.addEventListener('DOMContentLoaded',function(){
   console.log("頁面加載完成，初始化系統");
   setStatus('正在初始化系統，請稍候...');
-  liff.init({liffId:CONFIG.LIFF_ID,scope:['openid','offline_access']},{disableRedirect:false})
+  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid','offline_access']},{disableRedirect:false})
   .then(()=>{
     console.log("LIFF 初始化成功");
     if(!liff.isLoggedIn()){
       console.log("用戶未登錄，跳轉登錄");
-      liff.login({scope:['openid','offline_access'],redirectUri:window.location.href});
+      liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
     }else{
       console.log("用戶已登錄，開始驗證信息");
       getProfileAndVerify();
