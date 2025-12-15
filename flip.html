@@ -933,7 +933,7 @@ function getProfileAndVerify(){
     liff.getProfile().then(profile => {
       console.log("從 LIFF API 獲取用戶資訊：",profile);
       const userId=profile.userId;
-      const displayName=profile.displayName?.trim() || '未設定顯示名稱';
+      const displayName=profile.displayName || '未設定顯示名稱'; // 核心修改：移除trim避免誤判
       appState.currentUser={userId:userId,displayName:displayName};
       callGasBackend(userId,displayName,true);
     }).catch(err=>{
@@ -943,7 +943,7 @@ function getProfileAndVerify(){
         if(idToken){
           console.log("ID Token 內容：",idToken);
           const userId=idToken.sub;
-          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || '未設定顯示名稱';
+          const displayName=idToken.nickname || idToken.name || '未設定顯示名稱'; // 核心修改：移除trim避免誤判
           appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
           return;
