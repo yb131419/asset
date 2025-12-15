@@ -230,7 +230,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 const CONFIG={LIFF_ID:"2008578880-XCYH8lpf",GAS_URL:"https://script.google.com/macros/s/AKfycbyVtlgh9kTff-znBgzK0ph1mrspcfTauqrqKck5DPcVG0k0wP_opYCAG3Kfh1VS9oh86A/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
 const convertUTCToTaiwanTime=(utcStr)=>{
-  if(!utcStr) return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if(!utcStr)return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const date=new Date(utcStr);
   return date.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 };
@@ -682,7 +682,7 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 優先使用GAS返回的displayName，其次使用LIFF獲取的名稱
+  // 優先使用GAS返回的displayName，其次使用LIFF獲取的名稱，確保完整顯示
   const actualUserName=resp.displayName || appState.currentUser?.displayName || '未知用戶';
   appState.currentUser={
     userId:resp.userId,
@@ -935,8 +935,8 @@ function getProfileAndVerify(){
     liff.getProfile().then(profile => {
       console.log("從 LIFF API 獲取用戶資訊：",profile);
       const userId=profile.userId;
-      // 直接使用LIFF返回的displayName，不再默認為未知用戶
-      const displayName=profile.displayName?.trim() || 'LINE用戶';
+      // 完整保留LINE返回的暱稱，不做默認替換
+      const displayName=profile.displayName || '未知用戶';
       appState.currentUser={userId:userId,displayName:displayName};
       callGasBackend(userId,displayName,true);
     }).catch(err=>{
@@ -947,8 +947,8 @@ function getProfileAndVerify(){
         if(idToken){
           console.log("ID Token 內容：",idToken);
           const userId=idToken.sub;
-          // 優先使用nickname，其次是name，確保顯示真實名稱
-          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || idToken.given_name || 'LINE用戶';
+          // 優先使用nickname，其次是name/given_name，完整保留原始名稱
+          const displayName=idToken.nickname || idToken.name || idToken.given_name || '未知用戶';
           appState.currentUser={userId:userId,displayName:displayName};
           callGasBackend(userId,displayName,true);
           return;
