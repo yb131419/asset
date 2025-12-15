@@ -230,7 +230,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 const CONFIG={LIFF_ID:"2008578880-XCYH8lpf",GAS_URL:"https://script.google.com/macros/s/AKfycbyVtlgh9kTff-znBgzK0ph1mrspcfTauqrqKck5DPcVG0k0wP_opYCAG3Kfh1VS9oh86A/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
 let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
 const convertUTCToTaiwanTime=(utcStr)=>{
-  if(!utcStr) return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  if(!utcStr)return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const date=new Date(utcStr);
   return date.toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 };
@@ -455,7 +455,6 @@ const syncVideoToGAS=(videoData,callback)=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'saveVideo',
-      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoData.id,
       name:videoData.name,
@@ -486,7 +485,6 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'deleteVideo',
-      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoId
     },
@@ -514,7 +512,6 @@ const syncVideoListOrderToGAS=()=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'updateVideoOrder',
-      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
     },
@@ -682,12 +679,10 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  // 优先使用原始昵称，清洗后的作为备用
   const actualUserName=resp.originalDisplayName||resp.displayName||appState.currentUser?.displayName;
   appState.currentUser={
-    userId:resp.userId,
-    originalDisplayName:resp.originalDisplayName||actualUserName, // 保存原始昵称
-    displayName:resp.displayName||actualUserName, // 保留清洗后昵称（备用）
+    originalDisplayName:resp.originalDisplayName||actualUserName,
+    displayName:resp.displayName||actualUserName,
     isAdmin:isAdmin,
     isPro:isPro,
     expiryDate:resp.expiryDate
@@ -860,14 +855,6 @@ function deleteVideo(videoId){
     setSubmitState(false);
   });
 }
-function deleteCurrentVideo(){
-  if(!isManageUser()){
-    showError('僅管理用戶可刪除影片');
-    return;
-  }
-  if(!appState.currentViewingVideoId)return;
-  deleteVideoConfirm(appState.currentViewingVideoId);
-}
 function copyVideoLink(){
   const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
   if(!video)return;
@@ -939,10 +926,9 @@ function getProfileAndVerify(){
         headers:{'Authorization':`Bearer ${accessToken}`},
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
-          const userId=profile.userId;
           const displayName=profile.displayName.trim();
-          appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
-          callGasBackend(userId,displayName,true);
+          appState.currentUser={originalDisplayName:displayName,displayName:displayName};
+          callGasBackend(displayName,true);
         },
         error:function(err){
           console.warn("LINE API 獲取失敗，嘗試 ID Token：",err);
@@ -960,11 +946,10 @@ function getProfileAndVerify(){
       const idToken=liff.getDecodedIDToken();
       if(idToken){
         console.log("ID Token 內容：",idToken);
-        const userId=idToken.sub;
         let displayName=idToken.nickname||idToken.name||idToken.preferred_username||(idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'';
         displayName=displayName.trim();
-        appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
-        callGasBackend(userId,displayName,true);
+        appState.currentUser={originalDisplayName:displayName,displayName:displayName};
+        callGasBackend(displayName,true);
         return;
       }
     }catch(err){
@@ -973,8 +958,8 @@ function getProfileAndVerify(){
     liff.getProfile().then(profile=>{
       console.log("舊版 API 獲取用戶信息：",profile);
       const displayName=profile.displayName.trim();
-      appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
-      callGasBackend(profile.userId,displayName,true);
+      appState.currentUser={originalDisplayName:displayName,displayName:displayName};
+      callGasBackend(displayName,true);
     }).catch(err=>{
       console.error("獲取使用者資料失敗：",err);
       let errorMsg='取得使用者資料失敗：'+err.message;
@@ -985,15 +970,14 @@ function getProfileAndVerify(){
     });
   }
 }
-function callGasBackend(userId,displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
+function callGasBackend(displayName,writeToSheet=false){
+  console.log("調用 GAS 驗證用戶：",{displayName,writeToSheet});
   $.ajax({
     url:CONFIG.GAS_URL,
     dataType:'jsonp',
     jsonp:'callback',
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
-      userId:userId,
       displayName:displayName,
       action:'verifyUser',
       needExpiryDate:true,
