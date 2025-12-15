@@ -455,6 +455,7 @@ const syncVideoToGAS=(videoData,callback)=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'saveVideo',
+      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoData.id,
       name:videoData.name,
@@ -485,6 +486,7 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'deleteVideo',
+      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoId
     },
@@ -512,6 +514,7 @@ const syncVideoListOrderToGAS=()=>{
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
       action:'updateVideoOrder',
+      userId:appState.currentUser?.userId||'',
       displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
     },
@@ -679,10 +682,11 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  const actualUserName=resp.originalDisplayName||resp.displayName||appState.currentUser?.displayName;
+  const actualUserName=resp.originalDisplayName||resp.displayName||appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'用戶';
   appState.currentUser={
-    originalDisplayName:resp.originalDisplayName||actualUserName,
-    displayName:resp.displayName||actualUserName,
+    userId:resp.userId,
+    originalDisplayName:actualUserName,
+    displayName:actualUserName,
     isAdmin:isAdmin,
     isPro:isPro,
     expiryDate:resp.expiryDate
@@ -926,9 +930,10 @@ function getProfileAndVerify(){
         headers:{'Authorization':`Bearer ${accessToken}`},
         success:function(profile){
           console.log("從 LINE API 獲取用戶資訊：",profile);
+          const userId=profile.userId;
           const displayName=profile.displayName.trim();
-          appState.currentUser={originalDisplayName:displayName,displayName:displayName};
-          callGasBackend(displayName,true);
+          appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
+          callGasBackend(userId,displayName,true);
         },
         error:function(err){
           console.warn("LINE API 獲取失敗，嘗試 ID Token：",err);
@@ -946,10 +951,11 @@ function getProfileAndVerify(){
       const idToken=liff.getDecodedIDToken();
       if(idToken){
         console.log("ID Token 內容：",idToken);
+        const userId=idToken.sub;
         let displayName=idToken.nickname||idToken.name||idToken.preferred_username||(idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'';
         displayName=displayName.trim();
-        appState.currentUser={originalDisplayName:displayName,displayName:displayName};
-        callGasBackend(displayName,true);
+        appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
+        callGasBackend(userId,displayName,true);
         return;
       }
     }catch(err){
@@ -958,8 +964,8 @@ function getProfileAndVerify(){
     liff.getProfile().then(profile=>{
       console.log("舊版 API 獲取用戶信息：",profile);
       const displayName=profile.displayName.trim();
-      appState.currentUser={originalDisplayName:displayName,displayName:displayName};
-      callGasBackend(displayName,true);
+      appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
+      callGasBackend(profile.userId,displayName,true);
     }).catch(err=>{
       console.error("獲取使用者資料失敗：",err);
       let errorMsg='取得使用者資料失敗：'+err.message;
@@ -970,14 +976,15 @@ function getProfileAndVerify(){
     });
   }
 }
-function callGasBackend(displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶：",{displayName,writeToSheet});
+function callGasBackend(userId,displayName,writeToSheet=false){
+  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
   $.ajax({
     url:CONFIG.GAS_URL,
     dataType:'jsonp',
     jsonp:'callback',
     timeout:CONFIG.JSONP_TIMEOUT,
     data:{
+      userId:userId,
       displayName:displayName,
       action:'verifyUser',
       needExpiryDate:true,
