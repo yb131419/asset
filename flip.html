@@ -456,7 +456,7 @@ const syncVideoToGAS=(videoData,callback)=>{
     data:{
       action:'saveVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoData.id,
       name:videoData.name,
       video:videoData.video,
@@ -487,7 +487,7 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     data:{
       action:'deleteVideo',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoId:videoId
     },
     success:function(resp){
@@ -515,7 +515,7 @@ const syncVideoListOrderToGAS=()=>{
     data:{
       action:'updateVideoOrder',
       userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
+      displayName:appState.currentUser?.originalDisplayName||appState.currentUser?.displayName||'',
       videoIds:JSON.stringify(videoIds)
     },
     success:function(resp){
@@ -682,10 +682,12 @@ function renderResult(resp){
   const isAdmin=Boolean(resp.isAdmin);
   const isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
-  const actualUserName=resp.displayName||appState.currentUser?.displayName;
+  // 优先使用原始昵称，清洗后的作为备用
+  const actualUserName=resp.originalDisplayName||resp.displayName||appState.currentUser?.displayName;
   appState.currentUser={
     userId:resp.userId,
-    displayName:actualUserName,
+    originalDisplayName:resp.originalDisplayName||actualUserName, // 保存原始昵称
+    displayName:resp.displayName||actualUserName, // 保留清洗后昵称（备用）
     isAdmin:isAdmin,
     isPro:isPro,
     expiryDate:resp.expiryDate
@@ -939,7 +941,7 @@ function getProfileAndVerify(){
           console.log("從 LINE API 獲取用戶資訊：",profile);
           const userId=profile.userId;
           const displayName=profile.displayName.trim();
-          appState.currentUser={userId:userId,displayName:displayName};
+          appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
           callGasBackend(userId,displayName,true);
         },
         error:function(err){
@@ -961,7 +963,7 @@ function getProfileAndVerify(){
         const userId=idToken.sub;
         let displayName=idToken.nickname||idToken.name||idToken.preferred_username||(idToken.given_name?(idToken.given_name+(idToken.family_name?' '+idToken.family_name:'')):'')||'';
         displayName=displayName.trim();
-        appState.currentUser={userId:userId,displayName:displayName};
+        appState.currentUser={userId:userId,originalDisplayName:displayName,displayName:displayName};
         callGasBackend(userId,displayName,true);
         return;
       }
@@ -971,7 +973,7 @@ function getProfileAndVerify(){
     liff.getProfile().then(profile=>{
       console.log("舊版 API 獲取用戶信息：",profile);
       const displayName=profile.displayName.trim();
-      appState.currentUser={userId:profile.userId,displayName:displayName};
+      appState.currentUser={userId:profile.userId,originalDisplayName:displayName,displayName:displayName};
       callGasBackend(profile.userId,displayName,true);
     }).catch(err=>{
       console.error("獲取使用者資料失敗：",err);
@@ -1004,7 +1006,6 @@ function callGasBackend(userId,displayName,writeToSheet=false){
         resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
         resp.isAdmin=Boolean(resp.isAdmin);
         resp.isPro=Boolean(resp.isPro);
-        resp.displayName=displayName;
         renderResult(resp);
       }
     },
