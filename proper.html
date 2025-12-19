@@ -25,12 +25,14 @@ tailwind.config={theme:{extend:{colors:{primary:'#008C76',secondary:'#E8F9F7',ac
 body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
 .audio-container{position:relative;height:120px;border-radius:8px;background-color:#E8F9F7;border:1px solid #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin-bottom:16px;}
-.local-video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
-.local-video-container video{position:absolute;top:0;left:0;width:100%;height:100%;border:0;object-fit:contain;}
+.document-container{position:relative;padding-bottom:150%;height:0;overflow:hidden;border-radius:8px;background-color:#F1F5F9;border:1px solid #CBD5E1;min-height:300px;}
 .audio-player{width:100%;height:48px;margin-top:10px;}
 .link-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
-.video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
-.video-container iframe.loaded{opacity:1;}
+.upload-container{position:relative;height:100px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.3s ease;}
+.upload-container:hover{background-color:#E8F9F7;}
+.upload-input{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.video-container iframe,.document-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
+.video-container iframe.loaded,.document-container iframe.loaded{opacity:1;}
 .btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
 .video-item{transition:all 0.2s ease;cursor:grab;}
 .video-item:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.08);}
@@ -51,6 +53,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .link-card-btn{background:#008C76;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
 .link-card-btn:hover{background:#007A69;}
 .audio-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
+.document-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
+.upload-info{font-size:12px;color:#64748B;margin-top:8px;}
+.file-name-tag{display:inline-block;padding:2px 8px;background-color:#E8F9F7;color:#008C76;border-radius:4px;font-size:12px;margin-top:8px;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -146,6 +151,8 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       </div>
       <form id="content-form" onsubmit="saveVideo(event)">
         <input type="hidden" id="video-id" value="">
+        <input type="hidden" id="file-type" value="">
+        <input type="hidden" id="file-name" value="">
         <div class="space-y-3">
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
@@ -153,13 +160,28 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             </label>
             <input type="text" id="content-name" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="請輸入內容名稱" required>
           </div>
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-upload text-primary mr-2 text-xs"></i> 上傳文件 (優先於網址)
+            </label>
+            <div id="upload-container" class="upload-container">
+              <i class="fa fa-cloud-upload text-2xl text-primary mb-2"></i>
+              <p class="text-sm text-textPrimary">點擊或拖動文件到此區域上傳</p>
+              <p class="upload-info">支援音頻、視頻、PDF、文檔等格式</p>
+              <input type="file" id="content-file" class="upload-input" accept="audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
+            </div>
+            <div id="uploaded-file-info" class="hidden">
+              <span class="file-name-tag" id="uploaded-file-name"></span>
+              <button type="button" onclick="clearUploadedFile()" class="text-xs text-red-500 ml-2 hover:underline">移除</button>
+            </div>
+          </div>
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
-              <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 連結網址 <span class="text-red-500">*</span>
+              <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 連結網址 (選填，文件上傳後無需填寫)
             </label>
-            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（影片/音訊/文件/網頁連結等）" required>
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（影片/音訊/網頁連結等）">
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、MP4/MP3/PDF 等檔案及普通網頁任意合法網址
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、音訊檔、普通網頁等任意合法網址
             </p>
           </div>
           <div class="space-y-1">
@@ -207,11 +229,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <p class="text-xs">載入影片中...</p>
             </div>
             <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); const el = document.getElementById('video-loading'); if(el) el.classList.add('hidden');"></iframe>
-          </div>
-          <div id="local-video-container" class="local-video-container mb-3 hidden">
-            <video id="preview-local-video" controls controlsList="nodownload" class="w-full h-full">
+            <video id="preview-local-video" class="absolute w-full h-full object-contain hidden" controls controlsList="nodownload">
               <source id="local-video-source" src="" type="video/mp4">
-              您的瀏覽器不支援該影片格式播放
+              您的瀏覽器不支援視頻播放
             </video>
           </div>
           <div id="audio-container" class="audio-container mb-3 hidden">
@@ -222,6 +242,13 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               您的瀏覽器不支援音訊播放
             </audio>
           </div>
+          <div id="document-container" class="document-container mb-3 hidden">
+            <div id="document-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
+              <i class="fa fa-spinner animate-spin text-xl text-primary mb-1"></i>
+              <p class="text-xs text-textPrimary">載入文檔中...</p>
+            </div>
+            <iframe id="preview-document" src="" onload="this.classList.add('loaded'); const el = document.getElementById('document-loading'); if(el) el.classList.add('hidden');"></iframe>
+          </div>
           <div id="link-container" class="link-container hidden">
             <i id="link-icon" class="link-card-icon"></i>
             <h3 id="link-title" class="link-card-title"></h3>
@@ -230,12 +257,20 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <i class="fa fa-external-link mr-2"></i> 開啟連結
             </a>
           </div>
+          <div id="file-download-container" class="hidden bg-neutral rounded-lg p-4 text-center mb-3">
+            <i class="fa fa-file document-card-icon"></i>
+            <h3 class="link-card-title" id="file-download-title"></h3>
+            <p class="link-card-desc" id="file-download-desc"></p>
+            <a id="file-download-btn" href="" download target="_blank" class="link-card-btn">
+              <i class="fa fa-download mr-2"></i> 下載/查看文件
+            </a>
+          </div>
         </div>
         <div class="bg-neutral rounded-lg p-3 text-xs md:text-sm text-textSecondary">
           <div class="grid grid-cols-1 gap-2 mb-2">
             <div id="preview-link-container" class="block">
               <div class="flex items-center justify-between">
-                <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 連結網址：</span>
+                <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 資源來源：</span>
                 <button onclick="copyVideoLink()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium">
                   <i class="fa fa-copy text-sm"></i> 複製
                 </button>
@@ -263,7 +298,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 </div>
 <script>
 const CONFIG={LIFF_ID:"2008578880-kzWN1hOE",GAS_URL:"https://script.google.com/macros/s/AKfycbyzLwZHrJaDH-QqAqvqpFLvttidgDcyeehwYgyIyMTMUbYmZEom9YhTs3HUX0sPppNh/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
-let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
+let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:'',uploadedFile:null,uploadedFileBlobUrl:''};
 const convertUTCToTaiwanTime=(utcStr)=>{
   if(!utcStr)return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const date=new Date(utcStr);
@@ -323,15 +358,34 @@ const setSubmitState=(isSubmitting)=>{
   }
 };
 const resetSubmitState=()=>{setSubmitState(false);};
+const getFileCategory=(fileType,fileName)=>{
+  if(!fileType&&!fileName)return 'unknown';
+  const lowerType=fileType?fileType.toLowerCase():'';
+  const lowerName=fileName?fileName.toLowerCase():'';
+  if(lowerType.includes('audio')||lowerName.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/))return 'audio';
+  if(lowerType.includes('video')||lowerName.match(/\.(mp4|webm|avi|mov|mkv|flv)$/))return 'video';
+  if(lowerName.endsWith('.pdf'))return 'pdf';
+  if(lowerName.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/))return 'office';
+  if(lowerName.endsWith('.txt'))return 'text';
+  if(lowerType.includes('youtube')||lowerName.includes('youtube')||lowerType.includes('youtu.be'))return 'youtube';
+  if(lowerType.includes('vimeo'))return 'vimeo';
+  if(lowerType.includes('tencent_meeting')||lowerName.includes('meeting.tencent.com'))return 'tencent_meeting';
+  return 'general';
+};
 const getUrlType=(url)=>{
   if(!url)return 'unknown';
   const lowerUrl=url.toLowerCase().trim();
+  if(lowerUrl.startsWith('blob:')){
+    const videoId=appState.videoList.find(v=>v.video===url);
+    if(videoId)return getFileCategory(videoId.fileType,videoId.fileName);
+    return 'blob';
+  }
   if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be'))return 'youtube';
   else if(lowerUrl.includes('vimeo.com'))return 'vimeo';
   else if(lowerUrl.includes('meeting.tencent.com'))return 'tencent_meeting';
-  else if(lowerUrl.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma|amr)$/))return 'audio';
-  else if(lowerUrl.match(/\.(mp4|mov|avi|flv|mkv|webm|wmv)$/))return 'video_file';
-  else if(lowerUrl.match(/\.(pdf|doc|docx|ppt|pptx|xls|xlsx|txt|csv|rtf)$/))return 'document';
+  else if(lowerUrl.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/))return 'audio';
+  else if(lowerUrl.match(/\.(mp4|webm|avi|mov|mkv|flv)$/))return 'video';
+  else if(lowerUrl.match(/\.pdf$/))return 'pdf';
   else return 'general';
 };
 const convertToEmbedUrl=(url)=>{
@@ -347,12 +401,15 @@ const convertToEmbedUrl=(url)=>{
     const vimeoRegex=/vimeo\.com\/(\d+)/;
     const vimeoMatch=url.match(vimeoRegex);
     if(vimeoMatch&&vimeoMatch[1])return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
+  }else if(urlType==='pdf'){
+    return url;
   }
   return '';
 };
 const validateVideoUrl=(url)=>{
+  if(!url)return true;
   try{new URL(url);return true;}
-  catch(e){return false;}
+  catch(e){return url.startsWith('blob:');}
 };
 const calculateRemainingDaysByDate=(expiryDateStr)=>{
   try{
@@ -392,8 +449,19 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
   }
 };
-const getVideoThumbnail=(url)=>{
+const getVideoThumbnail=(url,fileType,fileName)=>{
   if(!url)return 'https://via.placeholder.com/300x180?text=No+Preview';
+  if(url.startsWith('blob:')){
+    const fileCat=getFileCategory(fileType,fileName);
+    switch(fileCat){
+      case 'audio':return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
+      case 'video':return 'https://via.placeholder.com/300x180?text=本地影片&bgcolor=e8f9f7&color=008c76';
+      case 'pdf':return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f1f5f9&color=008c76';
+      case 'office':return 'https://via.placeholder.com/300x180?text=辦公文檔&bgcolor=f1f5f9&color=64748b';
+      case 'text':return 'https://via.placeholder.com/300x180?text=文本文件&bgcolor=f1f5f9&color=64748b';
+      default:return 'https://via.placeholder.com/300x180?text=本地文件&bgcolor=f1f5f9&color=64748b';
+    }
+  }
   const urlType=getUrlType(url);
   switch(urlType){
     case 'youtube':
@@ -401,18 +469,12 @@ const getVideoThumbnail=(url)=>{
       const youtubeMatch=url.match(youtubeRegex);
       if(youtubeMatch&&youtubeMatch[1])return `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`;
       break;
-    case 'vimeo':
-      return 'https://via.placeholder.com/300x180?text=Vimeo';
-    case 'tencent_meeting':
-      return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
-    case 'audio':
-      return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
-    case 'video_file':
-      return 'https://via.placeholder.com/300x180?text=影片檔&bgcolor=0f172a&color=ffffff';
-    case 'document':
-      return 'https://via.placeholder.com/300x180?text=文件檔&bgcolor=f1f5f9&color=64748b';
-    default:
-      return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
+    case 'vimeo':return 'https://via.placeholder.com/300x180?text=Vimeo';
+    case 'tencent_meeting':return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
+    case 'audio':return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
+    case 'video':return 'https://via.placeholder.com/300x180?text=遠端影片&bgcolor=e8f9f7&color=008c76';
+    case 'pdf':return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f1f5f9&color=008c76';
+    default:return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
   }
   return 'https://via.placeholder.com/300x180?text=Link';
 };
@@ -469,6 +531,28 @@ const handleDragEnd=(e)=>{
   document.querySelectorAll('.video-item').forEach(item=>item.classList.remove('drop-zone'));
   appState.draggingItem=null;
 };
+const handleFileUpload=(e)=>{
+  const files=e.target.files||e.dataTransfer.files;
+  if(!files||files.length===0)return;
+  const file=files[0];
+  appState.uploadedFile=file;
+  const blobUrl=URL.createObjectURL(file);
+  appState.uploadedFileBlobUrl=blobUrl;
+  document.getElementById('file-type').value=file.type;
+  document.getElementById('file-name').value=file.name;
+  document.getElementById('uploaded-file-name').textContent=file.name;
+  document.getElementById('uploaded-file-info').classList.remove('hidden');
+  document.getElementById('content-video').value='';
+};
+const clearUploadedFile=()=>{
+  if(appState.uploadedFileBlobUrl)URL.revokeObjectURL(appState.uploadedFileBlobUrl);
+  appState.uploadedFile=null;
+  appState.uploadedFileBlobUrl='';
+  document.getElementById('content-file').value='';
+  document.getElementById('file-type').value='';
+  document.getElementById('file-name').value='';
+  document.getElementById('uploaded-file-info').classList.add('hidden');
+};
 const updateVideoCountDisplay=()=>{
   const countNumEl=document.getElementById('video-count-num');
   if(countNumEl)countNumEl.textContent=appState.videoList.length;
@@ -488,7 +572,9 @@ const fetchVideoListFromGAS=()=>{
           name:v.name||'',
           video:v.video||'',
           note:v.note||'',
-          updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString())
+          updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString()),
+          fileType:v.fileType||'',
+          fileName:v.fileName||''
         })).filter(v=>v.video&&v.id);
         updateVideoCountDisplay();
         renderViewerVideoList();
@@ -524,7 +610,9 @@ const syncVideoToGAS=(videoData,callback)=>{
       name:videoData.name,
       video:videoData.video,
       note:videoData.note,
-      updatedAt:videoData.updatedAt
+      updatedAt:videoData.updatedAt,
+      fileType:videoData.fileType||'',
+      fileName:videoData.fileName||''
     },
     success:function(resp){
       if(resp.status==="success"){
@@ -555,6 +643,8 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     },
     success:function(resp){
       if(resp.status==="success"){
+        const video=appState.videoList.find(v=>v.id===videoId);
+        if(video&&video.video.startsWith('blob:'))URL.revokeObjectURL(video.video);
         if(callback)callback(true);
       }else{
         showError(`刪除內容失敗：${resp.message||'未知錯誤'}`);
@@ -619,8 +709,8 @@ function renderVideoList(){
       videoItem.addEventListener('dragend',handleDragEnd);
     }
     const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
-    const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
-    const thumbnailUrl=getVideoThumbnail(video.video).replace('300x180','80x50');
+    const shortLink=video.fileName?video.fileName:(video.video.length>35?`${video.video.substring(0,35)}...`:video.video);
+    const thumbnailUrl=getVideoThumbnail(video.video,video.fileType,video.fileName).replace('300x180','80x50');
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽內容">
@@ -675,7 +765,7 @@ function renderViewerVideoList(){
     viewerCard.className='viewer-card bg-cardBg rounded-xl overflow-hidden shadow-elevation-2 slide-up';
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名內容';
-    const thumbnailUrl=getVideoThumbnail(video.video);
+    const thumbnailUrl=getVideoThumbnail(video.video,video.fileType,video.fileName);
     const cardContent=`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
@@ -783,6 +873,7 @@ function addNewVideo(){
   const contentNoteEl=document.getElementById('content-note');
   const videoListEl=document.getElementById('video-list-section');
   const editEl=document.getElementById('edit-section');
+  clearUploadedFile();
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增內容';
   if(videoIdEl)videoIdEl.value='';
   if(contentNameEl)contentNameEl.value='';
@@ -808,13 +899,24 @@ function editVideo(videoId){
   const contentNameEl=document.getElementById('content-name');
   const contentVideoEl=document.getElementById('content-video');
   const contentNoteEl=document.getElementById('content-note');
+  const fileTypeEl=document.getElementById('file-type');
+  const fileNameEl=document.getElementById('file-name');
+  const uploadedFileInfoEl=document.getElementById('uploaded-file-info');
+  const uploadedFileNameEl=document.getElementById('uploaded-file-name');
   const videoListEl=document.getElementById('video-list-section');
   const editEl=document.getElementById('edit-section');
+  clearUploadedFile();
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 編輯內容';
   if(videoIdEl)videoIdEl.value=video.id;
   if(contentNameEl)contentNameEl.value=video.name;
   if(contentVideoEl)contentVideoEl.value=video.video;
   if(contentNoteEl)contentNoteEl.value=video.note||'';
+  if(fileTypeEl)fileTypeEl.value=video.fileType||'';
+  if(fileNameEl)fileNameEl.value=video.fileName||'';
+  if(video.fileName){
+    uploadedFileNameEl.textContent=video.fileName;
+    uploadedFileInfoEl.classList.remove('hidden');
+  }
   setSubmitState(false);
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl){
@@ -825,12 +927,14 @@ function editVideo(videoId){
 function hideEditSection(){
   const editEl=document.getElementById('edit-section');
   const videoListEl=document.getElementById('video-list-section');
+  clearUploadedFile();
   if(editEl)editEl.classList.add('hidden');
   if(videoListEl){
     videoListEl.classList.remove('hidden');
     videoListEl.scrollIntoView({behavior:'smooth'});
   }
 }
+
 function viewVideo(videoId){
   if(appState.isSubmitting)return;
   const video=appState.videoList.find(v=>v.id===videoId);
@@ -1016,7 +1120,7 @@ function saveVideo(event){
     note:videoNote,
     updatedAt:convertUTCToTaiwanTime(new Date().toISOString())
   };
-  
+
   syncVideoToGAS(videoData,(success)=>{
     if(success){
       const videoIndex=appState.videoList.findIndex(v=>v.id===videoId);
