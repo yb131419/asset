@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>彥彬📘免費資料領取 </title>
+  <title> 彥彬📘幸福系統申請 </title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -44,7 +44,8 @@
     }
     input[type="text"],
     input[type="email"],
-    input[type="tel"] {
+    input[type="tel"],
+    select {
       width: 100%;
       padding: 10px 14px;
       border-radius: 8px;
@@ -57,13 +58,22 @@
     }
     input[type="text"]:focus,
     input[type="email"]:focus,
-    input[type="tel"]:focus {
+    input[type="tel"]:focus,
+    select:focus {
       background: #3a3a3a;
       outline: none;
     }
     input[readonly] {
       opacity: 0.7;
       cursor: not-allowed;
+    }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      cursor: pointer;
     }
     button {
       width: 100%;
@@ -86,12 +96,21 @@
 </head>
 <body>
   <main>
-    <h2>彥彬📘 資料填寫 <br> 免費調整方案 <br> 用戶填寫後 <br>『LINE發送文件』</h2>
+    <h2>彥彬📘 幸福系統申請 <br> 『下拉選擇選項』 <br> 送出填寫 <br>『LINE發送文件通知』</h2>
 
     <form id="infoForm">
       <input type="hidden" id="pageId" name="pageId" value="調整方案" />
       <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
+
+      <!-- 新增方案類型下拉選項 -->
+      <label for="planType">方案類型</label>
+      <select id="planType" name="planType" required>
+        <option value="">請選擇方案類型</option>
+        <option value="輕鬆經營">輕鬆經營</option>
+        <option value="食療方案">食療方案</option>
+        <option value="幸福系統">幸福系統</option>
+      </select>
 
       <label for="name">姓名</label>
       <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
@@ -141,11 +160,8 @@
 
     function handleResponse(response) {
       if (response.status === "success") {
-        alert("✅ 資料已成功送出！\n會用Line贈送免費調整方案！");
-        document.getElementById('userId').value = "";
-        document.getElementById('name').value = "";
-        document.getElementById('phone').value = "";
-        document.getElementById('email').value = "";
+        alert("✅ 資料已成功送出！\n會用Line通知！");
+        document.getElementById('infoForm').reset(); // 重置整個表單更便捷
       } else {
         alert("❌ 發生錯誤：" + response.message);
       }
@@ -156,6 +172,7 @@
         pageId: document.getElementById('pageId').value,
         date: document.getElementById('date').value,
         lineId: document.getElementById('lineId').value,
+        planType: document.getElementById('planType').value, // 新增方案類型欄位
         userId: document.getElementById('userId').value,
         name: document.getElementById('name').value,
         phone: document.getElementById('phone').value,
