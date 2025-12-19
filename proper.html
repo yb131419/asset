@@ -25,14 +25,11 @@ tailwind.config={theme:{extend:{colors:{primary:'#008C76',secondary:'#E8F9F7',ac
 body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
 .audio-container{position:relative;height:120px;border-radius:8px;background-color:#E8F9F7;border:1px solid #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;margin-bottom:16px;}
-.document-container{position:relative;padding-bottom:150%;height:0;overflow:hidden;border-radius:8px;background-color:#F1F5F9;border:1px solid #CBD5E1;min-height:300px;}
+.pdf-container{position:relative;padding-bottom:141.4%;height:0;overflow:hidden;border-radius:8px;background-color:#F9FAFB;border:1px solid #E2E8F0;min-height:400px;}
 .audio-player{width:100%;height:48px;margin-top:10px;}
 .link-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
-.upload-container{position:relative;height:100px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.3s ease;}
-.upload-container:hover{background-color:#E8F9F7;}
-.upload-input{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
-.video-container iframe,.document-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
-.video-container iframe.loaded,.document-container iframe.loaded{opacity:1;}
+.video-container iframe,.pdf-container embed,.pdf-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
+.video-container iframe.loaded,.pdf-container embed.loaded,.pdf-container iframe.loaded{opacity:1;}
 .btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
 .video-item{transition:all 0.2s ease;cursor:grab;}
 .video-item:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.08);}
@@ -53,9 +50,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .link-card-btn{background:#008C76;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
 .link-card-btn:hover{background:#007A69;}
 .audio-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
-.document-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
-.upload-info{font-size:12px;color:#64748B;margin-top:8px;}
-.file-name-tag{display:inline-block;padding:2px 8px;background-color:#E8F9F7;color:#008C76;border-radius:4px;font-size:12px;margin-top:8px;}
+.file-upload-wrapper{position:relative;width:100%;height:48px;border-radius:8px;border:2px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s ease;}
+.file-upload-wrapper:hover{border-color:#008C76;background-color:#E8F9F7;}
+.file-upload-input{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.file-upload-text{text-align:center;color:#64748B;font-size:14px;}
+.file-upload-text .fa{color:#008C76;margin-right:8px;}
+.pdf-loading{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#64748B;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -152,7 +152,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
       <form id="content-form" onsubmit="saveVideo(event)">
         <input type="hidden" id="video-id" value="">
         <input type="hidden" id="file-type" value="">
-        <input type="hidden" id="file-name" value="">
+        <input type="hidden" id="blob-url" value="">
         <div class="space-y-3">
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
@@ -160,31 +160,40 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             </label>
             <input type="text" id="content-name" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="請輸入內容名稱" required>
           </div>
-          <div class="space-y-2">
-            <label class="block text-textPrimary font-medium text-xs md:text-sm">
-              <i class="fa fa-upload text-primary mr-2 text-xs"></i> 上傳文件 (優先於網址)
-            </label>
-            <!-- ✅ 修复：给上传容器绑定拖拽事件 -->
-            <div id="upload-container" class="upload-container" ondragover="handleDragOverUpload(event)" ondrop="handleDropUpload(event)" ondragleave="handleDragLeaveUpload(event)">
-              <i class="fa fa-cloud-upload text-2xl text-primary mb-2"></i>
-              <p class="text-sm text-textPrimary">點擊或拖動文件到此區域上傳</p>
-              <p class="upload-info">支援音頻、視頻、PDF、文檔等格式</p>
-              <!-- ✅ 修复：给文件输入框绑定change事件 -->
-              <input type="file" id="content-file" class="upload-input" accept="audio/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" onchange="handleFileUpload(event)">
-            </div>
-            <div id="uploaded-file-info" class="hidden">
-              <span class="file-name-tag" id="uploaded-file-name"></span>
-              <button type="button" onclick="clearUploadedFile()" class="text-xs text-red-500 ml-2 hover:underline">移除</button>
-            </div>
-          </div>
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
-              <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 連結網址 (選填，文件上傳後無需填寫)
+              <i class="fa fa-link text-primary mr-2 text-xs"></i> 網址/文件選擇 <span class="text-red-500">*</span>
             </label>
-            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（影片/音訊/網頁連結等）">
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="輸入網址（影片/音訊/PDF/網頁）" >
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、音訊檔、普通網頁等任意合法網址
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 或選擇本地文件（音訊/PDF）
             </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+              <div>
+                <label class="block text-textPrimary font-medium text-xs md:text-sm mb-1">
+                  <i class="fa fa-volume-up text-primary mr-2 text-xs"></i> 上傳音訊檔
+                </label>
+                <div class="file-upload-wrapper">
+                  <input type="file" id="audio-upload" class="file-upload-input" accept="audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/flac">
+                  <div class="file-upload-text">
+                    <i class="fa fa-cloud-upload"></i> 點擊選擇音訊文件
+                  </div>
+                </div>
+                <p id="audio-upload-tip" class="text-xs text-textSecondary mt-1 hidden"></p>
+              </div>
+              <div>
+                <label class="block text-textPrimary font-medium text-xs md:text-sm mb-1">
+                  <i class="fa fa-file-pdf-o text-primary mr-2 text-xs"></i> 上傳PDF檔
+                </label>
+                <div class="file-upload-wrapper">
+                  <input type="file" id="pdf-upload" class="file-upload-input" accept=".pdf">
+                  <div class="file-upload-text">
+                    <i class="fa fa-cloud-upload"></i> 點擊選擇PDF文件
+                  </div>
+                </div>
+                <p id="pdf-upload-tip" class="text-xs text-textSecondary mt-1 hidden"></p>
+              </div>
+            </div>
           </div>
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
@@ -231,11 +240,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <p class="text-xs">載入影片中...</p>
             </div>
             <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); const el = document.getElementById('video-loading'); if(el) el.classList.add('hidden');"></iframe>
-            <!-- ✅ 修复：统一本地视频容器ID，与预览逻辑匹配 -->
-            <video id="preview-local-video" class="absolute w-full h-full object-contain hidden" controls controlsList="nodownload">
-              <source id="local-video-source" src="" type="video/mp4">
-              您的瀏覽器不支援視頻播放
-            </video>
           </div>
           <div id="audio-container" class="audio-container mb-3 hidden">
             <i class="fa fa-volume-up audio-card-icon"></i>
@@ -245,12 +249,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               您的瀏覽器不支援音訊播放
             </audio>
           </div>
-          <div id="document-container" class="document-container mb-3 hidden">
-            <div id="document-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80">
-              <i class="fa fa-spinner animate-spin text-xl text-primary mb-1"></i>
-              <p class="text-xs text-textPrimary">載入文檔中...</p>
+          <div id="pdf-container" class="pdf-container mb-3 hidden">
+            <div id="pdf-loading" class="pdf-loading">
+              <i class="fa fa-spinner animate-spin text-xl mb-1"></i>
+              <p class="text-xs">載入PDF中...</p>
             </div>
-            <iframe id="preview-document" src="" onload="this.classList.add('loaded'); const el = document.getElementById('document-loading'); if(el) el.classList.add('hidden');"></iframe>
+            <embed id="preview-pdf" src="" type="application/pdf" onload="this.classList.add('loaded'); const el = document.getElementById('pdf-loading'); if(el) el.classList.add('hidden');" />
           </div>
           <div id="link-container" class="link-container hidden">
             <i id="link-icon" class="link-card-icon"></i>
@@ -260,20 +264,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <i class="fa fa-external-link mr-2"></i> 開啟連結
             </a>
           </div>
-          <div id="file-download-container" class="hidden bg-neutral rounded-lg p-4 text-center mb-3">
-            <i class="fa fa-file document-card-icon"></i>
-            <h3 class="link-card-title" id="file-download-title"></h3>
-            <p class="link-card-desc" id="file-download-desc"></p>
-            <a id="file-download-btn" href="" download target="_blank" class="link-card-btn">
-              <i class="fa fa-download mr-2"></i> 下載/查看文件
-            </a>
-          </div>
         </div>
         <div class="bg-neutral rounded-lg p-3 text-xs md:text-sm text-textSecondary">
           <div class="grid grid-cols-1 gap-2 mb-2">
             <div id="preview-link-container" class="block">
               <div class="flex items-center justify-between">
-                <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 資源來源：</span>
+                <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 來源：</span>
                 <button onclick="copyVideoLink()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium">
                   <i class="fa fa-copy text-sm"></i> 複製
                 </button>
@@ -301,7 +297,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 </div>
 <script>
 const CONFIG={LIFF_ID:"2008578880-kzWN1hOE",GAS_URL:"https://script.google.com/macros/s/AKfycbyzLwZHrJaDH-QqAqvqpFLvttidgDcyeehwYgyIyMTMUbYmZEom9YhTs3HUX0sPppNh/exec",JSONP_TIMEOUT:20000,PERMANENT_EXPIRY_DATE:"9999/12/31",STORAGE_KEY_PREFIX:"yanbin_video_manager_"};
-let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:'',uploadedFile:null,uploadedFileBlobUrl:''};
+let appState={currentUser:null,videoList:[],currentViewingVideoId:null,currentEditingVideoId:null,isSubmitting:false,draggingItem:null,userRole:''};
 const convertUTCToTaiwanTime=(utcStr)=>{
   if(!utcStr)return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const date=new Date(utcStr);
@@ -361,35 +357,17 @@ const setSubmitState=(isSubmitting)=>{
   }
 };
 const resetSubmitState=()=>{setSubmitState(false);};
-const getFileCategory=(fileType,fileName)=>{
-  if(!fileType&&!fileName)return 'unknown';
-  const lowerType=fileType?fileType.toLowerCase():'';
-  const lowerName=fileName?fileName.toLowerCase():'';
-  if(lowerType.includes('audio')||lowerName.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/))return 'audio';
-  if(lowerType.includes('video')||lowerName.match(/\.(mp4|webm|avi|mov|mkv|flv)$/))return 'video';
-  if(lowerName.endsWith('.pdf'))return 'pdf';
-  if(lowerName.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/))return 'office';
-  if(lowerName.endsWith('.txt'))return 'text';
-  if(lowerType.includes('youtube')||lowerName.includes('youtube')||lowerType.includes('youtu.be'))return 'youtube';
-  if(lowerType.includes('vimeo'))return 'vimeo';
-  if(lowerType.includes('tencent_meeting')||lowerName.includes('meeting.tencent.com'))return 'tencent_meeting';
-  return 'general';
-};
 const getUrlType=(url)=>{
   if(!url)return 'unknown';
   const lowerUrl=url.toLowerCase().trim();
-  if(url.startsWith('blob:')){
-    const videoId=appState.videoList.find(v=>v.video===url);
-    if(videoId)return getFileCategory(videoId.fileType,videoId.fileName);
-    return 'blob';
-  }
+  if(lowerUrl.includes('blob:')&&lowerUrl.includes('audio'))return 'audio';
+  if(lowerUrl.includes('blob:')&&lowerUrl.includes('pdf'))return 'pdf';
   if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be'))return 'youtube';
-  else if(lowerUrl.includes('vimeo.com'))return 'vimeo';
-  else if(lowerUrl.includes('meeting.tencent.com'))return 'tencent_meeting';
-  else if(lowerUrl.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/))return 'audio';
-  else if(lowerUrl.match(/\.(mp4|webm|avi|mov|mkv|flv)$/))return 'video';
-  else if(lowerUrl.match(/\.pdf$/))return 'pdf';
-  else return 'general';
+  if(lowerUrl.includes('vimeo.com'))return 'vimeo';
+  if(lowerUrl.includes('meeting.tencent.com'))return 'tencent_meeting';
+  if(lowerUrl.match(/\.(mp3|wav|ogg|m4a|flac|aac|wma)$/))return 'audio';
+  if(lowerUrl.match(/\.(pdf)$/))return 'pdf';
+  return 'general';
 };
 const convertToEmbedUrl=(url)=>{
   const urlType=getUrlType(url);
@@ -404,15 +382,13 @@ const convertToEmbedUrl=(url)=>{
     const vimeoRegex=/vimeo\.com\/(\d+)/;
     const vimeoMatch=url.match(vimeoRegex);
     if(vimeoMatch&&vimeoMatch[1])return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
-  }else if(urlType==='pdf'){
-    return url;
   }
   return '';
 };
 const validateVideoUrl=(url)=>{
-  if(!url)return true;
+  if(url.startsWith('blob:'))return true;
   try{new URL(url);return true;}
-  catch(e){return url.startsWith('blob:');}
+  catch(e){return false;}
 };
 const calculateRemainingDaysByDate=(expiryDateStr)=>{
   try{
@@ -452,19 +428,8 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
   }
 };
-const getVideoThumbnail=(url,fileType,fileName)=>{
+const getVideoThumbnail=(url)=>{
   if(!url)return 'https://via.placeholder.com/300x180?text=No+Preview';
-  if(url.startsWith('blob:')){
-    const fileCat=getFileCategory(fileType,fileName);
-    switch(fileCat){
-      case 'audio':return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
-      case 'video':return 'https://via.placeholder.com/300x180?text=本地影片&bgcolor=e8f9f7&color=008c76';
-      case 'pdf':return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f1f5f9&color=008c76';
-      case 'office':return 'https://via.placeholder.com/300x180?text=辦公文檔&bgcolor=f1f5f9&color=64748b';
-      case 'text':return 'https://via.placeholder.com/300x180?text=文本文件&bgcolor=f1f5f9&color=64748b';
-      default:return 'https://via.placeholder.com/300x180?text=本地文件&bgcolor=f1f5f9&color=64748b';
-    }
-  }
   const urlType=getUrlType(url);
   switch(urlType){
     case 'youtube':
@@ -472,12 +437,16 @@ const getVideoThumbnail=(url,fileType,fileName)=>{
       const youtubeMatch=url.match(youtubeRegex);
       if(youtubeMatch&&youtubeMatch[1])return `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`;
       break;
-    case 'vimeo':return 'https://via.placeholder.com/300x180?text=Vimeo';
-    case 'tencent_meeting':return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
-    case 'audio':return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
-    case 'video':return 'https://via.placeholder.com/300x180?text=遠端影片&bgcolor=e8f9f7&color=008c76';
-    case 'pdf':return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f1f5f9&color=008c76';
-    default:return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
+    case 'vimeo':
+      return 'https://via.placeholder.com/300x180?text=Vimeo';
+    case 'tencent_meeting':
+      return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
+    case 'audio':
+      return 'https://via.placeholder.com/300x180?text=音訊檔&bgcolor=e8f9f7&color=008c76';
+    case 'pdf':
+      return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f1f5f9&color=64748b';
+    default:
+      return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
   }
   return 'https://via.placeholder.com/300x180?text=Link';
 };
@@ -534,41 +503,6 @@ const handleDragEnd=(e)=>{
   document.querySelectorAll('.video-item').forEach(item=>item.classList.remove('drop-zone'));
   appState.draggingItem=null;
 };
-const handleFileUpload=(e)=>{
-  const files=e.target.files||e.dataTransfer.files;
-  if(!files||files.length===0)return;
-  const file=files[0];
-  appState.uploadedFile=file;
-  const blobUrl=URL.createObjectURL(file);
-  appState.uploadedFileBlobUrl=blobUrl;
-  document.getElementById('file-type').value=file.type;
-  document.getElementById('file-name').value=file.name;
-  document.getElementById('uploaded-file-name').textContent=file.name;
-  document.getElementById('uploaded-file-info').classList.remove('hidden');
-  document.getElementById('content-video').value=''; // 上传文件后清空网址输入框
-};
-// ✅ 修复：新增上传容器的拖拽事件处理函数
-const handleDragOverUpload=(e)=>{
-  e.preventDefault();
-  e.currentTarget.classList.add('drop-zone');
-};
-const handleDragLeaveUpload=(e)=>{
-  e.currentTarget.classList.remove('drop-zone');
-};
-const handleDropUpload=(e)=>{
-  e.preventDefault();
-  e.currentTarget.classList.remove('drop-zone');
-  handleFileUpload(e); // 复用文件上传逻辑
-};
-const clearUploadedFile=()=>{
-  if(appState.uploadedFileBlobUrl)URL.revokeObjectURL(appState.uploadedFileBlobUrl);
-  appState.uploadedFile=null;
-  appState.uploadedFileBlobUrl='';
-  document.getElementById('content-file').value='';
-  document.getElementById('file-type').value='';
-  document.getElementById('file-name').value='';
-  document.getElementById('uploaded-file-info').classList.add('hidden');
-};
 const updateVideoCountDisplay=()=>{
   const countNumEl=document.getElementById('video-count-num');
   if(countNumEl)countNumEl.textContent=appState.videoList.length;
@@ -588,9 +522,7 @@ const fetchVideoListFromGAS=()=>{
           name:v.name||'',
           video:v.video||'',
           note:v.note||'',
-          updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString()),
-          fileType:v.fileType||'',
-          fileName:v.fileName||''
+          updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString())
         })).filter(v=>v.video&&v.id);
         updateVideoCountDisplay();
         renderViewerVideoList();
@@ -626,9 +558,7 @@ const syncVideoToGAS=(videoData,callback)=>{
       name:videoData.name,
       video:videoData.video,
       note:videoData.note,
-      updatedAt:videoData.updatedAt,
-      fileType:videoData.fileType||'',
-      fileName:videoData.fileName||''
+      updatedAt:videoData.updatedAt
     },
     success:function(resp){
       if(resp.status==="success"){
@@ -659,8 +589,6 @@ const deleteVideoFromGAS=(videoId,callback)=>{
     },
     success:function(resp){
       if(resp.status==="success"){
-        const video=appState.videoList.find(v=>v.id===videoId);
-        if(video&&video.video.startsWith('blob:'))URL.revokeObjectURL(video.video);
         if(callback)callback(true);
       }else{
         showError(`刪除內容失敗：${resp.message||'未知錯誤'}`);
@@ -725,8 +653,8 @@ function renderVideoList(){
       videoItem.addEventListener('dragend',handleDragEnd);
     }
     const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
-    const shortLink=video.fileName?video.fileName:(video.video.length>35?`${video.video.substring(0,35)}...`:video.video);
-    const thumbnailUrl=getVideoThumbnail(video.video,video.fileType,video.fileName).replace('300x180','80x50');
+    const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
+    const thumbnailUrl=getVideoThumbnail(video.video).replace('300x180','80x50');
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽內容">
@@ -781,7 +709,7 @@ function renderViewerVideoList(){
     viewerCard.className='viewer-card bg-cardBg rounded-xl overflow-hidden shadow-elevation-2 slide-up';
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名內容';
-    const thumbnailUrl=getVideoThumbnail(video.video,video.fileType,video.fileName);
+    const thumbnailUrl=getVideoThumbnail(video.video);
     const cardContent=`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
@@ -887,14 +815,25 @@ function addNewVideo(){
   const contentNameEl=document.getElementById('content-name');
   const contentVideoEl=document.getElementById('content-video');
   const contentNoteEl=document.getElementById('content-note');
+  const audioUploadEl=document.getElementById('audio-upload');
+  const pdfUploadEl=document.getElementById('pdf-upload');
+  const audioUploadTipEl=document.getElementById('audio-upload-tip');
+  const pdfUploadTipEl=document.getElementById('pdf-upload-tip');
+  const fileTypeEl=document.getElementById('file-type');
+  const blobUrlEl=document.getElementById('blob-url');
   const videoListEl=document.getElementById('video-list-section');
   const editEl=document.getElementById('edit-section');
-  clearUploadedFile();
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增內容';
   if(videoIdEl)videoIdEl.value='';
   if(contentNameEl)contentNameEl.value='';
   if(contentVideoEl)contentVideoEl.value='';
   if(contentNoteEl)contentNoteEl.value='';
+  if(audioUploadEl)audioUploadEl.value='';
+  if(pdfUploadEl)pdfUploadEl.value='';
+  if(audioUploadTipEl)audioUploadTipEl.classList.add('hidden');
+  if(pdfUploadTipEl)pdfUploadTipEl.classList.add('hidden');
+  if(fileTypeEl)fileTypeEl.value='';
+  if(blobUrlEl)blobUrlEl.value='';
   setSubmitState(false);
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl){
@@ -915,36 +854,25 @@ function editVideo(videoId){
   const contentNameEl=document.getElementById('content-name');
   const contentVideoEl=document.getElementById('content-video');
   const contentNoteEl=document.getElementById('content-note');
+  const audioUploadEl=document.getElementById('audio-upload');
+  const pdfUploadEl=document.getElementById('pdf-upload');
+  const audioUploadTipEl=document.getElementById('audio-upload-tip');
+  const pdfUploadTipEl=document.getElementById('pdf-upload-tip');
   const fileTypeEl=document.getElementById('file-type');
-  const fileNameEl=document.getElementById('file-name');
-  const uploadedFileInfoEl=document.getElementById('uploaded-file-info');
-  const uploadedFileNameEl=document.getElementById('uploaded-file-name');
+  const blobUrlEl=document.getElementById('blob-url');
   const videoListEl=document.getElementById('video-list-section');
   const editEl=document.getElementById('edit-section');
-  clearUploadedFile();
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 編輯內容';
   if(videoIdEl)videoIdEl.value=video.id;
   if(contentNameEl)contentNameEl.value=video.name;
-  // ✅ 修复：编辑时，若为本地文件（blobUrl），则不填充网址，而是显示文件名
-  if(video.video.startsWith('blob:')){
-    if(contentVideoEl)contentVideoEl.value='';
-  }else{
-    if(contentVideoEl)contentVideoEl.value=video.video;
-  }
-  
-    // 补全 editVideo 函数剩余部分
+  if(contentVideoEl)contentVideoEl.value=video.video;
   if(contentNoteEl)contentNoteEl.value=video.note||'';
-  if(fileTypeEl)fileTypeEl.value=video.fileType||'';
-  if(fileNameEl)fileNameEl.value=video.fileName||'';
-  
-  // 若为本地文件，显示已上传文件信息
-  if(video.fileName){
-    if(uploadedFileNameEl)uploadedFileNameEl.textContent=video.fileName;
-    if(uploadedFileInfoEl)uploadedFileInfoEl.classList.remove('hidden');
-  }else{
-    if(uploadedFileInfoEl)uploadedFileInfoEl.classList.add('hidden');
-  }
-  
+  if(audioUploadEl)audioUploadEl.value='';
+  if(pdfUploadEl)pdfUploadEl.value='';
+  if(audioUploadTipEl)audioUploadTipEl.classList.add('hidden');
+  if(pdfUploadTipEl)pdfUploadTipEl.classList.add('hidden');
+  if(fileTypeEl)fileTypeEl.value='';
+  if(blobUrlEl)blobUrlEl.value='';
   setSubmitState(false);
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl){
@@ -952,370 +880,399 @@ function editVideo(videoId){
     editEl.scrollIntoView({behavior:'smooth'});
   }
 }
-
-// 隐藏编辑区域
 function hideEditSection(){
   const editEl=document.getElementById('edit-section');
   const videoListEl=document.getElementById('video-list-section');
-  const isManage=isManageUser();
-  
+  const blobUrlEl=document.getElementById('blob-url');
+  if(blobUrlEl&&blobUrlEl.value){
+    URL.revokeObjectURL(blobUrlEl.value);
+    blobUrlEl.value='';
+  }
   if(editEl)editEl.classList.add('hidden');
-  // 管理用户返回内容管理列表，普通用户返回查看列表
-  if(isManage && videoListEl)videoListEl.classList.remove('hidden');
-  if(!isManage)document.getElementById('video-viewer-section').classList.remove('hidden');
-  
-  // 清空编辑状态
-  appState.currentEditingVideoId=null;
-  clearUploadedFile();
-  resetSubmitState();
+  if(videoListEl){
+    videoListEl.classList.remove('hidden');
+    videoListEl.scrollIntoView({behavior:'smooth'});
+  }
 }
-
-// 保存/更新内容
-function saveVideo(event){
-  event.preventDefault();
-  if(appState.isSubmitting||!isManageUser()){
-    if(!isManageUser())showError('僅管理用戶可保存內容');
-    return;
-  }
-  
-  const videoIdEl=document.getElementById('video-id');
-  const contentNameEl=document.getElementById('content-name');
-  const contentVideoEl=document.getElementById('content-video');
-  const contentNoteEl=document.getElementById('content-note');
-  const fileTypeEl=document.getElementById('file-type');
-  const fileNameEl=document.getElementById('file-name');
-  
-  // 获取表单值
-  const videoId=videoIdEl.value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
-  const name=contentNameEl.value.trim();
-  let videoUrl=contentVideoEl.value.trim();
-  const note=contentNoteEl.value.trim();
-  const fileType=fileTypeEl.value||'';
-  const fileName=fileNameEl.value||'';
-  
-  // 表单验证
-  if(!name){
-    showError('請輸入內容名稱');
-    return;
-  }
-  
-  // 优先使用上传文件的blob地址
-  if(appState.uploadedFileBlobUrl){
-    videoUrl=appState.uploadedFileBlobUrl;
-  }else if(videoUrl&&!validateVideoUrl(videoUrl)){
-    showError('請輸入合法的網址');
-    return;
-  }else if(!videoUrl&&!fileName){
-    showError('請上傳文件或填寫網址');
-    return;
-  }
-  
-  setSubmitState(true);
-  
-  // 构造视频数据
-  const videoData={
-    id:videoId,
-    name:name,
-    video:videoUrl,
-    note:note,
-    updatedAt:convertUTCToTaiwanTime(new Date().toISOString()),
-    fileType:fileType,
-    fileName:fileName
-  };
-  
-  // 同步到GAS
-  syncVideoToGAS(videoData,(isSuccess)=>{
-    if(isSuccess){
-      // 更新本地列表
-      const existingIndex=appState.videoList.findIndex(v=>v.id===videoId);
-      if(existingIndex!==-1){
-        // 编辑：替换原有数据
-        appState.videoList[existingIndex]=videoData;
-        showSuccess('內容已成功更新！');
-      }else{
-        // 新增：添加到列表
-        appState.videoList.push(videoData);
-        showSuccess('內容已成功新增！');
-      }
-      
-      // 刷新列表
-      updateVideoCountDisplay();
-      renderVideoList();
-      renderViewerVideoList();
-      
-      // 隐藏编辑区域
-      hideEditSection();
-    }
-    resetSubmitState();
-  });
-}
-
-// 查看视频/内容详情
 function viewVideo(videoId){
+  if(appState.isSubmitting)return;
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
-  
   appState.currentViewingVideoId=videoId;
+  const videoViewerEl=document.getElementById('video-viewer-section');
+  const videoListEl=document.getElementById('video-list-section');
+  const editEl=document.getElementById('edit-section');
   const videoPreviewEl=document.getElementById('video-preview');
+  const videoLoadingEl=document.getElementById('video-loading');
+  const pdfLoadingEl=document.getElementById('pdf-loading');
   const previewTitleEl=document.getElementById('preview-title');
   const previewLinkEl=document.getElementById('preview-link');
   const previewUpdatedEl=document.getElementById('preview-updated');
   const previewNoteEl=document.getElementById('preview-note');
+  const previewVideoEl=document.getElementById('preview-video');
+  const previewAudioEl=document.getElementById('preview-audio');
+  const audioSourceEl=document.getElementById('audio-source');
+  const previewPdfEl=document.getElementById('preview-pdf');
+  const videoContainerEl=document.getElementById('video-container');
+  const audioContainerEl=document.getElementById('audio-container');
+  const pdfContainerEl=document.getElementById('pdf-container');
+  const linkContainerEl=document.getElementById('link-container');
+  const linkIconEl=document.getElementById('link-icon');
+  const linkTitleEl=document.getElementById('link-title');
+  const linkDescEl=document.getElementById('link-desc');
+  const linkBtnEl=document.getElementById('link-btn');
   
-  // 隐藏其他区域
-  document.getElementById('edit-section').classList.add('hidden');
-  document.getElementById('video-list-section').classList.add('hidden');
+  if(videoViewerEl)videoViewerEl.classList.add('hidden');
+  if(videoListEl)videoListEl.classList.add('hidden');
+  if(editEl)editEl.classList.add('hidden');
+  if(videoPreviewEl)videoPreviewEl.classList.remove('hidden');
   
-  // 填充预览基本信息
   if(previewTitleEl)previewTitleEl.textContent=video.name;
-  if(previewLinkEl)previewLinkEl.textContent=video.fileName?video.fileName:video.video;
-  if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt;
-  if(previewNoteEl)previewNoteEl.textContent=video.note||'- 無備註 -';
+  if(previewLinkEl)previewLinkEl.textContent=video.video.startsWith('blob:')?'本地上傳文件':video.video;
+  if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
+  if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
   
-  // 获取内容类型并渲染对应预览容器
-  const fileCategory=video.video.startsWith('blob:')
-    ? getFileCategory(video.fileType,video.fileName)
-    : getUrlType(video.video);
+  const urlType=getUrlType(video.video);
+  const embedUrl=convertToEmbedUrl(video.video);
   
-  // 隐藏所有预览容器
-  document.getElementById('video-container').classList.add('hidden');
-  document.getElementById('audio-container').classList.add('hidden');
-  document.getElementById('document-container').classList.add('hidden');
-  document.getElementById('link-container').classList.add('hidden');
-  document.getElementById('file-download-container').classList.add('hidden');
+  videoContainerEl.classList.add('hidden');
+  audioContainerEl.classList.add('hidden');
+  pdfContainerEl.classList.add('hidden');
+  linkContainerEl.classList.add('hidden');
   
-  // 重置预览加载状态
-  const videoLoadingEl=document.getElementById('video-loading');
-  const documentLoadingEl=document.getElementById('document-loading');
-  if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
-  if(documentLoadingEl)documentLoadingEl.classList.remove('hidden');
-  
-  switch(fileCategory){
-    case 'video':
-      const previewVideoEl=document.getElementById('preview-video');
-      const previewLocalVideoEl=document.getElementById('preview-local-video');
-      const localVideoSourceEl=document.getElementById('local-video-source');
-      const videoContainerEl=document.getElementById('video-container');
-      
-      if(video.video.startsWith('blob:')){
-        // 本地视频
-        if(localVideoSourceEl)localVideoSourceEl.src=video.video;
-        if(localVideoSourceEl)localVideoSourceEl.type=video.fileType||'video/mp4';
-        if(previewLocalVideoEl)previewLocalVideoEl.classList.remove('hidden');
-        if(previewVideoEl)previewVideoEl.classList.add('hidden');
-      }else{
-        // 远程视频（转嵌入地址）
-        const embedUrl=convertToEmbedUrl(video.video)||video.video;
-        if(previewVideoEl)previewVideoEl.src=embedUrl;
-        if(previewLocalVideoEl)previewLocalVideoEl.classList.add('hidden');
-        if(previewVideoEl)previewVideoEl.classList.remove('hidden');
-      }
-      
-      if(videoContainerEl)videoContainerEl.classList.remove('hidden');
-      break;
-      
-    case 'audio':
-      const previewAudioEl=document.getElementById('preview-audio');
-      const audioSourceEl=document.getElementById('audio-source');
-      const audioContainerEl=document.getElementById('audio-container');
-      
-      if(audioSourceEl)audioSourceEl.src=video.video;
-      if(audioSourceEl)audioSourceEl.type=video.fileType||'audio/mpeg';
-      if(previewAudioEl)previewAudioEl.load();
-      if(audioContainerEl)audioContainerEl.classList.remove('hidden');
-      break;
-      
-    case 'pdf':
-      const previewDocumentEl=document.getElementById('preview-document');
-      const documentContainerEl=document.getElementById('document-container');
-      
-      if(previewDocumentEl)previewDocumentEl.src=video.video;
-      if(documentContainerEl)documentContainerEl.classList.remove('hidden');
-      break;
-      
-    case 'office':
-    case 'text':
-      const fileDownloadTitleEl=document.getElementById('file-download-title');
-      const fileDownloadDescEl=document.getElementById('file-download-desc');
-      const fileDownloadBtnEl=document.getElementById('file-download-btn');
-      const fileDownloadContainerEl=document.getElementById('file-download-container');
-      
-      if(fileDownloadTitleEl)fileDownloadTitleEl.textContent=video.name;
-      if(fileDownloadDescEl)fileDownloadDescEl.textContent=video.fileName||'點擊下載查看該文件';
-      if(fileDownloadBtnEl)fileDownloadBtnEl.href=video.video;
-      if(fileDownloadBtnEl)fileDownloadBtnEl.download=video.fileName||video.name;
-      if(fileDownloadContainerEl)fileDownloadContainerEl.classList.remove('hidden');
-      break;
-      
-    default:
-      // 普通链接
-      const linkIconEl=document.getElementById('link-icon');
-      const linkTitleEl=document.getElementById('link-title');
-      const linkDescEl=document.getElementById('link-desc');
-      const linkBtnEl=document.getElementById('link-btn');
-      const linkContainerEl=document.getElementById('link-container');
-      
-      if(linkIconEl)linkIconEl.className='link-card-icon fa fa-link';
-      if(linkTitleEl)linkTitleEl.textContent=video.name;
-      if(linkDescEl)linkDescEl.textContent=video.note||'點擊開啟外部連結';
-      if(linkBtnEl)linkBtnEl.href=video.video;
-      if(linkContainerEl)linkContainerEl.classList.remove('hidden');
-      break;
+  if(urlType==='audio'){
+    audioContainerEl.classList.remove('hidden');
+    if(audioSourceEl)audioSourceEl.src=video.video;
+    if(previewAudioEl)previewAudioEl.load();
+  }else if(urlType==='pdf'){
+    pdfContainerEl.classList.remove('hidden');
+    if(pdfLoadingEl)pdfLoadingEl.classList.remove('hidden');
+    if(previewPdfEl)previewPdfEl.src=video.video;
+  }else if(embedUrl){
+    videoContainerEl.classList.remove('hidden');
+    if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
+    if(previewVideoEl)previewVideoEl.src=embedUrl;
+  }else{
+    linkContainerEl.classList.remove('hidden');
+    if(urlType==='tencent_meeting'){
+      linkIconEl.className='link-card-icon fa fa-video-camera';
+      linkTitleEl.textContent='騰訊會議鏈接';
+      linkDescEl.textContent='點擊按鈕開啟騰訊會議';
+    }else{
+      linkIconEl.className='link-card-icon fa fa-link';
+      linkTitleEl.textContent='外部網頁鏈接';
+      linkDescEl.textContent='點擊按鈕在新窗口打開';
+    }
+    linkBtnEl.href=video.video;
   }
   
-  // 显示预览区域
-  if(videoPreviewEl){
-    videoPreviewEl.classList.remove('hidden');
-    videoPreviewEl.scrollIntoView({behavior:'smooth'});
+  if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
+}
+function hideVideoPreview(){
+  const videoPreviewEl=document.getElementById('video-preview');
+  const videoViewerEl=document.getElementById('video-viewer-section');
+  const previewPdfEl=document.getElementById('preview-pdf');
+  if(previewPdfEl)previewPdfEl.src='';
+  if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
+  if(videoViewerEl){
+    videoViewerEl.classList.remove('hidden');
+    videoViewerEl.scrollIntoView({behavior:'smooth'});
   }
 }
 
-// 编辑当前预览的内容
-function editCurrentVideo(){
-  const videoId=appState.currentViewingVideoId;
-  if(!videoId)return;
-  hideVideoPreview();
-  setTimeout(()=>{editVideo(videoId);},300);
+  function editCurrentVideo(){
+  if(!isManageUser()){
+    showError('僅管理用戶可編輯內容');
+    return;
+  }
+  if(appState.currentViewingVideoId)editVideo(appState.currentViewingVideoId);
 }
-
-// 确认删除内容
 function deleteVideoConfirm(videoId){
-  if(!confirm('確定要刪除這條內容嗎？此操作不可撤銷！'))return;
-  deleteVideo(videoId);
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除內容');
+    return;
+  }
+  if(confirm('確定要刪除此內容嗎？此操作無法復原！'))deleteVideo(videoId);
 }
-
-// 删除当前预览的内容
-function deleteCurrentVideo(){
-  const videoId=appState.currentViewingVideoId;
-  if(!videoId)return;
-  deleteVideo(videoId);
-}
-
-// 执行删除操作
 function deleteVideo(videoId){
+  if(appState.isSubmitting||!isManageUser())return;
+  setSubmitState(true);
+  deleteVideoFromGAS(videoId,(success)=>{
+    if(success){
+      const deletedVideo=appState.videoList.find(v=>v.id===videoId);
+      if(deletedVideo&&deletedVideo.video.startsWith('blob:')){
+        URL.revokeObjectURL(deletedVideo.video);
+      }
+      appState.videoList=appState.videoList.filter(v=>v.id!==videoId);
+      updateVideoCountDisplay();
+      if(appState.currentViewingVideoId===videoId){
+        appState.currentViewingVideoId=null;
+        document.getElementById('video-preview').classList.add('hidden');
+      }
+      renderVideoList();
+      renderViewerVideoList();
+      showSuccess('內容已成功刪除！');
+    }
+    setSubmitState(false);
+  });
+}
+function deleteCurrentVideo(){
+  if(!isManageUser()){
+    showError('僅管理用戶可刪除內容');
+    return;
+  }
+  if(!appState.currentViewingVideoId)return;
+  deleteVideoConfirm(appState.currentViewingVideoId);
+}
+function copyVideoLink(){
+  const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
+  if(!video)return;
+  try{
+    const copyText=video.video.startsWith('blob:')?'本地上傳文件不支援複製鏈接':video.video;
+    if(video.video.startsWith('blob:')){
+      showError('本地上傳文件不支援複製鏈接');
+      return;
+    }
+    navigator.clipboard.writeText(copyText).then(()=>{
+      showSuccess('連結已成功複製到剪貼簿！');
+    }).catch(()=>{
+      const textArea=document.createElement('textarea');
+      textArea.value=copyText;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showSuccess('連結已成功複製到剪貼簿！');
+    });
+  }catch(e){
+    console.error('複製連結失敗：',e);
+    showError('複製連結失敗，請手動複製');
+  }
+}
+function saveVideo(event){
+  event.preventDefault();
   if(appState.isSubmitting||!isManageUser()){
-    if(!isManageUser())showError('僅管理用戶可刪除內容');
+    if(!isManageUser())showError('僅管理用戶可儲存內容');
+    return;
+  }
+  if(!appState.currentUser){
+    showError('用戶信息不存在，請重新驗證');
+    return;
+  }
+  const videoId=document.getElementById('video-id').value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
+  const videoName=document.getElementById('content-name').value.trim();
+  const videoUrl=document.getElementById('content-video').value.trim();
+  const videoNote=document.getElementById('content-note').value.trim();
+  const fileType=document.getElementById('file-type').value;
+  const blobUrl=document.getElementById('blob-url').value;
+  
+  let finalVideoUrl=blobUrl||videoUrl;
+  if(!finalVideoUrl){
+    showError('請輸入網址或選擇本地文件');
+    return;
+  }
+  if(!validateVideoUrl(finalVideoUrl)){
+    showError('請輸入有效的網址格式（如：https://xxx.com）');
     return;
   }
   
   setSubmitState(true);
-  deleteVideoFromGAS(videoId,(isSuccess)=>{
-    if(isSuccess){
-      // 从本地列表移除
-      appState.videoList=appState.videoList.filter(v=>v.id!==videoId);
+  const videoData={
+    id:videoId,
+    name:videoName,
+    video:finalVideoUrl,
+    note:videoNote,
+    updatedAt:convertUTCToTaiwanTime(new Date().toISOString())
+  };
+  syncVideoToGAS(videoData,(success)=>{
+    if(success){
+      const existingIndex=appState.videoList.findIndex(v=>v.id===videoId);
+      if(existingIndex>=0){
+        if(appState.videoList[existingIndex].video.startsWith('blob:')&&finalVideoUrl!==appState.videoList[existingIndex].video){
+          URL.revokeObjectURL(appState.videoList[existingIndex].video);
+        }
+        appState.videoList[existingIndex]=videoData;
+      }else{
+        appState.videoList.unshift(videoData);
+      }
       updateVideoCountDisplay();
       renderVideoList();
       renderViewerVideoList();
-      showSuccess('內容已成功刪除！');
-      
-      // 隐藏预览/编辑区域
-      hideVideoPreview();
+      showSuccess(appState.currentEditingVideoId?'內容已成功更新並同步到工作表！':'新內容已成功添加並同步到工作表！');
+      appState.currentEditingVideoId=null;
       hideEditSection();
-      appState.currentViewingVideoId=null;
     }
-    resetSubmitState();
+    setSubmitState(false);
   });
 }
-
-// 隐藏内容预览
-function hideVideoPreview(){
-  const videoPreviewEl=document.getElementById('video-preview');
-  const isManage=isManageUser();
+function handleAudioUpload(e){
+  const file=e.target.files[0];
+  const audioUploadTip=document.getElementById('audio-upload-tip');
+  const contentVideo=document.getElementById('content-video');
+  const fileTypeEl=document.getElementById('file-type');
+  const blobUrlEl=document.getElementById('blob-url');
+  const pdfUpload=document.getElementById('pdf-upload');
   
-  if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
-  appState.currentViewingVideoId=null;
+  if(blobUrlEl.value){
+    URL.revokeObjectURL(blobUrlEl.value);
+    blobUrlEl.value='';
+  }
+  pdfUpload.value='';
+  document.getElementById('pdf-upload-tip').classList.add('hidden');
+  contentVideo.value='';
   
-  // 管理用户返回内容管理列表，普通用户返回查看列表
-  if(isManage)document.getElementById('video-list-section').classList.remove('hidden');
-  if(!isManage)document.getElementById('video-viewer-section').classList.remove('hidden');
+  if(!file){
+    audioUploadTip.classList.add('hidden');
+    fileTypeEl.value='';
+    return;
+  }
+  
+  const fileSize=file.size/1024/1024;
+  if(fileSize>50){
+    audioUploadTip.classList.remove('hidden');
+    audioUploadTip.textContent='❌ 檔案過大，請上傳小於50MB的音訊檔';
+    audioUploadTip.style.color='#ef4444';
+    e.target.value='';
+    fileTypeEl.value='';
+    return;
+  }
+  
+  const blobUrl=URL.createObjectURL(file);
+  blobUrlEl.value=blobUrl;
+  fileTypeEl.value='audio';
+  
+  audioUploadTip.classList.remove('hidden');
+  audioUploadTip.innerHTML=`✅ 已選擇：<span class="font-medium">${file.name}</span>（大小：${(fileSize).toFixed(2)}MB）`;
+  audioUploadTip.style.color='#10b981';
 }
-
-// 复制内容链接
-function copyVideoLink(){
-  const videoId=appState.currentViewingVideoId;
-  if(!videoId)return;
+function handlePdfUpload(e){
+  const file=e.target.files[0];
+  const pdfUploadTip=document.getElementById('pdf-upload-tip');
+  const contentVideo=document.getElementById('content-video');
+  const fileTypeEl=document.getElementById('file-type');
+  const blobUrlEl=document.getElementById('blob-url');
+  const audioUpload=document.getElementById('audio-upload');
   
-  const video=appState.videoList.find(v=>v.id===videoId);
-  if(!video)return;
+  if(blobUrlEl.value){
+    URL.revokeObjectURL(blobUrlEl.value);
+    blobUrlEl.value='';
+  }
+  audioUpload.value='';
+  document.getElementById('audio-upload-tip').classList.add('hidden');
+  contentVideo.value='';
   
-  const linkText=video.fileName?`【${video.name}】文件：${video.fileName}`:`【${video.name}】鏈接：${video.video}`;
-  navigator.clipboard.writeText(linkText).then(()=>{
-    showSuccess('鏈接已複製到剪貼板！');
-  }).catch(()=>{
-    // 兼容不支持剪贴板API的浏览器
-    const textarea=document.createElement('textarea');
-    textarea.value=linkText;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    showSuccess('鏈接已複製到剪貼板！');
-  });
+  if(!file){
+    pdfUploadTip.classList.add('hidden');
+    fileTypeEl.value='';
+    return;
+  }
+  
+  const fileSize=file.size/1024/1024;
+  if(fileSize>100){
+    pdfUploadTip.classList.remove('hidden');
+    pdfUploadTip.textContent='❌ 檔案過大，請上傳小於100MB的PDF檔';
+    pdfUploadTip.style.color='#ef4444';
+    e.target.value='';
+    fileTypeEl.value='';
+    return;
+  }
+  
+  const blobUrl=URL.createObjectURL(file);
+  blobUrlEl.value=blobUrl;
+  fileTypeEl.value='pdf';
+  
+  pdfUploadTip.classList.remove('hidden');
+  pdfUploadTip.innerHTML=`✅ 已選擇：<span class="font-medium">${file.name}</span>（大小：${(fileSize).toFixed(2)}MB）`;
+  pdfUploadTip.style.color='#10b981';
 }
-
-// 初始化LIFF
-async function initLIFF(){
+function getProfileAndVerify(){
+  setStatus('驗證使用者資訊...');
   try{
-    setStatus('正在驗證用戶身份...');
-    await liff.init({liffId:CONFIG.LIFF_ID});
-    
-    if(!liff.isLoggedIn()){
-      setStatus('正在跳轉登錄...');
-      liff.login();
-      return;
-    }
-    
-    // 获取用户信息
-    const userProfile=await liff.getProfile();
-    appState.currentUser={
-      userId:userProfile.userId,
-      displayName:userProfile.displayName||userProfile.userId
-    };
-    
-    // 验证用户权限（通过GAS）
-    $.ajax({
-      url:CONFIG.GAS_URL,
-      dataType:'jsonp',
-      jsonp:'callback',
-      timeout:CONFIG.JSONP_TIMEOUT,
-      data:{
-        action:'verifyUser',
-        userId:userProfile.userId,
-        displayName:userProfile.displayName||userProfile.userId
-      },
-      success:function(resp){
-        renderResult(resp);
-      },
-      error:function(xhr,status,error){
-        console.error("用戶驗證失敗：",status,error);
-        showError(`用戶驗證失敗：${status==='timeout'?'請求超時':'網絡錯誤，請稍後重試'}`);
+    liff.getProfile().then(profile => {
+      console.log("從 LIFF API 獲取用戶資訊：",profile);
+      const userId=profile.userId;
+      const displayName=profile.displayName?.trim() || 'LINE用戶';
+      appState.currentUser={userId:userId,displayName:displayName};
+      callGasBackend(userId,displayName,true);
+    }).catch(err=>{
+      console.warn("LIFF getProfile 失敗，嘗試 ID Token：",err);
+      try{
+        const idToken=liff.getDecodedIDToken();
+        if(idToken){
+          console.log("ID Token 內容：",idToken);
+          const userId=idToken.sub;
+          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || idToken.given_name || 'LINE用戶';
+          appState.currentUser={userId:userId,displayName:displayName};
+          callGasBackend(userId,displayName,true);
+          return;
+        }
+      }catch(idErr){
+        console.error("從 ID Token 獲取信息失敗：",idErr);
+        showError('無法獲取使用者名稱，請確保LIFF已授權profile權限');
       }
     });
-    
-  }catch(error){
-    console.error("LIFF初始化失敗：",error);
-    showError(`系統初始化失敗：${error.message||'未知錯誤'}`);
+  }catch(err){
+    console.error("獲取使用者資料失敗：",err);
+    showError('取得使用者資料失敗：'+err.message);
   }
 }
-
-// 页面加载完成后初始化
-$(document).ready(function(){
-  // 检查是否在LINE环境中
-  if(window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'&&liff){
-    initLIFF();
-  }else{
-    // 本地调试模式：模拟管理员权限
-    setStatus('本地調試模式，跳過LIFF驗證...');
-    setTimeout(()=>{
-      renderResult({
-        isAuthorized:true,
-        isAdmin:true,
-        displayName:'本地測試管理員',
-        userId:'local_test_admin',
-        expiryDate:CONFIG.PERMANENT_EXPIRY_DATE
-      });
-    },1000);
-  }
+function callGasBackend(userId,displayName,writeToSheet=false){
+  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
+  $.ajax({
+    url:CONFIG.GAS_URL,
+    dataType:'jsonp',
+    jsonp:'callback',
+    timeout:CONFIG.JSONP_TIMEOUT,
+    data:{
+      userId:userId,
+      displayName:displayName,
+      action:'verifyUser',
+      needExpiryDate:true,
+      writeToSheet:writeToSheet
+    },
+    success:function(resp){
+      console.log("GAS 驗證回應：",resp);
+      if(resp.status==="error")showError(resp.message);
+      else{
+        resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
+        resp.isAdmin=Boolean(resp.isAdmin);
+        resp.isPro=Boolean(resp.isPro);
+        resp.displayName=resp.displayName || displayName;
+        renderResult(resp);
+      }
+    },
+    error:function(xhr,status,error){
+      console.error("GAS 請求錯誤：",status,error);
+      let errorMsg='與伺服器通訊失敗';
+      if(status==='timeout')errorMsg='請求超時，請檢查網絡連接';
+      else if(status==='parsererror')errorMsg='數據解析錯誤';
+      showError(errorMsg);
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){
+  console.log("頁面加載完成，初始化系統");
+  setStatus('正在初始化系統，請稍候...');
+  // 綁定文件上傳事件
+  const audioUpload=document.getElementById('audio-upload');
+  const pdfUpload=document.getElementById('pdf-upload');
+  if(audioUpload)audioUpload.addEventListener('change',handleAudioUpload);
+  if(pdfUpload)pdfUpload.addEventListener('change',handlePdfUpload);
+  // 初始化LIFF
+  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid','offline_access']},{disableRedirect:false})
+  .then(()=>{
+    console.log("LIFF 初始化成功");
+    if(!liff.isLoggedIn()){
+      console.log("用戶未登錄，跳轉登錄");
+      liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
+    }else{
+      console.log("用戶已登錄，開始驗證信息");
+      getProfileAndVerify();
+    }
+  }).catch(err=>{
+    console.error("LIFF 初始化失敗：",err);
+    showError('系統初始化失敗：'+err.message);
+  });
 });
 </script>
 </body>
