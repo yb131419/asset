@@ -822,6 +822,7 @@ function viewVideo(videoId){
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
   appState.currentViewingVideoId=videoId;
+  // 獲取所有容器元素
   const videoViewerEl=document.getElementById('video-viewer-section');
   const videoListEl=document.getElementById('video-list-section');
   const editEl=document.getElementById('edit-section');
@@ -842,32 +843,42 @@ function viewVideo(videoId){
   const linkDescEl=document.getElementById('link-desc');
   const linkBtnEl=document.getElementById('link-btn');
   
+  // 隱藏其他區域
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl)editEl.classList.add('hidden');
   if(videoPreviewEl)videoPreviewEl.classList.remove('hidden');
   
+  // 設置預覽基本資訊
   if(previewTitleEl)previewTitleEl.textContent=video.name;
   if(previewLinkEl)previewLinkEl.textContent=video.video;
   if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
   if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
   
-  const urlType=getUrlType(video.video);
-  const embedUrl=convertToEmbedUrl(video.video);
-  
+  // 重置所有預覽容器為隱藏
   videoContainerEl.classList.add('hidden');
   audioContainerEl.classList.add('hidden');
   linkContainerEl.classList.add('hidden');
   
+  // 重置影片加載狀態
+  if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
+  if(previewVideoEl)previewVideoEl.src='';
+  
+  // 根據URL類型顯示對應容器
+  const urlType=getUrlType(video.video);
+  const embedUrl=convertToEmbedUrl(video.video);
+  
   if(urlType==='audio'){
+    // 音訊類型 - 只顯示音訊容器
     audioContainerEl.classList.remove('hidden');
     if(audioSourceEl)audioSourceEl.src=video.video;
     if(previewAudioEl)previewAudioEl.load();
   }else if(embedUrl){
+    // 影片類型 - 只顯示影片容器
     videoContainerEl.classList.remove('hidden');
-    if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
     if(previewVideoEl)previewVideoEl.src=embedUrl;
   }else{
+    // 連結類型 - 只顯示連結容器
     linkContainerEl.classList.remove('hidden');
     if(urlType==='tencent_meeting'){
       linkIconEl.className='link-card-icon fa fa-video-camera';
