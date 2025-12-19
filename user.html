@@ -75,6 +75,11 @@
       background-size: 16px;
       cursor: pointer;
     }
+    /* 按鈕容器 - 用於加載動畫 */
+    .btn-container {
+      position: relative;
+      width: 100%;
+    }
     button {
       width: 100%;
       background: linear-gradient(135deg, #7ac70c, #4a9c00);
@@ -85,12 +90,51 @@
       color: #fff;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, opacity 0.3s ease;
       box-shadow: 0 4px 12px rgba(122,199,12,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
-    button:hover {
-      background: linear-gradient(135deg, #4a9c00, #7ac70c);
-      box-shadow: 0 6px 20px rgba(122,199,12,0.7);
+    /* 禁用狀態 */
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: linear-gradient(135deg, #669f0b, #3a7d00);
+      box-shadow: none;
+    }
+    /* 加載動畫 */
+    .loader {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      display: inline-block;
+      animation: rotation 1s linear infinite;
+      display: none;
+    }
+    button.loading .loader {
+      display: block;
+    }
+    /* 成功/失敗反饋動畫 */
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .success {
+      animation: successPulse 0.6s ease-in-out;
+      background: linear-gradient(135deg, #00c851, #007e33) !important;
+    }
+    .error {
+      animation: successPulse 0.6s ease-in-out;
+      background: linear-gradient(135deg, #ff4444, #cc0000) !important;
     }
   </style>
 </head>
@@ -124,13 +168,22 @@
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-      <button type="submit">送出</button>
+      <!-- 按鈕容器 - 新增加載動畫結構 -->
+      <div class="btn-container">
+        <button type="submit" id="submitBtn">
+          <span class="loader"></span>
+          <span class="btn-text">送出</span>
+        </button>
+      </div>
     </form>
   </main>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec";
     const LIFF_ID = "2007475335-wO37qkoE";
+    // 宣告按鈕元素變數
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn.querySelector('.btn-text');
 
     function getTaipeiDate() {
       const dtf = new Intl.DateTimeFormat('zh-TW', {
@@ -158,12 +211,34 @@
       }
     }
 
+    // 重置按鈕狀態的函數
+    function resetButtonState() {
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('loading', 'success', 'error');
+      btnText.textContent = '送出';
+    }
+
     function handleResponse(response) {
+      // 移除加載狀態
+      submitBtn.classList.remove('loading');
+      
       if (response.status === "success") {
+        // 成功反饋
+        submitBtn.classList.add('success');
+        btnText.textContent = '送出成功 ✅';
         alert("✅ 資料已成功送出！\n會用Line通知！");
-        document.getElementById('infoForm').reset(); // 重置整個表單更便捷
+        document.getElementById('infoForm').reset();
+        
+        // 3秒後重置按鈕狀態
+        setTimeout(resetButtonState, 3000);
       } else {
+        // 失敗反饋
+        submitBtn.classList.add('error');
+        btnText.textContent = '送出失敗 ❌';
         alert("❌ 發生錯誤：" + response.message);
+        
+        // 3秒後重置按鈕狀態
+        setTimeout(resetButtonState, 3000);
       }
     }
 
@@ -172,7 +247,7 @@
         pageId: document.getElementById('pageId').value,
         date: document.getElementById('date').value,
         lineId: document.getElementById('lineId').value,
-        planType: document.getElementById('planType').value, // 新增方案類型欄位
+        planType: document.getElementById('planType').value,
         userId: document.getElementById('userId').value,
         name: document.getElementById('name').value,
         phone: document.getElementById('phone').value,
@@ -186,19 +261,37 @@
       script.src = SCRIPT_URL + "?" + params.toString();
       document.body.appendChild(script);
 
-      script.onload = () => document.body.removeChild(script);
+      script.onload = () => {
+        document.body.removeChild(script);
+      };
       script.onerror = () => {
-        alert("⚠️ JSONP 請求失敗");
+        // 请求失敗時重置按鈕
+        submitBtn.classList.remove('loading');
+        submitBtn.classList.add('error');
+        btnText.textContent = '請求失敗 ❌';
+        alert("⚠️ 網路錯誤，請稍後再試");
+        setTimeout(resetButtonState, 3000);
         document.body.removeChild(script);
       };
     }
 
     document.getElementById('infoForm').addEventListener('submit', function(e) {
       e.preventDefault();
+      
+      // 避免重複提交：檢查按鈕是否已禁用
+      if (submitBtn.disabled) return;
+      
       if (!document.getElementById('lineId').value) {
         alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
         return;
       }
+      
+      // 設置提交中狀態
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      btnText.textContent = '提交中...';
+      
+      // 發送資料
       sendData();
     });
 
