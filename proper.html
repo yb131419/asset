@@ -150,11 +150,22 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           </div>
           <div class="space-y-1">
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-file-text-o text-primary mr-2 text-xs"></i> 內容類型 <span class="text-red-500">*</span>
+            </label>
+            <select id="content-type" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" required>
+              <option value="">請選擇內容類型</option>
+              <option value="video">視訊檔</option>
+              <option value="audio">錄音檔</option>
+              <option value="general">外部連結</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 連結網址 <span class="text-red-500">*</span>
             </label>
-            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（YouTube/騰訊會議/網頁連結等）" required>
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（YouTube/騰訊會議/錄音/網頁連結等）" required>
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、普通網頁等任意合法網址
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、錄音檔、普通網頁等任意合法網址
             </p>
           </div>
           <div class="space-y-1">
@@ -224,6 +235,10 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <p id="preview-link" class="mt-1 break-all font-mono text-xs md:text-sm"></p>
             </div>
             <div>
+              <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-file-text-o text-primary mr-1.5 text-xs"></i> 內容類型：</span>
+              <p id="preview-type" class="mt-1 text-xs md:text-sm">- 未指定 -</p>
+            </div>
+            <div>
               <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-clock-o text-primary mr-1.5 text-xs"></i> 最後更新：</span>
               <p id="preview-updated" class="mt-1 text-xs md:text-sm"></p>
             </div>
@@ -255,13 +270,7 @@ const setStatus=(text)=>{
   if(statusText)statusText.textContent=text;
 };
 const showError=(msg)=>{
-  const statusEl=document.getElementById('status');
-  const resultCardEl=document.getElementById('result-card');
-  const videoViewerEl=document.getElementById('video-viewer-section');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  const videoPreviewEl=document.getElementById('video-preview');
-  const successMsgEl=document.getElementById('success-message');
+  const statusEl=document.getElementById('status'),resultCardEl=document.getElementById('result-card'),videoViewerEl=document.getElementById('video-viewer-section'),videoListEl=document.getElementById('video-list-section'),editEl=document.getElementById('edit-section'),videoPreviewEl=document.getElementById('video-preview'),successMsgEl=document.getElementById('success-message');
   if(statusEl)statusEl.classList.add('hidden');
   if(resultCardEl)resultCardEl.classList.add('hidden');
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
@@ -269,8 +278,7 @@ const showError=(msg)=>{
   if(editEl)editEl.classList.add('hidden');
   if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
   if(successMsgEl)successMsgEl.classList.add('hidden');
-  const el=document.getElementById('error-message');
-  const contentEl=document.getElementById('error-content');
+  const el=document.getElementById('error-message'),contentEl=document.getElementById('error-content');
   if(el&&contentEl){
     contentEl.innerHTML=`<p class="font-medium">${msg}</p><div class="mt-2 flex justify-center"><button onclick="window.location.reload()" class="text-primary hover:text-[#007A69] font-medium flex items-center gap-1 text-xs"><i class="fa fa-refresh text-xs"></i> 重新嘗試</button></div>`;
     el.classList.remove('hidden');
@@ -280,8 +288,7 @@ const showError=(msg)=>{
 const showSuccess=(msg)=>{
   const errorEl=document.getElementById('error-message');
   if(errorEl)errorEl.classList.add('hidden');
-  const el=document.getElementById('success-message');
-  const contentEl=document.getElementById('success-content');
+  const el=document.getElementById('success-message'),contentEl=document.getElementById('success-content');
   if(el&&contentEl){
     contentEl.innerHTML=`<p class="font-medium">${msg}</p>`;
     el.classList.remove('hidden');
@@ -290,9 +297,7 @@ const showSuccess=(msg)=>{
 };
 const setSubmitState=(isSubmitting)=>{
   appState.isSubmitting=isSubmitting;
-  const saveBtn=document.getElementById('save-btn');
-  const saveBtnText=document.getElementById('save-btn-text');
-  const saveLoading=document.getElementById('save-loading');
+  const saveBtn=document.getElementById('save-btn'),saveBtnText=document.getElementById('save-btn-text'),saveLoading=document.getElementById('save-loading');
   if(isSubmitting){
     if(saveBtn)saveBtn.classList.add('btn-disabled');
     if(saveBtnText)saveBtnText.textContent="儲存中...";
@@ -307,24 +312,26 @@ const resetSubmitState=()=>{setSubmitState(false);};
 const getUrlType=(url)=>{
   if(!url)return 'unknown';
   const lowerUrl=url.toLowerCase().trim();
-  if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be'))return 'youtube';
-  else if(lowerUrl.includes('vimeo.com'))return 'vimeo';
+  if(lowerUrl.includes('.mp3')||lowerUrl.includes('.wav')||lowerUrl.includes('.m4a')||lowerUrl.includes('.aac')||lowerUrl.includes('audio')||lowerUrl.includes('錄音')||lowerUrl.includes('voice'))return 'audio';
+  else if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be')||lowerUrl.includes('vimeo.com')||lowerUrl.includes('.mp4')||lowerUrl.includes('.mov')||lowerUrl.includes('.avi')||lowerUrl.includes('.mkv'))return 'video';
   else if(lowerUrl.includes('meeting.tencent.com'))return 'tencent_meeting';
   else return 'general';
 };
 const convertToEmbedUrl=(url)=>{
   const urlType=getUrlType(url);
-  if(urlType==='youtube'){
-    const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/|playlist\?list=))([\w-]+)/;
-    const youtubeMatch=url.match(youtubeRegex);
-    if(youtubeMatch&&youtubeMatch[1]){
-      const isShort=url.includes('shorts/');
-      return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0${isShort?'&enablejsapi=1':''}`;
+  if(urlType==='video'){
+    if(url.includes('youtube.com')||url.includes('youtu.be')){
+      const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/|playlist\?list=))([\w-]+)/;
+      const youtubeMatch=url.match(youtubeRegex);
+      if(youtubeMatch&&youtubeMatch[1]){
+        const isShort=url.includes('shorts/');
+        return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=0&rel=0${isShort?'&enablejsapi=1':''}`;
+      }
+    }else if(url.includes('vimeo.com')){
+      const vimeoRegex=/vimeo\.com\/(\d+)/;
+      const vimeoMatch=url.match(vimeoRegex);
+      if(vimeoMatch&&vimeoMatch[1])return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
     }
-  }else if(urlType==='vimeo'){
-    const vimeoRegex=/vimeo\.com\/(\d+)/;
-    const vimeoMatch=url.match(vimeoRegex);
-    if(vimeoMatch&&vimeoMatch[1])return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=0`;
   }
   return '';
 };
@@ -343,16 +350,13 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
       const[datePart,timePart]=normalizedDateStr.split(' ');
       const[year,month,day]=datePart.split('/').map(Number);
       const timeParts=timePart.split(':').map(Number);
-      const hour=timeParts[0]||0;
-      const minute=timeParts[1]||0;
-      const second=timeParts[2]||0;
+      const hour=timeParts[0]||0,minute=timeParts[1]||0,second=timeParts[2]||0;
       expiryDate=new Date(Date.UTC(year,month-1,day,hour,minute,second));
     }else{
       const[year,month,day]=normalizedDateStr.split('/').map(Number);
       expiryDate=new Date(Date.UTC(year,month-1,day));
     }
-    const today=new Date();
-    const taipeiOffset=8*60*60*1000;
+    const today=new Date(),taipeiOffset=8*60*60*1000;
     const todayTaipei=new Date(today.getTime()+taipeiOffset);
     const todayUTC=new Date(Date.UTC(todayTaipei.getFullYear(),todayTaipei.getMonth(),todayTaipei.getDate()));
     if(isNaN(expiryDate.getTime()))return{displayDate:"日期無效",remainingDays:"日期無效"};
@@ -370,23 +374,15 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
   }
 };
-const getVideoThumbnail=(url)=>{
+const getVideoThumbnail=(url,type)=>{
   if(!url)return 'https://via.placeholder.com/300x180?text=No+Preview';
-  const urlType=getUrlType(url);
-  switch(urlType){
-    case 'youtube':
-      const youtubeRegex=/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/;
-      const youtubeMatch=url.match(youtubeRegex);
-      if(youtubeMatch&&youtubeMatch[1])return `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`;
-      break;
-    case 'vimeo':
-      return 'https://via.placeholder.com/300x180?text=Vimeo';
-    case 'tencent_meeting':
-      return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
-    default:
-      return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
+  const contentType=type||getUrlType(url);
+  switch(contentType){
+    case 'video':return url.includes('youtube.com')||url.includes('youtu.be')?`https://img.youtube.com/vi/${url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/)[1]}/mqdefault.jpg`:(url.includes('vimeo.com')?'https://via.placeholder.com/300x180?text=Vimeo&bgcolor=e8f9f7&color=008c76':'https://via.placeholder.com/300x180?text=影片檔&bgcolor=e8f9f7&color=008c76');
+    case 'audio':return 'https://via.placeholder.com/300x180?text=錄音檔&bgcolor=f1f5f9&color=008c76';
+    case 'general':return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
+    default:return 'https://via.placeholder.com/300x180?text=未知類型&bgcolor=f1f5f9&color=64748b';
   }
-  return 'https://via.placeholder.com/300x180?text=Link';
 };
 const isManageUser=()=>{return appState.userRole==='admin';};
 const isProUser=()=>{return appState.userRole==='pro';};
@@ -448,10 +444,7 @@ const updateVideoCountDisplay=()=>{
 const fetchVideoListFromGAS=()=>{
   setStatus('載入影片列表中...');
   $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
     data:{action:'getVideoList'},
     success:function(resp){
       if(resp.status==="success"&&Array.isArray(resp.data)){
@@ -459,19 +452,15 @@ const fetchVideoListFromGAS=()=>{
           id:v.id||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`,
           name:v.name||'',
           video:v.video||'',
+          type:v.type||'',
           note:v.note||'',
           updatedAt:convertUTCToTaiwanTime(v.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString())
         })).filter(v=>v.video&&v.id);
-        updateVideoCountDisplay();
-        renderViewerVideoList();
-        renderVideoList();
-        setStatus('載入完成');
-      }else{
-        appState.videoList=[];
-        updateVideoCountDisplay();
-        renderViewerVideoList();
-        renderVideoList();
-      }
+      }else appState.videoList=[];
+      updateVideoCountDisplay();
+      renderViewerVideoList();
+      renderVideoList();
+      setStatus('載入完成');
     },
     error:function(xhr,status,error){
       console.error("獲取影片列表失敗：",status,error);
@@ -484,86 +473,54 @@ const fetchVideoListFromGAS=()=>{
 };
 const syncVideoToGAS=(videoData,callback)=>{
   $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
     data:{
-      action:'saveVideo',
-      userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
-      videoId:videoData.id,
-      name:videoData.name,
-      video:videoData.video,
-      note:videoData.note,
-      updatedAt:videoData.updatedAt
+      action:'saveVideo',userId:appState.currentUser?.userId||'',displayName:appState.currentUser?.displayName||'',
+      videoId:videoData.id,name:videoData.name,video:videoData.video,type:videoData.type,note:videoData.note,updatedAt:videoData.updatedAt
     },
     success:function(resp){
-      if(resp.status==="success"){
-        if(callback)callback(true);
-      }else{
+      if(resp.status==="success")callback(true);
+      else{
         showError(`同步影片失敗：${resp.message||'未知錯誤'}`);
-        if(callback)callback(false);
+        callback(false);
       }
     },
     error:function(xhr,status,error){
       console.error("同步影片失敗：",status,error);
       showError(`同步影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
-      if(callback)callback(false);
+      callback(false);
     }
   });
 };
 const deleteVideoFromGAS=(videoId,callback)=>{
   $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
-    data:{
-      action:'deleteVideo',
-      userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
-      videoId:videoId
-    },
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{action:'deleteVideo',userId:appState.currentUser?.userId||'',displayName:appState.currentUser?.displayName||'',videoId:videoId},
     success:function(resp){
-      if(resp.status==="success"){
-        if(callback)callback(true);
-      }else{
+      if(resp.status==="success")callback(true);
+      else{
         showError(`刪除影片失敗：${resp.message||'未知錯誤'}`);
-        if(callback)callback(false);
+        callback(false);
       }
     },
     error:function(xhr,status,error){
       console.error("刪除影片失敗：",status,error);
       showError(`刪除影片失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
-      if(callback)callback(false);
+      callback(false);
     }
   });
 };
 const syncVideoListOrderToGAS=()=>{
   const videoIds=appState.videoList.map(v=>v.id);
   $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
-    data:{
-      action:'updateVideoOrder',
-      userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
-      videoIds:JSON.stringify(videoIds)
-    },
-    success:function(resp){
-      if(resp.status!=="success")console.warn("同步影片順序失敗：",resp.message);
-    },
-    error:function(xhr,status,error){
-      console.error("同步影片順序失敗：",status,error);
-    }
+    url:CONFIG.GAS_URL,dataType:'jsonp',jsonp:'callback',timeout:CONFIG.JSONP_TIMEOUT,
+    data:{action:'updateVideoOrder',userId:appState.currentUser?.userId||'',displayName:appState.currentUser?.displayName||'',videoIds:JSON.stringify(videoIds)},
+    success:function(resp){if(resp.status!=="success")console.warn("同步影片順序失敗：",resp.message);},
+    error:function(xhr,status,error){console.error("同步影片順序失敗：",status,error);}
   });
 };
 function renderVideoList(){
-  const container=document.getElementById('video-list-container');
-  const emptyEl=document.getElementById('empty-video-list');
+  const container=document.getElementById('video-list-container'),emptyEl=document.getElementById('empty-video-list');
   if(!container||!emptyEl)return;
   container.innerHTML='';
   const isManage=isManageUser();
@@ -577,11 +534,7 @@ function renderVideoList(){
     const videoItem=document.createElement('div');
     videoItem.className=isManage?'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up cursor-pointer':'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 slide-up';
     videoItem.setAttribute('data-id',video.id);
-    videoItem.onclick=(e)=>{
-      if(!e.target.closest('button')){
-        viewVideo(video.id);
-      }
-    };
+    videoItem.onclick=(e)=>{if(!e.target.closest('button'))viewVideo(video.id);};
     if(isManage){
       videoItem.setAttribute('draggable','true');
       videoItem.addEventListener('dragstart',handleDragStart);
@@ -592,7 +545,8 @@ function renderVideoList(){
     }
     const shortTitle=video.name.length>25?`${video.name.substring(0,25)}...`:video.name;
     const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
-    const thumbnailUrl=getVideoThumbnail(video.video).replace('300x180','80x50');
+    const thumbnailUrl=getVideoThumbnail(video.video,video.type).replace('300x180','80x50');
+    const typeText=video.type==='video'?'視訊檔':video.type==='audio'?'錄音檔':'外部連結';
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽內容">
@@ -621,6 +575,7 @@ function renderVideoList(){
           <div class="flex items-center mb-1">
             <span class="inline-flex items-center justify-center w-4 h-4 bg-primary/10 text-primary rounded-full text-xs mr-1">${index+1}</span>
             <h4 class="font-medium text-textPrimary truncate text-xs md:text-sm">${shortTitle}</h4>
+            <span class="ml-2 text-xs bg-${video.type==='video'?'blue':'green'}/5 text-${video.type==='video'?'blue':'green'}/70 px-1 rounded">${typeText}</span>
           </div>
           <p class="text-xs text-textSecondary break-all mb-1">${shortLink}</p>
           ${video.note?`<p class="text-xs text-textSecondary/80 mb-1"><i class="fa fa-sticky-note-o mr-1 text-xs"></i>${video.note.substring(0,20)}${video.note.length>20?'...':''}</p>`:''}
@@ -633,8 +588,7 @@ function renderVideoList(){
   });
 }
 function renderViewerVideoList(){
-  const container=document.getElementById('viewer-video-list');
-  const emptyEl=document.getElementById('viewer-empty-list');
+  const container=document.getElementById('viewer-video-list'),emptyEl=document.getElementById('viewer-empty-list');
   if(!container||!emptyEl)return;
   container.innerHTML='';
   if(appState.videoList.length===0){
@@ -647,12 +601,16 @@ function renderViewerVideoList(){
     viewerCard.className='viewer-card bg-cardBg rounded-xl overflow-hidden shadow-elevation-2 slide-up';
     viewerCard.onclick=()=>{viewVideo(video.id);};
     const fullTitle=video.name||'未命名內容';
-    const thumbnailUrl=getVideoThumbnail(video.video);
+    const thumbnailUrl=getVideoThumbnail(video.video,video.type);
+    const typeText=video.type==='video'?'視訊檔':video.type==='audio'?'錄音檔':'外部連結';
     const cardContent=`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
         <div class="absolute top-2 right-2 bg-primary/80 text-white text-xs px-2 py-1 rounded-full">
           ${index+1}
+        </div>
+        <div class="absolute top-2 left-2 bg-${video.type==='video'?'blue':'green'}/80 text-white text-xs px-2 py-1 rounded-full">
+          ${typeText}
         </div>
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
           <h3 class="text-white font-medium text-sm md:text-base truncate">${fullTitle}</h3>
@@ -673,9 +631,7 @@ function renderViewerVideoList(){
   });
 }
 function toggleVideoListSection(){
-  const viewerEl=document.getElementById('video-viewer-section');
-  const managerEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
+  const viewerEl=document.getElementById('video-viewer-section'),managerEl=document.getElementById('video-list-section'),editEl=document.getElementById('edit-section');
   if(editEl)editEl.classList.add('hidden');
   if(viewerEl.classList.contains('hidden')){
     viewerEl.classList.remove('hidden');
@@ -687,31 +643,20 @@ function toggleVideoListSection(){
 }
 function renderResult(resp){
   console.log("渲染用戶驗證結果：",resp);
-  const statusEl=document.getElementById('status');
-  const errorMsgEl=document.getElementById('error-message');
+  const statusEl=document.getElementById('status'),errorMsgEl=document.getElementById('error-message');
   if(statusEl)statusEl.classList.add('hidden');
   if(errorMsgEl)errorMsgEl.classList.add('hidden');
   if(!resp.isAuthorized){
     showError('未授權使用，僅管理/專業用戶可訪問');
     return;
   }
-  const isAdmin=Boolean(resp.isAdmin);
-  const isPro=Boolean(resp.isPro)&&!isAdmin;
+  const isAdmin=Boolean(resp.isAdmin),isPro=Boolean(resp.isPro)&&!isAdmin;
   appState.userRole=isAdmin?'admin':isPro?'pro':'guest';
   const actualUserName=resp.displayName || appState.currentUser?.displayName || '未知用戶';
-  appState.currentUser={
-    userId:resp.userId,
-    displayName:actualUserName,
-    isAdmin:isAdmin,
-    isPro:isPro,
-    expiryDate:resp.expiryDate
-  };
-  const card=document.getElementById('result-card');
-  const main=document.getElementById('result-main');
-  const details=document.getElementById('result-details');
+  appState.currentUser={userId:resp.userId,displayName:actualUserName,isAdmin:isAdmin,isPro:isPro,expiryDate:resp.expiryDate};
+  const card=document.getElementById('result-card'),main=document.getElementById('result-main'),details=document.getElementById('result-details');
   if(!card||!main||!details)return;
-  const userName=actualUserName;
-  const expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
+  const userName=actualUserName,expiryDateStr=resp.expiryDate||resp.endDate||resp.expireDate||'';
   if(isAdmin){
     const{displayDate,remainingDays}=calculateRemainingDaysByDate(expiryDateStr);
     main.innerHTML=`<span class="text-primary"><i class="fa fa-check-circle mr-2 text-sm"></i>管理用戶驗證通過</span>`;
@@ -748,16 +693,11 @@ function addNewVideo(){
     return;
   }
   appState.currentEditingVideoId=null;
-  const editTitleEl=document.getElementById('edit-title');
-  const videoIdEl=document.getElementById('video-id');
-  const contentNameEl=document.getElementById('content-name');
-  const contentVideoEl=document.getElementById('content-video');
-  const contentNoteEl=document.getElementById('content-note');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
+  const editTitleEl=document.getElementById('edit-title'),videoIdEl=document.getElementById('video-id'),contentNameEl=document.getElementById('content-name'),contentTypeEl=document.getElementById('content-type'),contentVideoEl=document.getElementById('content-video'),contentNoteEl=document.getElementById('content-note'),videoListEl=document.getElementById('video-list-section'),editEl=document.getElementById('edit-section');
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增內容';
   if(videoIdEl)videoIdEl.value='';
   if(contentNameEl)contentNameEl.value='';
+  if(contentTypeEl)contentTypeEl.value='';
   if(contentVideoEl)contentVideoEl.value='';
   if(contentNoteEl)contentNoteEl.value='';
   setSubmitState(false);
@@ -775,16 +715,11 @@ function editVideo(videoId){
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
   appState.currentEditingVideoId=videoId;
-  const editTitleEl=document.getElementById('edit-title');
-  const videoIdEl=document.getElementById('video-id');
-  const contentNameEl=document.getElementById('content-name');
-  const contentVideoEl=document.getElementById('content-video');
-  const contentNoteEl=document.getElementById('content-note');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
+  const editTitleEl=document.getElementById('edit-title'),videoIdEl=document.getElementById('video-id'),contentNameEl=document.getElementById('content-name'),contentTypeEl=document.getElementById('content-type'),contentVideoEl=document.getElementById('content-video'),contentNoteEl=document.getElementById('content-note'),videoListEl=document.getElementById('video-list-section'),editEl=document.getElementById('edit-section');
   if(editTitleEl)editTitleEl.innerHTML='<i class="fa fa-edit text-primary mr-2 text-sm"></i> 編輯內容';
   if(videoIdEl)videoIdEl.value=video.id;
   if(contentNameEl)contentNameEl.value=video.name;
+  if(contentTypeEl)contentTypeEl.value=video.type||'';
   if(contentVideoEl)contentVideoEl.value=video.video;
   if(contentNoteEl)contentNoteEl.value=video.note||'';
   setSubmitState(false);
@@ -795,8 +730,7 @@ function editVideo(videoId){
   }
 }
 function hideEditSection(){
-  const editEl=document.getElementById('edit-section');
-  const videoListEl=document.getElementById('video-list-section');
+  const editEl=document.getElementById('edit-section'),videoListEl=document.getElementById('video-list-section');
   if(editEl)editEl.classList.add('hidden');
   if(videoListEl){
     videoListEl.classList.remove('hidden');
@@ -808,59 +742,45 @@ function viewVideo(videoId){
   const video=appState.videoList.find(v=>v.id===videoId);
   if(!video)return;
   appState.currentViewingVideoId=videoId;
-  const videoViewerEl=document.getElementById('video-viewer-section');
-  const videoListEl=document.getElementById('video-list-section');
-  const editEl=document.getElementById('edit-section');
-  const videoPreviewEl=document.getElementById('video-preview');
-  const videoLoadingEl=document.getElementById('video-loading');
-  const previewTitleEl=document.getElementById('preview-title');
-  const previewLinkEl=document.getElementById('preview-link');
-  const previewUpdatedEl=document.getElementById('preview-updated');
-  const previewNoteEl=document.getElementById('preview-note');
-  const previewVideoEl=document.getElementById('preview-video');
-  const videoContainerEl=document.getElementById('video-container');
-  const linkContainerEl=document.getElementById('link-container');
-  const linkIconEl=document.getElementById('link-icon');
-  const linkTitleEl=document.getElementById('link-title');
-  const linkDescEl=document.getElementById('link-desc');
-  const linkBtnEl=document.getElementById('link-btn');
+  const videoViewerEl=document.getElementById('video-viewer-section'),videoListEl=document.getElementById('video-list-section'),editEl=document.getElementById('edit-section'),videoPreviewEl=document.getElementById('video-preview'),videoLoadingEl=document.getElementById('video-loading'),previewTitleEl=document.getElementById('preview-title'),previewLinkEl=document.getElementById('preview-link'),previewTypeEl=document.getElementById('preview-type'),previewUpdatedEl=document.getElementById('preview-updated'),previewNoteEl=document.getElementById('preview-note'),previewVideoEl=document.getElementById('preview-video'),videoContainerEl=document.getElementById('video-container'),linkContainerEl=document.getElementById('link-container'),linkIconEl=document.getElementById('link-icon'),linkTitleEl=document.getElementById('link-title'),linkDescEl=document.getElementById('link-desc'),linkBtnEl=document.getElementById('link-btn');
   
-  // 隱藏其他區域
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl)editEl.classList.add('hidden');
   if(videoPreviewEl)videoPreviewEl.classList.remove('hidden');
   
-  // 設置預覽標題和基本信息
   if(previewTitleEl)previewTitleEl.textContent=video.name;
   if(previewLinkEl)previewLinkEl.textContent=video.video;
+  if(previewTypeEl)previewTypeEl.textContent=video.type==='video'?'視訊檔':video.type==='audio'?'錄音檔':'外部連結';
   if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
   if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
   
-  // 判斷URL類型並顯示對應預覽
-  const urlType=getUrlType(video.video);
+  const contentType=video.type||getUrlType(video.video);
   const embedUrl=convertToEmbedUrl(video.video);
   
-  if(embedUrl){
-    // 視頻類型 - 顯示iframe
+  if(contentType==='video'&&embedUrl){
     videoContainerEl.classList.remove('hidden');
     linkContainerEl.classList.add('hidden');
     if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
     if(previewVideoEl)previewVideoEl.src=embedUrl;
   }else{
-    // 普通鏈接 - 顯示鏈接卡片
     videoContainerEl.classList.add('hidden');
     linkContainerEl.classList.remove('hidden');
-    
-    // 設置鏈接卡片內容
-    if(urlType==='tencent_meeting'){
-      linkIconEl.className='link-card-icon fa fa-video-camera';
-      linkTitleEl.textContent='騰訊會議鏈接';
-      linkDescEl.textContent='點擊按鈕開啟騰訊會議';
-    }else{
-      linkIconEl.className='link-card-icon fa fa-link';
-      linkTitleEl.textContent='外部網頁鏈接';
-      linkDescEl.textContent='點擊按鈕在新窗口打開';
+    switch(contentType){
+      case 'audio':
+        linkIconEl.className='link-card-icon fa fa-volume-up';
+        linkTitleEl.textContent='錄音檔連結';
+        linkDescEl.textContent='點擊按鈕收聽錄音內容';
+        break;
+      case 'general':
+        linkIconEl.className='link-card-icon fa fa-link';
+        linkTitleEl.textContent='外部網頁鏈接';
+        linkDescEl.textContent='點擊按鈕在新窗口打開';
+        break;
+      default:
+        linkIconEl.className='link-card-icon fa fa-file-o';
+        linkTitleEl.textContent='文件連結';
+        linkDescEl.textContent='點擊按鈕查看文件內容';
     }
     linkBtnEl.href=video.video;
   }
@@ -868,8 +788,7 @@ function viewVideo(videoId){
   if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
 }
 function hideVideoPreview(){
-  const videoPreviewEl=document.getElementById('video-preview');
-  const videoViewerEl=document.getElementById('video-viewer-section');
+  const videoPreviewEl=document.getElementById('video-preview'),videoViewerEl=document.getElementById('video-viewer-section');
   if(videoPreviewEl)videoPreviewEl.classList.add('hidden');
   if(videoViewerEl){
     videoViewerEl.classList.remove('hidden');
@@ -948,6 +867,7 @@ function saveVideo(event){
   }
   const videoId=document.getElementById('video-id').value||`vid_${new Date().getTime()}_${Math.floor(Math.random()*1000)}`;
   const videoName=document.getElementById('content-name').value.trim();
+  const contentType=document.getElementById('content-type').value;
   const videoUrl=document.getElementById('content-video').value.trim();
   const videoNote=document.getElementById('content-note').value.trim();
   
@@ -958,10 +878,7 @@ function saveVideo(event){
   
   setSubmitState(true);
   const videoData={
-    id:videoId,
-    name:videoName,
-    video:videoUrl,
-    note:videoNote,
+    id:videoId,name:videoName,type:contentType,video:videoUrl,note:videoNote,
     updatedAt:convertUTCToTaiwanTime(new Date().toISOString())
   };
   syncVideoToGAS(videoData,(success)=>{
@@ -1010,6 +927,7 @@ function getProfileAndVerify(){
     showError('取得使用者資料失敗：'+err.message);
   }
 }
+
 function callGasBackend(userId,displayName,writeToSheet=false){
   console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
   $.ajax({
@@ -1043,7 +961,7 @@ function callGasBackend(userId,displayName,writeToSheet=false){
       showError(errorMsg);
     }
   });
-}
+  
 document.addEventListener('DOMContentLoaded',function(){
   console.log("頁面加載完成，初始化系統");
   setStatus('正在初始化系統，請稍候...');
