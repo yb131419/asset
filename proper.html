@@ -24,8 +24,8 @@ tailwind.config={theme:{extend:{colors:{primary:'#008C76',secondary:'#E8F9F7',ac
 ::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
 body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
-.link-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
-.file-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
+.link-container,.file-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
+.link-container{border:2px dashed #008C76;}
 .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
 .video-container iframe.loaded{opacity:1;}
 .btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
@@ -42,15 +42,15 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
 .mobile-btn{min-height:48px !important;padding:12px 20px !important;font-size:16px !important;border-radius:10px !important;}
 .mobile-btn-sm{min-height:40px !important;padding:8px 16px !important;font-size:15px !important;border-radius:8px !important;}
-.link-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
-.file-card-icon{font-size:48px;color:#64748B;margin-bottom:16px;}
-.link-card-title{font-size:18px;font-weight:600;color:#1E293B;margin-bottom:8px;}
-.file-card-title{font-size:18px;font-weight:600;color:#1E293B;margin-bottom:8px;}
-.link-card-desc{font-size:14px;color:#64748B;margin-bottom:20px;}
-.file-card-desc{font-size:14px;color:#64748B;margin-bottom:20px;}
-.link-card-btn{background:#008C76;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
-.file-card-btn{background:#64748B;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
+.link-card-icon,.file-card-icon{font-size:48px;margin-bottom:16px;}
+.link-card-icon{color:#008C76;}
+.file-card-icon{color:#64748B;}
+.link-card-title,.file-card-title{font-size:18px;font-weight:600;color:#1E293B;margin-bottom:8px;}
+.link-card-desc,.file-card-desc{font-size:14px;color:#64748B;margin-bottom:20px;}
+.link-card-btn,.file-card-btn{padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;color:white;}
+.link-card-btn{background:#008C76;}
 .link-card-btn:hover{background:#007A69;}
+.file-card-btn{background:#64748B;}
 .file-card-btn:hover{background:#475569;}
 </style>
 </head>
@@ -212,9 +212,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
           <div id="file-container" class="file-container mb-3 hidden">
             <i id="file-icon" class="file-card-icon"></i>
             <h3 id="file-title" class="file-card-title">文件預覽</h3>
-            <p id="file-desc" class="file-card-desc">點擊按鈕查看/下載該文件</p>
-            <a id="file-btn" href="" target="_blank" class="file-card-btn">
-              <i class="fa fa-download mr-2"></i> 查看/下載
+            <p id="file-desc" class="file-card-desc">點擊按鈕查看文件或下載到本地</p>
+            <a id="file-btn" href="" target="_blank" download class="file-card-btn">
+              <i class="fa fa-download mr-2"></i> 查看文件 / 下載本機
             </a>
           </div>
           <div id="link-container" class="link-container mb-3 hidden">
@@ -315,6 +315,17 @@ const getContentCategory=(url)=>{
   if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be')||lowerUrl.includes('vimeo.com')||lowerUrl.includes('meeting.tencent.com'))return 'video';
   if(lowerUrl.endsWith('.mp3')||lowerUrl.endsWith('.wav')||lowerUrl.endsWith('.aac')||lowerUrl.endsWith('.flac')||lowerUrl.endsWith('.m4a')||lowerUrl.endsWith('.pdf')||lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx')||lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx')||lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx')||lowerUrl.endsWith('.zip')||lowerUrl.endsWith('.rar')||lowerUrl.endsWith('.txt'))return 'file';
   return 'link';
+};
+const getFileIconByType=(url)=>{
+  const lowerUrl=url.toLowerCase().trim();
+  if(lowerUrl.endsWith('.pdf'))return 'fa fa-file-pdf-o';
+  if(lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx'))return 'fa fa-file-word-o';
+  if(lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx'))return 'fa fa-file-excel-o';
+  if(lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx'))return 'fa fa-file-powerpoint-o';
+  if(lowerUrl.endsWith('.zip')||lowerUrl.endsWith('.rar'))return 'fa fa-file-zip-o';
+  if(lowerUrl.endsWith('.mp3')||lowerUrl.endsWith('.wav')||lowerUrl.endsWith('.aac'))return 'fa fa-file-audio-o';
+  if(lowerUrl.endsWith('.jpg')||lowerUrl.endsWith('.png')||lowerUrl.endsWith('.gif'))return 'fa fa-file-image-o';
+  return 'fa fa-file-o';
 };
 const convertToEmbedUrl=(url)=>{
   const category=getContentCategory(url);
@@ -838,7 +849,7 @@ function viewVideo(videoId){
   previewUpdatedEl.textContent=video.updatedAt||'未同步';
   previewNoteEl.textContent=video.note||'無備註資訊';
   
-  // 先隱藏所有預覽容器
+  // 強制隱藏所有預覽容器
   videoContainerEl.classList.add('hidden');
   fileContainerEl.classList.add('hidden');
   linkContainerEl.classList.add('hidden');
@@ -853,7 +864,7 @@ function viewVideo(videoId){
       break;
     case 'file':
       fileContainerEl.classList.remove('hidden');
-      fileIconEl.className='file-card-icon fa fa-file-o';
+      fileIconEl.className=`file-card-icon ${getFileIconByType(video.video)}`;
       fileBtnEl.href=video.video;
       break;
     case 'link':
