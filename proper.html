@@ -229,15 +229,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
         </div>
         <div class="bg-neutral rounded-lg p-3 text-xs md:text-sm text-textSecondary">
           <div class="grid grid-cols-1 gap-2 mb-2">
-            <div id="preview-link-container" class="block">
-              <div class="flex items-center justify-between">
-                <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-link text-primary mr-1.5 text-xs"></i> 連結網址：</span>
-                <button onclick="copyVideoLink()" class="mobile-btn-sm text-primary hover:text-[#007A69] text-sm font-medium">
-                  <i class="fa fa-copy text-sm"></i> 複製
-                </button>
-              </div>
-              <p id="preview-link" class="mt-1 break-all font-mono text-xs md:text-sm"></p>
-            </div>
             <div>
               <span class="font-medium text-textPrimary text-xs md:text-sm"><i class="fa fa-clock-o text-primary mr-1.5 text-xs"></i> 最後更新：</span>
               <p id="preview-updated" class="mt-1 text-xs md:text-sm"></p>
@@ -837,7 +828,6 @@ function viewVideo(videoId){
   const videoPreviewEl=document.getElementById('video-preview');
   const videoLoadingEl=document.getElementById('video-loading');
   const previewTitleEl=document.getElementById('preview-title');
-  const previewLinkEl=document.getElementById('preview-link');
   const previewUpdatedEl=document.getElementById('preview-updated');
   const previewNoteEl=document.getElementById('preview-note');
   const previewVideoEl=document.getElementById('preview-video');
@@ -852,35 +842,23 @@ function viewVideo(videoId){
   const fileTitleEl=document.getElementById('file-title');
   const fileDescEl=document.getElementById('file-desc');
   const fileBtnEl=document.getElementById('file-btn');
-  
-  // 隱藏其他區域
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
   if(videoListEl)videoListEl.classList.add('hidden');
   if(editEl)editEl.classList.add('hidden');
   if(videoPreviewEl)videoPreviewEl.classList.remove('hidden');
-  
-  // 設置預覽標題和基本信息
   if(previewTitleEl)previewTitleEl.textContent=video.name;
-  if(previewLinkEl)previewLinkEl.textContent=video.video;
   if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
   if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
-  
-  // 先隱藏所有預覽容器（互斥前置）
   videoContainerEl.classList.add('hidden');
   linkContainerEl.classList.add('hidden');
   fileContainerEl.classList.add('hidden');
-  
-  // 判斷URL類型並顯示對應預覽
   const urlType=getUrlType(video.video);
   const embedUrl=convertToEmbedUrl(video.video);
-  
   if(embedUrl){
-    // 視頻類型 - 只顯示影片容器
     videoContainerEl.classList.remove('hidden');
     if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
     if(previewVideoEl)previewVideoEl.src=embedUrl;
   }else if(urlType==='file'){
-    // 文件類型 - 只顯示文件容器
     fileContainerEl.classList.remove('hidden');
     const lowerUrl=video.video.toLowerCase();
     if(lowerUrl.endsWith('.pdf')){
@@ -910,7 +888,6 @@ function viewVideo(videoId){
     }
     fileBtnEl.href=video.video;
   }else{
-    // 普通鏈接 - 只顯示鏈接容器
     linkContainerEl.classList.remove('hidden');
     if(urlType==='tencent_meeting'){
       linkIconEl.className='link-card-icon fa fa-video-camera';
@@ -923,7 +900,6 @@ function viewVideo(videoId){
     }
     linkBtnEl.href=video.video;
   }
-  
   if(videoPreviewEl)videoPreviewEl.scrollIntoView({behavior:'smooth'});
 }
 function hideVideoPreview(){
@@ -975,26 +951,6 @@ function deleteCurrentVideo(){
   if(!appState.currentViewingVideoId)return;
   deleteVideoConfirm(appState.currentViewingVideoId);
 }
-function copyVideoLink(){
-  const video=appState.videoList.find(v=>v.id===appState.currentViewingVideoId);
-  if(!video)return;
-  try{
-    navigator.clipboard.writeText(video.video).then(()=>{
-      showSuccess('連結已成功複製到剪貼簿！');
-    }).catch(()=>{
-      const textArea=document.createElement('textarea');
-      textArea.value=video.video;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showSuccess('連結已成功複製到剪貼簿！');
-    });
-  }catch(e){
-    console.error('複製連結失敗：',e);
-    showError('複製連結失敗，請手動複製');
-  }
-}
 function saveVideo(event){
   event.preventDefault();
   if(appState.isSubmitting||!isManageUser()){
@@ -1009,14 +965,10 @@ function saveVideo(event){
   const videoName=document.getElementById('content-name').value.trim();
   const videoUrl=document.getElementById('content-video').value.trim();
   const videoNote=document.getElementById('content-note').value.trim();
-  
-      // 接续原有 saveVideo 函数
   if(!validateVideoUrl(videoUrl)){
     showError('請輸入有效的網址格式（如：https://xxx.com）');
     return;
   }
-
-  // 构建影片数据
   const videoData = {
     id: videoId,
     name: videoName,
@@ -1024,64 +976,46 @@ function saveVideo(event){
     note: videoNote,
     updatedAt: convertUTCToTaiwanTime(new Date().toISOString())
   };
-
   setSubmitState(true);
-
-  // 同步到 GAS 并更新本地数据
   syncVideoToGAS(videoData, (success) => {
     if (success) {
       const existingIndex = appState.videoList.findIndex(v => v.id === videoId);
       if (existingIndex !== -1) {
-        // 更新现有影片
         appState.videoList[existingIndex] = videoData;
         showSuccess('內容已成功更新！');
       } else {
-        // 添加新影片
         appState.videoList.push(videoData);
         showSuccess('內容已成功新增！');
       }
       updateVideoCountDisplay();
       renderVideoList();
       renderViewerVideoList();
-      hideEditSection(); // 保存后隐藏编辑区域
+      hideEditSection();
     }
     setSubmitState(false);
   });
 }
-
-// -------------------------- 缺失的 LIFF 初始化逻辑 --------------------------
 function initializeLIFF() {
-  liff
-    .init({ liffId: CONFIG.LIFF_ID })
-    .then(() => {
-      if (!liff.isLoggedIn()) {
-        // 未登录则引导登录
-        liff.login();
-        return;
-      }
-
-      // 获取用户信息
-      liff.getProfile()
-        .then(profile => {
-          appState.currentUser = {
-            userId: profile.userId,
-            displayName: profile.displayName
-          };
-          // 验证用户权限（调用 GAS 接口）
-          validateUserPermission();
-        })
-        .catch(error => {
-          console.error('获取 LIFF 用户信息失败：', error);
-          showError('獲取用戶信息失敗，請重新登錄');
-        });
-    })
-    .catch(error => {
-      console.error('LIFF 初始化失敗：', error);
-      showError('系統初始化失敗，請檢查網絡或稍後再試');
+  liff.init({ liffId: CONFIG.LIFF_ID }).then(() => {
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    liff.getProfile().then(profile => {
+      appState.currentUser = {
+        userId: profile.userId,
+        displayName: profile.displayName
+      };
+      validateUserPermission();
+    }).catch(error => {
+      console.error('获取 LIFF 用户信息失败：', error);
+      showError('獲取用戶信息失敗，請重新登錄');
     });
+  }).catch(error => {
+    console.error('LIFF 初始化失敗：', error);
+    showError('系統初始化失敗，請檢查網絡或稍後再試');
+  });
 }
-
-// -------------------------- 用户权限验证逻辑 --------------------------
 function validateUserPermission() {
   setStatus('驗證用戶權限中...');
   $.ajax({
@@ -1095,7 +1029,7 @@ function validateUserPermission() {
       displayName: appState.currentUser?.displayName || ''
     },
     success: function (resp) {
-      renderResult(resp); // 渲染权限验证结果
+      renderResult(resp);
     },
     error: function (xhr, status, error) {
       console.error('驗證用戶權限失敗：', status, error);
@@ -1103,17 +1037,12 @@ function validateUserPermission() {
     }
   });
 }
-
-// -------------------------- 页面入口（加载完成后初始化） --------------------------
 $(document).ready(function() {
-  // 初始化 LIFF 系统
   if (window.liff) {
     initializeLIFF();
   } else {
     showError('LIFF SDK 加載失敗，請稍後再試');
   }
-
-  // 监听页面刷新/关闭时的未保存提示（可选）
   window.addEventListener('beforeunload', function(e) {
     if (appState.isSubmitting) {
       e.preventDefault();
