@@ -24,7 +24,6 @@ tailwind.config={theme:{extend:{colors:{primary:'#008C76',secondary:'#E8F9F7',ac
 ::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
 body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
-.audio-container{position:relative;width:100%;height:80px;border-radius:8px;background-color:#F1F5F9;display:flex;align-items:center;justify-content:center;padding:20px;}
 .link-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
 .file-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
 .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
@@ -159,9 +158,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-link text-primary mr-2 text-xs"></i> 連結網址 <span class="text-red-500">*</span>
             </label>
-            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援影片/錄音/文件等任意網址（YouTube/MP3/PDF等）" required>
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援影片/文件等任意網址（YouTube/PDF等）" required>
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、MP3/WAv 錄音、PDF/Word 文件、騰訊會議等任意合法網址
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、PDF/Word 文件、騰訊會議等任意合法網址
             </p>
           </div>
           <div class="space-y-1">
@@ -209,11 +208,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
               <p class="text-xs">載入影片中...</p>
             </div>
             <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); const el = document.getElementById('video-loading'); if(el) el.classList.add('hidden');"></iframe>
-          </div>
-          <div id="audio-container" class="audio-container mb-3 hidden">
-            <audio id="preview-audio" controls class="w-full h-60">
-              <p>你的瀏覽器不支援音頻播放，請點擊下方鏈接下載播放</p>
-            </audio>
           </div>
           <div id="file-container" class="file-container mb-3 hidden">
             <i id="file-icon" class="file-card-icon"></i>
@@ -316,11 +310,10 @@ const setSubmitState=(isSubmitting)=>{
 };
 const resetSubmitState=()=>{setSubmitState(false);};
 const getContentCategory=(url)=>{
-  if(!url)return 'other';
+  if(!url)return 'link';
   const lowerUrl=url.toLowerCase().trim();
   if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be')||lowerUrl.includes('vimeo.com')||lowerUrl.includes('meeting.tencent.com'))return 'video';
-  if(lowerUrl.endsWith('.mp3')||lowerUrl.endsWith('.wav')||lowerUrl.endsWith('.aac')||lowerUrl.endsWith('.flac')||lowerUrl.endsWith('.m4a'))return 'audio';
-  if(lowerUrl.endsWith('.pdf')||lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx')||lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx')||lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx')||lowerUrl.endsWith('.zip')||lowerUrl.endsWith('.rar')||lowerUrl.endsWith('.txt'))return 'file';
+  if(lowerUrl.endsWith('.mp3')||lowerUrl.endsWith('.wav')||lowerUrl.endsWith('.aac')||lowerUrl.endsWith('.flac')||lowerUrl.endsWith('.m4a')||lowerUrl.endsWith('.pdf')||lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx')||lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx')||lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx')||lowerUrl.endsWith('.zip')||lowerUrl.endsWith('.rar')||lowerUrl.endsWith('.txt'))return 'file';
   return 'link';
 };
 const convertToEmbedUrl=(url)=>{
@@ -388,7 +381,6 @@ const getVideoThumbnail=(url)=>{
   const category=getContentCategory(url);
   switch(category){
     case 'video': return 'https://via.placeholder.com/300x180?text=影片&bgcolor=e8f9f7&color=008c76';
-    case 'audio': return 'https://via.placeholder.com/300x180?text=錄音檔&bgcolor=e8f9f7&color=008c76';
     case 'file': return 'https://via.placeholder.com/300x180?text=文件&bgcolor=f1f5f9&color=64748b';
     case 'link': return 'https://via.placeholder.com/300x180?text=網址&bgcolor=f1f5f9&color=64748b';
     default: return 'https://via.placeholder.com/300x180?text=未知內容';
@@ -600,7 +592,7 @@ function renderVideoList(){
     const shortLink=video.video.length>35?`${video.video.substring(0,35)}...`:video.video;
     const thumbnailUrl=getVideoThumbnail(video.video).replace('300x180','80x50');
     const category=getContentCategory(video.video);
-    const categoryName={video:'影片',audio:'錄音檔',file:'文件',link:'網址'}[category]||'未知';
+    const categoryName={video:'影片',file:'文件',link:'網址'}[category]||'未知';
     const actionBtns=isManage?`
       <div class="flex flex-col gap-1 ml-2">
         <button onclick="event.stopPropagation();viewVideo('${video.id}')" class="p-2 text-primary hover:bg-primary/5 rounded-lg transition-colors" title="預覽內容">
@@ -658,7 +650,7 @@ function renderViewerVideoList(){
     const fullTitle=video.name||'未命名內容';
     const thumbnailUrl=getVideoThumbnail(video.video);
     const category=getContentCategory(video.video);
-    const categoryName={video:'影片',audio:'錄音檔',file:'文件',link:'網址'}[category]||'未知';
+    const categoryName={video:'影片',file:'文件',link:'網址'}[category]||'未知';
     const cardContent=`
       <div class="relative">
         <img src="${thumbnailUrl}" alt="${fullTitle}" class="w-full h-48 object-cover">
@@ -830,7 +822,6 @@ function viewVideo(videoId){
   const previewNoteEl=document.getElementById('preview-note');
   const previewVideoEl=document.getElementById('preview-video');
   const videoContainerEl=document.getElementById('video-container');
-  const audioContainerEl=document.getElementById('audio-container');
   const fileContainerEl=document.getElementById('file-container');
   const linkContainerEl=document.getElementById('link-container');
   const fileIconEl=document.getElementById('file-icon');
@@ -847,8 +838,8 @@ function viewVideo(videoId){
   previewUpdatedEl.textContent=video.updatedAt||'未同步';
   previewNoteEl.textContent=video.note||'無備註資訊';
   
+  // 先隱藏所有預覽容器
   videoContainerEl.classList.add('hidden');
-  audioContainerEl.classList.add('hidden');
   fileContainerEl.classList.add('hidden');
   linkContainerEl.classList.add('hidden');
   
@@ -859,10 +850,6 @@ function viewVideo(videoId){
       videoContainerEl.classList.remove('hidden');
       if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
       if(previewVideoEl)previewVideoEl.src=embedUrl;
-      break;
-    case 'audio':
-      audioContainerEl.classList.remove('hidden');
-      document.getElementById('preview-audio').src=video.video;
       break;
     case 'file':
       fileContainerEl.classList.remove('hidden');
