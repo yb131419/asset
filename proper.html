@@ -24,7 +24,9 @@ tailwind.config={theme:{extend:{colors:{primary:'#008C76',secondary:'#E8F9F7',ac
 ::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
 body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .video-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;background-color:#0F172A;min-height:280px;}
-.link-container{position:relative;height:280px;border-radius:8px;background-color:#F1F5F9;border:2px dashed #008C76;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
+.link-container,.file-container{position:relative;height:280px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;}
+.link-container{background-color:#F1F5F9;border:2px dashed #008C76;}
+.file-container{background-color:#F0F7FF;border:2px dashed #3B82F6;}
 .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;}
 .video-container iframe.loaded{opacity:1;}
 .btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
@@ -41,11 +43,16 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 .watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;}
 .mobile-btn{min-height:48px !important;padding:12px 20px !important;font-size:16px !important;border-radius:10px !important;}
 .mobile-btn-sm{min-height:40px !important;padding:8px 16px !important;font-size:15px !important;border-radius:8px !important;}
-.link-card-icon{font-size:48px;color:#008C76;margin-bottom:16px;}
-.link-card-title{font-size:18px;font-weight:600;color:#1E293B;margin-bottom:8px;}
-.link-card-desc{font-size:14px;color:#64748B;margin-bottom:20px;}
-.link-card-btn{background:#008C76;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
+.link-card-icon,.file-card-icon{font-size:48px;margin-bottom:16px;}
+.link-card-icon{color:#008C76;}
+.file-card-icon{color:#3B82F6;}
+.link-card-title,.file-card-title{font-size:18px;font-weight:600;color:#1E293B;margin-bottom:8px;}
+.link-card-desc,.file-card-desc{font-size:14px;color:#64748B;margin-bottom:20px;}
+.link-card-btn,.file-card-btn{padding:10px 20px;border-radius:8px;font-weight:600;transition:background 0.3s;}
+.link-card-btn{background:#008C76;color:white;}
 .link-card-btn:hover{background:#007A69;}
+.file-card-btn{background:#3B82F6;color:white;}
+.file-card-btn:hover{background:#2563EB;}
 </style>
 </head>
 <body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4">
@@ -152,9 +159,9 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <label class="block text-textPrimary font-medium text-xs md:text-sm">
               <i class="fa fa-video-camera text-primary mr-2 text-xs"></i> 連結網址 <span class="text-red-500">*</span>
             </label>
-            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（YouTube/騰訊會議/網頁連結等）" required>
+            <input type="url" id="content-video" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm" placeholder="支援任意網址（YouTube/騰訊會議/文件/網頁連結等）" required>
             <p class="text-xs text-textSecondary mt-1">
-              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、普通網頁等任意合法網址
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援 YouTube、騰訊會議、PDF/Word文件、普通網頁等任意合法網址
             </p>
           </div>
           <div class="space-y-1">
@@ -209,6 +216,14 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
             <p id="link-desc" class="link-card-desc"></p>
             <a id="link-btn" href="" target="_blank" class="link-card-btn">
               <i class="fa fa-external-link mr-2"></i> 開啟連結
+            </a>
+          </div>
+          <div id="file-container" class="file-container hidden">
+            <i id="file-icon" class="file-card-icon"></i>
+            <h3 id="file-title" class="file-card-title"></h3>
+            <p id="file-desc" class="file-card-desc"></p>
+            <a id="file-btn" href="" target="_blank" class="file-card-btn">
+              <i class="fa fa-download mr-2"></i> 打開/下載文件
             </a>
           </div>
         </div>
@@ -307,6 +322,8 @@ const resetSubmitState=()=>{setSubmitState(false);};
 const getUrlType=(url)=>{
   if(!url)return 'unknown';
   const lowerUrl=url.toLowerCase().trim();
+  const fileExtensions=['.pdf','.doc','.docx','.xls','.xlsx','.ppt','.pptx','.txt','.zip','.rar'];
+  if(fileExtensions.some(ext=>lowerUrl.endsWith(ext)))return 'file';
   if(lowerUrl.includes('youtube.com')||lowerUrl.includes('youtu.be'))return 'youtube';
   else if(lowerUrl.includes('vimeo.com'))return 'vimeo';
   else if(lowerUrl.includes('meeting.tencent.com'))return 'tencent_meeting';
@@ -383,6 +400,12 @@ const getVideoThumbnail=(url)=>{
       return 'https://via.placeholder.com/300x180?text=Vimeo';
     case 'tencent_meeting':
       return 'https://via.placeholder.com/300x180?text=騰訊會議&bgcolor=e8f9f7&color=008c76';
+    case 'file':
+      const lowerUrl=url.toLowerCase();
+      if(lowerUrl.endsWith('.pdf'))return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f0f7ff&color=3b82f6';
+      else if(lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx'))return 'https://via.placeholder.com/300x180?text=Word文件&bgcolor=f0f7ff&color=3b82f6';
+      else if(lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx'))return 'https://via.placeholder.com/300x180?text=Excel文件&bgcolor=f0f7ff&color=3b82f6';
+      else return 'https://via.placeholder.com/300x180?text=壓縮文件&bgcolor=f0f7ff&color=3b82f6';
     default:
       return 'https://via.placeholder.com/300x180?text=外部連結&bgcolor=f1f5f9&color=64748b';
   }
@@ -820,10 +843,15 @@ function viewVideo(videoId){
   const previewVideoEl=document.getElementById('preview-video');
   const videoContainerEl=document.getElementById('video-container');
   const linkContainerEl=document.getElementById('link-container');
+  const fileContainerEl=document.getElementById('file-container');
   const linkIconEl=document.getElementById('link-icon');
   const linkTitleEl=document.getElementById('link-title');
   const linkDescEl=document.getElementById('link-desc');
   const linkBtnEl=document.getElementById('link-btn');
+  const fileIconEl=document.getElementById('file-icon');
+  const fileTitleEl=document.getElementById('file-title');
+  const fileDescEl=document.getElementById('file-desc');
+  const fileBtnEl=document.getElementById('file-btn');
   
   // 隱藏其他區域
   if(videoViewerEl)videoViewerEl.classList.add('hidden');
@@ -837,22 +865,53 @@ function viewVideo(videoId){
   if(previewUpdatedEl)previewUpdatedEl.textContent=video.updatedAt||'未同步';
   if(previewNoteEl)previewNoteEl.textContent=video.note||'無備註資訊';
   
+  // 先隱藏所有預覽容器（互斥前置）
+  videoContainerEl.classList.add('hidden');
+  linkContainerEl.classList.add('hidden');
+  fileContainerEl.classList.add('hidden');
+  
   // 判斷URL類型並顯示對應預覽
   const urlType=getUrlType(video.video);
   const embedUrl=convertToEmbedUrl(video.video);
   
   if(embedUrl){
-    // 視頻類型 - 顯示iframe
+    // 視頻類型 - 只顯示影片容器
     videoContainerEl.classList.remove('hidden');
-    linkContainerEl.classList.add('hidden');
     if(videoLoadingEl)videoLoadingEl.classList.remove('hidden');
     if(previewVideoEl)previewVideoEl.src=embedUrl;
+  }else if(urlType==='file'){
+    // 文件類型 - 只顯示文件容器
+    fileContainerEl.classList.remove('hidden');
+    const lowerUrl=video.video.toLowerCase();
+    if(lowerUrl.endsWith('.pdf')){
+      fileIconEl.className='file-card-icon fa fa-file-pdf-o';
+      fileTitleEl.textContent='PDF 文檔';
+      fileDescEl.textContent='點擊按鈕在新窗口打開或下載PDF';
+    }else if(lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx')){
+      fileIconEl.className='file-card-icon fa fa-file-word-o';
+      fileTitleEl.textContent='Word 文檔';
+      fileDescEl.textContent='點擊按鈕在新窗口打開或下載Word';
+    }else if(lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx')){
+      fileIconEl.className='file-card-icon fa fa-file-excel-o';
+      fileTitleEl.textContent='Excel 文檔';
+      fileDescEl.textContent='點擊按鈕在新窗口打開或下載Excel';
+    }else if(lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx')){
+      fileIconEl.className='file-card-icon fa fa-file-powerpoint-o';
+      fileTitleEl.textContent='PPT 文檔';
+      fileDescEl.textContent='點擊按鈕在新窗口打開或下載PPT';
+    }else if(lowerUrl.endsWith('.zip')||lowerUrl.endsWith('.rar')){
+      fileIconEl.className='file-card-icon fa fa-file-zip-o';
+      fileTitleEl.textContent='壓縮文件';
+      fileDescEl.textContent='點擊按鈕下載壓縮包並解壓';
+    }else{
+      fileIconEl.className='file-card-icon fa fa-file-o';
+      fileTitleEl.textContent='通用文件';
+      fileDescEl.textContent='點擊按鈕下載或打開該文件';
+    }
+    fileBtnEl.href=video.video;
   }else{
-    // 普通鏈接 - 顯示鏈接卡片
-    videoContainerEl.classList.add('hidden');
+    // 普通鏈接 - 只顯示鏈接容器
     linkContainerEl.classList.remove('hidden');
-    
-    // 設置鏈接卡片內容
     if(urlType==='tencent_meeting'){
       linkIconEl.className='link-card-icon fa fa-video-camera';
       linkTitleEl.textContent='騰訊會議鏈接';
@@ -951,115 +1010,116 @@ function saveVideo(event){
   const videoUrl=document.getElementById('content-video').value.trim();
   const videoNote=document.getElementById('content-note').value.trim();
   
+      // 接续原有 saveVideo 函数
   if(!validateVideoUrl(videoUrl)){
     showError('請輸入有效的網址格式（如：https://xxx.com）');
     return;
   }
-  
-  setSubmitState(true);
-  const videoData={
-    id:videoId,
-    name:videoName,
-    video:videoUrl,
-    note:videoNote,
-    updatedAt:convertUTCToTaiwanTime(new Date().toISOString())
+
+  // 构建影片数据
+  const videoData = {
+    id: videoId,
+    name: videoName,
+    video: videoUrl,
+    note: videoNote,
+    updatedAt: convertUTCToTaiwanTime(new Date().toISOString())
   };
-  syncVideoToGAS(videoData,(success)=>{
-    if(success){
-      const videoIndex=appState.videoList.findIndex(v=>v.id===videoId);
-      if(videoIndex>=0)appState.videoList[videoIndex]=videoData;
-      else appState.videoList.unshift(videoData);
+
+  setSubmitState(true);
+
+  // 同步到 GAS 并更新本地数据
+  syncVideoToGAS(videoData, (success) => {
+    if (success) {
+      const existingIndex = appState.videoList.findIndex(v => v.id === videoId);
+      if (existingIndex !== -1) {
+        // 更新现有影片
+        appState.videoList[existingIndex] = videoData;
+        showSuccess('內容已成功更新！');
+      } else {
+        // 添加新影片
+        appState.videoList.push(videoData);
+        showSuccess('內容已成功新增！');
+      }
       updateVideoCountDisplay();
       renderVideoList();
       renderViewerVideoList();
-      showSuccess(appState.currentEditingVideoId?'內容已成功更新並同步到工作表！':'新內容已成功添加並同步到工作表！');
-      appState.currentEditingVideoId=null;
-      hideEditSection();
+      hideEditSection(); // 保存后隐藏编辑区域
     }
     setSubmitState(false);
   });
 }
-function getProfileAndVerify(){
-  setStatus('驗證使用者資訊...');
-  try{
-    liff.getProfile().then(profile => {
-      console.log("從 LIFF API 獲取用戶資訊：",profile);
-      const userId=profile.userId;
-      const displayName=profile.displayName?.trim() || 'LINE用戶';
-      appState.currentUser={userId:userId,displayName:displayName};
-      callGasBackend(userId,displayName,true);
-    }).catch(err=>{
-      console.warn("LIFF getProfile 失敗，嘗試 ID Token：",err);
-      try{
-        const idToken=liff.getDecodedIDToken();
-        if(idToken){
-          console.log("ID Token 內容：",idToken);
-          const userId=idToken.sub;
-          const displayName=idToken.nickname?.trim() || idToken.name?.trim() || idToken.given_name || 'LINE用戶';
-          appState.currentUser={userId:userId,displayName:displayName};
-          callGasBackend(userId,displayName,true);
-          return;
-        }
-      }catch(idErr){
-        console.error("從 ID Token 獲取信息失敗：",idErr);
-        showError('無法獲取使用者名稱，請確保LIFF已授權profile權限');
+
+// -------------------------- 缺失的 LIFF 初始化逻辑 --------------------------
+function initializeLIFF() {
+  liff
+    .init({ liffId: CONFIG.LIFF_ID })
+    .then(() => {
+      if (!liff.isLoggedIn()) {
+        // 未登录则引导登录
+        liff.login();
+        return;
       }
+
+      // 获取用户信息
+      liff.getProfile()
+        .then(profile => {
+          appState.currentUser = {
+            userId: profile.userId,
+            displayName: profile.displayName
+          };
+          // 验证用户权限（调用 GAS 接口）
+          validateUserPermission();
+        })
+        .catch(error => {
+          console.error('获取 LIFF 用户信息失败：', error);
+          showError('獲取用戶信息失敗，請重新登錄');
+        });
+    })
+    .catch(error => {
+      console.error('LIFF 初始化失敗：', error);
+      showError('系統初始化失敗，請檢查網絡或稍後再試');
     });
-  }catch(err){
-    console.error("獲取使用者資料失敗：",err);
-    showError('取得使用者資料失敗：'+err.message);
-  }
 }
-function callGasBackend(userId,displayName,writeToSheet=false){
-  console.log("調用 GAS 驗證用戶：",{userId,displayName,writeToSheet});
+
+// -------------------------- 用户权限验证逻辑 --------------------------
+function validateUserPermission() {
+  setStatus('驗證用戶權限中...');
   $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
-    data:{
-      userId:userId,
-      displayName:displayName,
-      action:'verifyUser',
-      needExpiryDate:true,
-      writeToSheet:writeToSheet
+    url: CONFIG.GAS_URL,
+    dataType: 'jsonp',
+    jsonp: 'callback',
+    timeout: CONFIG.JSONP_TIMEOUT,
+    data: {
+      action: 'validateUser',
+      userId: appState.currentUser?.userId || '',
+      displayName: appState.currentUser?.displayName || ''
     },
-    success:function(resp){
-      console.log("GAS 驗證回應：",resp);
-      if(resp.status==="error")showError(resp.message);
-      else{
-        resp.isAuthorized=Boolean(resp.isAuthorized||resp.isAdmin||resp.isPro);
-        resp.isAdmin=Boolean(resp.isAdmin);
-        resp.isPro=Boolean(resp.isPro);
-        resp.displayName=resp.displayName || displayName;
-        renderResult(resp);
-      }
+    success: function (resp) {
+      renderResult(resp); // 渲染权限验证结果
     },
-    error:function(xhr,status,error){
-      console.error("GAS 請求錯誤：",status,error);
-      let errorMsg='與伺服器通訊失敗';
-      if(status==='timeout')errorMsg='請求超時，請檢查網絡連接';
-      else if(status==='parsererror')errorMsg='數據解析錯誤';
-      showError(errorMsg);
+    error: function (xhr, status, error) {
+      console.error('驗證用戶權限失敗：', status, error);
+      showError('用戶權限驗證失敗，' + (status === 'timeout' ? '請求超時' : '網絡錯誤'));
     }
   });
 }
-document.addEventListener('DOMContentLoaded',function(){
-  console.log("頁面加載完成，初始化系統");
-  setStatus('正在初始化系統，請稍候...');
-  liff.init({liffId:CONFIG.LIFF_ID,scope:['profile','openid','offline_access']},{disableRedirect:false})
-  .then(()=>{
-    console.log("LIFF 初始化成功");
-    if(!liff.isLoggedIn()){
-      console.log("用戶未登錄，跳轉登錄");
-      liff.login({scope:['profile','openid','offline_access'],redirectUri:window.location.href});
-    }else{
-      console.log("用戶已登錄，開始驗證信息");
-      getProfileAndVerify();
+
+// -------------------------- 页面入口（加载完成后初始化） --------------------------
+$(document).ready(function() {
+  // 初始化 LIFF 系统
+  if (window.liff) {
+    initializeLIFF();
+  } else {
+    showError('LIFF SDK 加載失敗，請稍後再試');
+  }
+
+  // 监听页面刷新/关闭时的未保存提示（可选）
+  window.addEventListener('beforeunload', function(e) {
+    if (appState.isSubmitting) {
+      e.preventDefault();
+      e.returnValue = '當前正在提交數據，請勿刷新或關閉頁面！';
+      return e.returnValue;
     }
-  }).catch(err=>{
-    console.error("LIFF 初始化失敗：",err);
-    showError('系統初始化失敗：'+err.message);
   });
 });
 </script>
