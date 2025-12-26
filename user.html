@@ -177,7 +177,8 @@
       <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
       <label for="phone">電話</label>
-      <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
+      <!-- 修改1：給電話輸入框添加required屬性，設為必填 -->
+      <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入電話" />
 
       <label for="userId">Line ID</label>
       <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
@@ -400,12 +401,18 @@
           // 表單驗證（補充HTML5驗證之外的檢查）
           const planType = document.getElementById('planType')?.value;
           const name = document.getElementById('name')?.value;
+          // 修改2：新增電話字段的非空校驗
+          const phone = document.getElementById('phone')?.value;
           if (!planType) {
             alert("請選擇方案類型");
             return;
           }
           if (!name) {
             alert("請輸入姓名");
+            return;
+          }
+          if (!phone) {
+            alert("請輸入電話");
             return;
           }
           
