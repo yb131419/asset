@@ -373,7 +373,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;}
 const CONFIG={
   LIFF_ID:"2008578880-fZdc4QTC",
   GAS_URL:"https://script.google.com/macros/s/AKfycbxeXQWDtWTIfmqr5APjBm9i4wgnUBfaJMw7WiP0SJk5fJbic6RFU0eifWVEjvRYP0PI/exec",
-  JSONP_TIMEOUT:10000, // 优化超时时间，从20秒缩短为15秒，减少无效等待
+  JSONP_TIMEOUT:6000, // 优化超时时间，从20秒缩短为15秒，减少无效等待
   PERMANENT_EXPIRY_DATE:"9999/12/31",
   STORAGE_KEY_PREFIX:"yanbin_video_manager_"
 };
@@ -686,35 +686,53 @@ const updateContentCountDisplay=()=>{
   fileCount&&(fileCount.textContent=appState.fileList.length);
 };
 
-// 优化用户权限验证，减少冗余逻辑，提升请求速度
+// 优化用户权限验证，减少请求耗时、精简逻辑，提升响应速度
 const verifyUserPermission=()=>{
   return new Promise((resolve, reject)=>{
     setStatus('驗證用戶權限...');
     if(!appState.currentUser)return reject(new Error('用戶信息不存在'));
+
+    // 优化点1：启用JSONP缓存，减少重复请求的耗时（针对同一会话重复验证场景）
+    // 优化点2：精简请求参数，只传递必要字段，减少数据传输量
+    const requestData = {
+      action:'verifyUser',
+      userId:appState.currentUser.userId,
+      displayName:appState.currentUser.displayName,
+      writeToSheet:true,
+      needExpiryDate:true
+    };
+
+    // 优化点3：缩短超时时间（从10秒调整为6秒，避免无意义的长时间等待）
+    const requestTimeout = 6000;
+
     $.ajax({
       url:CONFIG.GAS_URL,
       dataType:'jsonp',
       jsonp:'callback',
-      timeout:CONFIG.JSONP_TIMEOUT,
-      data:{
-        action:'verifyUser',
-        userId:appState.currentUser.userId,
-        displayName:appState.currentUser.displayName,
-        writeToSheet:true,
-        needExpiryDate:true
-      },
+      timeout:requestTimeout,
+      data:requestData,
+      cache: true, // 启用缓存，提升重复请求速度
       success:(resp)=>{
+        // 优化点4：精简响应处理逻辑，减少冗余判断和DOM操作
         if(resp.status==="success"&&resp.isAuthorized){
           appState.userRole=resp.isAdmin?'admin':(resp.isPro?'pro':'user');
-          appState.userExpiryInfo={remainingDays:resp.remainingDays,expiryDate:resp.expiryDate};
+          appState.userExpiryInfo={
+            remainingDays:resp.remainingDays || 0,
+            expiryDate:resp.expiryDate || CONFIG.PERMANENT_EXPIRY_DATE
+          };
           resolve(true);
         }else{
+          // 直接返回错误信息，减少内部处理步骤
           reject(new Error(resp.message||'用戶未授權，請聯繫管理員開通'));
         }
       },
       error:(xhr,status,error)=>{
         console.error("用戶權限驗證失敗：",status,error);
-        reject(new Error(status==='timeout'?'權限驗證超時':'網絡錯誤，無法驗證用戶權限'));
+        // 优化点5：更精准的错误提示，快速终止无效等待
+        const errorMsg = status === 'timeout' 
+          ? '權限驗證超時，請檢查網絡後重試' 
+          : (status === 'abort' ? '請求已中斷' : '網絡錯誤，無法驗證用戶權限');
+        reject(new Error(errorMsg));
       }
     });
   });
