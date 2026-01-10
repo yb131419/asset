@@ -10,19 +10,10 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 tailwind.config={theme:{extend:{colors:{
-  primary:'#008C76',
-  secondary:'#E8F9F7',
-  accent:'#FFD700',
-  gold:'#D4AF37',
-  darkGold:'#B8860B',
-  dark:'#1A202C',
-  lightBg:'#F9FAFB',
-  neutral:'#F3F4F6',
-  cardBg:'#FFFFFF',
-  textPrimary:'#1E293B',
-  textSecondary:'#64748B',
-  premiumBg:'#FFF8E6',
-  premiumBorder:'#FFE082'
+  primary:'#008C76',secondary:'#E8F9F7',accent:'#FFD700',gold:'#D4AF37',
+  darkGold:'#B8860B',dark:'#1A202C',lightBg:'#F9FAFB',neutral:'#F3F4F6',
+  cardBg:'#FFFFFF',textPrimary:'#1E293B',textSecondary:'#64748B',
+  premiumBg:'#FFF8E6',premiumBorder:'#FFE082'
 },fontFamily:{
   sans:['Noto Sans TC','sans-serif','system-ui'],
   display:['Noto Sans TC','sans-serif','system-ui']
@@ -157,6 +148,12 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
           <div class="flex items-center justify-center">
             <span class="premium-badge mr-2">尊爵會員</span>
             <span id="user-role-display" class="font-medium"></span>
+          </div>
+          <div id="user-name-display" class="hidden">
+            <i class="fa fa-user text-primary mr-1"></i> <span class="font-medium">使用者：</span> <span id="user-name"></span>
+          </div>
+          <div id="user-expiry-display" class="hidden">
+            <i class="fa fa-calendar text-primary mr-1"></i> <span class="font-medium">使用期限：</span> <span id="expiry-date"></span> (<span id="remaining-days"></span>)
           </div>
         </div>
         <div id="content-count-display" class="mt-4 text-base font-semibold text-primary bg-white/50 rounded-lg py-2 px-4 inline-block">
@@ -741,6 +738,8 @@ const verifyUserPermission=()=>{
             remainingDays:resp.remainingDays || 0,
             expiryDate:resp.expiryDate || CONFIG.PERMANENT_EXPIRY_DATE
           };
+          // 保存用户昵称
+          appState.userNickname = resp.nickname || appState.currentUser.displayName || '未知用戶';
           resolve(true);
         }else{
           reject(new Error(resp.message||'用戶未授權，請聯繫管理員開通'));
@@ -950,501 +949,546 @@ const renderViewerContentList = () => {
   });
 };
 
+// 渲染管理列表（补全截断部分）
+const renderManageContentList = () => {
+  const type = CONFIG.currentContentType;
+  const listKey = `${type}List`;
+  const videoContainer = DOM('video-list-container');
+  const fileContainer = DOM('file-list-container');
+  const emptyEl = DOM('empty-manage-list');
+  const emptyText = DOM('empty-manage-text');
+  const emptyTip = DOM('empty-manage-tip');
+  
+  // 隐藏所有列表
+  videoContainer.classList.add('hidden');
+  fileContainer.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+  
+  // 显示当前类型的列表
+  const targetContainer = type === 'video' ? videoContainer : fileContainer;
+  targetContainer.classList.remove('hidden');
+  targetContainer.innerHTML = '';
+  
+  // 更新空列表提示
+  emptyText.textContent = type === 'video' ? '尚未添加任何影片' : '尚未添加任何文件';
+  emptyTip.textContent = type === 'video' ? '點擊「新增影片」按鈕開始添加' : '點擊「新增文件」按鈕開始添加';
+  
+  if (appState[listKey].length === 0) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  
+  appState[listKey].forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'video-item bg-cardBg rounded-xl p-3 flex items-center gap-3 shadow-elevation-1 slide-up';
+    card.dataset.id = item.id;
+    card.dataset.type = type;
+    card.draggable = isManageUser(); // 仅管理员可拖拽
+    
+    // 绑定拖拽事件
+    card.addEventListener('dragstart', dragHandlers.start);
+    card.addEventListener('dragover', dragHandlers.over);
+    card.addEventListener('dragleave', dragHandlers.leave);
+    card.addEventListener('drop', dragHandlers.drop);
+    card.addEventListener('dragend', dragHandlers.end);
+    
+    const thumbnailUrl = getThumbnail(item.url, type);
+    const shortTitle = item.name.length > 25 ? `${item.name.substring(0, 25)}...` : item.name;
+    
+    card.innerHTML = `
+      <div class="thumbnail-container">
+        <img src="${thumbnailUrl}" alt="${item.name}" class="thumbnail-img" onerror="this.src='https://via.placeholder.com/80x50?text=${type==='video'?'視頻':'文件'}&bgcolor=${type==='video'?'e8f9f7':'f0f7ff'}&color=${type==='video'?'008c76':'3b82f6'}'">
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-medium text-textPrimary truncate" title="${item.name}">${shortTitle}</h3>
+        <p class="text-xs text-textSecondary mt-1 truncate" title="${item.url}">${item.url}</p>
+        <p class="text-xs text-textSecondary/70 mt-1">
+          <i class="fa fa-clock-o text-primary mr-1 text-xs"></i>${item.updatedAt}
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="editContent('${item.id}', '${type}')" class="p-2 text-primary hover:text-[#007A69] rounded-full hover:bg-primary/5 transition-colors" title="編輯">
+          <i class="fa fa-pencil text-sm"></i>
+        </button>
+        <button onclick="deleteContent('${item.id}', '${type}')" class="p-2 text-red-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors" title="刪除">
+          <i class="fa fa-trash text-sm"></i>
+        </button>
+        <button onclick="viewContent('${item.id}', '${type}')" class="p-2 text-gold hover:text-darkGold rounded-full hover:bg-gold/5 transition-colors" title="預覽">
+          <i class="fa fa-eye text-sm"></i>
+        </button>
+      </div>
+    `;
+    targetContainer.appendChild(card);
+  });
+};
 
-  // 渲染管理列表（补全截断部分）
-  const renderManageContentList = () => {
-    const type = CONFIG.currentContentType;
-    const listKey = `${type}List`;
-    const videoContainer = DOM('video-list-container');
-    const fileContainer = DOM('file-list-container');
-    const emptyEl = DOM('empty-manage-list');
-    const emptyText = DOM('empty-manage-text');
-    const emptyTip = DOM('empty-manage-tip');
+// 统一渲染列表函数
+const renderContentList = (mode) => {
+  updateContentCountDisplay();
+  if (mode === 'viewer') {
+    renderViewerContentList();
+  } else if (mode === 'manage') {
+    renderManageContentList();
+  }
+};
+
+// 切换内容类型（影片/文件）
+const switchContentType = (type) => {
+  if (type === CONFIG.currentContentType) return;
+  
+  CONFIG.currentContentType = type;
+  
+  // 更新下拉菜单显示
+  const currentTypeEl = DOM('current-content-type');
+  currentTypeEl.textContent = type === 'video' ? '影片列表' : '文件列表';
+  
+  // 更新标题
+  const viewerTitle = DOM('viewer-section-title');
+  const manageTitle = DOM('manage-section-title');
+  viewerTitle.innerHTML = type === 'video' 
+    ? '<i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影片列表'
+    : '<i class="fa fa-file text-primary mr-2 text-sm"></i> 文件列表';
+  manageTitle.innerHTML = type === 'video'
+    ? '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片管理列表'
+    : '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 文件管理列表';
+  
+  // 更新新增按钮文本
+  const addBtn = DOM('add-content-btn');
+  addBtn.innerHTML = type === 'video'
+    ? '<i class="fa fa-plus text-lg"></i> 新增影片'
+    : '<i class="fa fa-plus text-lg"></i> 新增文件';
+  
+  // 重新渲染列表
+  if (DOM('content-viewer-section').classList.contains('hidden')) {
+    renderContentList('manage');
+  } else {
+    renderContentList('viewer');
+  }
+  
+  // 隐藏预览和编辑区域
+  hideContentPreview();
+  hideVideoEditSection();
+  hideFileEditSection();
+};
+
+// 切换管理区域显示/隐藏
+const toggleManageSection = () => {
+  const viewerSection = DOM('content-viewer-section');
+  const manageSection = DOM('content-manage-section');
+  const manageBtnContainer = DOM('manage-content-btn-container');
+  
+  viewerSection.classList.toggle('hidden');
+  manageSection.classList.toggle('hidden');
+  manageBtnContainer.classList.toggle('hidden');
+  
+  if (!manageSection.classList.contains('hidden')) {
+    renderContentList('manage');
+  } else {
+    renderContentList('viewer');
+  }
+  
+  // 隐藏预览和编辑区域
+  hideContentPreview();
+  hideVideoEditSection();
+  hideFileEditSection();
+};
+
+// 查看内容详情
+const viewContent = (id, type) => {
+  appState.currentViewingId = id;
+  appState.currentViewingType = type;
+  
+  const listKey = `${type}List`;
+  const item = appState[listKey].find(i => i.id === id);
+  if (!item) return showError('找不到對應的內容');
+  
+  // 隐藏其他区域
+  DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('video-edit-section').classList.add('hidden');
+  DOM('file-edit-section').classList.add('hidden');
+  
+  // 显示预览区域
+  const previewSection = DOM('content-preview');
+  previewSection.classList.remove('hidden');
+  
+  // 更新预览内容
+  DOM('preview-title').textContent = item.name;
+  DOM('preview-updated').textContent = item.updatedAt;
+  DOM('preview-note').textContent = item.note || '- 無備注 -';
+  
+  // 显示/隐藏编辑删除按钮（仅管理员）
+  const previewActionBtns = DOM('preview-action-btns');
+  previewActionBtns.classList.toggle('hidden', !isManageUser());
+  
+  // 处理预览容器
+  const videoContainer = DOM('video-container');
+  const audioContainer = DOM('audio-container');
+  const unsupportedTip = DOM('unsupported-tip');
+  const filePreviewTip = DOM('file-preview-tip');
+  
+  // 隐藏所有预览容器
+  videoContainer.classList.add('hidden');
+  audioContainer.classList.add('hidden');
+  unsupportedTip.classList.add('hidden');
+  filePreviewTip.classList.add('hidden');
+  
+  if (type === 'video') {
+    // 处理音视频预览
+    const embedInfo = convertToEmbedUrl(item.url);
     
-    // 隐藏所有列表
-    videoContainer.classList.add('hidden');
-    fileContainer.classList.add('hidden');
-    emptyEl.classList.add('hidden');
+    if (embedInfo.type === 'video') {
+      videoContainer.classList.remove('hidden');
+      DOM('preview-video').src = embedInfo.url;
+    } else if (embedInfo.type === 'audio') {
+      audioContainer.classList.remove('hidden');
+      DOM('preview-audio').src = embedInfo.url;
+    } else {
+      unsupportedTip.classList.remove('hidden');
+      DOM('direct-link-btn').href = item.url;
+    }
+  } else if (type === 'file') {
+    // 处理文件预览
+    filePreviewTip.classList.remove('hidden');
+    DOM('file-preview-name').textContent = item.name;
+    DOM('file-preview-btn').href = item.url;
+  }
+};
+
+// 隐藏内容预览
+const hideContentPreview = () => {
+  DOM('content-preview').classList.add('hidden');
+  DOM('preview-video').src = '';
+  DOM('preview-audio').src = '';
+  
+  // 重新显示查看区域
+  if (!isManageUser() || DOM('content-manage-section').classList.contains('hidden')) {
+    DOM('content-viewer-section').classList.remove('hidden');
+  } else {
+    DOM('content-manage-section').classList.remove('hidden');
+  }
+  
+  appState.currentViewingId = null;
+  appState.currentViewingType = null;
+};
+
+// 新增内容
+const addNewContent = () => {
+  const type = CONFIG.currentContentType;
+  
+  // 隐藏其他区域
+  DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('content-preview').classList.add('hidden');
+  
+  if (type === 'video') {
+    showVideoEditSection();
+  } else {
+    showFileEditSection();
+  }
+};
+
+// 编辑内容
+const editContent = (id, type) => {
+  appState.currentViewingId = null;
+  appState.currentViewingType = null;
+  
+  const listKey = `${type}List`;
+  const item = appState[listKey].find(i => i.id === id);
+  if (!item) return showError('找不到對應的內容');
+  
+  // 隐藏其他区域
+  DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('content-preview').classList.add('hidden');
+  
+  if (type === 'video') {
+    appState.currentEditingVideoId = id;
+    DOM('video-id').value = id;
+    DOM('video-name').value = item.name;
+    DOM('video-url').value = item.url;
+    DOM('video-note').value = item.note || '';
+    DOM('video-edit-title').textContent = '編輯影片';
+    showVideoEditSection();
+  } else {
+    appState.currentEditingFileId = id;
+    DOM('file-id-hidden').value = id;
+    DOM('file-name').value = item.name;
+    DOM('file-url').value = item.url;
+    DOM('file-note').value = item.note || '';
+    DOM('file-edit-title').textContent = '編輯文件';
+    showFileEditSection();
+  }
+};
+
+// 编辑当前预览的内容
+const editCurrentContent = () => {
+  if (!appState.currentViewingId || !appState.currentViewingType) return;
+  editContent(appState.currentViewingId, appState.currentViewingType);
+};
+
+// 删除当前预览的内容
+const deleteCurrentContent = () => {
+  if (!appState.currentViewingId || !appState.currentViewingType) return;
+  deleteContent(appState.currentViewingId, appState.currentViewingType);
+};
+
+// 删除内容
+const deleteContent = (id, type) => {
+  if (!confirm(`確定要刪除這${type==='video'?'部影片':'個文件'}嗎？此操作無法復原！`)) return;
+  
+  const listKey = `${type}List`;
+  const itemIndex = appState[listKey].findIndex(i => i.id === id);
+  if (itemIndex === -1) return showError('找不到對應的內容');
+  
+  // 调用GAS删除接口
+  const deleteFunc = type === 'video' ? deleteVideoFromGAS : deleteFileFromGAS;
+  deleteFunc(id, (success) => {
+    if (success) {
+      // 从本地列表移除
+      appState[listKey].splice(itemIndex, 1);
+      showSuccess(`成功刪除${type==='video'?'影片':'文件'}！`);
+      
+      // 重新渲染列表
+      if (DOM('content-manage-section').classList.contains('hidden')) {
+        renderContentList('viewer');
+      } else {
+        renderContentList('manage');
+      }
+      
+      // 如果删除的是当前预览的内容，隐藏预览
+      if (id === appState.currentViewingId) {
+        hideContentPreview();
+      }
+    }
+  });
+};
+
+// 显示/隐藏视频编辑区域
+const showVideoEditSection = () => {
+  DOM('video-edit-section').classList.remove('hidden');
+  DOM('file-edit-section').classList.add('hidden');
+  DOM('video-name').focus();
+};
+
+const hideVideoEditSection = () => {
+  DOM('video-edit-section').classList.add('hidden');
+  appState.currentEditingVideoId = null;
+  resetSubmitState();
+  
+  // 重置表单
+  DOM('video-form').reset();
+  DOM('video-id').value = '';
+  DOM('video-edit-title').textContent = '新增影片';
+  
+  // 重新显示管理/查看区域
+  if (isManageUser() && !DOM('content-manage-section').classList.contains('hidden')) {
+    DOM('content-manage-section').classList.remove('hidden');
+  } else {
+    DOM('content-viewer-section').classList.remove('hidden');
+  }
+};
+
+// 显示/隐藏文件编辑区域
+const showFileEditSection = () => {
+  DOM('file-edit-section').classList.remove('hidden');
+  DOM('video-edit-section').classList.add('hidden');
+  DOM('file-name').focus();
+};
+
+const hideFileEditSection = () => {
+  DOM('file-edit-section').classList.add('hidden');
+  appState.currentEditingFileId = null;
+  resetSubmitState();
+  
+  // 重置表单
+  DOM('file-form').reset();
+  DOM('file-id-hidden').value = '';
+  DOM('file-edit-title').textContent = '新增文件';
+  
+  // 重新显示管理/查看区域
+  if (isManageUser() && !DOM('content-manage-section').classList.contains('hidden')) {
+    DOM('content-manage-section').classList.remove('hidden');
+  } else {
+    DOM('content-viewer-section').classList.remove('hidden');
+  }
+};
+
+// 保存视频
+const saveVideo = (e) => {
+  e.preventDefault();
+  if (appState.isSubmitting) return;
+  
+  const id = DOM('video-id').value || `video_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+  const name = DOM('video-name').value.trim();
+  const url = DOM('video-url').value.trim();
+  const note = DOM('video-note').value.trim();
+  
+  if (!name) return showError('請輸入影片名稱');
+  if (!urlCheckers.isValidUrl(url)) return showError('請輸入有效的網址');
+  
+  setVideoSubmitState(true);
+  
+  const videoData = {
+    id,
+    name,
+    url,
+    note,
+    updatedAt: convertUTCToTaiwanTime(new Date().toISOString())
+  };
+  
+  syncVideoToGAS(videoData, (success) => {
+    setVideoSubmitState(false);
+    if (success) {
+      // 更新本地列表
+      const index = appState.videoList.findIndex(v => v.id === id);
+      if (index !== -1) {
+        appState.videoList[index] = videoData;
+        showSuccess('影片更新成功！');
+      } else {
+        appState.videoList.push(videoData);
+        showSuccess('影片新增成功！');
+      }
+      
+      // 重新渲染列表
+      renderContentList('manage');
+      hideVideoEditSection();
+    }
+  });
+};
+
+// 保存文件
+const saveFile = (e) => {
+  e.preventDefault();
+  if (appState.isSubmitting) return;
+  
+  const id = DOM('file-id-hidden').value || `file_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+  const name = DOM('file-name').value.trim();
+  const url = DOM('file-url').value.trim();
+  const note = DOM('file-note').value.trim();
+  
+  if (!name) return showError('請輸入文件名稱');
+  if (!urlCheckers.isValidUrl(url)) return showError('請輸入有效的網址');
+  
+  setFileSubmitState(true);
+  
+  const fileData = {
+    id,
+    name,
+    url,
+    note,
+    updatedAt: convertUTCToTaiwanTime(new Date().toISOString())
+  };
+  
+  syncFileToGAS(fileData, (success) => {
+    setFileSubmitState(false);
+    if (success) {
+      // 更新本地列表
+      const index = appState.fileList.findIndex(f => f.id === id);
+      if (index !== -1) {
+        appState.fileList[index] = fileData;
+        showSuccess('文件更新成功！');
+      } else {
+        appState.fileList.push(fileData);
+        showSuccess('文件新增成功！');
+      }
+      
+      // 重新渲染列表
+      renderContentList('manage');
+      hideFileEditSection();
+    }
+  });
+};
+
+// 初始化用户信息和权限
+const initUserInfo = async () => {
+  try {
+    // 初始化LIFF
+    await liff.init({ liffId: CONFIG.LIFF_ID });
     
-    // 显示当前类型的列表
-    const targetContainer = type === 'video' ? videoContainer : fileContainer;
-    targetContainer.classList.remove('hidden');
-    targetContainer.innerHTML = '';
-    
-    // 更新空列表提示
-    emptyText.textContent = type === 'video' ? '尚未添加任何影片' : '尚未添加任何文件';
-    emptyTip.textContent = type === 'video' ? '點擊「新增影片」按鈕開始添加' : '點擊「新增文件」按鈕開始添加';
-    
-    const isManage = isManageUser();
-    
-    if (appState[listKey].length === 0) {
-      emptyEl.classList.remove('hidden');
+    // 检查是否登录
+    if (!liff.isLoggedIn()) {
+      liff.login();
       return;
     }
     
-    appState[listKey].forEach((item) => {
-      const listItem = document.createElement('div');
-      listItem.className = isManage ?
-        'video-item bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 flex items-center gap-3 transition-all duration-300' :
-        'video-item pro-user bg-cardBg rounded-lg p-2 border border-gray-100 shadow-elevation-1 flex items-center gap-3';
-      
-      listItem.dataset.id = item.id;
-      listItem.dataset.type = type;
-      
-      // 管理员添加拖拽事件
-      if (isManage) {
-        listItem.draggable = true;
-        listItem.addEventListener('dragstart', dragHandlers.start);
-        listItem.addEventListener('dragover', dragHandlers.over);
-        listItem.addEventListener('dragleave', dragHandlers.leave);
-        listItem.addEventListener('drop', dragHandlers.drop);
-        listItem.addEventListener('dragend', dragHandlers.end);
-      }
-      
-      const thumbnailUrl = getThumbnail(item.url, type);
-      const shortTitle = item.name.length > 25 ? `${item.name.substring(0, 25)}...` : item.name;
-      
-      listItem.innerHTML = `
-        <div class="thumbnail-container">
-          <img src="${thumbnailUrl}" alt="${item.name}" class="thumbnail-img" onerror="this.src='https://via.placeholder.com/80x50?text=${type==='video'?'視頻':'文件'}&bgcolor=${type==='video'?'e8f9f7':'f0f7ff'}&color=${type==='video'?'008c76':'3b82f6'}'">
-        </div>
-        <div class="flex-1 min-w-0">
-          <h4 class="text-sm font-medium text-textPrimary truncate" title="${item.name}">${shortTitle}</h4>
-          <p class="text-xs text-textSecondary mt-1 truncate" title="${item.url}">
-            <i class="fa fa-link text-primary/70 mr-1"></i>${item.url.length > 40 ? item.url.substring(0, 40) + '...' : item.url}
-          </p>
-          <p class="text-xs text-textSecondary/80 mt-1">
-            <i class="fa fa-clock-o text-primary/70 mr-1"></i>${item.updatedAt}
-          </p>
-        </div>
-        <div class="flex gap-1">
-          <button onclick="viewContent('${item.id}', '${type}')" class="p-2 text-primary hover:text-[#007A69] hover:bg-primary/5 rounded-lg transition-colors" title="${type==='video'?'預覽影片':'預覽文件'}">
-            <i class="fa fa-eye"></i>
-          </button>
-          ${isManage ? `
-            <button onclick="editContent('${item.id}', '${type}')" class="p-2 text-gold hover:text-darkGold hover:bg-gold/5 rounded-lg transition-colors" title="${type==='video'?'編輯影片':'編輯文件'}">
-              <i class="fa fa-pencil"></i>
-            </button>
-            <button onclick="deleteContent('${item.id}', '${type}')" class="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="${type==='video'?'刪除影片':'刪除文件'}">
-              <i class="fa fa-trash"></i>
-            </button>
-          ` : ''}
-        </div>
-      `;
-      targetContainer.appendChild(listItem);
-    });
-  };
-
-  // 统一渲染函数
-  const renderContentList = (mode) => {
-    if (mode === 'viewer') {
-      renderViewerContentList();
-    } else if (mode === 'manage') {
-      renderManageContentList();
-    }
-  };
-
-  // 切换内容类型
-  const switchContentType = (type) => {
-    if (type === CONFIG.currentContentType) return;
+    // 获取用户信息
+    const profile = await liff.getProfile();
+    appState.currentUser = {
+      userId: profile.userId,
+      displayName: profile.displayName
+    };
     
-    CONFIG.currentContentType = type;
+    // 验证用户权限
+    await verifyUserPermission();
     
-    // 更新下拉菜单显示
-    const currentTypeEl = DOM('current-content-type');
-    const manageTitleEl = DOM('manage-section-title');
-    const viewerTitleEl = DOM('viewer-section-title');
-    const addBtnEl = DOM('add-content-btn');
+    // 获取数据列表
+    await Promise.all([
+      fetchVideoListFromGAS(),
+      fetchFileListFromGAS()
+    ]);
     
-    currentTypeEl.textContent = type === 'video' ? '影片列表' : '文件列表';
-    manageTitleEl.innerHTML = type === 'video' ? 
-      '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影片管理列表' : 
-      '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 文件管理列表';
-    viewerTitleEl.innerHTML = type === 'video' ? 
-      '<i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影片列表' : 
-      '<i class="fa fa-file text-primary mr-2 text-sm"></i> 文件列表';
-    addBtnEl.innerHTML = type === 'video' ? 
-      '<i class="fa fa-plus text-lg"></i> 新增影片' : 
-      '<i class="fa fa-plus text-lg"></i> 新增文件';
+    // 隐藏加载状态，显示内容
+    DOM('status').classList.add('hidden');
     
-    // 重新渲染列表
-    if (DOM('content-viewer-section').classList.contains('hidden')) {
-      renderContentList('manage');
-    } else {
-      renderContentList('viewer');
-    }
-  };
-
-  // 预览内容
-  const viewContent = (id, type) => {
-    appState.currentViewingId = id;
-    appState.currentViewingType = type;
+    // 更新用户信息显示
+    DOM('result-card').classList.remove('hidden');
+    DOM('result-main').textContent = appState.userRole === 'admin' ? '系統管理員' : '尊爵會員';
+    DOM('user-role-display').textContent = appState.userRole === 'admin' ? '系統管理員' : '尊爵會員';
     
-    const listKey = `${type}List`;
-    const item = appState[listKey].find(item => item.id === id);
-    if (!item) return showError('找不到對應的內容');
+    // 显示用户名
+    DOM('user-name-display').classList.remove('hidden');
+    DOM('user-name').textContent = appState.userNickname;
     
-    // 隐藏其他区域
-    const hideEls = [
-      DOM('status'), DOM('result-card'), DOM('content-viewer-section'),
-      DOM('content-manage-section'), DOM('video-edit-section'), DOM('file-edit-section')
-    ];
-    hideEls.forEach(el => el && el.classList.add('hidden'));
+    // 显示有效期
+    const expiryInfo = calculateRemainingDaysByDate(appState.userExpiryInfo.expiryDate);
+    DOM('user-expiry-display').classList.remove('hidden');
+    DOM('expiry-date').textContent = expiryInfo.displayDate;
+    DOM('remaining-days').innerHTML = expiryInfo.remainingDays;
     
-    // 显示预览区域
-    const previewEl = DOM('content-preview');
-    previewEl.classList.remove('hidden');
+    // 显示内容查看区域
+    DOM('content-viewer-section').classList.remove('hidden');
     
-    // 填充预览内容
-    DOM('preview-title').textContent = item.name;
-    DOM('preview-updated').textContent = item.updatedAt;
-    DOM('preview-note').textContent = item.note || '- 無備注 -';
-    
-    // 显示编辑/删除按钮（仅管理员）
-    const previewActionBtns = DOM('preview-action-btns');
-    previewActionBtns.style.display = isManageUser() ? 'flex' : 'none';
-    
-    // 处理预览容器
-    const videoContainer = DOM('video-container');
-    const audioContainer = DOM('audio-container');
-    const unsupportedTip = DOM('unsupported-tip');
-    const filePreviewTip = DOM('file-preview-tip');
-    
-    // 隐藏所有预览容器
-    videoContainer.classList.add('hidden');
-    audioContainer.classList.add('hidden');
-    unsupportedTip.classList.add('hidden');
-    filePreviewTip.classList.add('hidden');
-    
-    if (type === 'video') {
-      // 处理音视频预览
-      const embedInfo = convertToEmbedUrl(item.url);
-      const previewVideo = DOM('preview-video');
-      const previewAudio = DOM('preview-audio');
-      
-      if (embedInfo.type === 'video') {
-        videoContainer.classList.remove('hidden');
-        previewVideo.src = embedInfo.url;
-      } else if (embedInfo.type === 'audio') {
-        audioContainer.classList.remove('hidden');
-        previewAudio.src = embedInfo.url;
-      } else {
-        unsupportedTip.classList.remove('hidden');
-        DOM('direct-link-btn').href = item.url;
-      }
-    } else if (type === 'file') {
-      // 处理文件预览
-      filePreviewTip.classList.remove('hidden');
-      DOM('file-preview-name').textContent = item.name;
-      DOM('file-preview-btn').href = item.url;
-    }
-  };
-
-  // 隐藏预览区域
-  const hideContentPreview = () => {
-    DOM('content-preview').classList.add('hidden');
-    
-    // 重置预览内容
-    DOM('preview-video').src = '';
-    DOM('preview-audio').src = '';
-    
-    // 显示之前的区域
+    // 显示管理按钮（仅管理员）
     if (isManageUser()) {
-      DOM('content-manage-section').classList.remove('hidden');
-    } else {
-      DOM('content-viewer-section').classList.remove('hidden');
+      DOM('manage-content-btn-container').classList.remove('hidden');
     }
-  };
+    
+    // 渲染列表
+    renderContentList('viewer');
+    
+  } catch (error) {
+    console.error('初始化失敗：', error);
+    showError(error.message || '系統初始化失敗，請稍後再試');
+  }
+};
 
-  // 编辑内容
-  const editContent = (id, type) => {
-    if (type === 'video') {
-      const video = appState.videoList.find(v => v.id === id);
-      if (!video) return showError('找不到對應的影片');
-      
-      appState.currentEditingVideoId = id;
-      DOM('video-id').value = id;
-      DOM('video-name').value = video.name;
-      DOM('video-url').value = video.url;
-      DOM('video-note').value = video.note;
-      DOM('video-edit-title').textContent = '編輯影片';
-      
-      // 显示编辑区域
-      DOM('content-manage-section').classList.add('hidden');
-      DOM('video-edit-section').classList.remove('hidden');
-    } else if (type === 'file') {
-      const file = appState.fileList.find(f => f.id === id);
-      if (!file) return showError('找不到對應的文件');
-      
-      appState.currentEditingFileId = id;
-      DOM('file-id-hidden').value = id;
-      DOM('file-name').value = file.name;
-      DOM('file-url').value = file.url;
-      DOM('file-note').value = file.note;
-      DOM('file-edit-title').textContent = '編輯文件';
-      
-      // 显示编辑区域
-      DOM('content-manage-section').classList.add('hidden');
-      DOM('file-edit-section').classList.remove('hidden');
-    }
-  };
-
-  // 编辑当前预览的内容
-  const editCurrentContent = () => {
-    hideContentPreview();
-    editContent(appState.currentViewingId, appState.currentViewingType);
-  };
-
-  // 删除内容
-  const deleteContent = (id, type) => {
-    if (!confirm(`確定要刪除這${type==='video'?'部影片':'個文件'}嗎？此操作無法撤銷。`)) return;
-    
-    const listKey = `${type}List`;
-    const deleteFunc = type === 'video' ? deleteVideoFromGAS : deleteFileFromGAS;
-    
-    deleteFunc(id, (success) => {
-      if (success) {
-        // 从本地列表中移除
-        appState[listKey] = appState[listKey].filter(item => item.id !== id);
-        
-        // 更新计数
-        updateContentCountDisplay();
-        
-        // 重新渲染列表
-        renderContentList('manage');
-        
-        // 显示成功提示
-        showSuccess(`已成功刪除這${type==='video'?'部影片':'個文件'}！`);
-      }
-    });
-  };
-
-  // 删除当前预览的内容
-  const deleteCurrentContent = () => {
-    deleteContent(appState.currentViewingId, appState.currentViewingType);
-    hideContentPreview();
-  };
-
-  // 新增内容
-  const addNewContent = () => {
-    const type = CONFIG.currentContentType;
-    
-    if (type === 'video') {
-      // 重置视频编辑表单
-      appState.currentEditingVideoId = null;
-      DOM('video-id').value = '';
-      DOM('video-form').reset();
-      DOM('video-edit-title').textContent = '新增影片';
-      
-      // 显示编辑区域
-      DOM('content-manage-section').classList.add('hidden');
-      DOM('video-edit-section').classList.remove('hidden');
-    } else if (type === 'file') {
-      // 重置文件编辑表单
-      appState.currentEditingFileId = null;
-      DOM('file-id-hidden').value = '';
-      DOM('file-form').reset();
-      DOM('file-edit-title').textContent = '新增文件';
-      
-      // 显示编辑区域
-      DOM('content-manage-section').classList.add('hidden');
-      DOM('file-edit-section').classList.remove('hidden');
-    }
-  };
-
-  // 隐藏视频编辑区域
-  const hideVideoEditSection = () => {
-    DOM('video-edit-section').classList.add('hidden');
-    DOM('content-manage-section').classList.remove('hidden');
-    resetSubmitState();
-  };
-
-  // 隐藏文件编辑区域
-  const hideFileEditSection = () => {
-    DOM('file-edit-section').classList.add('hidden');
-    DOM('content-manage-section').classList.remove('hidden');
-    resetSubmitState();
-  };
-
-  // 切换管理区域
-  const toggleManageSection = () => {
-    const viewerSection = DOM('content-viewer-section');
-    const manageSection = DOM('content-manage-section');
-    const manageBtnContainer = DOM('manage-content-btn-container');
-    
-    if (manageSection.classList.contains('hidden')) {
-      // 显示管理区域
-      viewerSection.classList.add('hidden');
-      manageSection.classList.remove('hidden');
-      manageBtnContainer.classList.add('hidden');
-      renderContentList('manage');
-    } else {
-      // 显示查看区域
-      manageSection.classList.add('hidden');
-      viewerSection.classList.remove('hidden');
-      manageBtnContainer.classList.remove('hidden');
-      renderContentList('viewer');
-    }
-  };
-
-  // 保存视频
-  const saveVideo = (e) => {
-    e.preventDefault();
-    if (appState.isSubmitting) return;
-    
-    setVideoSubmitState(true);
-    
-    const id = DOM('video-id').value || `video_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-    const name = DOM('video-name').value.trim();
-    const url = DOM('video-url').value.trim();
-    const note = DOM('video-note').value.trim();
-    const updatedAt = convertUTCToTaiwanTime(new Date().toISOString());
-    
-    const videoData = { id, name, url, note, updatedAt };
-    
-    syncVideoToGAS(videoData, (success) => {
-      if (success) {
-        // 更新本地列表
-        const index = appState.videoList.findIndex(v => v.id === id);
-        if (index !== -1) {
-          appState.videoList[index] = videoData;
-        } else {
-          appState.videoList.push(videoData);
-        }
-        
-        // 更新计数
-        updateContentCountDisplay();
-        
-        // 隐藏编辑区域
-        hideVideoEditSection();
-        
-        // 重新渲染列表
-        renderContentList('manage');
-        
-        // 显示成功提示
-        showSuccess(appState.currentEditingVideoId ? '影片已成功更新！' : '新影片已成功添加！');
-      }
-      setVideoSubmitState(false);
-    });
-  };
-
-  // 保存文件
-  const saveFile = (e) => {
-    e.preventDefault();
-    if (appState.isSubmitting) return;
-    
-    setFileSubmitState(true);
-    
-    const id = DOM('file-id-hidden').value || `file_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-    const name = DOM('file-name').value.trim();
-    const url = DOM('file-url').value.trim();
-    const note = DOM('file-note').value.trim();
-    const updatedAt = convertUTCToTaiwanTime(new Date().toISOString());
-    
-    const fileData = { id, name, url, note, updatedAt };
-    
-    syncFileToGAS(fileData, (success) => {
-      if (success) {
-        // 更新本地列表
-        const index = appState.fileList.findIndex(f => f.id === id);
-        if (index !== -1) {
-          appState.fileList[index] = fileData;
-        } else {
-          appState.fileList.push(fileData);
-        }
-        
-        // 更新计数
-        updateContentCountDisplay();
-        
-        // 隐藏编辑区域
-        hideFileEditSection();
-        
-        // 重新渲染列表
-        renderContentList('manage');
-        
-        // 显示成功提示
-        showSuccess(appState.currentEditingFileId ? '文件已成功更新！' : '新文件已成功添加！');
-      }
-      setFileSubmitState(false);
-    });
-  };
-
-  // 初始化应用
-  const initApp = async () => {
-    try {
-      setStatus('初始化LIFF環境...');
-      
-      // 初始化LIFF
-      await liff.init({ liffId: CONFIG.LIFF_ID });
-      
-      // 检查是否登录
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
-      
-      // 获取用户信息
-      appState.currentUser = {
-        userId: liff.getDecodedIDToken()?.sub || liff.getUserId(),
-        displayName: liff.getProfile()?.displayName || '未知用戶'
-      };
-      
-      // 验证用户权限
-      await verifyUserPermission();
-      
-      // 获取视频和文件列表
-      await Promise.all([fetchVideoListFromGAS(), fetchFileListFromGAS()]);
-      
-      // 隐藏状态区域
-      DOM('status').classList.add('hidden');
-      
-      // 显示用户信息卡片
-      DOM('result-card').classList.remove('hidden');
-      
-      // 更新用户角色显示
-      const roleText = appState.userRole === 'admin' ? '管理員' : (appState.userRole === 'pro' ? '尊爵會員' : '普通會員');
-      DOM('user-role-display').textContent = roleText;
-      
-      // 更新内容计数
-      updateContentCountDisplay();
-      
-      // 显示内容查看区域
-      DOM('content-viewer-section').classList.remove('hidden');
-      
-      // 显示管理按钮（仅管理员）
-      if (isManageUser()) {
-        DOM('manage-content-btn-container').classList.remove('hidden');
-      }
-      
-      // 渲染查看列表
-      renderContentList('viewer');
-      
-    } catch (error) {
-      console.error('初始化失敗：', error);
-      showError(error.message || '初始化失敗，請稍後重試');
-    }
-  };
-
-  // 页面加载完成后初始化
-  $(document).ready(() => {
-    // 初始化内容类型下拉菜单
-    DOM('content-type-toggle').addEventListener('click', () => {
-      const dropdown = DOM('content-type-dropdown');
-      dropdown.classList.toggle('hidden');
-    });
-    
-    // 点击其他区域关闭下拉菜单
-    document.addEventListener('click', (e) => {
-      const toggleBtn = DOM('content-type-toggle');
-      const dropdown = DOM('content-type-dropdown');
-      if (!toggleBtn.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.add('hidden');
-      }
-    });
-    
-    // 初始化应用
-    initApp();
+// 初始化下拉菜单
+const initDropdown = () => {
+  const toggleBtn = DOM('content-type-toggle');
+  const dropdownMenu = DOM('content-type-dropdown');
+  
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdownMenu.classList.toggle('hidden');
   });
+  
+  // 点击其他区域关闭下拉菜单
+  document.addEventListener('click', () => {
+    dropdownMenu.classList.add('hidden');
+  });
+  
+  // 阻止下拉菜单内部点击冒泡
+  dropdownMenu.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+};
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+  initDropdown();
+  initUserInfo();
+});
 </script>
 </body>
 </html>
