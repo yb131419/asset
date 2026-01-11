@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title> 彥彬📘方案申請頁面 </title>
-  <!-- 增加defer確保SDK加載完成後再執行JS -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+  <!-- 穩定加載LIFF SDK，增加fallback -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer onload="window.liffLoaded = true"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
     * { box-sizing: border-box; }
@@ -143,7 +143,7 @@
       animation: successPulse 0.6s ease-in-out;
       background: linear-gradient(135deg, #ff4444, #cc0000) !important;
     }
-    /* 新增LINE ID狀態提示樣式 */
+    /* LINE ID狀態提示樣式增強 */
     .liff-status {
       font-size: 0.9rem;
       padding: 8px;
@@ -199,7 +199,6 @@
 
       <label for="userId">Line ID</label>
       <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID（自動獲取失敗時手動填）" />
-      <!-- 新增LINE ID狀態提示 -->
       <div id="liffStatus" class="liff-status liff-loading" style="display: none;">
         正在嘗試取得LINE ID...
       </div>
@@ -217,11 +216,15 @@
   </main>
 
   <script>
+    // 全域配置（增加請求超時設定）
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec",
-      LIFF_ID: "2007475335-wO37qkoE"
+      LIFF_ID: "2007475335-wO37qkoE",
+      REQUEST_TIMEOUT: 15000, // JSONP請求超時時間（15秒）
+      LIFF_INIT_TIMEOUT: 10000 // LIFF初始化超時時間（10秒）
     };
 
+    // 全域變數
     let submitBtn = null;
     let btnText = null;
     let infoForm = null;
@@ -229,16 +232,213 @@
     let isSubmitting = false;
     let lineIdInput = null;
     let manualLineIdInput = null;
+    let jsonpScript = null; // 用於取消JSONP請求
+    let requestTimeoutTimer = null; // 請求超時計時器
 
+    // ==================== 1. 修正LINE ID獲取邏輯 ====================
+    // 清理LIFF授權後的URL參數（解決重複授權問題）
+    function cleanLiffAuthParams() {
+      const url = new URL(window.location.href);
+      const paramsToRemove = ['code', 'state', 'error', 'errorDescription'];
+      let hasRemoved = false;
+      
+      paramsToRemove.forEach(param => {
+        if (url.searchParams.has(param)) {
+          url.searchParams.delete(param);
+          hasRemoved = true;
+        }
+      });
+      
+      if (hasRemoved) {
+        window.history.replaceState({}, document.title, url.href);
+      }
+    }
+
+    // 增強版LIFF初始化（帶超時處理）
+    async function initLiff() {
+      // 先清理授權參數
+      cleanLiffAuthParams();
+      
+      liffStatus.style.display = 'block';
+      liffStatus.textContent = '正在初始化LINE授權...';
+      liffStatus.className = 'liff-status liff-loading';
+
+      // 初始化超時處理
+      const initTimeout = setTimeout(() => {
+        throw new Error("LINE授權初始化超時（10秒），請手動填寫LINE ID");
+      }, CONFIG.LIFF_INIT_TIMEOUT);
+
+      try {
+        // 檢查SDK加載狀態
+        if (typeof liff === 'undefined' || !window.liffLoaded) {
+          throw new Error("LINE LIFF SDK加載失敗，請刷新頁面或檢查網路");
+        }
+
+        // 完整的LIFF初始化配置
+        await liff.init({
+          liffId: CONFIG.LIFF_ID,
+          withLoginOnExternalBrowser: true,
+          redirectUri: window.location.href
+        });
+
+        // 分環境處理登入
+        if (!liff.isLoggedIn()) {
+          if (liff.isInClient()) {
+            liffStatus.textContent = '請完成LINE登入...';
+            await liff.login();
+          } else {
+            liffStatus.textContent = '將跳轉至LINE登入頁面...';
+            liff.login({
+              redirectUri: window.location.href,
+              scope: 'profile',
+              prompt: 'consent' // 強制重新授權（解決授權快取問題）
+            });
+            return;
+          }
+        }
+
+        // 獲取用戶資料（增加異常捕獲）
+        const profile = await liff.getProfile().catch(err => {
+          throw new Error(`獲取LINE資料失敗：${err.message}`);
+        });
+        
+        if (profile && profile.userId) {
+          lineIdInput.value = profile.userId.trim();
+          manualLineIdInput.value = profile.userId.trim(); // 同步到手動輸入框
+          liffStatus.textContent = `✅ 已自動取得LINE ID: ${profile.userId.substring(0, 8)}...`;
+          liffStatus.className = 'liff-status liff-success';
+          console.log("成功取得LINE ID：", profile.userId);
+        } else {
+          throw new Error("LINE用戶ID為空，請手動填寫");
+        }
+
+        clearTimeout(initTimeout);
+      } catch (error) {
+        clearTimeout(initTimeout);
+        console.error("LIFF初始化失敗：", error);
+        // 友好提示，不阻斷表單提交
+        liffStatus.textContent = `⚠️ ${error.message}，您可以手動填寫LINE ID繼續`;
+        liffStatus.className = 'liff-status liff-error';
+      }
+    }
+
+    // ==================== 2. 修正JSONP跨域請求邏輯 ====================
+    // 參數格式化（解決後端參數處理問題）
+    function formatParams(data) {
+      const formatted = {};
+      // 遍歷參數，去除首尾空格、處理空值
+      Object.keys(data).forEach(key => {
+        let value = data[key] || '';
+        if (typeof value === 'string') {
+          formatted[key] = value.trim();
+        } else {
+          formatted[key] = value;
+        }
+      });
+      return formatted;
+    }
+
+    // 取消JSONP請求（超時/重複提交時）
+    function cancelJsonpRequest() {
+      if (jsonpScript) {
+        document.body.removeChild(jsonpScript);
+        jsonpScript = null;
+      }
+      if (requestTimeoutTimer) {
+        clearTimeout(requestTimeoutTimer);
+        requestTimeoutTimer = null;
+      }
+      isSubmitting = false;
+    }
+
+    // 發送JSONP請求（帶超時、參數格式化）
+    function sendData() {
+      try {
+        // 1. 取消未完成的請求
+        cancelJsonpRequest();
+        
+        // 2. 獲取並格式化表單參數
+        const rawData = {
+          pageId: document.getElementById('pageId')?.value || '',
+          date: document.getElementById('date')?.value || '',
+          lineId: lineIdInput.value || manualLineIdInput.value || '',
+          planType: document.getElementById('planType')?.value || '',
+          userId: manualLineIdInput.value || '',
+          name: document.getElementById('name')?.value || '',
+          phone: document.getElementById('phone')?.value || '',
+          email: document.getElementById('email')?.value || ''
+        };
+        
+        // 格式化參數（解決後端處理問題）
+        const data = formatParams(rawData);
+        
+        // 3. 構建標準化的URL參數
+        const params = new URLSearchParams();
+        // 遍歷添加參數（確保參數編碼正確）
+        Object.keys(data).forEach(key => {
+          params.append(key, encodeURIComponent(data[key]));
+        });
+        params.append('callback', 'handleResponse'); // JSONP回調函數
+        
+        // 4. 創建JSONP請求
+        jsonpScript = document.createElement('script');
+        jsonpScript.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+        jsonpScript.charset = 'UTF-8'; // 確保編碼一致
+        
+        // 5. 請求超時處理
+        requestTimeoutTimer = setTimeout(() => {
+          cancelJsonpRequest();
+          if (submitBtn && btnText) {
+            submitBtn.classList.remove('loading');
+            submitBtn.classList.add('error');
+            btnText.textContent = '請求超時 ❌';
+          }
+          alert("⚠️ 請求超時（15秒），請檢查網路或稍後再試");
+          resetButtonState();
+        }, CONFIG.REQUEST_TIMEOUT);
+        
+        // 6. 請求錯誤處理
+        jsonpScript.onerror = function() {
+          cancelJsonpRequest();
+          console.error("JSONP請求加載失敗");
+          if (submitBtn && btnText) {
+            submitBtn.classList.remove('loading');
+            submitBtn.classList.add('error');
+            btnText.textContent = '請求失敗 ❌';
+          }
+          alert("⚠️ 網路錯誤或後端服務不可用，請稍後再試");
+          resetButtonState();
+        };
+        
+        // 7. 請求成功加載（僅移除script標籤，回調由handleResponse處理）
+        jsonpScript.onload = function() {
+          clearTimeout(requestTimeoutTimer);
+          requestTimeoutTimer = null;
+        };
+        
+        document.body.appendChild(jsonpScript);
+      } catch (error) {
+        cancelJsonpRequest();
+        console.error("發送資料出錯：", error);
+        resetButtonState();
+        alert(`❌ 發送資料失敗：${error.message}\n請稍後再試`);
+      }
+    }
+
+    // ==================== 3. 核心回調與工具函數 ====================
+    // JSONP回調函數（強化後端返回兼容）
     window.handleResponse = function(response) {
+      cancelJsonpRequest(); // 清除超時計時器
+      
       try {
         isSubmitting = false;
         if (!submitBtn || !btnText) return;
 
         submitBtn.classList.remove('loading');
         
-        if (!response) {
-          throw new Error("後端返回空回應");
+        // 強化後端返回格式驗證
+        if (!response || typeof response !== 'object') {
+          throw new Error("後端返回格式錯誤（非JSON對象）");
         }
         
         if (response.status === "success") {
@@ -252,8 +452,11 @@
           btnText.textContent = '送出失敗 ❌';
           
           let errorMsg = response.message || "未知錯誤";
+          // 針對後端常見錯誤優化提示
           if (errorMsg.includes("appendRow") || errorMsg.includes("null")) {
             errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
+          } else if (errorMsg.includes("CORS") || errorMsg.includes("跨域")) {
+            errorMsg = "❌ 跨域請求被拒絕！\n請檢查後端CORS配置。";
           }
           alert(errorMsg);
           setTimeout(resetButtonState, 3000);
@@ -265,6 +468,7 @@
       }
     };
 
+    // 重置按鈕狀態
     function resetButtonState() {
       if (!submitBtn || !btnText) return;
       submitBtn.disabled = false;
@@ -273,124 +477,25 @@
       isSubmitting = false;
     }
 
+    // 獲取台北時間（強化兼容性）
     function getTaipeiDate() {
       try {
-        const dtf = new Intl.DateTimeFormat('zh-TW', {
-          timeZone: 'Asia/Taipei',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
-        const parts = dtf.formatToParts(new Date());
-        const year = parts.find(p => p.type === 'year')?.value || '';
-        const month = parts.find(p => p.type === 'month')?.value || '';
-        const day = parts.find(p => p.type === 'day')?.value || '';
-        return `${year}-${month}-${day}`;
+        const now = new Date();
+        // 手動計算台北時間（解決部分瀏覽器timeZone支援問題）
+        const offset = 8; // 台北時區UTC+8
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const taipeiTime = new Date(utc + (3600000 * offset));
+        
+        return taipeiTime.toISOString().split('T')[0]; // 格式：YYYY-MM-DD
       } catch (error) {
         console.error("獲取日期出錯：", error);
-        return new Date().toLocaleDateString('zh-TW');
+        return new Date().toLocaleDateString('zh-TW').replace(/\//g, '-');
       }
     }
 
-    // 重構LIFF初始化邏輯（核心修正）
-    async function initLiff() {
-      liffStatus.style.display = 'block';
-      liffStatus.textContent = '正在初始化LINE授權...';
-      liffStatus.className = 'liff-status liff-loading';
-
-      try {
-        // 1. 檢查SDK是否加載
-        if (typeof liff === 'undefined') {
-          throw new Error("LINE LIFF SDK加載失敗，請刷新頁面");
-        }
-
-        // 2. 完整的初始化配置（解決核心授權問題）
-        await liff.init({
-          liffId: CONFIG.LIFF_ID,
-          withLoginOnExternalBrowser: true, // 外部瀏覽器自動觸發登入
-          redirectUri: window.location.href  // 明確回調地址，解決權限校驗
-        });
-
-        // 3. 分環境處理登入邏輯
-        if (!liff.isLoggedIn()) {
-          // 判斷是否在LINE App內打開
-          if (liff.isInClient()) {
-            // LINE內：直接登入
-            liffStatus.textContent = '請完成LINE登入...';
-            await liff.login();
-          } else {
-            // 外部瀏覽器：跳轉登入並指定回調
-            liffStatus.textContent = '將跳轉至LINE登入頁面...';
-            liff.login({
-              redirectUri: window.location.href,
-              scope: 'profile' // 請求用戶資料權限
-            });
-            return;
-          }
-        }
-
-        // 4. 登入成功後獲取用戶資料
-        const profile = await liff.getProfile();
-        if (profile && profile.userId) {
-          lineIdInput.value = profile.userId;
-          liffStatus.textContent = `✅ 已自動取得LINE ID: ${profile.userId.substring(0, 8)}...`;
-          liffStatus.className = 'liff-status liff-success';
-          console.log("成功取得LINE ID：", profile.userId);
-        } else {
-          throw new Error("無法獲取LINE用戶ID，請手動填寫");
-        }
-      } catch (error) {
-        console.error("LIFF初始化失敗：", error);
-        // 錯誤兜底：不強制彈窗，僅提示手動填寫
-        liffStatus.textContent = `⚠️ ${error.message}，您可以手動填寫LINE ID繼續`;
-        liffStatus.className = 'liff-status liff-error';
-      }
-    }
-
-    function sendData() {
-      try {
-        const data = {
-          pageId: document.getElementById('pageId')?.value || '',
-          date: document.getElementById('date')?.value || '',
-          // 優先使用自動獲取的，其次手動填寫的
-          lineId: lineIdInput.value || manualLineIdInput.value || '',
-          planType: document.getElementById('planType')?.value || '',
-          userId: manualLineIdInput.value || '',
-          name: document.getElementById('name')?.value || '',
-          phone: document.getElementById('phone')?.value || '',
-          email: document.getElementById('email')?.value || ''
-        };
-
-        const params = new URLSearchParams(data);
-        params.append('callback', 'handleResponse');
-
-        const script = document.createElement('script');
-        script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
-        script.onerror = function() {
-          console.error("JSONP請求失敗");
-          isSubmitting = false;
-          if (submitBtn && btnText) {
-            submitBtn.classList.remove('loading');
-            submitBtn.classList.add('error');
-            btnText.textContent = '請求失敗 ❌';
-          }
-          alert("⚠️ 網路錯誤或後端服務不可用，請稍後再試");
-          setTimeout(resetButtonState, 3000);
-          document.body.removeChild(script);
-        };
-        script.onload = function() {
-          document.body.removeChild(script);
-        };
-        document.body.appendChild(script);
-      } catch (error) {
-        console.error("發送資料出錯：", error);
-        isSubmitting = false;
-        resetButtonState();
-        alert("❌ 發送資料失敗，請稍後再試");
-      }
-    }
-
+    // ==================== 4. 頁面初始化 ====================
     document.addEventListener('DOMContentLoaded', function() {
+      // 獲取DOM元素
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn?.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
@@ -398,35 +503,46 @@
       lineIdInput = document.getElementById('lineId');
       manualLineIdInput = document.getElementById('userId');
 
-      // 設置日期
+      // 設置當前日期
       const dateInput = document.getElementById('date');
       if (dateInput) {
         dateInput.value = getTaipeiDate();
       }
 
-      // 延遲初始化LIFF，確保SDK加載完成
+      // 初始化LIFF（延遲執行確保SDK加載）
       if (liffStatus && lineIdInput) {
-        setTimeout(initLiff, 300);
+        // 若SDK加載超時，直接提示手動填寫
+        setTimeout(() => {
+          if (!window.liffLoaded) {
+            liffStatus.style.display = 'block';
+            liffStatus.textContent = '⚠️ LINE SDK加載失敗，請手動填寫LINE ID';
+            liffStatus.className = 'liff-status liff-error';
+          } else {
+            initLiff();
+          }
+        }, 500);
       }
 
-      // 表單提交邏輯修正：允許手動填寫LINE ID
+      // 表單提交事件（強化參數驗證）
       if (infoForm) {
         infoForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
           if (submitBtn?.disabled || isSubmitting) return;
           
-          const planType = document.getElementById('planType')?.value;
-          const name = document.getElementById('name')?.value;
-          // 合併自動/手動LINE ID驗證
-          const lineIdValue = lineIdInput.value || manualLineIdInput.value;
+          // 表單驗證
+          const planType = document.getElementById('planType')?.value?.trim() || '';
+          const name = document.getElementById('name')?.value?.trim() || '';
+          const lineIdValue = (lineIdInput.value?.trim() || manualLineIdInput.value?.trim()) || '';
 
           if (!planType) {
             alert("請選擇方案類型");
+            document.getElementById('planType').focus();
             return;
           }
           if (!name) {
             alert("請輸入姓名");
+            document.getElementById('name').focus();
             return;
           }
           if (!lineIdValue) {
@@ -435,6 +551,7 @@
             return;
           }
 
+          // 設置提交狀態
           isSubmitting = true;
           submitBtn.disabled = true;
           submitBtn.classList.add('loading');
@@ -442,21 +559,26 @@
           
           // 同步手動輸入的LINE ID到隱藏欄位
           if (!lineIdInput.value && manualLineIdInput.value) {
-            lineIdInput.value = manualLineIdInput.value;
+            lineIdInput.value = manualLineIdInput.value.trim();
           }
           
+          // 發送資料
           sendData();
         });
       }
 
-      // 手動輸入時同步到隱藏欄位
+      // 手動輸入LINE ID時同步到隱藏欄位
       if (manualLineIdInput && lineIdInput) {
         manualLineIdInput.addEventListener('input', function() {
-          if (!lineIdInput.value) {
-            lineIdInput.value = this.value;
+          const value = this.value.trim();
+          if (value && !lineIdInput.value) {
+            lineIdInput.value = value;
           }
         });
       }
+
+      // 頁面離開時取消未完成的請求
+      window.addEventListener('beforeunload', cancelJsonpRequest);
     });
   </script>
 </body>
