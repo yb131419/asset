@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title> 彥彬📘方案申請頁面 </title>
-  <!-- 保留延遲加載兼容，同時匹配第一個代碼的標題 -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
     * { box-sizing: border-box; }
@@ -34,16 +33,18 @@
       text-align: center;
       letter-spacing: 1.2px;
       color: #9acd32;
-      line-height: 1.4;
+      line-height: 1.4; /* 優化行高 */
     }
+    /* 主標題（保持原樣） */
     h2 .main-title {
       font-size: 1.8rem;
-      display: block;
+      display: block; /* 單獨一行 */
       margin-bottom: 8px;
     }
+    /* 副標題（縮小字體） */
     h2 .sub-title {
-      font-size: 1rem;
-      font-weight: 500;
+      font-size: 1rem; /* 比主標題小，可根據需求調整為1.1rem */
+      font-weight: 500; /* 輕微降低字重，區分層級 */
       letter-spacing: 0.8px;
     }
     form label {
@@ -86,6 +87,7 @@
       background-size: 16px;
       cursor: pointer;
     }
+    /* 按鈕容器 - 用於加載動畫 */
     .btn-container {
       position: relative;
       width: 100%;
@@ -107,12 +109,14 @@
       align-items: center;
       gap: 8px;
     }
+    /* 禁用狀態 */
     button:disabled {
       opacity: 0.7;
       cursor: not-allowed;
       background: linear-gradient(135deg, #669f0b, #3a7d00);
       box-shadow: none;
     }
+    /* 加載動畫 */
     .loader {
       width: 20px;
       height: 20px;
@@ -126,6 +130,7 @@
     button.loading .loader {
       display: block;
     }
+    /* 成功/失敗反饋動畫 */
     @keyframes rotation {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -143,35 +148,11 @@
       animation: successPulse 0.6s ease-in-out;
       background: linear-gradient(135deg, #ff4444, #cc0000) !important;
     }
-    /* 保留LINE ID提示樣式，匹配第一個代碼的簡潔風格 */
-    .liff-tip {
-      font-size: 0.9rem;
-      color: #9acd32;
-      margin: -15px 0 20px 0;
-      padding: 8px;
-      background: rgba(154, 205, 50, 0.1);
-      border-radius: 6px;
-      text-align: center;
-    }
-    .liff-success {
-      color: #00c851;
-      background: rgba(0, 200, 81, 0.1);
-    }
-    .liff-error {
-      color: #ff4444;
-      background: rgba(255, 68, 68, 0.1);
-    }
-    .line-id-guide {
-      font-size: 0.85rem;
-      color: #bbb;
-      margin: -10px 0 15px 0;
-      padding-left: 2px;
-    }
   </style>
 </head>
 <body>
   <main>
-    <!-- 完全匹配第一個代碼的標題結構 -->
+    <!-- 拆分標題為主/副，分別控制字體大小 -->
     <h2>
       <span class="main-title">彥彬📘 方案申請頁面</span>
       <span class="sub-title">『下拉選擇方案』 <br> 送出填寫 <br>『LINE發送通知』</span>
@@ -182,7 +163,7 @@
       <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
-      <!-- 完全匹配第一個代碼的方案類型選項 -->
+      <!-- 新增方案類型下拉選項 -->
       <label for="planType">方案類型</label>
       <select id="planType" name="planType" required>
         <option value="">請選擇方案類型</option>
@@ -194,22 +175,16 @@
       <label for="name">姓名</label>
       <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
-      <!-- 匹配第一個代碼：移除phone的required屬性，還原原始驗證邏輯 -->
       <label for="phone">電話</label>
       <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
 
       <label for="userId">Line ID</label>
       <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
-      <div class="line-id-guide">💡 若無法自動填入，請手動輸入您的LINE ID（不是暱稱）</div>
-      <div id="liffTip" class="liff-tip" style="display: none;">
-        加載中... 正在嘗試取得LINE ID
-      </div>
 
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-      <!-- 移除第二個代碼多的textarea，匹配第一個代碼的表單結構 -->
-
+      <!-- 按鈕容器 - 新增加載動畫結構 -->
       <div class="btn-container">
         <button type="submit" id="submitBtn">
           <span class="loader"></span>
@@ -220,49 +195,58 @@
   </main>
 
   <script>
-    // 全域配置：完全匹配第一個代碼
+    // 全域配置
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec",
       LIFF_ID: "2007475335-wO37qkoE"
     };
 
-    // 全域變數：保留優化點，同時匹配第一個代碼的變數名
+    // 全域變數初始化（避免TypeError: Cannot read properties of null）
     let submitBtn = null;
     let btnText = null;
     let infoForm = null;
-    let liffTip = null;
+    // 防止重複提交的標誌（雙重保險）
     let isSubmitting = false;
-    let lineIdInput = null;
-    let manualLineIdInput = null;
 
-    // JSONP回調函數：保留優化點，提示語匹配第一個代碼
+    // 將回調函數掛載到window（JSONP必須全域可訪問）
     window.handleResponse = function(response) {
       try {
+        // 重置提交標誌
         isSubmitting = false;
+        
+        // 防禦性檢查：確保按鈕元素存在
         if (!submitBtn || !btnText) return;
 
+        // 移除加載狀態
         submitBtn.classList.remove('loading');
         
+        // 檢查回應是否有效
         if (!response) {
           throw new Error("後端返回空回應");
         }
         
         if (response.status === "success") {
+          // 成功反饋
           submitBtn.classList.add('success');
           btnText.textContent = '送出成功 ✅';
-          // 匹配第一個代碼的提示語
           alert("✅ 資料已成功送出！\n會用Line通知！");
-          infoForm?.reset();
+          infoForm?.reset(); // 可選鏈避免null引用錯誤
+          
+          // 3秒後重置按鈕狀態
           setTimeout(resetButtonState, 3000);
         } else {
+          // 失敗反饋（區分後端不同錯誤）
           submitBtn.classList.add('error');
           btnText.textContent = '送出失敗 ❌';
           
+          // 針對appendRow錯誤給出專屬提示
           let errorMsg = response.message || "未知錯誤";
           if (errorMsg.includes("appendRow") || errorMsg.includes("null")) {
             errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
           }
           alert(errorMsg);
+          
+          // 3秒後重置按鈕狀態
           setTimeout(resetButtonState, 3000);
         }
       } catch (error) {
@@ -272,7 +256,7 @@
       }
     };
 
-    // 重置按鈕狀態：保留優化點
+    // 重置按鈕狀態的函數
     function resetButtonState() {
       if (!submitBtn || !btnText) return;
       submitBtn.disabled = false;
@@ -281,7 +265,7 @@
       isSubmitting = false;
     }
 
-    // 獲取台北時間：完全匹配第一個代碼
+    // 獲取台北時間
     function getTaipeiDate() {
       try {
         const dtf = new Intl.DateTimeFormat('zh-TW', {
@@ -297,87 +281,69 @@
         return `${year}-${month}-${day}`;
       } catch (error) {
         console.error("獲取日期出錯：", error);
-        return new Date().toLocaleDateString('zh-TW');
+        return new Date().toLocaleDateString('zh-TW'); // 備案方案
       }
     }
 
-    // LIFF初始化：保留優化點，錯誤提示匹配第一個代碼
+    // 初始化LIFF
     async function initLiff() {
-      liffTip.style.display = 'block';
-      liffTip.textContent = '正在嘗試取得LINE ID...';
-      liffTip.classList.remove('liff-success', 'liff-error');
-
       try {
+        // 檢查liff是否加載完成
         if (typeof liff === 'undefined') {
-          throw new Error("LINE LIFF SDK 加載失敗，請刷新頁面");
+          throw new Error("LINE LIFF SDK 加載失敗");
         }
-
-        await liff.init({
-          liffId: CONFIG.LIFF_ID,
-          withLoginOnExternalBrowser: true,
-          redirectUri: window.location.href
-        });
-
-        if (!liff.isInClient() && !liff.isLoggedIn()) {
-          liffTip.textContent = '請先登入LINE帳號';
-          liffTip.classList.add('liff-error');
-          setTimeout(() => {
-            liff.login({ redirectUri: window.location.href });
-          }, 1000);
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
           return;
         }
-
-        if (liff.isLoggedIn()) {
-          try {
-            const profile = await liff.getProfile();
-            if (profile && profile.userId) {
-              lineIdInput.value = profile.userId;
-              liffTip.textContent = `✅ 已自動取得LINE ID: ${profile.userId.substring(0, 8)}...`;
-              liffTip.classList.add('liff-success');
-              console.log("成功取得LINE User ID：", profile.userId);
-              return;
-            } else {
-              throw new Error("無法獲取用戶ID，請手動填寫");
-            }
-          } catch (profileError) {
-            throw new Error(`獲取用戶資料失敗：${profileError.message}`);
-          }
-        } else {
-          await liff.login();
+        const profile = await liff.getProfile();
+        const lineIdInput = document.getElementById('lineId');
+        if (lineIdInput) {
+          lineIdInput.value = profile.userId || '';
         }
       } catch (error) {
-        console.error("LIFF初始化失敗：", error);
-        // 匹配第一個代碼的錯誤提示
+        console.error("LIFF初始化出錯：", error);
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
-        liffTip.textContent = `⚠️ ${error.message}，請手動填寫LINE ID`;
-        liffTip.classList.add('liff-error');
       }
     }
 
-    // 發送資料：匹配第一個代碼的表單欄位（移除otherReason）
+    // 發送資料
     function sendData() {
       try {
-        // 構建提交數據：移除otherReason，匹配第一個代碼
+        // 防禦性獲取表單元素
+        const pageIdInput = document.getElementById('pageId');
+        const dateInput = document.getElementById('date');
+        const lineIdInput = document.getElementById('lineId');
+        const planTypeInput = document.getElementById('planType');
+        const userIdInput = document.getElementById('userId');
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone');
+        const emailInput = document.getElementById('email');
+
+        // 構建資料（避免空值引用）
         const data = {
-          pageId: document.getElementById('pageId')?.value || '',
-          date: document.getElementById('date')?.value || '',
-          lineId: lineIdInput.value || manualLineIdInput.value || '',
-          planType: document.getElementById('planType')?.value || '',
-          userId: manualLineIdInput.value || '',
-          name: document.getElementById('name')?.value || '',
-          phone: document.getElementById('phone')?.value || '',
-          email: document.getElementById('email')?.value || ''
+          pageId: pageIdInput?.value || '',
+          date: dateInput?.value || '',
+          lineId: lineIdInput?.value || '',
+          planType: planTypeInput?.value || '',
+          userId: userIdInput?.value || '',
+          name: nameInput?.value || '',
+          phone: phoneInput?.value || '',
+          email: emailInput?.value || ''
         };
 
         const params = new URLSearchParams(data);
         params.append('callback', 'handleResponse');
 
+        // 創建JSONP請求
         const script = document.createElement('script');
         script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
-        
         script.onerror = function() {
           console.error("JSONP請求失敗");
+          // 重置提交狀態
           isSubmitting = false;
+          // 請求失敗時重置按鈕
           if (submitBtn && btnText) {
             submitBtn.classList.remove('loading');
             submitBtn.classList.add('error');
@@ -387,11 +353,9 @@
           setTimeout(resetButtonState, 3000);
           document.body.removeChild(script);
         };
-        
         script.onload = function() {
           document.body.removeChild(script);
         };
-        
         document.body.appendChild(script);
       } catch (error) {
         console.error("發送資料出錯：", error);
@@ -401,35 +365,40 @@
       }
     }
 
-    // DOM初始化：匹配第一個代碼的驗證邏輯（移除phone必填驗證）
+    // DOM加載完成後初始化
     document.addEventListener('DOMContentLoaded', function() {
+      // 獲取DOM元素（確保元素已加載）
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn?.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
-      liffTip = document.getElementById('liffTip');
-      lineIdInput = document.getElementById('lineId');
-      manualLineIdInput = document.getElementById('userId');
 
+      // 設置當前日期
       const dateInput = document.getElementById('date');
       if (dateInput) {
         dateInput.value = getTaipeiDate();
       }
 
-      if (lineIdInput && liffTip) {
-        setTimeout(initLiff, 500);
-      }
+      // 初始化LIFF
+      initLiff();
 
+      // 表單提交事件
       if (infoForm) {
         infoForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
+          // 雙重防呆：避免重複提交
           if (submitBtn?.disabled || isSubmitting) return;
           
-          // 驗證邏輯：完全匹配第一個代碼（移除phone必填驗證）
+          // 檢查LINE ID是否存在
+          const lineIdInput = document.getElementById('lineId');
+          if (!lineIdInput?.value) {
+            alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
+            return;
+          }
+
+          // 表單驗證（補充HTML5驗證之外的檢查）
           const planType = document.getElementById('planType')?.value;
           const name = document.getElementById('name')?.value;
-          const lineIdValue = lineIdInput.value || manualLineIdInput.value;
-
           if (!planType) {
             alert("請選擇方案類型");
             return;
@@ -438,30 +407,17 @@
             alert("請輸入姓名");
             return;
           }
-          if (!lineIdValue) {
-            // 匹配第一個代碼的提示語
-            alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
-            return;
-          }
-
+          
+          // 設置提交中狀態
           isSubmitting = true;
-          submitBtn.disabled = true;
-          submitBtn.classList.add('loading');
-          btnText.textContent = '提交中...';
-          
-          if (!lineIdInput.value && manualLineIdInput.value) {
-            lineIdInput.value = manualLineIdInput.value;
+          if (submitBtn && btnText) {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = '提交中...';
           }
           
+          // 發送資料
           sendData();
-        });
-      }
-
-      if (manualLineIdInput && lineIdInput) {
-        manualLineIdInput.addEventListener('input', function() {
-          if (!lineIdInput.value) {
-            lineIdInput.value = this.value;
-          }
         });
       }
     });
