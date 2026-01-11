@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> 彥彬📘方案申請頁面 </title>
+  <title> 彥彬📘幸福系統申請 </title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -57,7 +57,8 @@
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    select {
+    select,
+    textarea { /* 新增textarea樣式 */
       width: 100%;
       padding: 10px 14px;
       border-radius: 8px;
@@ -67,11 +68,13 @@
       color: #eee;
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
+      font-family: 'Roboto', sans-serif; /* 統一字體 */
     }
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="tel"]:focus,
-    select:focus {
+    select:focus,
+    textarea:focus { /* 新增textarea焦點樣式 */
       background: #3a3a3a;
       outline: none;
     }
@@ -86,6 +89,12 @@
       background-position: right 14px center;
       background-size: 16px;
       cursor: pointer;
+    }
+    /* 新增textarea專屬樣式 */
+    textarea {
+      min-height: 80px; /* 設置最小高度 */
+      resize: vertical; /* 僅允許垂直拉伸 */
+      line-height: 1.5;
     }
     /* 按鈕容器 - 用於加載動畫 */
     .btn-container {
@@ -154,7 +163,7 @@
   <main>
     <!-- 拆分標題為主/副，分別控制字體大小 -->
     <h2>
-      <span class="main-title">彥彬📘 方案申請頁面</span>
+      <span class="main-title">彥彬📘 幸福系統申請</span>
       <span class="sub-title">『下拉選擇方案』 <br> 送出填寫 <br>『LINE發送通知』</span>
     </h2>
 
@@ -167,10 +176,11 @@
       <label for="planType">方案類型</label>
       <select id="planType" name="planType" required>
         <option value="">請選擇方案類型</option>
-        <option value="試算系統">試算系統</option>
-        <option value="輕鬆經營">輕鬆經營</option>
-        <option value="食療方案">食療方案</option>
-        <option value="幸福系統">幸福系統</option>
+        <option value="免費『食療方案手冊』">食療方案手冊</option>
+        <option value="免費『輕鬆經營手冊』">輕鬆經營手冊</option>
+        <option value="申請『試算系統』">試算系統</option>
+        <option value="申請『自檢表系統』">自檢表系統</option>
+        <option value="申請『幸福系統』">幸福系統</option>
       </select>
 
       <label for="name">姓名</label>
@@ -185,6 +195,10 @@
 
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
+
+      <!-- 新增：其他原因輸入框 -->
+      <label for="otherReason">其他原因（選填）</label>
+      <textarea id="otherReason" name="otherReason" autocomplete="off" placeholder="請輸入其他補充說明或原因..."></textarea>
 
       <!-- 按鈕容器 - 新增加載動畫結構 -->
       <div class="btn-container">
@@ -322,6 +336,7 @@
         const nameInput = document.getElementById('name');
         const phoneInput = document.getElementById('phone');
         const emailInput = document.getElementById('email');
+        const otherReasonInput = document.getElementById('otherReason'); // 新增獲取其他原因元素
 
         // 構建資料（避免空值引用）
         const data = {
@@ -332,7 +347,8 @@
           userId: userIdInput?.value || '',
           name: nameInput?.value || '',
           phone: phoneInput?.value || '',
-          email: emailInput?.value || ''
+          email: emailInput?.value || '',
+          otherReason: otherReasonInput?.value || '' // 新增其他原因欄位
         };
 
         const params = new URLSearchParams(data);
