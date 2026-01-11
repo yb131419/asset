@@ -146,7 +146,6 @@
     }
     @keyframes successPulse {
       0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
     .success {
@@ -157,6 +156,20 @@
       animation: successPulse 0.6s ease-in-out;
       background: linear-gradient(135deg, #ff4444, #cc0000) !important;
     }
+    /* 提示訊息樣式 */
+    .tip {
+      color: #9acd32;
+      font-size: 0.9rem;
+      text-align: center;
+      margin: 10px 0 20px 0;
+      padding: 8px;
+      background: rgba(154, 205, 50, 0.1);
+      border-radius: 6px;
+    }
+    .error-tip {
+      color: #ff4444;
+      background: rgba(255, 68, 68, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -166,6 +179,9 @@
       <span class="main-title">彥彬📘 幸福系統申請</span>
       <span class="sub-title">『下拉選擇方案』 <br> 送出填寫 <br>『LINE發送通知』</span>
     </h2>
+
+    <!-- 新增提示訊息容器 -->
+    <div id="tipContainer" class="tip" style="display: none;"></div>
 
     <form id="infoForm">
       <input type="hidden" id="pageId" name="pageId" value="調整方案" />
@@ -190,8 +206,8 @@
       <!-- 修改1：給電話輸入框添加required屬性，設為必填 -->
       <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入電話" />
 
-      <label for="userId">Line ID</label>
-      <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
+      <label for="userId">Line ID（手動填寫）</label>
+      <input type="text" id="userId" name="userId" required autocomplete="off" placeholder="請輸入您的Line ID（若自動獲取失敗請手動填）" />
 
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
@@ -221,8 +237,21 @@
     let submitBtn = null;
     let btnText = null;
     let infoForm = null;
+    let tipContainer = null;
     // 防止重複提交的標誌（雙重保險）
     let isSubmitting = false;
+
+    // 顯示提示訊息
+    function showTip(message, isError = false) {
+      if (!tipContainer) return;
+      tipContainer.textContent = message;
+      tipContainer.className = isError ? "tip error-tip" : "tip";
+      tipContainer.style.display = "block";
+      // 5秒後隱藏提示
+      setTimeout(() => {
+        tipContainer.style.display = "none";
+      }, 5000);
+    }
 
     // 將回調函數掛載到window（JSONP必須全域可訪問）
     window.handleResponse = function(response) {
@@ -261,6 +290,7 @@
             errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
           }
           alert(errorMsg);
+          showTip(errorMsg, true);
           
           // 3秒後重置按鈕狀態
           setTimeout(resetButtonState, 3000);
@@ -268,7 +298,9 @@
       } catch (error) {
         console.error("處理回應時出錯：", error);
         resetButtonState();
-        alert(`❌ 處理回應失敗：${error.message}\n請稍後再試或聯繫管理員`);
+        const errMsg = `❌ 處理回應失敗：${error.message}\n請稍後再試或聯繫管理員`;
+        alert(errMsg);
+        showTip(errMsg, true);
       }
     };
 
@@ -301,26 +333,54 @@
       }
     }
 
-    // 初始化LIFF
+    // 初始化LIFF（優化版）
     async function initLiff() {
       try {
-        // 檢查liff是否加載完成
+        // 檢查是否在LINE環境中
         if (typeof liff === 'undefined') {
-          throw new Error("LINE LIFF SDK 加載失敗");
+          throw new Error("當前環境不支援LINE LIFF，請在LINE內打開或手動填寫Line ID");
         }
-        await liff.init({ liffId: CONFIG.LIFF_ID });
+        
+        // 初始化LIFF（增加錯誤捕獲）
+        await liff.init({ 
+          liffId: CONFIG.LIFF_ID,
+          withLoginOnExternalBrowser: true // 支援外部瀏覽器登入
+        });
+        
+        // 檢查登入狀態
         if (!liff.isLoggedIn()) {
-          liff.login();
+          showTip("請先登入LINE以自動獲取用戶ID（也可手動填寫）");
+          // 不自動跳轉登入，避免強制中斷用戶操作
+          // liff.login(); 
           return;
         }
-        const profile = await liff.getProfile();
-        const lineIdInput = document.getElementById('lineId');
-        if (lineIdInput) {
-          lineIdInput.value = profile.userId || '';
+        
+        // 獲取用戶資訊（增加多重防禦）
+        let profile;
+        try {
+          profile = await liff.getProfile();
+        } catch (profileError) {
+          throw new Error(`獲取LINE用戶資訊失敗：${profileError.message}，請手動填寫Line ID`);
         }
+        
+        const lineIdInput = document.getElementById('lineId');
+        const userIdInput = document.getElementById('userId');
+        
+        if (profile?.userId && lineIdInput) {
+          lineIdInput.value = profile.userId;
+          showTip("已自動獲取您的LINE用戶ID ✅");
+          // 若手動填寫的Line ID為空，自動填充
+          if (userIdInput && !userIdInput.value) {
+            userIdInput.value = profile.userId;
+          }
+        } else {
+          throw new Error("無法解析LINE用戶ID，請手動填寫");
+        }
+        
       } catch (error) {
         console.error("LIFF初始化出錯：", error);
-        alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
+        // 溫和提示，不阻斷表單使用
+        showTip(error.message, true);
       }
     }
 
@@ -342,7 +402,7 @@
         const data = {
           pageId: pageIdInput?.value || '',
           date: dateInput?.value || '',
-          lineId: lineIdInput?.value || '',
+          lineId: lineIdInput?.value || userIdInput?.value || '', // 優先使用自動獲取的，無則用手動填的
           planType: planTypeInput?.value || '',
           userId: userIdInput?.value || '',
           name: nameInput?.value || '',
@@ -367,7 +427,9 @@
             submitBtn.classList.add('error');
             btnText.textContent = '請求失敗 ❌';
           }
-          alert("⚠️ 網路錯誤或後端服務不可用，請稍後再試");
+          const errMsg = "⚠️ 網路錯誤或後端服務不可用，請稍後再試";
+          alert(errMsg);
+          showTip(errMsg, true);
           setTimeout(resetButtonState, 3000);
           document.body.removeChild(script);
         };
@@ -379,7 +441,9 @@
         console.error("發送資料出錯：", error);
         isSubmitting = false;
         resetButtonState();
-        alert("❌ 發送資料失敗，請稍後再試");
+        const errMsg = "❌ 發送資料失敗，請稍後再試";
+        alert(errMsg);
+        showTip(errMsg, true);
       }
     }
 
@@ -389,6 +453,7 @@
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn?.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
+      tipContainer = document.getElementById('tipContainer');
 
       // 設置當前日期
       const dateInput = document.getElementById('date');
@@ -407,10 +472,14 @@
           // 雙重防呆：避免重複提交
           if (submitBtn?.disabled || isSubmitting) return;
           
-          // 檢查LINE ID是否存在
+          // 優化LINE ID檢查：允許手動填寫的ID替代自動獲取的
           const lineIdInput = document.getElementById('lineId');
-          if (!lineIdInput?.value) {
-            alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
+          const userIdInput = document.getElementById('userId');
+          const actualLineId = lineIdInput?.value || userIdInput?.value;
+          
+          if (!actualLineId) {
+            alert("請填寫您的Line ID（若無法自動獲取，請手動輸入）");
+            showTip("請填寫Line ID以完成提交", true);
             return;
           }
 
@@ -421,14 +490,17 @@
           const phone = document.getElementById('phone')?.value;
           if (!planType) {
             alert("請選擇方案類型");
+            showTip("請選擇方案類型", true);
             return;
           }
           if (!name) {
             alert("請輸入姓名");
+            showTip("請輸入姓名", true);
             return;
           }
           if (!phone) {
             alert("請輸入電話");
+            showTip("請輸入電話", true);
             return;
           }
           
