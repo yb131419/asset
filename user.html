@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> 彥彬📘幸福系統申請 </title>
-  <!-- 加載LIFF SDK（增加延遲加載兼容） -->
+  <title> 彥彬📘方案申請頁面 </title>
+  <!-- 保留延遲加載兼容，同時匹配第一個代碼的標題 -->
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -56,8 +56,7 @@
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    select,
-    textarea {
+    select {
       width: 100%;
       padding: 10px 14px;
       border-radius: 8px;
@@ -67,13 +66,11 @@
       color: #eee;
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
-      font-family: 'Roboto', sans-serif;
     }
     input[type="text"]:focus,
     input[type="email"]:focus,
     input[type="tel"]:focus,
-    select:focus,
-    textarea:focus {
+    select:focus {
       background: #3a3a3a;
       outline: none;
     }
@@ -88,11 +85,6 @@
       background-position: right 14px center;
       background-size: 16px;
       cursor: pointer;
-    }
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-      line-height: 1.5;
     }
     .btn-container {
       position: relative;
@@ -151,7 +143,7 @@
       animation: successPulse 0.6s ease-in-out;
       background: linear-gradient(135deg, #ff4444, #cc0000) !important;
     }
-    /* LINE ID相關提示樣式增強 */
+    /* 保留LINE ID提示樣式，匹配第一個代碼的簡潔風格 */
     .liff-tip {
       font-size: 0.9rem;
       color: #9acd32;
@@ -169,7 +161,6 @@
       color: #ff4444;
       background: rgba(255, 68, 68, 0.1);
     }
-    /* 手動填寫LINE ID的引導樣式 */
     .line-id-guide {
       font-size: 0.85rem;
       color: #bbb;
@@ -180,8 +171,9 @@
 </head>
 <body>
   <main>
+    <!-- 完全匹配第一個代碼的標題結構 -->
     <h2>
-      <span class="main-title">彥彬📘 幸福系統申請</span>
+      <span class="main-title">彥彬📘 方案申請頁面</span>
       <span class="sub-title">『下拉選擇方案』 <br> 送出填寫 <br>『LINE發送通知』</span>
     </h2>
 
@@ -190,26 +182,25 @@
       <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
+      <!-- 完全匹配第一個代碼的方案類型選項 -->
       <label for="planType">方案類型</label>
       <select id="planType" name="planType" required>
         <option value="">請選擇方案類型</option>
-        <option value="免費『食療方案手冊』">食療方案手冊</option>
-        <option value="免費『輕鬆經營手冊』">輕鬆經營手冊</option>
-        <option value="申請『試算系統』">試算系統</option>
-        <option value="申請『自檢表系統』">自檢表系統</option>
-        <option value="申請『幸福系統』">幸福系統</option>
+        <option value="輕鬆經營">輕鬆經營</option>
+        <option value="食療方案">食療方案</option>
+        <option value="幸福系統">幸福系統</option>
       </select>
 
       <label for="name">姓名</label>
       <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
+      <!-- 匹配第一個代碼：移除phone的required屬性，還原原始驗證邏輯 -->
       <label for="phone">電話</label>
-      <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入電話" />
+      <input type="tel" id="phone" name="phone" autocomplete="off" placeholder="請輸入電話" />
 
       <label for="userId">Line ID</label>
       <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
       <div class="line-id-guide">💡 若無法自動填入，請手動輸入您的LINE ID（不是暱稱）</div>
-      <!-- LINE ID獲取狀態提示 -->
       <div id="liffTip" class="liff-tip" style="display: none;">
         加載中... 正在嘗試取得LINE ID
       </div>
@@ -217,8 +208,7 @@
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-      <label for="otherReason">其他原因（選填）</label>
-      <textarea id="otherReason" name="otherReason" autocomplete="off" placeholder="請輸入其他補充說明或原因..."></textarea>
+      <!-- 移除第二個代碼多的textarea，匹配第一個代碼的表單結構 -->
 
       <div class="btn-container">
         <button type="submit" id="submitBtn">
@@ -230,13 +220,13 @@
   </main>
 
   <script>
-    // 全域配置
+    // 全域配置：完全匹配第一個代碼
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec",
       LIFF_ID: "2007475335-wO37qkoE"
     };
 
-    // 全域變數
+    // 全域變數：保留優化點，同時匹配第一個代碼的變數名
     let submitBtn = null;
     let btnText = null;
     let infoForm = null;
@@ -245,7 +235,7 @@
     let lineIdInput = null;
     let manualLineIdInput = null;
 
-    // JSONP回調函數（全域可訪問）
+    // JSONP回調函數：保留優化點，提示語匹配第一個代碼
     window.handleResponse = function(response) {
       try {
         isSubmitting = false;
@@ -260,7 +250,8 @@
         if (response.status === "success") {
           submitBtn.classList.add('success');
           btnText.textContent = '送出成功 ✅';
-          alert("✅ 資料已成功送出！\n管理員會透過LINE通知您！");
+          // 匹配第一個代碼的提示語
+          alert("✅ 資料已成功送出！\n會用Line通知！");
           infoForm?.reset();
           setTimeout(resetButtonState, 3000);
         } else {
@@ -281,7 +272,7 @@
       }
     };
 
-    // 重置按鈕狀態
+    // 重置按鈕狀態：保留優化點
     function resetButtonState() {
       if (!submitBtn || !btnText) return;
       submitBtn.disabled = false;
@@ -290,7 +281,7 @@
       isSubmitting = false;
     }
 
-    // 獲取台北時間
+    // 獲取台北時間：完全匹配第一個代碼
     function getTaipeiDate() {
       try {
         const dtf = new Intl.DateTimeFormat('zh-TW', {
@@ -310,44 +301,36 @@
       }
     }
 
-    // 增強版LIFF初始化（解決自動獲取LINE ID核心問題）
+    // LIFF初始化：保留優化點，錯誤提示匹配第一個代碼
     async function initLiff() {
-      // 初始化提示
       liffTip.style.display = 'block';
       liffTip.textContent = '正在嘗試取得LINE ID...';
       liffTip.classList.remove('liff-success', 'liff-error');
 
       try {
-        // 1. 檢查環境和SDK是否加載
         if (typeof liff === 'undefined') {
           throw new Error("LINE LIFF SDK 加載失敗，請刷新頁面");
         }
 
-        // 2. 帶完整配置初始化LIFF（解決權限和跨域問題）
         await liff.init({
           liffId: CONFIG.LIFF_ID,
-          withLoginOnExternalBrowser: true, // 外部瀏覽器自動登入
-          redirectUri: window.location.href // 明確回調地址
+          withLoginOnExternalBrowser: true,
+          redirectUri: window.location.href
         });
 
-        // 3. 判斷是否在LINE內打開
         if (!liff.isInClient() && !liff.isLoggedIn()) {
-          // 外部瀏覽器且未登入：引導用戶登入
           liffTip.textContent = '請先登入LINE帳號';
           liffTip.classList.add('liff-error');
-          // 自動觸發登入（外部瀏覽器）
           setTimeout(() => {
             liff.login({ redirectUri: window.location.href });
           }, 1000);
           return;
         }
 
-        // 4. 已登入：獲取用戶資料
         if (liff.isLoggedIn()) {
           try {
             const profile = await liff.getProfile();
             if (profile && profile.userId) {
-              // 成功獲取LINE ID
               lineIdInput.value = profile.userId;
               liffTip.textContent = `✅ 已自動取得LINE ID: ${profile.userId.substring(0, 8)}...`;
               liffTip.classList.add('liff-success');
@@ -360,41 +343,38 @@
             throw new Error(`獲取用戶資料失敗：${profileError.message}`);
           }
         } else {
-          // LINE內但未登入：嘗試自動登入
           await liff.login();
         }
       } catch (error) {
-        // 所有錯誤統一處理，引導手動填寫
         console.error("LIFF初始化失敗：", error);
+        // 匹配第一個代碼的錯誤提示
+        alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
         liffTip.textContent = `⚠️ ${error.message}，請手動填寫LINE ID`;
         liffTip.classList.add('liff-error');
       }
     }
 
-    // 發送表單資料
+    // 發送資料：匹配第一個代碼的表單欄位（移除otherReason）
     function sendData() {
       try {
-        // 構建提交數據
+        // 構建提交數據：移除otherReason，匹配第一個代碼
         const data = {
           pageId: document.getElementById('pageId')?.value || '',
           date: document.getElementById('date')?.value || '',
-          lineId: lineIdInput.value || manualLineIdInput.value || '', // 優先自動，其次手動
+          lineId: lineIdInput.value || manualLineIdInput.value || '',
           planType: document.getElementById('planType')?.value || '',
           userId: manualLineIdInput.value || '',
           name: document.getElementById('name')?.value || '',
           phone: document.getElementById('phone')?.value || '',
-          email: document.getElementById('email')?.value || '',
-          otherReason: document.getElementById('otherReason')?.value || ''
+          email: document.getElementById('email')?.value || ''
         };
 
-        // 構建JSONP請求
         const params = new URLSearchParams(data);
         params.append('callback', 'handleResponse');
 
         const script = document.createElement('script');
         script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
         
-        // 請求錯誤處理
         script.onerror = function() {
           console.error("JSONP請求失敗");
           isSubmitting = false;
@@ -421,40 +401,33 @@
       }
     }
 
-    // DOM加載完成初始化
+    // DOM初始化：匹配第一個代碼的驗證邏輯（移除phone必填驗證）
     document.addEventListener('DOMContentLoaded', function() {
-      // 獲取DOM元素
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn?.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
       liffTip = document.getElementById('liffTip');
-      lineIdInput = document.getElementById('lineId'); // 隱藏的LINE ID欄位
-      manualLineIdInput = document.getElementById('userId'); // 手動輸入欄位
+      lineIdInput = document.getElementById('lineId');
+      manualLineIdInput = document.getElementById('userId');
 
-      // 設置當前日期
       const dateInput = document.getElementById('date');
       if (dateInput) {
         dateInput.value = getTaipeiDate();
       }
 
-      // 初始化LIFF（解決自動獲取核心問題）
       if (lineIdInput && liffTip) {
-        // 延遲初始化，確保SDK加載完成
         setTimeout(initLiff, 500);
       }
 
-      // 表單提交事件
       if (infoForm) {
         infoForm.addEventListener('submit', function(e) {
           e.preventDefault();
           
-          // 防止重複提交
           if (submitBtn?.disabled || isSubmitting) return;
           
-          // 驗證必填欄位
+          // 驗證邏輯：完全匹配第一個代碼（移除phone必填驗證）
           const planType = document.getElementById('planType')?.value;
           const name = document.getElementById('name')?.value;
-          const phone = document.getElementById('phone')?.value;
           const lineIdValue = lineIdInput.value || manualLineIdInput.value;
 
           if (!planType) {
@@ -465,36 +438,28 @@
             alert("請輸入姓名");
             return;
           }
-          if (!phone) {
-            alert("請輸入電話");
-            return;
-          }
           if (!lineIdValue) {
-            alert("📌 請填寫LINE ID！\n若無法自動取得，請手動輸入您的LINE ID（不是暱稱）");
-            manualLineIdInput.focus(); // 焦點定位到手動輸入框
+            // 匹配第一個代碼的提示語
+            alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
             return;
           }
 
-          // 設置提交狀態
           isSubmitting = true;
           submitBtn.disabled = true;
           submitBtn.classList.add('loading');
           btnText.textContent = '提交中...';
           
-          // 同步手動輸入的LINE ID到隱藏欄位（確保後端能拿到）
           if (!lineIdInput.value && manualLineIdInput.value) {
             lineIdInput.value = manualLineIdInput.value;
           }
           
-          // 發送資料
           sendData();
         });
       }
 
-      // 手動輸入LINE ID時同步到隱藏欄位
       if (manualLineIdInput && lineIdInput) {
         manualLineIdInput.addEventListener('input', function() {
-          if (!lineIdInput.value) { // 只有自動獲取失敗時才同步
+          if (!lineIdInput.value) {
             lineIdInput.value = this.value;
           }
         });
