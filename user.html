@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> 彥彬📘方案申請頁面 </title>
+  <title> 彥彬📘幸福系統申請 </title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
@@ -115,6 +115,11 @@
       background: linear-gradient(135deg, #669f0b, #3a7d00);
       box-shadow: none;
     }
+    button.permanent-disabled {
+      opacity: 0.5;
+      background: linear-gradient(135deg, #444444, #222222) !important;
+      cursor: not-allowed;
+    }
     .loader {
       width: 20px;
       height: 20px;
@@ -154,17 +159,18 @@
     </h2>
 
     <form id="infoForm">
-      <input type="hidden" id="pageId" name="pageId" value="調整方案" />
+      <input type="hidden" id="pageId" name="pageId" value="幸福系統申請" />
       <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
       <label for="planType">方案類型</label>
       <select id="planType" name="planType" required>
         <option value="">請選擇方案類型</option>
-        <option value="試算系統">試算系統</option>
-        <option value="輕鬆經營">輕鬆經營</option>
-        <option value="食療方案">食療方案</option>
-        <option value="幸福系統">幸福系統</option>
+        <option value="免費領取『輕鬆經營』">免費領取『輕鬆經營』</option>
+        <option value="免費領取『食療方案』">免費領取『食療方案』</option>
+        <option value="申請『試算系統』">申請『試算系統』</option>        
+        <option value="申請『自檢表系統』">申請『自檢表系統』</option>
+        <option value="申請『幸福系統』">申請『幸福系統』</option>
       </select>
 
       <label for="name">姓名</label>
@@ -179,7 +185,6 @@
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-      <!-- 新增：其他補充說明字段 -->
       <label for="extraInfo">其他補充說明</label>
       <textarea id="extraInfo" name="extraInfo" autocomplete="off" placeholder="請輸入其他需要補充的內容（選填）"></textarea>
 
@@ -202,6 +207,7 @@
     // 全局变量
     let [submitBtn, btnText, infoForm] = [null, null, null];
     let isSubmitting = false;
+    let isSubmittedSuccess = false; // 标记是否已成功提交
 
     // JSONP回调
     window.handleResponse = function(response) {
@@ -213,11 +219,13 @@
         if (!response) throw new Error("後端返回空回應");
         
         if (response.status === "success") {
-          submitBtn.classList.add('success');
-          btnText.textContent = '送出成功 ✅';
-          alert("✅ 資料已成功送出！\n會用Line通知！");
+          isSubmittedSuccess = true; // 标记提交成功
+          submitBtn.classList.add('success', 'permanent-disabled');
+          submitBtn.disabled = true; // 永久禁用按钮
+          btnText.textContent = '已送出 ✅';
+          alert("✅ 資料已成功送出！\n管理員將透過LINE與您聯繫！");
           infoForm?.reset();
-          setTimeout(resetButtonState, 3000);
+          // 成功后不再重置按钮状态，保持禁用
         } else {
           submitBtn.classList.add('error');
           btnText.textContent = '送出失敗 ❌';
@@ -226,7 +234,7 @@
             errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
           }
           alert(errorMsg);
-          setTimeout(resetButtonState, 3000);
+          setTimeout(resetButtonState, 3000); // 失败后仍可重试
         }
       } catch (error) {
         console.error("處理回應出錯：", error);
@@ -235,11 +243,11 @@
       }
     };
 
-    // 重置按钮状态
+    // 重置按钮状态（仅失败时调用）
     function resetButtonState() {
-      if (!submitBtn || !btnText) return;
+      if (!submitBtn || !btnText || isSubmittedSuccess) return; // 已成功提交则不重置
       submitBtn.disabled = false;
-      submitBtn.classList.remove('loading', 'success', 'error');
+      submitBtn.classList.remove('loading', 'success', 'error', 'permanent-disabled');
       btnText.textContent = '送出';
       isSubmitting = false;
     }
@@ -287,7 +295,7 @@
           name: document.getElementById('name')?.value || '',
           phone: document.getElementById('phone')?.value || '',
           email: document.getElementById('email')?.value || '',
-          extraInfo: document.getElementById('extraInfo')?.value || '' // 新增字段
+          extraInfo: document.getElementById('extraInfo')?.value || ''
         };
 
         // 构建JSONP请求
@@ -336,7 +344,8 @@
       // 表单提交事件
       infoForm?.addEventListener('submit', function(e) {
         e.preventDefault();
-        if (submitBtn?.disabled || isSubmitting) return;
+        // 已成功提交或按钮禁用则直接返回
+        if (submitBtn?.disabled || isSubmitting || isSubmittedSuccess) return;
 
         // 验证字段
         const [planType, name, phone, lineId] = [
