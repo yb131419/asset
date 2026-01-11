@@ -7,9 +7,8 @@
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
       background: #121212;
       font-family: 'Roboto', sans-serif;
       color: #eee;
@@ -33,18 +32,16 @@
       text-align: center;
       letter-spacing: 1.2px;
       color: #9acd32;
-      line-height: 1.4; /* 優化行高 */
+      line-height: 1.4;
     }
-    /* 主標題（保持原樣） */
     h2 .main-title {
       font-size: 1.8rem;
-      display: block; /* 單獨一行 */
+      display: block;
       margin-bottom: 8px;
     }
-    /* 副標題（縮小字體） */
     h2 .sub-title {
-      font-size: 1rem; /* 比主標題小，可根據需求調整為1.1rem */
-      font-weight: 500; /* 輕微降低字重，區分層級 */
+      font-size: 1rem;
+      font-weight: 500;
       letter-spacing: 0.8px;
     }
     form label {
@@ -57,7 +54,8 @@
     input[type="text"],
     input[type="email"],
     input[type="tel"],
-    select {
+    select,
+    textarea {
       width: 100%;
       padding: 10px 14px;
       border-radius: 8px;
@@ -67,11 +65,14 @@
       color: #eee;
       margin-bottom: 20px;
       transition: background-color 0.3s ease;
+      font-family: 'Roboto', sans-serif;
     }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="tel"]:focus,
-    select:focus {
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    input:focus, select:focus, textarea:focus {
       background: #3a3a3a;
       outline: none;
     }
@@ -87,7 +88,6 @@
       background-size: 16px;
       cursor: pointer;
     }
-    /* 按鈕容器 - 用於加載動畫 */
     .btn-container {
       position: relative;
       width: 100%;
@@ -102,35 +102,31 @@
       color: #fff;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.3s ease, opacity 0.3s ease;
+      transition: all 0.3s ease;
       box-shadow: 0 4px 12px rgba(122,199,12,0.5);
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 8px;
     }
-    /* 禁用狀態 */
     button:disabled {
       opacity: 0.7;
       cursor: not-allowed;
       background: linear-gradient(135deg, #669f0b, #3a7d00);
       box-shadow: none;
     }
-    /* 加載動畫 */
     .loader {
       width: 20px;
       height: 20px;
       border: 2px solid #fff;
       border-bottom-color: transparent;
       border-radius: 50%;
-      display: inline-block;
       animation: rotation 1s linear infinite;
       display: none;
     }
     button.loading .loader {
       display: block;
     }
-    /* 成功/失敗反饋動畫 */
     @keyframes rotation {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -152,7 +148,6 @@
 </head>
 <body>
   <main>
-    <!-- 拆分標題為主/副，分別控制字體大小 -->
     <h2>
       <span class="main-title">彥彬📘 方案申請頁面</span>
       <span class="sub-title">『下拉選擇方案』 <br> 送出填寫 <br>『LINE發送通知』</span>
@@ -163,7 +158,6 @@
       <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
-      <!-- 新增方案類型下拉選項 -->
       <label for="planType">方案類型</label>
       <select id="planType" name="planType" required>
         <option value="">請選擇方案類型</option>
@@ -177,7 +171,6 @@
       <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
 
       <label for="phone">電話</label>
-      <!-- 修改1：給電話輸入框添加required屬性，設為必填 -->
       <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入電話" />
 
       <label for="userId">Line ID</label>
@@ -186,7 +179,10 @@
       <label for="email">信箱</label>
       <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子郵件" />
 
-      <!-- 按鈕容器 - 新增加載動畫結構 -->
+      <!-- 新增：其他補充說明字段 -->
+      <label for="extraInfo">其他補充說明</label>
+      <textarea id="extraInfo" name="extraInfo" autocomplete="off" placeholder="請輸入其他需要補充的內容（選填）"></textarea>
+
       <div class="btn-container">
         <button type="submit" id="submitBtn">
           <span class="loader"></span>
@@ -197,68 +193,49 @@
   </main>
 
   <script>
-    // 全域配置
+    // 配置项
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec",
       LIFF_ID: "2007475335-wO37qkoE"
     };
 
-    // 全域變數初始化（避免TypeError: Cannot read properties of null）
-    let submitBtn = null;
-    let btnText = null;
-    let infoForm = null;
-    // 防止重複提交的標誌（雙重保險）
+    // 全局变量
+    let [submitBtn, btnText, infoForm] = [null, null, null];
     let isSubmitting = false;
 
-    // 將回調函數掛載到window（JSONP必須全域可訪問）
+    // JSONP回调
     window.handleResponse = function(response) {
       try {
-        // 重置提交標誌
         isSubmitting = false;
-        
-        // 防禦性檢查：確保按鈕元素存在
         if (!submitBtn || !btnText) return;
-
-        // 移除加載狀態
-        submitBtn.classList.remove('loading');
         
-        // 檢查回應是否有效
-        if (!response) {
-          throw new Error("後端返回空回應");
-        }
+        submitBtn.classList.remove('loading');
+        if (!response) throw new Error("後端返回空回應");
         
         if (response.status === "success") {
-          // 成功反饋
           submitBtn.classList.add('success');
           btnText.textContent = '送出成功 ✅';
           alert("✅ 資料已成功送出！\n會用Line通知！");
-          infoForm?.reset(); // 可選鏈避免null引用錯誤
-          
-          // 3秒後重置按鈕狀態
+          infoForm?.reset();
           setTimeout(resetButtonState, 3000);
         } else {
-          // 失敗反饋（區分後端不同錯誤）
           submitBtn.classList.add('error');
           btnText.textContent = '送出失敗 ❌';
-          
-          // 針對appendRow錯誤給出專屬提示
           let errorMsg = response.message || "未知錯誤";
           if (errorMsg.includes("appendRow") || errorMsg.includes("null")) {
             errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
           }
           alert(errorMsg);
-          
-          // 3秒後重置按鈕狀態
           setTimeout(resetButtonState, 3000);
         }
       } catch (error) {
-        console.error("處理回應時出錯：", error);
+        console.error("處理回應出錯：", error);
         resetButtonState();
         alert(`❌ 處理回應失敗：${error.message}\n請稍後再試或聯繫管理員`);
       }
     };
 
-    // 重置按鈕狀態的函數
+    // 重置按钮状态
     function resetButtonState() {
       if (!submitBtn || !btnText) return;
       submitBtn.disabled = false;
@@ -267,33 +244,22 @@
       isSubmitting = false;
     }
 
-    // 獲取台北時間
+    // 获取台北时间
     function getTaipeiDate() {
       try {
-        const dtf = new Intl.DateTimeFormat('zh-TW', {
-          timeZone: 'Asia/Taipei',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
+        const dtf = new Intl.DateTimeFormat('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'});
         const parts = dtf.formatToParts(new Date());
-        const year = parts.find(p => p.type === 'year')?.value || '';
-        const month = parts.find(p => p.type === 'month')?.value || '';
-        const day = parts.find(p => p.type === 'day')?.value || '';
-        return `${year}-${month}-${day}`;
+        return `${parts.find(p => p.type === 'year')?.value}-${parts.find(p => p.type === 'month')?.value}-${parts.find(p => p.type === 'day')?.value}`;
       } catch (error) {
         console.error("獲取日期出錯：", error);
-        return new Date().toLocaleDateString('zh-TW'); // 備案方案
+        return new Date().toLocaleDateString('zh-TW');
       }
     }
 
     // 初始化LIFF
     async function initLiff() {
       try {
-        // 檢查liff是否加載完成
-        if (typeof liff === 'undefined') {
-          throw new Error("LINE LIFF SDK 加載失敗");
-        }
+        if (typeof liff === 'undefined') throw new Error("LINE LIFF SDK 加載失敗");
         await liff.init({ liffId: CONFIG.LIFF_ID });
         if (!liff.isLoggedIn()) {
           liff.login();
@@ -301,51 +267,39 @@
         }
         const profile = await liff.getProfile();
         const lineIdInput = document.getElementById('lineId');
-        if (lineIdInput) {
-          lineIdInput.value = profile.userId || '';
-        }
+        if (lineIdInput) lineIdInput.value = profile.userId || '';
       } catch (error) {
         console.error("LIFF初始化出錯：", error);
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
       }
     }
 
-    // 發送資料
+    // 发送数据
     function sendData() {
       try {
-        // 防禦性獲取表單元素
-        const pageIdInput = document.getElementById('pageId');
-        const dateInput = document.getElementById('date');
-        const lineIdInput = document.getElementById('lineId');
-        const planTypeInput = document.getElementById('planType');
-        const userIdInput = document.getElementById('userId');
-        const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
-        const emailInput = document.getElementById('email');
-
-        // 構建資料（避免空值引用）
+        // 收集表单数据
         const data = {
-          pageId: pageIdInput?.value || '',
-          date: dateInput?.value || '',
-          lineId: lineIdInput?.value || '',
-          planType: planTypeInput?.value || '',
-          userId: userIdInput?.value || '',
-          name: nameInput?.value || '',
-          phone: phoneInput?.value || '',
-          email: emailInput?.value || ''
+          pageId: document.getElementById('pageId')?.value || '',
+          date: document.getElementById('date')?.value || '',
+          lineId: document.getElementById('lineId')?.value || '',
+          planType: document.getElementById('planType')?.value || '',
+          userId: document.getElementById('userId')?.value || '',
+          name: document.getElementById('name')?.value || '',
+          phone: document.getElementById('phone')?.value || '',
+          email: document.getElementById('email')?.value || '',
+          extraInfo: document.getElementById('extraInfo')?.value || '' // 新增字段
         };
 
+        // 构建JSONP请求
         const params = new URLSearchParams(data);
         params.append('callback', 'handleResponse');
-
-        // 創建JSONP請求
         const script = document.createElement('script');
         script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+        
+        // 错误处理
         script.onerror = function() {
           console.error("JSONP請求失敗");
-          // 重置提交狀態
           isSubmitting = false;
-          // 請求失敗時重置按鈕
           if (submitBtn && btnText) {
             submitBtn.classList.remove('loading');
             submitBtn.classList.add('error');
@@ -355,9 +309,8 @@
           setTimeout(resetButtonState, 3000);
           document.body.removeChild(script);
         };
-        script.onload = function() {
-          document.body.removeChild(script);
-        };
+        
+        script.onload = () => document.body.removeChild(script);
         document.body.appendChild(script);
       } catch (error) {
         console.error("發送資料出錯：", error);
@@ -367,67 +320,46 @@
       }
     }
 
-    // DOM加載完成後初始化
+    // 页面初始化
     document.addEventListener('DOMContentLoaded', function() {
-      // 獲取DOM元素（確保元素已加載）
+      // 获取DOM元素
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn?.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
 
-      // 設置當前日期
-      const dateInput = document.getElementById('date');
-      if (dateInput) {
-        dateInput.value = getTaipeiDate();
-      }
+      // 设置日期
+      document.getElementById('date').value = getTaipeiDate();
 
       // 初始化LIFF
       initLiff();
 
-      // 表單提交事件
-      if (infoForm) {
-        infoForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          // 雙重防呆：避免重複提交
-          if (submitBtn?.disabled || isSubmitting) return;
-          
-          // 檢查LINE ID是否存在
-          const lineIdInput = document.getElementById('lineId');
-          if (!lineIdInput?.value) {
-            alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。");
-            return;
-          }
+      // 表单提交事件
+      infoForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (submitBtn?.disabled || isSubmitting) return;
 
-          // 表單驗證（補充HTML5驗證之外的檢查）
-          const planType = document.getElementById('planType')?.value;
-          const name = document.getElementById('name')?.value;
-          // 修改2：新增電話字段的非空校驗
-          const phone = document.getElementById('phone')?.value;
-          if (!planType) {
-            alert("請選擇方案類型");
-            return;
-          }
-          if (!name) {
-            alert("請輸入姓名");
-            return;
-          }
-          if (!phone) {
-            alert("請輸入電話");
-            return;
-          }
-          
-          // 設置提交中狀態
-          isSubmitting = true;
-          if (submitBtn && btnText) {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('loading');
-            btnText.textContent = '提交中...';
-          }
-          
-          // 發送資料
-          sendData();
-        });
-      }
+        // 验证字段
+        const [planType, name, phone, lineId] = [
+          document.getElementById('planType')?.value,
+          document.getElementById('name')?.value,
+          document.getElementById('phone')?.value,
+          document.getElementById('lineId')?.value
+        ];
+
+        if (!planType) { alert("請選擇方案類型"); return; }
+        if (!name) { alert("請輸入姓名"); return; }
+        if (!phone) { alert("請輸入電話"); return; }
+        if (!lineId) { alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。"); return; }
+
+        // 设置提交状态
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        btnText.textContent = '提交中...';
+
+        // 发送数据
+        sendData();
+      });
     });
   </script>
 </body>
