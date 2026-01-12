@@ -970,41 +970,6 @@ const syncToGAS=(type, data, callback)=>{
       }
     },
     error:(xhr,status,error)=>{
-      console.error(`同步${type==='video'?'影音':'文件'}失敗：`,status,error);
-      showError(`同步${type==='video'?'影音':'文件'}失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
-      callback&&callback(false);
-    }
-  });
-};
-const syncVideoToGAS=(data, callback)=>syncToGAS('video', data, callback);
-const syncFileToGAS=(data, callback)=>syncToGAS('file', data, callback);
-
-// 刪除GAS數據
-const deleteFromGAS=(type, id, callback)=>{
-  const action=`delete${type==='video'?'Video':'File'}`;
-  $.ajax({
-    url:CONFIG.GAS_URL,
-    dataType:'jsonp',
-    jsonp:'callback',
-    timeout:CONFIG.JSONP_TIMEOUT,
-    data:{
-      action,
-      userId:appState.currentUser?.userId||'',
-      displayName:appState.currentUser?.displayName||'',
-      [`${type}Id`]:id
-    },
-    success:(resp)=>{
-      if(resp.status==="success"){
-        const listKey = `${type}List`;
-        appState[listKey] = appState[listKey].filter(item => item.id !== id);
-        storage.set(listKey, appState[listKey]);
-        callback&&callback(true);
-      }else{
-        showError(`刪除${type==='video'?'影音':'文件'}失敗：${resp.message||未知錯誤'}`);
-        callback&&callback(false);
-      }
-    },
-    error:(xhr,status,error)=>{
       console.error(`刪除${type==='video'?'影音':'文件'}失敗：`,status,error);
       showError(`刪除${type==='video'?'影音':'文件'}失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
       callback&&callback(false);
@@ -1846,8 +1811,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
     renderContentList('viewer');
   }
 });
-
-  
 </script>
 </body>
 </html>
