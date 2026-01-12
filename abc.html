@@ -690,16 +690,13 @@ const calculateRemainingDaysByDate=(expiryDateStr)=>{
     const timeDiff = expiryDate - todayStartTaipei;
     const remainingDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
     
-    // 格式化顯示日期
-    const formattedDate = new Date(expiryDate.getTime() - taipeiOffset).toLocaleString('zh-TW', {
-      timeZone: 'Asia/Taipei',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).replace(' 00:00:00', '');
+// 格式化顯示日期（僅顯示年月日）
+const formattedDate = new Date(expiryDate.getTime() - taipeiOffset).toLocaleString('zh-TW', {
+  timeZone: 'Asia/Taipei',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+});
     
     // 剩餘天數文本
     let remainingDaysText;
@@ -1811,7 +1808,6 @@ document.addEventListener('DOMContentLoaded',async()=>{
     renderContentList('viewer');
   }
 });
-
 </script>
 </body>
 </html>
