@@ -466,10 +466,18 @@ const showError=(msg)=>{
   const errorEl=DOM('error-message'), contentEl=DOM('error-content');
   if(errorEl&&contentEl){
     contentEl.innerHTML=`<p class="font-medium text-lg">${msg}</p>
-<div class="mt-2 flex justify-center">
+<div class="mt-2 flex justify-center gap-4"> <!-- 修改為gap-4增加按鈕間距 -->
+  <!-- 新增重新嘗試按鈕 -->
+  <button 
+    onclick="window.location.reload()"  <!-- 默認刷新頁面實現重新嘗試，你可以替換為具體的重試邏輯 -->
+    class="text-primary hover:text-[#007A69] font-medium text-base px-6 py-3 rounded-lg bg-white border border-primary/20 hover:bg-primary/5 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+  >
+    <i class="fa fa-refresh"></i> 重新嘗試
+  </button>
+  <!-- 原有聯繫管理員按鈕 -->
   <button 
     onclick="window.location.href = 'https://lihi.cc/DLihS'" 
-    class="text-primary hover:text-[#007A69] font-medium text-base px-6 py-3 rounded-lg bg-white border border-primary/20 hover:bg-primary/5 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+    class="text-primary hover:text-[#007A69] font-medium text-base px-6 py-3 rounded-lg bg-white border border-primary/20 hover:shadow-md flex items-center gap-2 shadow-sm hover:bg-primary/5 transition-all duration-300"
   >
     <i class="fa fa-user-circle"></i> 聯繫管理員
   </button>
