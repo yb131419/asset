@@ -1,526 +1,1507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<title>🎬 幸福系統_原理故事 </title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{
+  primary:'#008C76',secondary:'#E8F9F7',accent:'#FFD700',gold:'#D4AF37',
+  darkGold:'#B8860B',dark:'#1A202C',lightBg:'#F9FAFB',neutral:'#F3F4F6',
+  cardBg:'#FFFFFF',textPrimary:'#1E293B',textSecondary:'#64748B',
+  premiumBg:'#FFF8E6',premiumBorder:'#FFE082'
+},fontFamily:{
+  sans:['Noto Sans TC','sans-serif','system-ui'],
+  display:['Noto Sans TC','sans-serif','system-ui']
+},boxShadow:{
+  'elevation-1':'0 2px 8px rgba(0,0,0,0.06)',
+  'elevation-2':'0 4px 16px rgba(0,0,0,0.08)',
+  'elevation-3':'0 8px 24px rgba(0,0,0,0.12)',
+  'gold-hover':'0 4px 15px rgba(212, 175, 55, 0.25)',
+  'primary-hover':'0 4px 15px rgba(0, 140, 118, 0.25)'
+}}}};
+</script>
+<style type="text/tailwindcss">
+@layer utilities{
+  .fade-in{animation:fadeIn 0.6s cubic-bezier(0.4,0,0.2,1);}
+  .pulse-subtle{animation:pulseSubtle 2s infinite;}
+  .gradient-text{background-clip:text;-webkit-background-clip:text;color:transparent;}
+  .slide-in{animation:slideIn 0.4s cubic-bezier(0.4,0,0.2,1);}
+  .scale-in{animation:scaleIn 0.3s cubic-bezier(0.4,0,0.2,1);}
+  .slide-up{animation:slideUp 0.3s ease-out;}
+  .content-transition{transition:all 0.3s ease-in-out;}
+  .gold-gradient{background:linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);}
+  .primary-gradient{background:linear-gradient(135deg, #008C76 0%, #00A88D 100%);}
+  .text-gold-gradient{background:linear-gradient(135deg, #B8860B 0%, #FFD700 100%);-webkit-background-clip:text;background-clip:text;color:transparent;}
+}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes pulseSubtle{0%,100%{opacity:1;}50%{opacity:0.8;}}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes scaleIn{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes slideUp{from{transform:translateY(10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:#F1F5F9;border-radius:3px;}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#94A3B8;}
+body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA;}
+/* 替換原有的 .video-container 和 .audio-container 樣式 */
+.video-container,.audio-container{position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;background-color:#0F172A;box-shadow:0 4px 20px rgba(0,0,0,0.15);}
+.video-container{min-height:320px;}
+.audio-container{padding-bottom:280px;min-height:280px;}
+@media (max-width: 640px) {
+  .audio-container {padding-bottom: 260px;min-height: 260px;}
+  .video-container {min-height: 280px;}
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .audio-container {padding-bottom: 270px;min-height: 270px;}
+  .video-container {min-height: 300px;}
+}
+@media (min-width: 1025px) {
+  .audio-container {padding-bottom: 300px;min-height: 300px;}
+  .video-container {min-height: 350px;}
+}
+.video-item{transition:all 0.3s ease;cursor:grab;border-radius:10px;}
+.video-item:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+.video-item.dragging{opacity:0.5;border:2px dashed #008C76;cursor:grabbing;}
+.video-item.pro-user{cursor:pointer;}
+.video-item.pro-user:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+.drop-zone{border:2px dashed #008C76 !important;background-color:#E8F9F7 !important;}
+.thumbnail-container{width:80px;height:50px;border-radius:6px;overflow:hidden;background:#f1f1f1;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.thumbnail-img{width:100%;height:100%;object-fit:cover;}
+.viewer-card{transition:all 0.4s ease;border-radius:12px;overflow:hidden;}
+.viewer-card:hover{transform:translateY(-5px);box-shadow:0 12px 25px rgba(0,0,0,0.12);}
+.watch-btn{padding:8px 16px !important;font-size:14px !important;font-weight:600 !important;border-radius:8px !important;transition:all 0.3s ease !important;}
+.watch-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0, 140, 118, 0.2) !important;}
+.mobile-btn{min-height:48px !important;padding:12px 20px !important;font-size:16px !important;border-radius:12px !important;font-weight:600 !important;transition:all 0.3s ease !important;position:relative;overflow:hidden;}
+.mobile-btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);transition:all 0.6s ease;}
+.mobile-btn:hover::after{left:100%;}
+.mobile-btn-sm{min-height:40px !important;padding:8px 16px !important;font-size:15px !important;border-radius:10px !important;font-weight:600 !important;transition:all 0.3s ease !important;}
+.video-container iframe, .audio-container iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.3s ease;border-radius:12px;}
+.video-container iframe.loaded, .audio-container iframe.loaded{opacity:1;}
+.btn-disabled{opacity:0.7;cursor:not-allowed;pointer-events:none;}
+.dropdown-menu {
+  @apply absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-elevation-2 border border-gray-100 z-50 content-transition rounded-xl overflow-hidden;
+}
+.dropdown-item {
+  @apply block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary cursor-pointer transition-colors font-medium;
+}
+.dropdown-item:hover {
+  background:linear-gradient(135deg, #008C76 0%, #00A88D 100%);
+  color:white !important;
+}
+.premium-badge{
+  background:linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  color:white;
+  font-weight:bold;
+  padding:2px 8px;
+  border-radius:20px;
+  font-size:11px;
+  box-shadow:0 2px 8px rgba(212, 175, 55, 0.3);
+}
+.content-selector {
+  @apply w-full bg-white border border-gray-200 rounded-xl p-3 text-textPrimary font-medium mb-4 shadow-elevation-1;
+}
+.content-selector select {
+  @apply w-full border-none outline-none bg-transparent text-textPrimary font-medium;
+}
+.content-display-card {
+  @apply bg-cardBg rounded-xl overflow-hidden shadow-elevation-1 slide-up mb-4;
+}
+</style>
+</head>
+<body class="bg-lightBg min-h-screen flex flex-col p-2 md:p-4 pt-6 pb-6">
+<div class="max-w-5xl w-full bg-cardBg rounded-2xl shadow-elevation-2 overflow-hidden fade-in self-center border border-gray-100">
+  <div class="bg-gradient-to-r from-primary to-[#006658] p-4 md:p-6 text-white text-center relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-24 h-24 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/3"></div>
+    <div class="absolute bottom-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
+    <div class="relative z-10">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full mb-3 pulse-subtle border border-white/20">
+        <i class="fa fa-film text-2xl text-accent"></i>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold mb-1 tracking-wide"> 🎬 幸福系統_原理故事 </h1>
+      <p class="text-white/90 text-sm md:text-base font-light">彥彬_幸福系統 <span class="text-accent font-medium">尊爵用戶專屬</span></p>
+    </div>
+  </div>
+  <div class="p-3 md:p-5">
+    <div id="status" class="flex items-center justify-center py-8 text-textPrimary text-center">
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary mb-3"></div>
+        <p id="status-text" class="text-base font-medium">正在初始化系統，請稍候...</p>
+      </div>
+    </div>
+    <div id="error-message" class="hidden bg-red-50 border border-red-100 text-red-700 px-4 py-4 rounded-xl mb-4 shadow-sm fade-in">
+      <div class="flex items-start">
+        <i class="fa fa-exclamation-circle text-red-500 mt-1 mr-2 text-lg"></i>
+        <div id="error-content" class="text-sm"></div>
+      </div>
+    </div>
+    <div id="success-message" class="hidden bg-green-50 border border-green-100 text-green-700 px-4 py-4 rounded-xl mb-4 shadow-sm fade-in">
+      <div class="flex items-start">
+        <i class="fa fa-check-circle text-green-500 mt-1 mr-2 text-lg"></i>
+        <div id="success-content" class="text-sm"></div>
+      </div>
+    </div>
+    <div id="result-card" class="hidden bg-gradient-to-r from-premiumBg to-[#FFFAF0] border border-premiumBorder rounded-2xl p-5 mb-5 text-center fade-in relative overflow-hidden shadow-elevation-1">
+      <div class="absolute top-0 right-0 w-20 h-20 bg-gold/5 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-16 h-16 bg-primary/5 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+      <div class="relative z-10">
+        <div class="inline-block mb-3">
+          <div class="gold-gradient w-16 h-16 rounded-full flex items-center justify-center shadow-gold-hover">
+            <i class="fa fa-crown text-white text-2xl"></i>
+          </div>
+        </div>
+        <div id="result-main" class="text-xl md:text-2xl font-bold mb-3 text-textPrimary text-gold-gradient"></div>
+        <div id="result-details" class="text-sm text-textSecondary space-y-2 md:space-y-2">
+          <div class="flex items-center justify-center">
+            <span class="premium-badge mr-2">尊爵用戶</span>
+            <span id="user-role-display" class="font-medium"></span>
+          </div>
+          <div id="user-name-display" class="hidden">
+            <i class="fa fa-user text-primary mr-1"></i> <span class="font-medium">使用者：</span> <span id="user-name"></span>
+          </div>
+          <div id="user-expiry-display" class="hidden">
+            <i class="fa fa-calendar text-primary mr-1"></i> <span class="font-medium">使用期限：</span> <span id="expiry-date"></span> (<span id="remaining-days"></span>)
+          </div>
+        </div>
+        <div id="content-count-display" class="mt-4 text-base font-semibold text-primary bg-white/50 rounded-lg py-2 px-4 inline-block">
+          <i class="fa fa-play-circle mr-1"></i> 影音數：<span id="video-count-num">0</span> | 
+          <i class="fa fa-file mr-1"></i> 文件數：<span id="file-count-num">0</span>
+        </div>
+        <div class="w-24 h-1 bg-gradient-to-r from-gold to-primary mx-auto my-4 rounded-full"></div>
+      </div>
+    </div>
+    
+    <div class="relative mb-5">
+      <button id="content-type-toggle" class="mobile-btn w-full primary-gradient text-white text-sm font-medium px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-between border-none">
+        <span id="current-content-type" class="font-semibold">影音列表</span>
+        <i class="fa fa-chevron-down text-sm"></i>
+      </button>
+      <div id="content-type-dropdown" class="dropdown-menu hidden">
+        <div class="dropdown-item" onclick="switchContentType('video')">
+          <i class="fa fa-play-circle mr-2"></i>影音列表
+        </div>
+        <div class="dropdown-item" onclick="switchContentType('file')">
+          <i class="fa fa-file mr-2"></i>文件列表
+        </div>
+      </div>
+    </div>
+    
+    <div id="content-viewer-section" class="hidden bg-neutral rounded-2xl p-3 md:p-5 mb-5 slide-in border border-gray-100 shadow-elevation-1">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="viewer-section-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
+          <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影音列表
+        </h2>
+        <div id="manage-content-btn-container" class="flex gap-2 hidden">
+          <button onclick="toggleManageSection()" class="mobile-btn-sm primary-gradient text-white text-sm font-medium px-4 py-2 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center gap-1">
+            <i class="fa fa-cog text-sm"></i> 內容管理
+          </button>
+        </div>
+      </div>
+      
+      <div class="content-selector" id="content-select-container">
+        <select id="content-select" class="w-full" onchange="selectContent(this.value)">
+          <option value="">請選擇要查看的內容...</option>
+        </select>
+      </div>
+      
+      <div id="selected-content-display" class="hidden">
+        <div class="content-display-card" id="viewer-content-card"></div>
+      </div>
+      
+      <div id="viewer-empty-list" class="py-10 text-center text-textSecondary hidden">
+        <div class="inline-block gold-gradient w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-gold-hover">
+          <i class="fa fa-film text-white text-2xl"></i>
+        </div>
+        <p id="viewer-empty-text" class="text-lg font-medium">暫無可查看的影音</p>
+        <p class="text-xs mt-2 text-textSecondary/70">請聯繫管理員添加內容</p>
+      </div>
+    </div>
+    
+    <div id="content-manage-section" class="bg-neutral rounded-2xl p-3 md:p-5 mb-5 slide-in border border-gray-100 shadow-elevation-1 hidden">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <h2 id="manage-section-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
+          <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表
+        </h2>
+        <div id="manage-action-buttons" class="flex gap-2 w-full md:w-auto">
+          <button id="add-content-btn" onclick="addNewContent()" class="mobile-btn primary-gradient text-white text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fa fa-plus text-lg"></i> 新增影音
+          </button>
+          <button onclick="toggleManageSection()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1">
+            <i class="fa fa-arrow-left text-lg"></i> 返回
+          </button>
+        </div>
+      </div>
+      <div id="video-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2"></div>
+      <div id="file-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2 hidden"></div>
+      <div id="empty-manage-list" class="py-8 text-center text-textSecondary hidden">
+        <div class="inline-block gold-gradient w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-gold-hover">
+          <i class="fa fa-film text-white text-xl"></i>
+        </div>
+        <p id="empty-manage-text" class="text-base font-medium">尚未添加任何影音</p>
+        <p id="empty-manage-tip" class="text-xs mt-2">點擊「新增影音」按鈕開始添加</p>
+      </div>
+    </div>
+    
+    <div id="video-edit-section" class="hidden bg-neutral rounded-2xl p-3 md:p-5 mb-5 slide-in border border-gray-100 shadow-elevation-1">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="video-edit-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
+          <i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增影音
+        </h2>
+        <button onclick="hideVideoEditSection()" class="text-textSecondary hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5 shadow-sm">
+          <i class="fa fa-times-circle text-lg"></i>
+        </button>
+      </div>
+      <form id="video-form" onsubmit="saveVideo(event)">
+        <input type="hidden" id="video-id" value="">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-tag text-primary mr-2 text-xs"></i> 影音名稱 <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="video-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm shadow-sm" placeholder="請輸入影音名稱" required>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-link text-primary mr-2 text-xs"></i> 視頻/播客鏈接 <span class="text-red-500">*</span>
+            </label>
+            <input type="url" id="video-url" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm shadow-sm" placeholder="請輸入YouTube、騰訊視頻、Spotify、Podcast有效網址" required>
+            <p class="text-xs text-textSecondary mt-1 bg-white/80 p-2 rounded-lg">
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援YouTube、騰訊視頻、Spotify、Apple Podcast、各大播客平台鏈接
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-sticky-note text-primary mr-2 text-xs"></i> 備注資訊 (選填)
+            </label>
+            <textarea id="video-note" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none text-sm shadow-sm" rows="2" placeholder="請輸入備注資訊"></textarea>
+          </div>
+          <div class="pt-2 flex gap-3">
+            <button type="button" onclick="hideVideoEditSection()" class="mobile-btn-sm w-1/3 bg-gray-100 hover:bg-gray-200 text-textPrimary font-medium px-3 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+              <i class="fa fa-times text-sm"></i> 取消
+            </button>
+            <button type="submit" id="video-save-btn" class="mobile-btn-sm w-2/3 primary-gradient text-white font-medium px-3 py-2 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+              <i class="fa fa-save text-sm"></i> 
+              <span id="video-save-btn-text">儲存影音</span>
+              <div id="video-save-loading" class="hidden inline-block animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white"></div>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div id="file-edit-section" class="hidden bg-neutral rounded-2xl p-3 md:p-5 mb-5 slide-in border border-gray-100 shadow-elevation-1">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="file-edit-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
+          <i class="fa fa-edit text-primary mr-2 text-sm"></i> 新增文件
+        </h2>
+        <button onclick="hideFileEditSection()" class="text-textSecondary hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5 shadow-sm">
+          <i class="fa fa-times-circle text-lg"></i>
+        </button>
+      </div>
+      <form id="file-form" onsubmit="saveFile(event)">
+        <input type="hidden" id="file-id-hidden" value="">
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-tag text-primary mr-2 text-xs"></i> 文件名稱 <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="file-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm shadow-sm" placeholder="請輸入文件名稱" required>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-link text-primary mr-2 text-xs"></i> 文件鏈接 <span class="text-red-500">*</span>
+            </label>
+            <input type="url" id="file-url" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all text-sm shadow-sm" placeholder="請輸入文件有效網址" required>
+            <p class="text-xs text-textSecondary mt-1 bg-white/80 p-2 rounded-lg">
+              <i class="fa fa-lightbulb-o text-accent mr-1"></i> 支援PDF、Word、Excel等各類文件鏈接
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-textPrimary font-medium text-xs md:text-sm">
+              <i class="fa fa-sticky-note text-primary mr-2 text-xs"></i> 備注資訊 (選填)
+            </label>
+            <textarea id="file-note" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none text-sm shadow-sm" rows="2" placeholder="請輸入備注資訊"></textarea>
+          </div>
+          <div class="pt-2 flex gap-3">
+            <button type="button" onclick="hideFileEditSection()" class="mobile-btn-sm w-1/3 bg-gray-100 hover:bg-gray-200 text-textPrimary font-medium px-3 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+              <i class="fa fa-times text-sm"></i> 取消
+            </button>
+            <button type="submit" id="file-save-btn" class="mobile-btn-sm w-2/3 primary-gradient text-white font-medium px-3 py-2 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-center gap-1 text-sm">
+              <i class="fa fa-save text-sm"></i> 
+              <span id="file-save-btn-text">儲存文件</span>
+              <div id="file-save-loading" class="hidden inline-block animate-spin rounded-full h-3 w-3 border-t-2 border-b-2 border-white"></div>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div id="content-preview" class="hidden bg-cardBg rounded-2xl p-3 md:p-5 mb-5 scale-in border border-primary/20 shadow-elevation-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base md:text-xl font-bold text-textPrimary flex items-center">
+          <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 內容預覽
+        </h2>
+        <div id="preview-action-btns" class="flex gap-2 hidden">
+          <button id="preview-edit-btn" onclick="editCurrentContent()" class="mobile-btn-sm gold-gradient text-white text-sm font-medium flex items-center gap-1 px-3 py-2 rounded-xl shadow-gold-hover">
+            <i class="fa fa-pencil text-sm"></i> 編輯
+          </button>
+          <button id="preview-delete-btn" onclick="event.stopPropagation();deleteCurrentContent()" class="mobile-btn-sm bg-red-500 hover:bg-red-600 text-white text-sm font-medium flex items-center gap-1 px-3 py-2 rounded-xl shadow-md">
+            <i class="fa fa-trash text-sm"></i> 刪除
+          </button>
+          <button onclick="hideContentPreview()" class="text-textSecondary hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5 shadow-sm">
+            <i class="fa fa-times-circle text-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div id="preview-content" class="space-y-4">
+        <h3 id="preview-title" class="text-sm md:text-base font-semibold text-textPrimary text-center mb-3 text-gold-gradient"></h3>
+        <div id="preview-container" class="mb-4">
+          <div id="video-container" class="video-container mb-4 flex items-center justify-center hidden">
+            <div id="video-loading" class="absolute text-white/80">
+              <div class="gold-gradient w-12 h-12 rounded-full flex items-center justify-center animate-spin">
+                <i class="fa fa-spinner text-white text-xl"></i>
+              </div>
+              <p class="text-sm mt-2">載入影片中...</p>
+            </div>
+            <iframe id="preview-video" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" onload="this.classList.add('loaded'); document.getElementById('video-loading').classList.add('hidden');"></iframe>
+          </div>
+          <div id="audio-container" class="audio-container mb-4 flex items-center justify-center hidden">
+            <div id="audio-loading" class="absolute text-white/80">
+              <div class="gold-gradient w-12 h-12 rounded-full flex items-center justify-center animate-spin">
+                <i class="fa fa-spinner text-white text-xl"></i>
+              </div>
+              <p class="text-sm mt-2">載入播客中...</p>
+            </div>
+            <iframe id="preview-audio" src="" allow="encrypted-media; autoplay" onload="this.classList.add('loaded'); document.getElementById('audio-loading').classList.add('hidden');"></iframe>
+          </div>
+          <div id="unsupported-tip" class="py-10 text-center text-textSecondary hidden">
+            <div class="inline-block bg-orange-500/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+              <i class="fa fa-exclamation-triangle text-3xl mb-3 text-orange-500"></i>
+            </div>
+            <p class="text-lg font-medium">不支援的內容類型</p>
+            <p class="text-xs mt-2 text-textSecondary/70">僅支援YouTube、騰訊視頻、Spotify、Apple Podcast預覽</p>
+            <a id="direct-link-btn" href="" target="_blank" class="mt-4 inline-block primary-gradient text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-primary-hover">
+              <i class="fa fa-external-link mr-1"></i> 直接打開鏈接
+            </a>
+          </div>
+          <div id="file-preview-tip" class="py-10 text-center text-textSecondary hidden">
+            <div class="inline-block bg-blue-500/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+              <i class="fa fa-file text-3xl mb-3 text-blue-500"></i>
+            </div>
+            <p class="text-lg font-medium" id="file-preview-name"></p>
+            <p class="text-xs mt-2 text-textSecondary/70">點擊下方按鈕查看內容</p>
+            <a id="file-preview-btn" href="" target="_blank" class="mt-4 inline-block primary-gradient text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-primary-hover">
+              <i class="fa fa-external-link mr-1"></i> 查看內容
+            </a>
+          </div>
+        </div>
+        <div class="bg-neutral rounded-xl p-4 text-xs md:text-sm text-textSecondary shadow-sm">
+          <div class="grid grid-cols-1 gap-3 mb-3">
+            <div>
+              <span class="font-semibold text-textPrimary text-xs md:text-sm"><i class="fa fa-clock-o text-primary mr-1.5 text-xs"></i> 最後更新：</span>
+              <p id="preview-updated" class="mt-1 text-xs md:text-sm bg-white/80 p-2 rounded-lg"></p>
+            </div>
+            <div>
+              <span class="font-semibold text-textPrimary text-xs md:text-sm"><i class="fa fa-sticky-note text-primary mr-1.5 text-xs"></i> 備注：</span>
+              <p id="preview-note" class="mt-1 text-xs md:text-sm bg-white/80 p-2 rounded-lg">- 無備注 -</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-center mt-3">
+          <button onclick="hideContentPreview()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-6 py-3 rounded-xl flex items-center justify-center gap-1 shadow-sm">
+            <i class="fa fa-arrow-left text-sm"></i> 返回列表
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
 const CONFIG={
-  ADMIN_SPREADSHEET_ID:"15p3ghuE3rucx_9kBNhLw4u8cJ6HNRkpt_tYRvPmU3XU",
-  LOG_SPREADSHEET_ID:"15p3ghuE3rucx_9kBNhLw4u8cJ6HNRkpt_tYRvPmU3XU",
-  USER_CHECK_SPREADSHEET_ID:"1MxnhJlr7Q5zdmMxjeoKZ5r7s8DZATRewbneiG3eDRgM",
-  TIME_ZONE:"Asia/Taipei",
+  LIFF_ID:"2008578880-cOBTYud0",
+  GAS_URL:"https://script.google.com/macros/s/AKfycbyZMHC4c3QRgBnjFX3-4S1wI8-9x1519SQwwwxom8oDRupOpysz0SOlU4jO40frncXoIg/exec",
+  JSONP_TIMEOUT:10000,
   PERMANENT_EXPIRY_DATE:"9999/12/31",
-  VIDEO_SHEET_NAME:"視頻數據記錄",
-  FILE_SHEET_NAME:"文件數據記錄",
-  ADMIN_SHEET_NAME:"管理用戶",
-  PRO_SHEET_NAME:"專業用戶",
-  PREVIEW_CONFIG:{
-    YOUTUBE:{embedPrefix:"https://www.youtube.com/embed/",width:560,height:315},
-    TENCENT_MEETING:{previewText:"騰訊會議鏈接",icon:"📹"},
-    GENERAL:{previewText:"外部鏈接",icon:"🔗"},
-    FILE:{previewText:"點擊下載/查看",icon:"📄"}
+  STORAGE_KEY_PREFIX:"yanbin_video_manager_",
+  currentContentType: 'video'
+};
+
+let appState={
+  currentUser:null,videoList:[],fileList:[],currentViewingId:null,
+  currentViewingType:null,currentEditingVideoId:null,currentEditingFileId:null,
+  isSubmitting:false,draggingItem:null,userRole:'',
+  userExpiryInfo:{remainingDays:0,expiryDate:''},
+  userNickname:'',
+  selectedContentId:''
+};
+
+// 工具函數
+const DOM=(id)=>document.getElementById(id);
+const convertUTCToTaiwanTime=(utcStr)=>{
+  const options={timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'};
+  return utcStr ? new Date(utcStr).toLocaleString('zh-TW',options) : new Date().toLocaleString('zh-TW',options);
+};
+const setStatus=(text)=>{const el=DOM('status-text');if(el)el.textContent=text;};
+const resetSubmitState=()=>{setVideoSubmitState(false);setFileSubmitState(false);};
+
+// 提示訊息處理
+const showError=(msg)=>{
+  const hideEls=[DOM('status'),DOM('result-card'),DOM('content-viewer-section'),
+    DOM('content-manage-section'),DOM('video-edit-section'),DOM('file-edit-section'),
+    DOM('content-preview'),DOM('success-message')];
+  hideEls.forEach(el=>el&&el.classList.add('hidden'));
+  const errorEl=DOM('error-message'), contentEl=DOM('error-content');
+  if(errorEl&&contentEl){
+    contentEl.innerHTML=`<p class="font-medium text-lg">${msg}</p>
+<div class="mt-2 flex justify-center gap-3">
+  <button 
+    onclick="window.location.href = 'https://lihi.cc/DLihS'" 
+    class="text-primary hover:text-[#007A69] font-medium text-base px-6 py-3 rounded-lg bg-white border border-primary/20 hover:bg-primary/5 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+  >
+    <i class="fa fa-user-circle"></i> 聯繫<br>彥彬
+  </button>
+  <button 
+    onclick="window.location.reload()" 
+    class="text-primary hover:text-[#007A69] font-medium text-base px-6 py-3 rounded-lg bg-white border border-primary/20 hover:bg-primary/5 transition-all duration-300 flex items-center gap-2 shadow-sm hover:shadow-md"
+  >
+    <i class="fa fa-refresh"></i> 重新<br>加載
+  </button>
+</div>`;
+    errorEl.classList.remove('hidden');
+  }
+  resetSubmitState();
+};
+
+const showSuccess=(msg)=>{
+  const errorEl=DOM('error-message');
+  if(errorEl)errorEl.classList.add('hidden');
+  const successEl=DOM('success-message'), contentEl=DOM('success-content');
+  if(successEl&&contentEl){
+    contentEl.innerHTML=`<p class="font-medium">${msg}</p>`;
+    successEl.classList.remove('hidden');
+    setTimeout(()=>successEl&&successEl.classList.add('hidden'),4000);
   }
 };
 
-// 修正：放宽无效名称判断逻辑，仅过滤空值和纯空白
-function sanitizeDisplayName(rawName,userId){
-  let n=(rawName||"").toString().trim().replace(/[\n\r\t]/g," ").replace(/\s+/g," ");
-  // 仅判断是否为空字符串，不再限制特定名称
-  if(n)return n.length>50?n.substring(0,50)+"…":n;
-  const s=userId?userId.slice(-6):"未知ID";
-  return `LINE用戶(${s})`;
-}
-
-function getVideoType(url){
-  if(!url)return"general";
-  const u=url.toLowerCase().trim();
-  return u.includes("youtube.com")||u.includes("youtu.be")?"youtube":
-         u.includes("meeting.tencent.com")||u.includes("tencent.com")?"tencent_meeting":"general";
-}
-
-function getFileType(url){
-  if(!url)return"unknown";
-  const u=url.toLowerCase().trim();
-  if(u.endsWith(".pdf"))return"pdf";
-  if(u.endsWith(".doc")||u.endsWith(".docx"))return"word";
-  if(u.endsWith(".xls")||u.endsWith(".xlsx"))return"excel";
-  if(u.endsWith(".ppt")||u.endsWith(".pptx"))return"ppt";
-  return"other";
-}
-
-function generateVideoPreviewHtml(url,type){
-  if(!url)return"";
-  if(type==="youtube"){
-    let id="";
-    if(url.includes("youtu.be/"))id=url.split("youtu.be/")[1].split("?")[0];
-    else if(url.includes("v="))id=url.split("v=")[1].split("&")[0];
-    return id?`<iframe width="${CONFIG.PREVIEW_CONFIG.YOUTUBE.width}" height="${CONFIG.PREVIEW_CONFIG.YOUTUBE.height}" src="${CONFIG.PREVIEW_CONFIG.YOUTUBE.embedPrefix}${id}" frameborder="0" allowfullscreen></iframe>`:`<a href="${url}" target="_blank">YouTube影片 (點擊打開)</a>`;
+// 提交狀態管理
+const setSubmitState=(type,isSubmitting)=>{
+  appState.isSubmitting=isSubmitting;
+  let saveBtn, saveBtnText, saveLoading, btnText;
+  if(type==='video'){
+    saveBtn=DOM('video-save-btn');
+    saveBtnText=DOM('video-save-btn-text');
+    saveLoading=DOM('video-save-loading');
+    btnText=appState.currentEditingVideoId?"更新影音":"儲存影音";
+  }else{
+    saveBtn=DOM('file-save-btn');
+    saveBtnText=DOM('file-save-btn-text');
+    saveLoading=DOM('file-save-loading');
+    btnText=appState.currentEditingFileId?"更新文件":"儲存文件";
   }
-  return type==="tencent_meeting"?
-    `<a href="${url}" target="_blank">${CONFIG.PREVIEW_CONFIG.TENCENT_MEETING.icon} ${CONFIG.PREVIEW_CONFIG.TENCENT_MEETING.previewText} (點擊打開)</a>`:
-    `<a href="${url}" target="_blank">${CONFIG.PREVIEW_CONFIG.GENERAL.icon} ${CONFIG.PREVIEW_CONFIG.GENERAL.previewText} (點擊打開)</a>`;
-}
-
-function generateFilePreviewHtml(url,type){
-  if(!url)return"";
-  const c=CONFIG.PREVIEW_CONFIG.FILE;
-  let t="";
-  switch(type){
-    case"pdf":t="PDF文件";break;
-    case"word":t="Word文件";break;
-    case"excel":t="Excel文件";break;
-    case"ppt":t="PPT文件";break;
-    default:t="其他文件";break;
+  if(isSubmitting){
+    saveBtn&&saveBtn.classList.add('btn-disabled');
+    saveBtnText&&(saveBtnText.textContent="儲存中...");
+    saveLoading&&saveLoading.classList.remove('hidden');
+  }else{
+    saveBtn&&saveBtn.classList.remove('btn-disabled');
+    saveBtnText&&(saveBtnText.textContent=btnText);
+    saveLoading&&saveLoading.classList.add('hidden');
   }
-  return`<a href="${url}" target="_blank">${c.icon} ${t} ${c.previewText}</a>`;
-}
+};
+const setVideoSubmitState=(isSubmitting)=>setSubmitState('video',isSubmitting);
+const setFileSubmitState=(isSubmitting)=>setSubmitState('file',isSubmitting);
 
-function doGet(e){
-  try{
-    const cb=e.parameter.callback;
-    if(!cb||cb.trim()==="")throw new Error("缺少 callback 參數");
-    const a=e.parameter.action||"";
-    switch(a){
-      case"verifyUser":return handleVerifyUser(e,cb);
-      case"getVideoList":return handleGetVideoList(e,cb);
-      case"saveVideo":return handleSaveVideo(e,cb);
-      case"deleteVideo":return handleDeleteVideo(e,cb);
-      case"updateVideoOrder":return handleUpdateVideoOrder(e,cb);
-      case"getFileList":return handleGetFileList(e,cb);
-      case"saveFile":return handleSaveFile(e,cb);
-      case"deleteFile":return handleDeleteFile(e,cb);
-      case"updateFileOrder":return handleUpdateFileOrder(e,cb);
-      case"submitChecklist":return handleSubmitChecklist(e,cb);
-      default:throw new Error("未知的 action 參數："+a);
+// URL處理工具
+const urlCheckers = {
+  isYoutube: (url) => url && (url.toLowerCase().includes('youtube.com') || url.toLowerCase().includes('youtu.be') || url.toLowerCase().includes('youtube-nocookie.com')),
+  isTencent: (url) => url && url.toLowerCase().includes('v.qq.com'),
+  isSpotify: (url) => url && (url.toLowerCase().includes('spotify.com') || url.toLowerCase().includes('open.spotify.com')),
+  isApplePodcast: (url) => url && (url.toLowerCase().includes('podcasts.apple.com') || url.toLowerCase().includes('itunes.apple.com/podcast')),
+  isPodcast: (url) => url && ['podcast','pca.st','soundcloud.com','anchor.fm','mixcloud.com','castbox.fm','player.fm','listennotes.com'].some(d => url.toLowerCase().includes(d)),
+  isValidUrl: (url) => {try{new URL(url);return true;}catch(e){return false;}}
+};
+
+// 轉換嵌入URL
+const convertToEmbedUrl=(url)=>{
+  if(!url) return {type: 'unsupported', url: ''};
+  
+  if(urlCheckers.isYoutube(url)){
+    const match=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/|playlist\?list=)|youtube-nocookie\.com\/embed\/)([\w-]+)/);
+    if(match&&match[1]){
+      const isShort=url.includes('shorts/');
+      return {type: 'video',url: `https://www.youtube.com/embed/${match[1]}?autoplay=0&rel=0${isShort?'&enablejsapi=1':''}`};
     }
-  }catch(err){
-    const res={
-      status:"error",message:err.message||"未知錯誤",redirectUrl:null,redirect:false,
-      remainingDays:undefined,expiryDate:undefined,displayName:undefined,
-      isAdmin:false,isPro:false,isAuthorized:false
-    };
-    return ContentService.createTextOutput((e.parameter.callback||"callback")+"("+JSON.stringify(res)+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
+    const vidMatch = url.match(/[?&]v=([^&]+)/);
+    if(vidMatch&&vidMatch[1]) return {type: 'video',url: `https://www.youtube.com/embed/${vidMatch[1]}?autoplay=0&rel=0`};
   }
-}
+  
+  else if(urlCheckers.isTencent(url)){
+    const regs=[/v\.qq\.com\/x\/page\/([a-zA-Z0-9_]+)\.html/,/v\.qq\.com\/x\/cover\/([a-zA-Z0-9_]+)\/([a-zA-Z0-9_]+)\.html/,
+      /v\.qq\.com\/detail\/\w+\/([a-zA-Z0-9_]+)\.html/,/vid=([a-zA-Z0-9_]+)/];
+    let vid='';
+    for(let reg of regs){const match=url.match(reg);if(match){vid=match[2]||match[1]||'';break;}}
+    if(vid)return {type: 'video',url: `https://v.qq.com/txp/iframe/player.html?vid=${vid}&auto=0&show1080p=1`};
+  }
+  
+  else if(urlCheckers.isSpotify(url)){
+    const match=url.match(/spotify\.com\/(track|episode|playlist|album|show)\/([a-zA-Z0-9]+)/);
+    if(match&&match[2]){
+      return {type: 'audio',url: `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator&autoplay=0`};
+    }
+    const idMatch=url.match(/[a-zA-Z0-9]{22}/);
+    if(idMatch) return {type: 'audio',url: `https://open.spotify.com/embed/track/${idMatch[0]}?utm_source=generator&autoplay=0`};
+  }
+  
+  else if(urlCheckers.isApplePodcast(url)){
+    const showMatch=url.match(/podcasts\.apple\.com\/.+\/podcast\/.+\/id(\d+)/);
+    if(showMatch&&showMatch[1]){
+      return {type: 'audio',url: `https://embed.podcasts.apple.com/us/podcast/id${showMatch[1]}?itsct=podcast_box&itscg=30200`};
+    }
+    const episodeMatch=url.match(/\/id(\d+)\?i=(\d+)/);
+    if(episodeMatch&&episodeMatch[2]){
+      return {type: 'audio',url: `https://embed.podcasts.apple.com/us/podcast/id${episodeMatch[1]}?i=${episodeMatch[2]}&itsct=podcast_box&itscg=30200`};
+    }
+  }
+  
+  else if(urlCheckers.isPodcast(url)){
+    if(url.includes('soundcloud.com')){
+      const match = url.match(/soundcloud\.com\/([^\/]+)\/([^\/]+)/);
+      if(match) return {type: 'audio', url: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&visual=true`};
+    }
+    else if(url.includes('anchor.fm')){
+      const match = url.match(/anchor\.fm\/([^\/]+)\/episodes\/([^\/]+)/);
+      if(match) return {type: 'audio', url: `https://anchor.fm/${match[1]}/embed/episodes/${match[2]}?color=blue&autoplay=false`};
+    }
+    return {type: 'audio', url: url};
+  }
+  
+  try {
+    const urlObj = new URL(url);
+    const videoDomains = ['facebook.com', 'fb.watch', 'instagram.com', 'tiktok.com', 'douyin.com', 'bilibili.com', 'iqiyi.com', 'youku.com'];
+    if(videoDomains.some(domain => urlObj.host.includes(domain))){
+      return {type: 'video', url: url};
+    }
+  } catch(e) {}
+  
+  return {type: 'unsupported', url: url};
+};
 
-function handleVerifyUser(e,cb){
-  const uid=(e.parameter.userId||"").trim();
-  const rdn=e.parameter.displayName;
-  const wts=e.parameter.writeToSheet==="true"||e.parameter.writeToSheet===true;
-  const ned=e.parameter.needExpiryDate==="true"||e.parameter.needExpiryDate===true;
-  if(!uid)throw new Error("缺少必要參數：userId 為必填");
-  const dn=sanitizeDisplayName(rdn,uid);
-  console.log(`[驗證用戶] UserID: ${uid} | 最終顯示名稱: ${dn} | 原始 LINE 暱稱: ${rdn||'未傳遞'}`);
-  const us=checkUserStatus(uid);
-  const ia=us.isAdmin,ip=us.isPro,iauth=ia||ip;
-  if(!iauth)throw new Error("<br><br>驗證失敗<br>（可能原因：未授權、使用期限已過、驗證超時）<br><br>僅『尊爵用戶』可訪問<br><br>請聯繫彥彬開通『尊爵用戶』<br>");
-  if(wts)logAccess(uid,dn,ia,ia?"已確認為管理用戶":"已確認為專業用戶",us.remainingDays,us.expiryDateStr);
-  const res={
-    status:"success",userId:uid,displayName:dn,
-    isAdmin:ia,isPro:ip,isAuthorized:iauth,
-    remainingDays:us.remainingDays==="永久有效"?"永久有效":parseInt(us.remainingDays,10)||0,
-    expiryDate:us.expiryDateStr||CONFIG.PERMANENT_EXPIRY_DATE,
-    redirectUrl:"https://liff.line.me/2008578880-cOBTYud0",redirect:true
-  };
-  const json=JSON.stringify(res,(k,v)=>{
-    if(v instanceof Date)return Utilities.formatDate(v,CONFIG.TIME_ZONE,"yyyy/MM/dd");
-    if(typeof v==="number"&&isNaN(v))return 0;
-    return v;
+// 計算剩餘天數
+const calculateRemainingDaysByDate=(expiryDateStr)=>{
+  try{
+    if(expiryDateStr===CONFIG.PERMANENT_EXPIRY_DATE)return{displayDate:"永久有效",remainingDays:"永久有效"};
+    if(!/^\d{4}[-\/]\d{2}[-\/]\d{2}(?:\s+\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/.test(expiryDateStr)){
+      return{displayDate:"格式錯誤",remainingDays:"格式錯誤"};
+    }
+    const normalized=expiryDateStr.replace(/-/g,'/');
+    let expiryDate;
+    if(normalized.includes(' ')){
+      const [datePart,timePart]=normalized.split(' ');
+      const [y,m,d]=datePart.split('/').map(Number);
+      const [h,mi,s]=timePart.split(':').map(Number);
+      expiryDate=new Date(Date.UTC(y,m-1,d,h||0,mi||0,s||0));
+    }else{
+      const [y,m,d]=normalized.split('/').map(Number);
+      expiryDate=new Date(Date.UTC(y,m-1,d));
+    }
+    if(isNaN(expiryDate.getTime()))return{displayDate:"日期無效",remainingDays:"日期無效"};
+    const today=new Date();
+    const taipeiOffset=8*60*60*1000;
+    const todayTaipei=new Date(today.getTime()+taipeiOffset);
+    const todayUTC=new Date(Date.UTC(todayTaipei.getFullYear(),todayTaipei.getMonth(),todayTaipei.getDate()));
+    const timeDiff=expiryDate-todayUTC;
+    const remainingDays=Math.ceil(timeDiff/(1000*3600*24));
+    const formattedDate=new Date(expiryDate).toLocaleString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    let remainingDaysText;
+    if(remainingDays<0)remainingDaysText="<span class='text-red-500 font-medium'>已過期</span>";
+    else if(remainingDays===0)remainingDaysText="<span class='text-orange-500 font-medium'>最後1天</span>";
+    else if(remainingDays<=30)remainingDaysText=`<span class='text-orange-500 font-medium'>${remainingDays} 天</span>`;
+    else remainingDaysText=`${remainingDays} 天`;
+    return{displayDate:formattedDate,remainingDays:remainingDaysText};
+  }catch(error){
+    console.error("計算剩餘天數失敗：",error);
+    return{displayDate:"計算錯誤",remainingDays:"計算錯誤"};
+  }
+};
+
+// 獲取預覽圖
+const getThumbnail=(url, type)=>{
+  if(!url)return 'https://via.placeholder.com/300x180?text=No+Preview';
+  if(type==='video'){
+    if(urlCheckers.isYoutube(url)){
+      const match=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]+)/);
+      return match&&match[1] ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : 'https://via.placeholder.com/300x180?text=視頻&bgcolor=e8f9f7&color=008c76';
+    }else if(urlCheckers.isTencent(url)){
+      return 'https://via.placeholder.com/300x180?text=騰訊視頻&bgcolor=e8f9f7&color=008c76';
+    }else if(urlCheckers.isSpotify(url)){
+      return 'https://via.placeholder.com/300x180?text=Spotify&bgcolor=1DB954&color=ffffff';
+    }else if(urlCheckers.isApplePodcast(url)){
+      return 'https://via.placeholder.com/300x180?text=Apple Podcast&bgcolor=ffffff&color=000000';
+    }else if(urlCheckers.isPodcast(url)){
+      return 'https://via.placeholder.com/300x180?text=播客&bgcolor=7C3AED&color=ffffff';
+    }
+    return 'https://via.placeholder.com/300x180?text=影音&bgcolor=e8f9f7&color=008c76';
+  }else if(type==='file'){
+    const lowerUrl=url.toLowerCase();
+    if(lowerUrl.endsWith('.pdf'))return 'https://via.placeholder.com/300x180?text=PDF文件&bgcolor=f0f7ff&color=3b82f6';
+    else if(lowerUrl.endsWith('.doc')||lowerUrl.endsWith('.docx'))return 'https://via.placeholder.com/300x180?text=Word文件&bgcolor=f0f7ff&color=3b82f6';
+    else if(lowerUrl.endsWith('.xls')||lowerUrl.endsWith('.xlsx'))return 'https://via.placeholder.com/300x180?text=Excel文件&bgcolor=f0f7ff&color=3b82f6';
+    else if(lowerUrl.endsWith('.ppt')||lowerUrl.endsWith('.pptx'))return 'https://via.placeholder.com/300x180?text=PPT文件&bgcolor=f0f7ff&color=3b82f6';
+    else return 'https://via.placeholder.com/300x180?text=文件&bgcolor=f0f7ff&color=64748b';
+  }
+  return 'https://via.placeholder.com/300x180?text=內容&bgcolor=f1f5f9&color=64748b';
+};
+
+// 拖放處理
+const dragHandlers = {
+  start: (e) => {
+    if(!isManageUser())return;
+    appState.draggingItem=e.target;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',JSON.stringify({id:e.target.dataset.id,type:e.target.dataset.type}));
+    e.target.style.opacity='0.5';
+  },
+  over: (e) => {
+    if(!isManageUser())return;
+    e.preventDefault();
+    const item=e.target.closest('.video-item');
+    if(item&&item!==appState.draggingItem)item.classList.add('drop-zone');
+  },
+  leave: (e) => {
+    if(!isManageUser())return;
+    const item=e.target.closest('.video-item');
+    item&&item.classList.remove('drop-zone');
+  },
+  drop: (e) => {
+    if(!isManageUser())return;
+    e.preventDefault();
+    const dragData=JSON.parse(e.dataTransfer.getData('text/plain'));
+    const targetItem=e.target.closest('.video-item');
+    if(!targetItem||targetItem.dataset.id===dragData.id||targetItem.dataset.type!==dragData.type)return;
+    let draggedIndex, targetIndex;
+    if(dragData.type==='video'){
+      draggedIndex=appState.videoList.findIndex(v=>v.id===dragData.id);
+      targetIndex=appState.videoList.findIndex(v=>v.id===targetItem.dataset.id);
+      if(draggedIndex!==-1&&targetIndex!==-1){
+        const [draggedItem]=appState.videoList.splice(draggedIndex,1);
+        appState.videoList.splice(targetIndex,0,draggedItem);
+        syncVideoListOrderToGAS();
+        renderContentList('manage');
+        renderContentList('viewer');
+      }
+    }else if(dragData.type==='file'){
+      draggedIndex=appState.fileList.findIndex(f=>f.id===dragData.id);
+      targetIndex=appState.fileList.findIndex(f=>f.id===targetItem.dataset.id);
+      if(draggedIndex!==-1&&targetIndex!==-1){
+        const [draggedItem]=appState.fileList.splice(draggedIndex,1);
+        appState.fileList.splice(targetIndex,0,draggedItem);
+        syncFileListOrderToGAS();
+        renderContentList('manage');
+        renderContentList('viewer');
+      }
+    }
+    targetItem.classList.remove('drop-zone');
+    if(appState.draggingItem){
+      appState.draggingItem.classList.remove('dragging');
+      appState.draggingItem.style.opacity='1';
+    }
+    appState.draggingItem=null;
+    showSuccess('內容順序已即時更新！');
+  },
+  end: (e) => {
+    if(!isManageUser())return;
+    e.target.classList.remove('dragging');
+    e.target.style.opacity='1';
+    document.querySelectorAll('.video-item').forEach(item=>item.classList.remove('drop-zone'));
+    appState.draggingItem=null;
+  }
+};
+
+// 更新內容計數顯示
+const updateContentCountDisplay=()=>{
+  const videoCount=DOM('video-count-num'), fileCount=DOM('file-count-num');
+  videoCount&&(videoCount.textContent=appState.videoList.length);
+  fileCount&&(fileCount.textContent=appState.fileList.length);
+};
+
+// 權限判斷
+const isAdminUser = () => appState.userRole === 'admin';
+const isProUser = () => appState.userRole === 'pro' || isAdminUser();
+const isManageUser = () => isAdminUser();
+
+// 驗證用戶權限
+const verifyUserPermission=()=>{
+  return new Promise((resolve, reject)=>{
+    setStatus('驗證用戶權限...');
+    if(!appState.currentUser)return reject(new Error('用戶信息不存在'));
+    const requestData = {
+      action:'verifyUser',
+      userId:appState.currentUser.userId,
+      displayName:appState.currentUser.displayName,
+      writeToSheet:true,
+      needExpiryDate:true
+    };
+    $.ajax({
+      url:CONFIG.GAS_URL,
+      dataType:'jsonp',
+      jsonp:'callback',
+      timeout:10000,
+      data:requestData,
+      cache: true,
+      success:(resp)=>{
+        if(resp.status==="success"&&resp.isAuthorized){
+          appState.userRole=resp.isAdmin?'admin':(resp.isPro?'pro':'user');
+          appState.userExpiryInfo={
+            remainingDays:resp.remainingDays || 0,
+            expiryDate:resp.expiryDate || CONFIG.PERMANENT_EXPIRY_DATE
+          };
+          appState.userNickname = resp.nickname || appState.currentUser.displayName || '未知用戶';
+          resolve(true);
+        }else{
+          reject(new Error(resp.message||'用戶未授權，請聯繫管理員開通'));
+        }
+      },
+      error:(xhr,status,error)=>{
+        console.error("用戶權限驗證失敗：",status,error);
+        const errorMsg = status === 'timeout' 
+          ? '權限驗證超時，請檢查網絡後重試' 
+          : (status === 'abort' ? '請求已中斷' : '網絡錯誤，無法驗證用戶權限');
+        reject(new Error(errorMsg));
+      }
+    });
   });
-  return ContentService.createTextOutput(cb+"("+json+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
+};
 
-function handleGetVideoList(e,cb){
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.VIDEO_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2){
-      return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",data:[]})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-    }
-    const lr=sh.getLastRow();
-    const dt=sh.getRange(2,4,lr-1,9).getValues();
-    const vl=dt.map(r=>{
-      const u=r[2]||"";
-      const t=r[8]||getVideoType(u);
-      return{
-        id:r[0]||"",name:r[1]||"",video:u,
-        note:r[3]||"",updatedAt:r[4]||"",
-        videoType:t,
-        previewHtml:generateVideoPreviewHtml(u,t),
-        previewText:t==="youtube"?"YouTube影片":t==="tencent_meeting"?"騰訊會議":"外部連結"
-      };
-    }).filter(v=>v.id&&v.video);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",data:vl})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("獲取影片列表失敗："+err.message);
-  }
-}
-
-function handleSaveVideo(e,cb){
-  const vid=(e.parameter.videoId||"").trim();
-  const n=(e.parameter.name||"").trim();
-  const u=(e.parameter.video||"").trim();
-  const nt=(e.parameter.note||"").trim();
-  const ua=(e.parameter.updatedAt||"").trim();
-  const uid=(e.parameter.userId||"").trim();
-  const op=(e.parameter.displayName||uid||"未知用戶").trim();
-  if(!vid)throw new Error("缺少必要參數：videoId 影片唯一ID為必填");
-  if(!n)throw new Error("缺少必要參數：name 影片名稱為必填");
-  if(!u)throw new Error("缺少必要參數：video 影片連結為必填");
-  
-  try{
-    const dn=sanitizeDisplayName(op,uid);
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    let sh=ss.getSheetByName(CONFIG.VIDEO_SHEET_NAME);
-    if(!sh){
-      sh=ss.insertSheet(CONFIG.VIDEO_SHEET_NAME);
-      const h=["系統保存時間","UserID","操作員名稱","影片唯一ID","影片名稱","影片連結","影片備註","前端最後更新時間","用戶類型","使用期限","同步狀態","影片類型"];
-      sh.getRange(1,1,1,h.length).setValues([h]).setFontWeight("bold").setBackground("#0066CC").setTextColor("white").setHorizontalAlignment("center").setWrap(true);
-      sh.autoResizeColumns(1,h.length);
-    }
-    const lr=sh.getLastRow();
-    let up=false,tr=-1;
-    if(lr>=2){
-      const id=sh.getRange(2,4,lr-1,1).getValues();
-      for(let i=0;i<id.length;i++){
-        if(id[i][0]===vid){up=true;tr=i+2;break;}
-      }
-    }
-    const vt=getVideoType(u);
-    const st=Utilities.formatDate(new Date(),CONFIG.TIME_ZONE,"yyyy-MM-dd HH:mm:ss");
-    const r=[st,uid||"未知UserID",dn,vid,n,u,nt,ua,"管理用戶",CONFIG.PERMANENT_EXPIRY_DATE,up?"已更新":"已新增",vt];
-    if(up)sh.getRange(tr,1,1,r.length).setValues([r]);
-    else sh.appendRow(r);
-    sh.autoResizeColumns(1,r.length);
-    const res={
-      status:"success",message:up?"影片數據更新成功":"影片數據新增成功",
-      videoId:vid,videoName:n,videoType:vt,previewHtml:generateVideoPreviewHtml(u,vt)
-    };
-    return ContentService.createTextOutput(cb+"("+JSON.stringify(res)+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("保存影片數據失敗："+err.message);
-  }
-}
-
-function handleDeleteVideo(e,cb){
-  const vid=(e.parameter.videoId||"").trim();
-  if(!vid)throw new Error("缺少必要參數：videoId 影片唯一ID為必填");
-  
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.VIDEO_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2)throw new Error("影片列表為空，無需刪除");
-    const lr=sh.getLastRow();
-    const id=sh.getRange(2,4,lr-1,1).getValues();
-    let dr=-1;
-    for(let i=0;i<id.length;i++){
-      if(id[i][0]===vid){dr=i+2;break;}
-    }
-    if(dr===-1)throw new Error("未找到該影片ID："+vid);
-    sh.deleteRow(dr);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",message:"影片已成功刪除",videoId:vid})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("刪除影片失敗："+err.message);
-  }
-}
-
-function handleUpdateVideoOrder(e,cb){
-  const vis=e.parameter.videoIds||"";
-  if(!vis)throw new Error("缺少必要參數：videoIds 影片ID列表為必填");
-  
-  try{
-    const vi=JSON.parse(vis);
-    if(!Array.isArray(vi)||vi.length===0)throw new Error("videoIds 必須是非空數組格式");
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.VIDEO_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2)throw new Error("影片列表為空，無需更新排序");
-    const lr=sh.getLastRow(),lc=sh.getLastColumn();
-    const ad=sh.getRange(2,1,lr-1,lc).getValues();
-    const ici=3,sd=[];
-    vi.forEach(id=>{
-      for(let i=0;i<ad.length;i++){
-        if(ad[i][ici]===id){sd.push(ad[i]);break;}
-      }
-    });
-    ad.forEach(r=>{
-      const rid=r[ici];
-      if(!vi.includes(rid))sd.push(r);
-    });
-    sh.getRange(2,1,lr-1,lc).clearContent();
-    if(sd.length>0)sh.getRange(2,1,sd.length,sd[0].length).setValues(sd);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({
-      status:"success",message:`成功更新 ${sd.length} 個影片的排序`,sortedCount:sd.length
-    })+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("更新影片排序失敗："+err.message);
-  }
-}
-
-function handleGetFileList(e,cb){
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.FILE_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2){
-      return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",data:[]})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-    }
-    const lr=sh.getLastRow();
-    const dt=sh.getRange(2,4,lr-1,9).getValues();
-    const fl=dt.map(r=>{
-      const u=r[2]||"";
-      const t=r[8]||getFileType(u);
-      return{
-        id:r[0]||"",name:r[1]||"",file:u,
-        note:r[3]||"",updatedAt:r[4]||"",
-        fileType:t,
-        previewHtml:generateFilePreviewHtml(u,t),
-        previewText:t==="pdf"?"PDF文件":t==="word"?"Word文件":t==="excel"?"Excel文件":t==="ppt"?"PPT文件":"其他文件"
-      };
-    }).filter(f=>f.id&&f.file);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",data:fl})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("獲取文件列表失敗："+err.message);
-  }
-}
-
-function handleSaveFile(e,cb){
-  const fid=(e.parameter.fileId||"").trim();
-  const n=(e.parameter.name||"").trim();
-  const u=(e.parameter.file||"").trim();
-  const nt=(e.parameter.note||"").trim();
-  const ua=(e.parameter.updatedAt||"").trim();
-  const uid=(e.parameter.userId||"").trim();
-  const op=(e.parameter.displayName||uid||"未知用戶").trim();
-  if(!fid)throw new Error("缺少必要參數：fileId 文件唯一ID為必填");
-  if(!n)throw new Error("缺少必要參數：name 文件名稱為必填");
-  if(!u)throw new Error("缺少必要參數：file 文件連結為必填");
-  
-  try{
-    const dn=sanitizeDisplayName(op,uid);
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    let sh=ss.getSheetByName(CONFIG.FILE_SHEET_NAME);
-    if(!sh){
-      sh=ss.insertSheet(CONFIG.FILE_SHEET_NAME);
-      const h=["系統保存時間","UserID","操作員名稱","文件唯一ID","文件名稱","文件連結","文件備註","前端最後更新時間","用戶類型","使用期限","同步狀態","文件類型"];
-      sh.getRange(1,1,1,h.length).setValues([h]).setFontWeight("bold").setBackground("#3b82f6").setTextColor("white").setHorizontalAlignment("center").setWrap(true);
-      sh.autoResizeColumns(1,h.length);
-    }
-    const lr=sh.getLastRow();
-    let up=false,tr=-1;
-    if(lr>=2){
-      const id=sh.getRange(2,4,lr-1,1).getValues();
-      for(let i=0;i<id.length;i++){
-        if(id[i][0]===fid){up=true;tr=i+2;break;}
-      }
-    }
-    const ft=getFileType(u);
-    const st=Utilities.formatDate(new Date(),CONFIG.TIME_ZONE,"yyyy-MM-dd HH:mm:ss");
-    const r=[st,uid||"未知UserID",dn,fid,n,u,nt,ua,"管理用戶",CONFIG.PERMANENT_EXPIRY_DATE,up?"已更新":"已新增",ft];
-    if(up)sh.getRange(tr,1,1,r.length).setValues([r]);
-    else sh.appendRow(r);
-    sh.autoResizeColumns(1,r.length);
-    const res={
-      status:"success",message:up?"文件數據更新成功":"文件數據新增成功",
-      fileId:fid,fileName:n,fileType:ft,previewHtml:generateFilePreviewHtml(u,ft)
-    };
-    return ContentService.createTextOutput(cb+"("+JSON.stringify(res)+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("保存文件數據失敗："+err.message);
-  }
-}
-
-function handleDeleteFile(e,cb){
-  const fid=(e.parameter.fileId||"").trim();
-  if(!fid)throw new Error("缺少必要參數：fileId 文件唯一ID為必填");
-  
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.FILE_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2)throw new Error("文件列表為空，無需刪除");
-    const lr=sh.getLastRow();
-    const id=sh.getRange(2,4,lr-1,1).getValues();
-    let dr=-1;
-    for(let i=0;i<id.length;i++){
-      if(id[i][0]===fid){dr=i+2;break;}
-    }
-    if(dr===-1)throw new Error("未找到該文件ID："+fid);
-    sh.deleteRow(dr);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({status:"success",message:"文件已成功刪除",fileId:fid})+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("刪除文件失敗："+err.message);
-  }
-}
-
-function handleUpdateFileOrder(e,cb){
-  const fis=e.parameter.fileIds||"";
-  if(!fis)throw new Error("缺少必要參數：fileIds 文件ID列表為必填");
-  
-  try{
-    const fi=JSON.parse(fis);
-    if(!Array.isArray(fi)||fi.length===0)throw new Error("fileIds 必須是非空數組格式");
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sh=ss.getSheetByName(CONFIG.FILE_SHEET_NAME);
-    if(!sh||sh.getLastRow()<2)throw new Error("文件列表為空，無需更新排序");
-    const lr=sh.getLastRow(),lc=sh.getLastColumn();
-    const ad=sh.getRange(2,1,lr-1,lc).getValues();
-    const ici=3,sd=[];
-    fi.forEach(id=>{
-      for(let i=0;i<ad.length;i++){
-        if(ad[i][ici]===id){sd.push(ad[i]);break;}
-      }
-    });
-    ad.forEach(r=>{
-      const rid=r[ici];
-      if(!fi.includes(rid))sd.push(r);
-    });
-    sh.getRange(2,1,lr-1,lc).clearContent();
-    if(sd.length>0)sh.getRange(2,1,sd.length,sd[0].length).setValues(sd);
-    return ContentService.createTextOutput(cb+"("+JSON.stringify({
-      status:"success",message:`成功更新 ${sd.length} 個文件的排序`,sortedCount:sd.length
-    })+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("更新文件排序失敗："+err.message);
-  }
-}
-
-function handleSubmitChecklist(e,cb){
-  const ds=e.parameter.data;
-  if(!ds||ds.trim()==="")throw new Error("缺少自檢表數據");
-  
-  try{
-    const sd=JSON.parse(ds);
-    if(!sd.userId||!sd.selectedSymptoms||!Array.isArray(sd.selectedSymptoms))throw new Error("自檢表數據格式不正確，缺少 userId/selectedSymptoms");
-    sd.displayName=sanitizeDisplayName(sd.displayName,sd.userId);
-    console.log(`[提交自檢表] UserID: ${sd.userId} | 真實 LINE 暱稱: ${sd.displayName}`);
-    saveChecklistData(sd);
-    const res={
-      status:"success",message:"自檢表提交成功",
-      displayName:sd.displayName,
-      submitTime:Utilities.formatDate(new Date(),CONFIG.TIME_ZONE,"yyyy-MM-dd HH:mm:ss")
-    };
-    return ContentService.createTextOutput(cb+"("+JSON.stringify(res)+")").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }catch(err){
-    throw new Error("自檢表數據解析失敗："+err.message+"，原始數據："+ds.substring(0,100));
-  }
-}
-
-function checkUserStatus(userId){
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.USER_CHECK_SPREADSHEET_ID);
-    const ash=ss.getSheetByName(CONFIG.ADMIN_SHEET_NAME);
-    if(ash&&ash.getLastRow()>=2){
-      const aid=ash.getRange(2,1,ash.getLastRow()-1,1).getValues().flat();
-      if(aid.includes(userId)){
-        return{isAdmin:true,isPro:false,remainingDays:"永久有效",expiryDateStr:CONFIG.PERMANENT_EXPIRY_DATE};
-      }
-    }
-    const psh=ss.getSheetByName(CONFIG.PRO_SHEET_NAME);
-    if(!psh){
-      console.error(`「${CONFIG.PRO_SHEET_NAME}」工作表不存在`);
-      return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:null};
-    }
-    const plr=psh.getLastRow();
-    if(plr<2)return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:null};
-    const pd=psh.getRange(2,1,plr-1,3).getValues();
-    const uids=userId.toString().trim();
-    for(let i=0;i<pd.length;i++){
-      const r=pd[i];
-      const pid=r[0]?r[0].toString().trim():"";
-      const edv=r[2];
-      if(pid===uids){
-        if(!edv||edv.toString().trim()===""||edv.toString().trim()==="永久有效"||edv.toString().trim()===CONFIG.PERMANENT_EXPIRY_DATE){
-          return{isAdmin:false,isPro:true,remainingDays:"永久有效",expiryDateStr:CONFIG.PERMANENT_EXPIRY_DATE};
+// 獲取GAS數據
+const fetchDataFromGAS=(type)=>{
+  return new Promise((resolve, reject)=>{
+    setStatus(`載入${type==='video'?'影音':'文件'}列表中...`);
+    $.ajax({
+      url:CONFIG.GAS_URL,
+      dataType:'jsonp',
+      jsonp:'callback',
+      timeout:CONFIG.JSONP_TIMEOUT,
+      data:{action:`get${type==='video'?'Video':'File'}List`},
+      success:(resp)=>{
+        if(resp.status==="success"&&Array.isArray(resp.data)){
+          const listKey = `${type}List`;
+          const urlKey = type==='video'?'video':'file';
+          appState[listKey] = resp.data.map(item=>({
+            id:item.id||`${type}_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+            name:item.name||'',
+            url:item[urlKey]||'',
+            note:item.note||'',
+            updatedAt:convertUTCToTaiwanTime(item.updatedAt)||convertUTCToTaiwanTime(new Date().toISOString()),
+            [`${type}Type`]:item[`${type}Type`]||''
+          })).filter(item=>item.url&&item.id);
+          resolve(true);
+        }else{
+          appState[listKey] = [];
+          resolve(false);
         }
-        let ed=null;
-        if(edv instanceof Date)ed=!isNaN(edv.getTime())?edv:null;
-        else if(typeof edv==="string"){
-          const td=edv.trim();
-          const rx=/^\d{4}[-\/\.]\d{2}[-\/\.]\d{2}$/;
-          if(rx.test(td)){
-            const nd=td.replace(/-/g,"/").replace(/\./g,"/");
-            const [y,m,d]=nd.split("/").map(Number);
-            if(m>=1&&m<=12&&d>=1&&d<=new Date(y,m,0).getDate())ed=new Date(y,m-1,d);
-          }
-        }
-        if(!ed||isNaN(ed.getTime())){
-          console.error("用戶 "+userId+" 的到期日期格式錯誤："+edv);
-          return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:null};
-        }
-        const eds=Utilities.formatDate(ed,CONFIG.TIME_ZONE,"yyyy/MM/dd");
-        const td=new Date();td.setHours(0,0,0,0);
-        const edn=new Date(ed);edn.setHours(0,0,0,0);
-        const tdiff=edn-td;
-        const rd=Math.ceil(tdiff/(1000*60*60*24));
-        if(rd<0){
-          console.log("用戶 "+userId+" 的專業資格已過期（到期日："+eds+"）");
-          return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:eds};
-        }
-        return{isAdmin:false,isPro:true,remainingDays:rd,expiryDateStr:eds};
+      },
+      error:(xhr,status,error)=>{
+        console.error(`獲取${type==='video'?'影音':'文件'}列表失敗：`,status,error);
+        appState[`${type}List`] = [];
+        reject(new Error(`獲取${type==='video'?'影音':'文件'}列表失敗`));
       }
-    }
-    return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:null};
-  }catch(err){
-    console.error("檢查用戶狀態失敗："+err.stack);
-    return{isAdmin:false,isPro:false,remainingDays:0,expiryDateStr:null};
-  }
-}
-
-function saveChecklistData(submitData){
-  try{
-    const ss=SpreadsheetApp.openById(CONFIG.ADMIN_SPREADSHEET_ID);
-    const sn="自檢表記錄";
-    let sh=ss.getSheetByName(sn);
-    if(!sh){
-      sh=ss.insertSheet(sn);
-      const h=["提交時間","UserID","用戶名稱","症狀序號","症狀名稱","持續時間代碼","持續時間說明","嚴重程度代碼","嚴重程度說明"];
-      sh.getRange(1,1,1,h.length).setValues([h]).setFontWeight("bold").setBackground("#00B900").setTextColor("white").setHorizontalAlignment("center").setWrap(true);
-      sh.autoResizeColumns(1,h.length);
-    }
-    const st=submitData.submitTime?new Date(submitData.submitTime):new Date();
-    const ft=Utilities.formatDate(st,CONFIG.TIME_ZONE,"yyyy-MM-dd HH:mm:ss");
-    const r=[];
-    submitData.selectedSymptoms.forEach(s=>{
-      r.push([ft,submitData.userId||"未知UserID",submitData.displayName,s.seq||"",s.symptom||"",s.duration||"",s.durationText||"",s.severity||"",s.severityText||""]);
     });
-    if(r.length>0){
-      const lr=sh.getLastRow();
-      sh.getRange(lr+1,1,r.length,r[0].length).setValues(r).setHorizontalAlignment("center").setWrap(true).setFontSize(11);
-      sh.autoResizeColumns(1,h.length);
-    }
-    console.log(`自檢表數據保存成功：用戶 ${submitData.displayName} (${submitData.userId})，共 ${r.length} 個症狀`);
-  }catch(err){
-    console.error("保存自檢表數據失敗："+err.stack);
-    throw new Error("數據存儲失敗："+err.message);
-  }
-}
+  });
+};
+const fetchVideoListFromGAS=()=>fetchDataFromGAS('video');
+const fetchFileListFromGAS=()=>fetchDataFromGAS('file');
 
-function logAccess(userId,displayName,isAdmin,note,remainingDays,expiryDateStr){
-  try{
-    const fdn=sanitizeDisplayName(displayName,userId);
-    console.log(`[記錄訪問] UserID: ${userId} | 寫入工作表的名稱: ${fdn}（原始傳入：${displayName||'未傳遞'}）`);
-    const ss=SpreadsheetApp.openById(CONFIG.LOG_SPREADSHEET_ID);
-    let sh=ss.getSheetByName("用戶列表");
-    if(!sh)sh=ss.insertSheet("用戶列表");
+// 同步數據到GAS
+const syncToGAS=(type, data, callback)=>{
+  const action=`save${type==='video'?'Video':'File'}`;
+  const key=type==='video'?'video':'file';
+  $.ajax({
+    url:CONFIG.GAS_URL,
+    dataType:'jsonp',
+    jsonp:'callback',
+    timeout:CONFIG.JSONP_TIMEOUT,
+    data:{
+      action,
+      userId:appState.currentUser?.userId||'',
+      displayName:appState.currentUser?.displayName||'',
+      [`${type}Id`]:data.id,
+      name:data.name,
+      [key]:data.url,
+      note:data.note,
+      updatedAt:data.updatedAt
+    },
+    success:(resp)=>{
+      if(resp.status==="success"){
+        callback&&callback(true);
+      }else{
+        showError(`同步${type==='video'?'影音':'文件'}失敗：${resp.message||'未知錯誤'}`);
+        callback&&callback(false);
+      }
+    },
+    error:(xhr,status,error)=>{
+      console.error(`同步${type==='video'?'影音':'文件'}失敗：`,status,error);
+      showError(`同步${type==='video'?'影音':'文件'}失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
+      callback&&callback(false);
+    }
+  });
+};
+const syncVideoToGAS=(data, callback)=>syncToGAS('video', data, callback);
+const syncFileToGAS=(data, callback)=>syncToGAS('file', data, callback);
+
+// 刪除GAS數據
+const deleteFromGAS=(type, id, callback)=>{
+  const action=`delete${type==='video'?'Video':'File'}`;
+  $.ajax({
+    url:CONFIG.GAS_URL,
+    dataType:'jsonp',
+    jsonp:'callback',
+    timeout:CONFIG.JSONP_TIMEOUT,
+    data:{
+      action,
+      userId:appState.currentUser?.userId||'',
+      displayName:appState.currentUser?.displayName||'',
+      [`${type}Id`]:id
+    },
+    success:(resp)=>{
+      if(resp.status==="success"){
+        callback&&callback(true);
+      }else{
+        showError(`刪除${type==='video'?'影音':'文件'}失敗：${resp.message||'未知錯誤'}`);
+        callback&&callback(false);
+      }
+    },
+    error:(xhr,status,error)=>{
+      console.error(`刪除${type==='video'?'影音':'文件'}失敗：`,status,error);
+      showError(`刪除${type==='video'?'影音':'文件'}失敗：${status==='timeout'?'請求超時':'網絡錯誤'}`);
+      callback&&callback(false);
+    }
+  });
+};
+const deleteVideoFromGAS=(id, callback)=>deleteFromGAS('video', id, callback);
+const deleteFileFromGAS=(id, callback)=>deleteFromGAS('file', id, callback);
+
+// 同步列表順序
+const syncListOrderToGAS=(type)=>{
+  const listKey = `${type}List`;
+  const ids = appState[listKey].map(item=>item.id);
+  $.ajax({
+    url:CONFIG.GAS_URL,
+    dataType:'jsonp',
+    jsonp:'callback',
+    timeout:CONFIG.JSONP_TIMEOUT,
+    data:{
+      action:`update${type==='video'?'Video':'File'}Order`,
+      userId:appState.currentUser?.userId||'',
+      displayName:appState.currentUser?.displayName||'',
+      [`${type}Ids`]:JSON.stringify(ids)
+    },
+    success:(resp)=>{
+      if(resp.status!=="success")console.warn(`同步${type==='video'?'影音':'文件'}順序失敗：`,resp.message);
+    },
+    error:(xhr,status,error)=>{
+      console.error(`同步${type==='video'?'影音':'文件'}順序失敗：`,status,error);
+    }
+  });
+};
+const syncVideoListOrderToGAS=()=>syncListOrderToGAS('video');
+const syncFileListOrderToGAS=()=>syncListOrderToGAS('file');
+
+// 渲染瀏覽列表
+const renderViewerContentList = () => {
+  const type = CONFIG.currentContentType;
+  const listKey = `${type}List`;
+  const contentSelect = DOM('content-select');
+  const emptyEl = DOM('viewer-empty-list');
+  const emptyText = DOM('viewer-empty-text');
+  const selectedDisplay = DOM('selected-content-display');
+  
+  contentSelect.innerHTML = '<option value="">請選擇要查看的內容...</option>';
+  selectedDisplay.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+  
+  emptyText.textContent = type === 'video' ? '暫無可查看的影音' : '暫無可查看的文件';
+  
+  if (appState[listKey].length === 0) {
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  
+  appState[listKey].forEach((item) => {
+    const option = document.createElement('option');
+    option.value = item.id;
+    option.textContent = item.name.length > 50 ? item.name.substring(0, 50) + '...' : item.name;
+    contentSelect.appendChild(option);
+  });
+  
+  if (appState.selectedContentId) {
+    const selectedOption = contentSelect.querySelector(`option[value="${appState.selectedContentId}"]`);
+    if (selectedOption) {
+      selectedOption.selected = true;
+      selectContent(appState.selectedContentId);
+    }
+  }
+};
+
+// 選擇內容
+const selectContent = (id) => {
+  if (!id) {
+    DOM('selected-content-display').classList.add('hidden');
+    appState.selectedContentId = '';
+    return;
+  }
+  
+  const type = CONFIG.currentContentType;
+  const listKey = `${type}List`;
+  const item = appState[listKey].find(item => item.id === id);
+  
+  if (!item) return;
+  
+  appState.selectedContentId = id;
+  
+  const contentCard = DOM('viewer-content-card');
+  const thumbnailUrl = getThumbnail(item.url, type);
+  const shortTitle = item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name;
+  
+  let actionText, actionIcon;
+  if (type === 'video') {
+    const embedInfo = convertToEmbedUrl(item.url);
+    if (embedInfo.type === 'audio') {
+      actionText = '收聽播客';
+      actionIcon = 'headphones';
+    } else {
+      actionText = '觀看影片';
+      actionIcon = 'play';
+    }
+  } else {
+    actionText = '查看文件';
+    actionIcon = 'file-text-o';
+  }
+
+  contentCard.innerHTML = `
+    <div class="relative">
+      <img src="${thumbnailUrl}" alt="${item.name}" class="w-full h-48 object-cover rounded-t-xl">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-t-xl flex items-end p-4">
+        <h3 class="text-white font-bold text-lg">${shortTitle}</h3>
+      </div>
+    </div>
+    <div class="p-4">
+      <div class="text-sm text-textSecondary mb-3">
+        <span class="block mb-1"><i class="fa fa-clock-o text-primary mr-1"></i> 最後更新：${item.updatedAt}</span>
+        ${item.note ? `<span class="block"><i class="fa fa-sticky-note text-primary mr-1"></i> 備注：${item.note}</span>` : ''}
+      </div>
+      <button onclick="previewContent('${item.id}', '${type}')" class="watch-btn w-full primary-gradient text-white flex items-center justify-center gap-2">
+        <i class="fa fa-${actionIcon}"></i> ${actionText}
+      </button>
+    </div>
+  `;
+  
+  DOM('selected-content-display').classList.remove('hidden');
+};
+
+// 渲染管理列表
+const renderContentList = (mode) => {
+  const type = CONFIG.currentContentType;
+  const listKey = `${type}List`;
+  const containerId = mode === 'manage' ? `${type}-list-container` : '';
+  const container = DOM(containerId);
+  const emptyEl = DOM('empty-manage-list');
+  const emptyText = DOM('empty-manage-text');
+  const emptyTip = DOM('empty-manage-tip');
+  
+  if (mode === 'manage') {
+    container.innerHTML = '';
+    emptyEl.classList.add('hidden');
+    emptyText.textContent = type === 'video' ? '尚未添加任何影音' : '尚未添加任何文件';
+    emptyTip.textContent = type === 'video' ? '點擊「新增影音」按鈕開始添加' : '點擊「新增文件」按鈕開始添加';
     
-    const hr=1;
-    const eh=["訪問日期","userId","顯示暱稱","用戶類型","到期日期","備註","剩餘天數"];
-    const ch=sh.getRange(hr,1,1,eh.length).getValues()[0];
-    if(!ch||ch.join()!==eh.join()){
-      sh.getRange(hr,1,1,eh.length).setValues([eh]).setFontWeight("bold").setBackground("#f0f0f0").setHorizontalAlignment("center").setFontSize(12);
+    if (appState[listKey].length === 0) {
+      emptyEl.classList.remove('hidden');
+      return;
     }
+    
+    appState[listKey].forEach((item, index) => {
+      const thumbnailUrl = getThumbnail(item.url, type);
+      const shortTitle = item.name.length > 25 ? `${item.name.substring(0, 25)}...` : item.name;
+      const shortNote = item.note.length > 30 ? `${item.note.substring(0, 30)}...` : item.note;
+      
+      const itemEl = document.createElement('div');
+      itemEl.className = `video-item bg-white p-3 rounded-xl shadow-elevation-1 flex gap-3 items-center ${isManageUser() ? '' : 'pro-user'}`;
+      itemEl.dataset.id = item.id;
+      itemEl.dataset.type = type;
+      
+      if (isManageUser()) {
+        itemEl.draggable = true;
+        itemEl.addEventListener('dragstart', dragHandlers.start);
+        itemEl.addEventListener('dragover', dragHandlers.over);
+        itemEl.addEventListener('dragleave', dragHandlers.leave);
+        itemEl.addEventListener('drop', dragHandlers.drop);
+        itemEl.addEventListener('dragend', dragHandlers.end);
+      }
+      
+      itemEl.innerHTML = `
+        <div class="thumbnail-container">
+          <img src="${thumbnailUrl}" alt="${item.name}" class="thumbnail-img">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-start">
+            <h4 class="font-semibold text-textPrimary text-sm truncate">${index + 1}. ${shortTitle}</h4>
+            ${isManageUser() ? `
+              <div class="flex gap-1">
+                <button onclick="editContent('${item.id}', '${type}')" class="text-primary hover:text-[#007A69] p-1 rounded-full hover:bg-primary/5 transition-colors">
+                  <i class="fa fa-pencil text-xs"></i>
+                </button>
+                <button onclick="deleteContent('${item.id}', '${type}')" class="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors">
+                  <i class="fa fa-trash text-xs"></i>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+          <p class="text-xs text-textSecondary mt-1 truncate">${item.note || '無備注'}</p>
+          <p class="text-xs text-textSecondary/70 mt-1">更新時間：${item.updatedAt}</p>
+        </div>
+        <button onclick="previewContent('${item.id}', '${type}')" class="text-primary hover:text-[#007A69] p-2 rounded-full hover:bg-primary/5 transition-colors flex-shrink-0">
+          <i class="fa fa-eye text-sm"></i>
+        </button>
+      `;
+      
+      container.appendChild(itemEl);
+    });
+  } else if (mode === 'viewer') {
+    renderViewerContentList();
+  }
+};
 
-    const ri=remainingDays==="永久有效"?"永久有效":(remainingDays+" 天");
-    const ut=isAdmin?"管理用戶":"專業用戶";
-    const ed=expiryDateStr||CONFIG.PERMANENT_EXPIRY_DATE;
-    const lr=[Utilities.formatDate(new Date(),CONFIG.TIME_ZONE,"yyyy-MM-dd HH:mm:ss"),userId||"未知UserID",fdn,ut,ed,note||"無備註",ri];
+// 預覽內容
+const previewContent = (id, type) => {
+  const listKey = `${type}List`;
+  const item = appState[listKey].find(item => item.id === id);
+  if (!item) return;
+  
+  appState.currentViewingId = id;
+  appState.currentViewingType = type;
+  
+  const previewEl = DOM('content-preview');
+  const previewTitle = DOM('preview-title');
+  const previewUpdated = DOM('preview-updated');
+  const previewNote = DOM('preview-note');
+  const videoContainer = DOM('video-container');
+  const audioContainer = DOM('audio-container');
+  const unsupportedTip = DOM('unsupported-tip');
+  const filePreviewTip = DOM('file-preview-tip');
+  const directLinkBtn = DOM('direct-link-btn');
+  const filePreviewBtn = DOM('file-preview-btn');
+  const filePreviewName = DOM('file-preview-name');
+  const previewActionBtns = DOM('preview-action-btns');
+  
+  // 隱藏所有容器
+  videoContainer.classList.add('hidden');
+  audioContainer.classList.add('hidden');
+  unsupportedTip.classList.add('hidden');
+  filePreviewTip.classList.add('hidden');
+  
+  // 設置標題和基礎信息
+  previewTitle.textContent = item.name;
+  previewUpdated.textContent = item.updatedAt;
+  previewNote.textContent = item.note || '- 無備注 -';
+  
+  // 顯示編輯/刪除按鈕（僅管理員）
+  previewActionBtns.classList.toggle('hidden', !isManageUser());
+  
+  if (type === 'video') {
+    const embedInfo = convertToEmbedUrl(item.url);
+    const previewVideo = DOM('preview-video');
+    const previewAudio = DOM('preview-audio');
+    const videoLoading = DOM('video-loading');
+    const audioLoading = DOM('audio-loading');
+    
+    previewVideo.src = '';
+    previewAudio.src = '';
+    directLinkBtn.href = item.url;
+    
+    if (embedInfo.type === 'video') {
+      videoContainer.classList.remove('hidden');
+      videoLoading.classList.remove('hidden');
+      previewVideo.src = embedInfo.url;
+    } else if (embedInfo.type === 'audio') {
+      audioContainer.classList.remove('hidden');
+      audioLoading.classList.remove('hidden');
+      previewAudio.src = embedInfo.url;
+    } else {
+      unsupportedTip.classList.remove('hidden');
+    }
+  } else if (type === 'file') {
+    filePreviewTip.classList.remove('hidden');
+    filePreviewName.textContent = item.name;
+    filePreviewBtn.href = item.url;
+  }
+  
+  // 隱藏其他區域，顯示預覽
+  DOM('status').classList.add('hidden');
+  DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('video-edit-section').classList.add('hidden');
+  DOM('file-edit-section').classList.add('hidden');
+  previewEl.classList.remove('hidden');
+};
 
-    const lr_=sh.getLastRow();
-    let tr=-1;
-    if(lr_>hr){
-      const ud=sh.getRange(hr+1,2,lr_-hr,1).getValues().flat();
-      for(let i=0;i<ud.length;i++){
-        if(ud[i]===userId){tr=hr+1+i;break;}
+// 隱藏預覽
+const hideContentPreview = () => {
+  DOM('content-preview').classList.add('hidden');
+  DOM('content-viewer-section').classList.remove('hidden');
+  appState.currentViewingId = null;
+  appState.currentViewingType = null;
+};
+
+// 切換內容類型
+const switchContentType = (type) => {
+  CONFIG.currentContentType = type;
+  DOM('current-content-type').textContent = type === 'video' ? '影音列表' : '文件列表';
+  DOM('viewer-section-title').innerHTML = type === 'video' 
+    ? '<i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影音列表' 
+    : '<i class="fa fa-file text-primary mr-2 text-sm"></i> 文件列表';
+  DOM('manage-section-title').innerHTML = type === 'video' 
+    ? '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表' 
+    : '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 文件管理列表';
+  DOM('add-content-btn').innerHTML = type === 'video' 
+    ? '<i class="fa fa-plus text-lg"></i> 新增影音' 
+    : '<i class="fa fa-plus text-lg"></i> 新增文件';
+  
+  // 切換列表容器顯示
+  DOM('video-list-container').classList.toggle('hidden', type !== 'video');
+  DOM('file-list-container').classList.toggle('hidden', type !== 'file');
+  
+  // 重新渲染列表
+  renderContentList('manage');
+  renderContentList('viewer');
+  
+  // 隱藏下拉菜單
+  DOM('content-type-dropdown').classList.add('hidden');
+};
+
+// 切換管理區域
+const toggleManageSection = () => {
+  const viewerSection = DOM('content-viewer-section');
+  const manageSection = DOM('content-manage-section');
+  const isViewerVisible = !viewerSection.classList.contains('hidden');
+  
+  viewerSection.classList.toggle('hidden', isViewerVisible);
+  manageSection.classList.toggle('hidden', !isViewerVisible);
+  
+  if (!manageSection.classList.contains('hidden')) {
+    renderContentList('manage');
+    DOM('manage-content-btn-container').classList.add('hidden');
+  } else {
+    DOM('manage-content-btn-container').classList.toggle('hidden', !isManageUser());
+  }
+};
+
+// 新增內容
+const addNewContent = () => {
+  const type = CONFIG.currentContentType;
+  if (type === 'video') {
+    showVideoEditSection();
+  } else {
+    showFileEditSection();
+  }
+};
+
+// 編輯內容
+const editContent = (id, type) => {
+  if (type === 'video') {
+    const video = appState.videoList.find(v => v.id === id);
+    if (video) {
+      appState.currentEditingVideoId = id;
+      DOM('video-id').value = video.id;
+      DOM('video-name').value = video.name;
+      DOM('video-url').value = video.url;
+      DOM('video-note').value = video.note;
+      DOM('video-edit-title').textContent = '編輯影音';
+      showVideoEditSection();
+    }
+  } else if (type === 'file') {
+    const file = appState.fileList.find(f => f.id === id);
+    if (file) {
+      appState.currentEditingFileId = id;
+      DOM('file-id-hidden').value = file.id;
+      DOM('file-name').value = file.name;
+      DOM('file-url').value = file.url;
+      DOM('file-note').value = file.note;
+      DOM('file-edit-title').textContent = '編輯文件';
+      showFileEditSection();
+    }
+  }
+};
+
+// 編輯當前預覽的內容
+const editCurrentContent = () => {
+  if (appState.currentViewingId && appState.currentViewingType) {
+    editContent(appState.currentViewingId, appState.currentViewingType);
+    hideContentPreview();
+  }
+};
+
+// 刪除內容
+const deleteContent = (id, type) => {
+  if (!confirm(`確定要刪除這${type === 'video' ? '個影音' : '個文件'}嗎？此操作無法撤銷。`)) return;
+  
+  const listKey = `${type}List`;
+  const deleteFunc = type === 'video' ? deleteVideoFromGAS : deleteFileFromGAS;
+  
+  deleteFunc(id, (success) => {
+    if (success) {
+      appState[listKey] = appState[listKey].filter(item => item.id !== id);
+      renderContentList('manage');
+      renderContentList('viewer');
+      updateContentCountDisplay();
+      showSuccess(`已成功刪除${type === 'video' ? '影音' : '文件'}！`);
+      
+      // 如果刪除的是當前預覽的內容，隱藏預覽
+      if (id === appState.currentViewingId) {
+        hideContentPreview();
       }
     }
+  });
+};
 
-    if(tr>-1)sh.getRange(tr,1,1,lr.length).setValues([lr]);
-    else sh.appendRow(lr);
-    sh.autoResizeColumns(1,eh.length);
-    console.log(`用戶訪問記錄成功：${fdn} (${userId})，用戶類型：${ut}`);
-  }catch(err){
-    console.error("記錄用戶訪問失敗："+err.stack);
+// 刪除當前預覽的內容
+const deleteCurrentContent = () => {
+  if (appState.currentViewingId && appState.currentViewingType) {
+    deleteContent(appState.currentViewingId, appState.currentViewingType);
   }
-}
+};
+
+// 顯示/隱藏影音編輯區域
+const showVideoEditSection = () => {
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('video-edit-section').classList.remove('hidden');
+  DOM('video-name').focus();
+};
+
+const hideVideoEditSection = () => {
+  DOM('video-edit-section').classList.add('hidden');
+  DOM('content-manage-section').classList.remove('hidden');
+  resetVideoForm();
+};
+
+// 重置影音表單
+const resetVideoForm = () => {
+  DOM('video-form').reset();
+  DOM('video-id').value = '';
+  DOM('video-edit-title').textContent = '新增影音';
+  appState.currentEditingVideoId = null;
+  setVideoSubmitState(false);
+};
+
+// 保存影音
+const saveVideo = (e) => {
+  e.preventDefault();
+  if (appState.isSubmitting) return;
+  
+  const id = DOM('video-id').value || `video_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const name = DOM('video-name').value.trim();
+  const url = DOM('video-url').value.trim();
+  const note = DOM('video-note').value.trim();
+  const updatedAt = convertUTCToTaiwanTime(new Date().toISOString());
+  
+  if (!name || !url) {
+    showError('影音名稱和鏈接為必填項！');
+    return;
+  }
+  
+  if (!urlCheckers.isValidUrl(url)) {
+    showError('請輸入有效的URL鏈接！');
+    return;
+  }
+  
+  setVideoSubmitState(true);
+  
+  const videoData = { id, name, url, note, updatedAt };
+  
+  // 更新本地數據
+  if (appState.currentEditingVideoId) {
+    const index = appState.videoList.findIndex(v => v.id === id);
+    if (index !== -1) {
+      appState.videoList[index] = videoData;
+    }
+  } else {
+    appState.videoList.push(videoData);
+  }
+  
+  // 同步到GAS
+  syncVideoToGAS(videoData, (success) => {
+    setVideoSubmitState(false);
+    if (success) {
+      hideVideoEditSection();
+      renderContentList('manage');
+      renderContentList('viewer');
+      updateContentCountDisplay();
+      showSuccess(appState.currentEditingVideoId ? '影音已更新！' : '影音已新增！');
+      resetVideoForm();
+    }
+  });
+};
+
+// 顯示/隱藏文件編輯區域
+const showFileEditSection = () => {
+  DOM('content-manage-section').classList.add('hidden');
+  DOM('file-edit-section').classList.remove('hidden');
+  DOM('file-name').focus();
+};
+
+const hideFileEditSection = () => {
+  DOM('file-edit-section').classList.add('hidden');
+  DOM('content-manage-section').classList.remove('hidden');
+  resetFileForm();
+};
+
+// 重置文件表單
+const resetFileForm = () => {
+  DOM('file-form').reset();
+  DOM('file-id-hidden').value = '';
+  DOM('file-edit-title').textContent = '新增文件';
+  appState.currentEditingFileId = null;
+  setFileSubmitState(false);
+};
+
+// 保存文件
+const saveFile = (e) => {
+  e.preventDefault();
+  if (appState.isSubmitting) return;
+  
+  const id = DOM('file-id-hidden').value || `file_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+  const name = DOM('file-name').value.trim();
+  const url = DOM('file-url').value.trim();
+  const note = DOM('file-note').value.trim();
+  const updatedAt = convertUTCToTaiwanTime(new Date().toISOString());
+  
+  if (!name || !url) {
+    showError('文件名稱和鏈接為必填項！');
+    return;
+  }
+  
+  if (!urlCheckers.isValidUrl(url)) {
+    showError('請輸入有效的URL鏈接！');
+    return;
+  }
+  
+  setFileSubmitState(true);
+  
+  const fileData = { id, name, url, note, updatedAt };
+  
+  // 更新本地數據
+  if (appState.currentEditingFileId) {
+    const index = appState.fileList.findIndex(f => f.id === id);
+    if (index !== -1) {
+      appState.fileList[index] = fileData;
+    }
+  } else {
+    appState.fileList.push(fileData);
+  }
+  
+  // 同步到GAS
+  syncFileToGAS(fileData, (success) => {
+    setFileSubmitState(false);
+    if (success) {
+      hideFileEditSection();
+      renderContentList('manage');
+      renderContentList('viewer');
+      updateContentCountDisplay();
+      showSuccess(appState.currentEditingFileId ? '文件已更新！' : '文件已新增！');
+      resetFileForm();
+    }
+  });
+};
+
+// 初始化頁面
+const initApp = async () => {
+  try {
+    setStatus('初始化LIFF...');
+    
+    // 初始化LIFF
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+    
+    // 获取用户信息
+    const profile = await liff.getProfile();
+    appState.currentUser = {
+      userId: profile.userId,
+      displayName: profile.displayName,
+      pictureUrl: profile.pictureUrl
+    };
+    
+    // 驗證用戶權限
+    await verifyUserPermission();
+    
+    // 獲取影音和文件列表
+    await Promise.all([
+      fetchVideoListFromGAS(),
+      fetchFileListFromGAS()
+    ]);
+    
+    // 更新內容計數
+    updateContentCountDisplay();
+    
+    // 渲染用戶信息
+    setStatus('加載用戶信息...');
+    DOM('result-main').textContent = `歡迎尊爵用戶，${appState.userNickname}！`;
+    DOM('user-role-display').textContent = appState.userRole === 'admin' ? '管理員' : (appState.userRole === 'pro' ? '尊爵用戶' : '普通用戶');
+    DOM('user-name-display').classList.remove('hidden');
+    DOM('user-name').textContent = appState.userNickname;
+    
+    // 計算並顯示有效期
+    const expiryInfo = calculateRemainingDaysByDate(appState.userExpiryInfo.expiryDate);
+    DOM('user-expiry-display').classList.remove('hidden');
+    DOM('expiry-date').textContent = expiryInfo.displayDate;
+    DOM('remaining-days').innerHTML = expiryInfo.remainingDays;
+    
+    // 顯示主要內容
+    DOM('status').classList.add('hidden');
+    DOM('result-card').classList.remove('hidden');
+    DOM('content-viewer-section').classList.remove('hidden');
+    
+    // 顯示管理按鈕（僅管理員）
+    if (isManageUser()) {
+      DOM('manage-content-btn-container').classList.remove('hidden');
+    }
+    
+    // 渲染列表
+    renderContentList('viewer');
+    
+  } catch (error) {
+    console.error('初始化失敗：', error);
+    showError(`驗證失敗請重新加載：${error.message}<br>請『重新加載』或『聯繫彥彬』。<br>`);
+  }
+};
+
+// 事件監聽
+document.addEventListener('DOMContentLoaded', () => {
+  // 內容類型切換按鈕
+  DOM('content-type-toggle').addEventListener('click', () => {
+    DOM('content-type-dropdown').classList.toggle('hidden');
+  });
+  
+  // 點擊其他區域關閉下拉菜單
+  document.addEventListener('click', (e) => {
+    const toggleBtn = DOM('content-type-toggle');
+    const dropdown = DOM('content-type-dropdown');
+    if (!toggleBtn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+  
+  // 初始化應用
+  initApp();
+});
+</script>
+</body>
+</html>
