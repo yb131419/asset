@@ -117,23 +117,25 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
   position:absolute;
   bottom:0;
   right:0;
-  width:36px; /* 稍微加宽以容纳文字 */
-  height:36px; /* 稍微加高以容纳文字 */
+  width:42px; /* 增大按钮尺寸以完整显示文字 */
+  height:42px;
   background:#008C76;
-  border-radius:50%;
+  border-radius:50%; /* 确保完美圆形 */
   display:flex;
+  flex-direction:column; /* 垂直排列图标和文字 */
   align-items:center;
   justify-content:center;
   cursor:pointer;
   border:2px solid white;
   transition:all 0.3s ease;
   box-shadow:0 2px 8px rgba(0,140,118,0.3);
-  font-size:8px; /* 文字大小 */
+  font-size:7px; /* 微调文字大小 */
   color:white;
   font-weight:bold;
   text-align:center;
-  line-height:1;
-  padding:2px;
+  line-height:1.1; /* 调整行高避免文字重叠 */
+  padding:0; /* 移除内边距避免变形 */
+  box-sizing:border-box; /* 确保边框包含在尺寸内 */
 }
 #refresh-btn:hover {
   transform:scale(1.1) rotate(90deg);
@@ -142,16 +144,17 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
 }
 #refresh-btn i {
   color:white;
-  font-size:10px; /* 图标稍微缩小 */
-  display:block; /* 图标独占一行 */
-  margin-bottom:1px;
+  font-size:12px; /* 恢复图标大小 */
+  display:block;
+  margin-bottom:1px; /* 图标和文字间距 */
+  line-height:1;
 }
-#file-preview-tip .inline-block {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  margin-right: auto;
+#refresh-btn span {
+  display:block;
+  width:100%; /* 确保文字居中 */
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  overflow:hidden;
 }
 </style>
 </head>
