@@ -113,27 +113,31 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
 .start-watch-btn {
   @apply w-full mt-3 mobile-btn gold-gradient text-white text-sm font-medium px-6 py-3 rounded-xl shadow-gold-hover transition-all duration-300 flex items-center justify-center border-none;
 }
-/* 完全匹配的刷新按钮样式 - 增强质感版 */
+/* 完全匹配的刷新按鈕樣式 - 終極質感版 */
 #refresh-btn {
   position:absolute;
-  bottom: 0;         
-  right: 0;          
-  width: 80px;       
-  height: 80px;      
+  /* 修改為完全居中定位 */
+  bottom: 50%;
+  right: 50%;
+  transform: translate(50%, 50%);
+  /* 放大按鈕尺寸，從80px增加到100px */
+  width: 100px;       
+  height: 100px;      
   background:#008C76;
-  border-radius: 50%;/* 强制完美圆形 */
+  border-radius: 50%;/* 強制完美圓形 */
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  border: 3px solid #ffffff; /* 增加白色粗边框 */
-  transition:all 0.3s ease;
-  /* 优化阴影，增加层次感 */
+  border: 4px solid #ffffff; /* 加粗白色邊框適配更大尺寸 */
+  transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 更絲滑的過渡曲線 */
+  /* 優化陰影，增加高級層次感 */
   box-shadow: 
-    0 4px 12px rgba(0,140,118,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.2); /* 内阴影增加立体感 */
-  font-size: 11px;   
+    0 6px 20px rgba(0,140,118,0.45),
+    inset 0 2px 0 rgba(255,255,255,0.25),
+    inset 0 -2px 0 rgba(0,80,65,0.2); /* 雙層內陰影增強立體 */
+  font-size: 13px;    /* 放大文字適配更大按鈕 */
   color:white;
   font-weight:bold;
   text-align:center;
@@ -141,43 +145,50 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
   padding: 0;        
   box-sizing: border-box;
   z-index: 999;     
-  /* 新增：轻微的立体效果 */
-  transform: translateY(0);
-  /* 防止点击时出现高亮 */
+  /* 防止點擊時出現高亮 */
   outline: none;
-  /* 增加抗锯齿，文字更清晰 */
+  /* 增加抗鋸齒，文字更清晰 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 增加金屬質感的光澤效果 */
+  background-image: linear-gradient(145deg, #009980 0%, #007a66 100%);
 }
 #refresh-btn:hover {
-  transform: scale(1.05) translateY(-2px); /* 轻微上移+放大，更灵动 */
+  transform: translate(50%, 50%) scale(1.08); /* 居中狀態下的放大效果 */
   background:#00A88D;
-  /* 优化hover阴影，增强交互感 */
+  /* 優化hover陰影，增強交互感 */
   box-shadow: 
-    0 6px 16px rgba(0,140,118,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.3);
-  /* 边框轻微发光效果 */
-  border-color: rgba(255,255,255,0.9);
+    0 8px 25px rgba(0,140,118,0.6),
+    inset 0 2px 0 rgba(255,255,255,0.35),
+    inset 0 -2px 0 rgba(0,80,65,0.3);
+  /* 邊框輕微發光效果 */
+  border-color: rgba(255,255,255,0.95);
+  /* hover時增強漸變光澤 */
+  background-image: linear-gradient(145deg, #00bb9c 0%, #008c76 100%);
 }
-/* 新增：点击时的按压效果 */
+/* 點擊時的按壓效果 */
 #refresh-btn:active {
-  transform: scale(1.02) translateY(0);
+  transform: translate(50%, 50%) scale(1.03);
   box-shadow: 
-    0 2px 8px rgba(0,140,118,0.5),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+    0 4px 15px rgba(0,140,118,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,80,65,0.2);
 }
 #refresh-btn i {
   color:white;
-  font-size: 24px;   
+  font-size: 30px;   /* 放大圖標適配更大按鈕 */
   display:block;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   line-height: 1;
-  /* 图标也增加过渡效果 */
+  /* 圖標也增加過渡效果 */
   transition: all 0.2s ease;
+  /* 圖標也添加黑色描邊 */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 #refresh-btn:hover i {
-  /* hover时图标轻微旋转，增加动感 */
-  transform: rotate(5deg);
+  /* hover時圖標輕微旋轉，增加動感 */
+  transform: rotate(8deg);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 #refresh-btn span {
   display:block;
@@ -185,7 +196,16 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  padding: 0 5px;    
+  padding: 0 8px;    /* 增加內邊距適配更大按鈕 */
+  /* 核心：給文字添加黑色描邊/陰影，增強可讀性和高級感 */
+  text-shadow: 
+    -1px -1px 0 #000,  
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000; /* 四方向黑色描邊 */
+  /* 也可以用text-stroke（兼容性稍差）：
+  -webkit-text-stroke: 1px #000000;
+  */
 }
 </style>
 </head>
