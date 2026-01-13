@@ -113,13 +113,13 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
 .start-watch-btn {
   @apply w-full mt-3 mobile-btn gold-gradient text-white text-sm font-medium px-6 py-3 rounded-xl shadow-gold-hover transition-all duration-300 flex items-center justify-center border-none;
 }
-/* 完全匹配的刷新按钮样式 */
+/* 完全匹配的刷新按钮样式 - 增强质感版 */
 #refresh-btn {
   position:absolute;
-  bottom: 0;         /* 重置定位，完全居中 */
-  right: 0;          /* 重置定位，完全居中 */
-  width: 80px;       /* 与父容器80px×80px完全匹配 */
-  height: 80px;      /* 宽高一致保证完美圆形 */
+  bottom: 0;         
+  right: 0;          
+  width: 80px;       
+  height: 80px;      
   background:#008C76;
   border-radius: 50%;/* 强制完美圆形 */
   display:flex;
@@ -127,29 +127,57 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
   align-items:center;
   justify-content:center;
   cursor:pointer;
-  border: none;      /* 移除边框避免变形 */
+  border: 3px solid #ffffff; /* 增加白色粗边框 */
   transition:all 0.3s ease;
-  box-shadow:0 2px 8px rgba(0,140,118,0.3);
-  font-size: 11px;   /* 适配80px圆形的文字大小 */
+  /* 优化阴影，增加层次感 */
+  box-shadow: 
+    0 4px 12px rgba(0,140,118,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.2); /* 内阴影增加立体感 */
+  font-size: 11px;   
   color:white;
   font-weight:bold;
   text-align:center;
   line-height: 1.4;
-  padding: 0;        /* 移除内边距 */
+  padding: 0;        
   box-sizing: border-box;
-  z-index: 999;      /* 最高层级确保可见 */
+  z-index: 999;     
+  /* 新增：轻微的立体效果 */
+  transform: translateY(0);
+  /* 防止点击时出现高亮 */
+  outline: none;
+  /* 增加抗锯齿，文字更清晰 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 #refresh-btn:hover {
-  transform: scale(1.05); /* 轻微放大，取消旋转 */
+  transform: scale(1.05) translateY(-2px); /* 轻微上移+放大，更灵动 */
   background:#00A88D;
-  box-shadow:0 0 12px rgba(0,140,118,0.6);
+  /* 优化hover阴影，增强交互感 */
+  box-shadow: 
+    0 6px 16px rgba(0,140,118,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  /* 边框轻微发光效果 */
+  border-color: rgba(255,255,255,0.9);
+}
+/* 新增：点击时的按压效果 */
+#refresh-btn:active {
+  transform: scale(1.02) translateY(0);
+  box-shadow: 
+    0 2px 8px rgba(0,140,118,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.1);
 }
 #refresh-btn i {
   color:white;
-  font-size: 24px;   /* 适配80px圆形的图标大小 */
+  font-size: 24px;   
   display:block;
   margin-bottom: 4px;
   line-height: 1;
+  /* 图标也增加过渡效果 */
+  transition: all 0.2s ease;
+}
+#refresh-btn:hover i {
+  /* hover时图标轻微旋转，增加动感 */
+  transform: rotate(5deg);
 }
 #refresh-btn span {
   display:block;
@@ -157,7 +185,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  padding: 0 5px;    /* 左右内边距防止文字贴边 */
+  padding: 0 5px;    
 }
 </style>
 </head>
