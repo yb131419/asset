@@ -359,7 +359,7 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
       <div id="preview-content" class="space-y-4">
         <h3 id="preview-title" class="text-sm md:text-base font-semibold text-textPrimary text-center mb-3 text-gold-gradient"></h3>
         <div id="preview-container" class="mb-4">
-          <!-- 预览内容将通过JS动态生成 -->
+          <!-- 預覽內容將通過JS動態生成 -->
         </div>
         <div class="flex justify-center mt-3">
           <button onclick="hideContentPreview()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-6 py-3 rounded-xl flex items-center justify-center gap-1 shadow-sm">
@@ -383,7 +383,7 @@ const CONFIG={
   CACHE_DURATION: 24 * 60 * 60 * 1000
 };
 
-// 应用状态
+// 應用狀態
 let appState={
   currentUser:null,videoList:[],fileList:[],currentViewingId:null,
   currentViewingType:null,currentEditingVideoId:null,currentEditingFileId:null,
@@ -393,7 +393,7 @@ let appState={
   selectedContentId:''
 };
 
-// 工具函数
+// 工具函數
 const DOM=(id)=>document.getElementById(id);
 const convertUTCToTaiwanTime=(utcStr)=>{
   const options={timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'};
@@ -402,7 +402,7 @@ const convertUTCToTaiwanTime=(utcStr)=>{
 const setStatus=(text)=>{const el=DOM('status-text');if(el)el.textContent=text;};
 const resetSubmitState=()=>{setVideoSubmitState(false);setFileSubmitState(false);};
 
-// 缓存管理函数
+// 緩存管理函數
 const getCachedAuthData = (userId) => {
   try {
     const cacheKey = `${CONFIG.STORAGE_KEY_PREFIX}auth_${userId}`;
@@ -416,7 +416,7 @@ const getCachedAuthData = (userId) => {
     }
     return parsed.data;
   } catch (e) {
-    console.error('读取缓存失败:', e);
+    console.error('讀取緩存失敗:', e);
     return null;
   }
 };
@@ -429,7 +429,7 @@ const setCachedAuthData = (userId, authData) => {
       data: authData
     }));
   } catch (e) {
-    console.error('保存缓存失败:', e);
+    console.error('保存緩存失敗:', e);
   }
 };
 
@@ -724,7 +724,7 @@ const verifyUserPermission=()=>{
   return new Promise((resolve, reject)=>{
     setStatus('驗證用戶權限...');
     
-    // 如果有缓存且未过期，直接使用缓存数据
+    // 如果有緩存且未過期，直接使用緩存數據
     const cachedAuth = getCachedAuthData(appState.currentUser.userId);
     if (cachedAuth) {
       appState.userRole = cachedAuth.userRole;
@@ -734,7 +734,7 @@ const verifyUserPermission=()=>{
       return;
     }
     
-    // 无缓存或缓存过期，请求验证
+    // 無緩存或緩存過期，請求驗證
     if(!appState.currentUser)return reject(new Error('用戶信息不存在'));
     const requestData = {
       action:'verifyUser',
@@ -757,10 +757,10 @@ const verifyUserPermission=()=>{
             remainingDays:resp.remainingDays || 0,
             expiryDate:resp.expiryDate || CONFIG.PERMANENT_EXPIRY_DATE
           };
-          // 修复：确保昵称始终有值，增强容错
+          // 修復：確保暱稱始終有值，增強容錯
           appState.userNickname = resp.nickname || appState.currentUser.displayName || '幸福系統用戶';
           
-          // 缓存验证结果
+          // 緩存驗證結果
           setCachedAuthData(appState.currentUser.userId, {
             userRole: appState.userRole,
             userExpiryInfo: appState.userExpiryInfo,
@@ -953,7 +953,7 @@ const renderViewerContentList = () => {
   }
 };
 
-// 渲染管理列表（修复：恢复标题显示，排版顺序调整为 标题 → 备注 → 更新时间）
+// 渲染管理列表（修復：恢復標題顯示，排版順序調整為 標題 → 備注 → 更新時間）
 const renderManageContentList = () => {
   const type = CONFIG.currentContentType;
   const listKey = `${type}List`;
@@ -962,11 +962,11 @@ const renderManageContentList = () => {
   const emptyText = DOM('empty-manage-text');
   const emptyTip = DOM('empty-manage-tip');
   
-  // 隐藏所有列表容器
+  // 隱藏所有列表容器
   DOM('video-list-container').classList.add('hidden');
   DOM('file-list-container').classList.add('hidden');
   
-  // 清空当前容器
+  // 清空當前容器
   container.innerHTML = '';
   emptyEl.classList.add('hidden');
   
@@ -978,10 +978,10 @@ const renderManageContentList = () => {
     return;
   }
   
-  // 显示当前类型容器
+  // 顯示當前類型容器
   container.classList.remove('hidden');
   
-  // 渲染每个内容项（修复：恢复标题显示，排版顺序为 标题 → 备注 → 更新时间）
+  // 渲染每個內容項（修復：恢復標題顯示，排版順序為 標題 → 備注 → 更新時間）
   appState[listKey].forEach((item, index) => {
     const itemEl = document.createElement('div');
     itemEl.className = 'video-item bg-cardBg p-4 rounded-xl shadow-elevation-1 flex flex-col gap-2 border border-gray-100';
@@ -989,7 +989,7 @@ const renderManageContentList = () => {
     itemEl.dataset.type = type;
     itemEl.draggable = isManageUser();
     
-    // 拖放事件绑定（仅管理员可拖放）
+    // 拖放事件綁定（僅管理員可拖放）
     if (isManageUser()) {
       itemEl.addEventListener('dragstart', dragHandlers.start);
       itemEl.addEventListener('dragover', dragHandlers.over);
@@ -998,9 +998,9 @@ const renderManageContentList = () => {
       itemEl.addEventListener('dragend', dragHandlers.end);
     }
     
-// 內容預覽排版顺序为 标题 → 备注 → 更新时间
+// 內容預覽排版順序為 標題 → 備注 → 更新時間
 itemEl.innerHTML = `
-  <!-- 按钮区域 - 置左显示 + 高质感样式 -->
+  <!-- 按鈕區域 - 置左顯示 + 高質感樣式 -->
 <div class="flex items-center gap-2 mb-3 justify-center flex-wrap">
   <button onclick="previewContent('${type}', '${item.id}')" class="p-2 px-3 text-white bg-primary/90 hover:bg-primary rounded-full hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 flex items-center gap-1">
     <i class="fa fa-eye text-base"></i>
@@ -1018,7 +1018,7 @@ itemEl.innerHTML = `
   ` : ''}
 </div>
   
-  <!-- 标题区域 - 置左显示 + 白字黑框高质感样式 -->
+  <!-- 標題區域 - 置左顯示 + 白字黑框高質感樣式 -->
   <h3 class="font-bold text-white text-xs mb-4 
              px-4 py-2 rounded-xl 
              bg-gradient-to-r from-black/90 to-gray-800/90 
@@ -1032,14 +1032,14 @@ itemEl.innerHTML = `
     ${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}
   </h3>
   
-  <!-- 备注区域 - 置左显示 + 高质感样式 -->
+  <!-- 備注區域 - 置左顯示 + 高質感樣式 -->
   ${item.note ? `
     <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 mb-3 shadow-md border border-gray-100">
       <p class="text-textSecondary text-sm leading-relaxed">${item.note}</p>
     </div>
   ` : ''}
   
-  <!-- 更新时间 - 置左显示 + 高质感样式 -->
+  <!-- 更新時間 - 置左顯示 + 高質感樣式 -->
   <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl shadow-md border border-gray-700/50 inline-block">
     ${item.updatedAt}
   </div>
@@ -1048,7 +1048,7 @@ container.appendChild(itemEl);
 });
 };
 
-// 统一的列表渲染入口
+// 統一的列表渲染入口
 const renderContentList = (mode) => {
   if (mode === 'viewer') {
     renderViewerContentList();
@@ -1057,7 +1057,7 @@ const renderContentList = (mode) => {
   }
 };
 
-// 选择内容查看（保持排版顺序为 标题 → 备注 → 更新时间）
+// 選擇內容查看（保持排版順序為 標題 → 備注 → 更新時間）
 const selectContent = (contentId) => {
   if (!contentId) {
     DOM('selected-content-display').classList.add('hidden');
@@ -1080,21 +1080,25 @@ const selectContent = (contentId) => {
   const viewerContentCard = DOM('viewer-content-card');
   const selectedDisplay = DOM('selected-content-display');
 
-  // 转换嵌入URL并生成预览
+  // 轉換嵌入URL並生成預覽
   const embedInfo = type === 'video' ? convertToEmbedUrl(contentItem.url) : { type: 'file', url: contentItem.url };
   const thumbnailUrl = getThumbnail(contentItem.url, type);
   
-  // 构建内容卡片（保持排版顺序：标题 → 备注 → 更新时间）
+  // 構建內容卡片（保持排版順序：標題 → 備注 → 更新時間）
   viewerContentCard.innerHTML = `
     <div class="p-4">
-      <!-- 标题区域 -->
-<h3 class="text-sm font-bold text-white text-center mb-4 
+      <!-- 標題區域 -->
+      <h3 class="text-sm font-bold text-white text-center mb-4 
            drop-shadow-[0_0_1px_#000] drop-shadow-[0_0_1px_#000] 
-           bg-black/80 px-3 py-1 rounded-lg">
-      ${contentItem.name}
+           bg-gradient-to-r from-gray-900/95 to-black/95 
+           px-3 py-1 rounded-lg 
+           shadow-md shadow-black/20 
+           border border-gray-800/50 
+           backdrop-blur-sm">
+           ${contentItem.name}
       </h3>
       
-      <!-- 预览容器 -->
+      <!-- 預覽容器 -->
       <div class="mb-4">
         ${embedInfo.type === 'unsupported' ? `
           <div class="bg-neutral rounded-xl p-6 text-center">
@@ -1103,14 +1107,14 @@ const selectContent = (contentId) => {
             </div>
             <p class="text-textSecondary mb-3">無法預覽此類型內容</p>
             <a href="${contentItem.url}" target="_blank" class="mobile-btn primary-gradient text-white text-sm font-medium px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 inline-flex items-center gap-2">
-              <i class="fa fa-external-link"></i> 開啟原始鏈接
+              <i class="fa fa-external-link"></i> 開啓原始鏈接
             </a>
           </div>
         ` : embedInfo.type === 'file' ? `
           <div class="bg-neutral rounded-xl p-6 text-center">
             <img src="${thumbnailUrl}" alt="${contentItem.name}" class="mx-auto rounded-lg mb-4 max-h-40 object-contain">
             <a href="${contentItem.url}" target="_blank" class="mobile-btn primary-gradient text-white text-sm font-medium px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 inline-flex items-center gap-2">
-              <i class="fa fa-download"></i> 打開/下載文件
+              <i class="fa fa-download"></i> 打開文件
             </a>
           </div>
         ` : `
@@ -1120,28 +1124,28 @@ const selectContent = (contentId) => {
         `}
       </div>
       
-      <!-- 备注信息（保持在标题/预览后、更新时间前） -->
+      <!-- 備注信息（保持在標題/預覽後、更新時間前） -->
       ${contentItem.note ? `
         <div class="bg-neutral/50 rounded-lg p-3 mb-3">
           <p class="text-textSecondary text-sm">${contentItem.note}</p>
         </div>
       ` : ''}
       
-      <!-- 更新时间（放在最后） -->
+      <!-- 更新時間（放在最後） -->
       <div class="text-xs text-textSecondary bg-neutral px-2 py-1 rounded self-start">
         最後更新：${contentItem.updatedAt}
       </div>
       
-      <!-- 操作按钮 -->
+      <!-- 操作按鈕 -->
 <div class="mt-4 flex justify-center gap-3">
   ${isProUser() ? `
     <button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}')" 
             class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
-      <!-- 高光装饰 -->
+      <!-- 高光裝飾 -->
       <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
       <!-- 流光效果 -->
       <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
-      <i class="fa fa-share-alt"></i> 分享鏈接
+      <i class="fa fa-share-alt"></i> 分享學習鏈接
     </button>
   ` : ''}
 </div>
@@ -1151,7 +1155,7 @@ const selectContent = (contentId) => {
   selectedDisplay.classList.remove('hidden');
 };
 
-// 预览内容（弹窗模式）
+// 預覽內容（彈窗模式）
 const previewContent = (type, contentId) => {
   const listKey = `${type}List`;
   const contentItem = appState[listKey].find(item => item.id === contentId);
@@ -1161,29 +1165,29 @@ const previewContent = (type, contentId) => {
     return;
   }
 
-  // 隐藏其他区域，显示预览区域
+  // 隱藏其他區域，顯示預覽區域
   DOM('content-viewer-section').classList.add('hidden');
   DOM('content-manage-section').classList.add('hidden');
   DOM('video-edit-section').classList.add('hidden');
   DOM('file-edit-section').classList.add('hidden');
   DOM('content-preview').classList.remove('hidden');
 
-  // 保存当前预览的内容信息
+  // 保存當前預覽的內容信息
   appState.currentViewingId = contentId;
   appState.currentViewingType = type;
 
-  // 更新预览标题
+  // 更新預覽標題
   DOM('preview-title').textContent = contentItem.name;
   
-  // 生成预览内容（保持排版顺序：标题 → 备注 → 更新时间）
+  // 生成預覽內容（保持排版順序：標題 → 備注 → 更新時間）
   const embedInfo = type === 'video' ? convertToEmbedUrl(contentItem.url) : { type: 'file', url: contentItem.url };
   const thumbnailUrl = getThumbnail(contentItem.url, type);
   const previewContainer = DOM('preview-container');
 
-  // 显示编辑/删除按钮（仅管理员）
+  // 顯示編輯/刪除按鈕（僅管理員）
   DOM('preview-action-btns').classList.toggle('hidden', !isManageUser());
 
-  // 构建预览内容
+  // 構建預覽內容
   previewContainer.innerHTML = `
     ${embedInfo.type === 'unsupported' ? `
       <div class="bg-neutral rounded-xl p-8 text-center">
@@ -1192,14 +1196,14 @@ const previewContent = (type, contentId) => {
         </div>
         <p class="text-textSecondary text-lg mb-4">無法預覽此類型內容</p>
         <a href="${contentItem.url}" target="_blank" class="mobile-btn primary-gradient text-white text-base font-medium px-8 py-3 rounded-xl shadow-primary-hover transition-all duration-300 inline-flex items-center gap-2">
-          <i class="fa fa-external-link text-lg"></i> 開啟原始鏈接
+          <i class="fa fa-external-link text-lg"></i> 開啓原始鏈接
         </a>
       </div>
     ` : embedInfo.type === 'file' ? `
       <div class="bg-neutral rounded-xl p-8 text-center">
         <img src="${thumbnailUrl}" alt="${contentItem.name}" class="mx-auto rounded-lg mb-6 max-h-60 object-contain">
         <a href="${contentItem.url}" target="_blank" class="mobile-btn primary-gradient text-white text-base font-medium px-8 py-3 rounded-xl shadow-primary-hover transition-all duration-300 inline-flex items-center gap-2">
-          <i class="fa fa-download text-lg"></i> 打開/下載文件
+          <i class="fa fa-download text-lg"></i> 打開文件
         </a>
       </div>
     ` : `
@@ -1208,7 +1212,7 @@ const previewContent = (type, contentId) => {
       </div>
     `}
     
-    <!-- 备注信息（保持排版顺序） -->
+    <!-- 備注信息（保持排版順序） -->
     ${contentItem.note ? `
       <div class="bg-neutral/50 rounded-lg p-4 mt-6">
         <h4 class="text-textPrimary font-medium text-sm mb-2">備注資訊：</h4>
@@ -1216,14 +1220,14 @@ const previewContent = (type, contentId) => {
       </div>
     ` : ''}
     
-    <!-- 更新时间 -->
+    <!-- 更新時間 -->
     <div class="text-sm text-textSecondary bg-neutral px-3 py-2 rounded mt-4 inline-block">
       <i class="fa fa-clock-o mr-1"></i> 最後更新：${contentItem.updatedAt}
     </div>
   `;
 };
 
-// 隐藏内容预览
+// 隱藏內容預覽
 const hideContentPreview = () => {
   DOM('content-preview').classList.add('hidden');
   DOM('content-viewer-section').classList.remove('hidden');
@@ -1231,21 +1235,21 @@ const hideContentPreview = () => {
   appState.currentViewingType = null;
 };
 
-// 编辑当前预览的内容
+// 編輯當前預覽的內容
 const editCurrentContent = () => {
   if (!appState.currentViewingId || !appState.currentViewingType) return;
   editContent(appState.currentViewingType, appState.currentViewingId);
   hideContentPreview();
 };
 
-// 删除当前预览的内容
+// 刪除當前預覽的內容
 const deleteCurrentContent = () => {
   if (!appState.currentViewingId || !appState.currentViewingType) return;
   deleteContent(appState.currentViewingType, appState.currentViewingId);
   hideContentPreview();
 };
 
-// 编辑内容
+// 編輯內容
 const editContent = (type, id) => {
   if (!isManageUser()) {
     showError('您沒有編輯權限');
@@ -1260,7 +1264,7 @@ const editContent = (type, id) => {
     return;
   }
 
-  // 隐藏其他区域，显示编辑区域
+  // 隱藏其他區域，顯示編輯區域
   DOM('content-viewer-section').classList.add('hidden');
   DOM('content-manage-section').classList.add('hidden');
   DOM('content-preview').classList.add('hidden');
@@ -1286,20 +1290,20 @@ const editContent = (type, id) => {
   }
 };
 
-// 新增内容
+// 新增內容
 const addNewContent = () => {
   if (!isManageUser()) {
     showError('您沒有新增權限');
     return;
   }
 
-  // 隐藏其他区域
+  // 隱藏其他區域
   DOM('content-viewer-section').classList.add('hidden');
   DOM('content-manage-section').classList.add('hidden');
   DOM('content-preview').classList.add('hidden');
   
   if (CONFIG.currentContentType === 'video') {
-    // 重置视频编辑表单
+    // 重置視頻編輯表單
     DOM('video-edit-section').classList.remove('hidden');
     DOM('file-edit-section').classList.add('hidden');
     DOM('video-edit-title').textContent = '新增影音';
@@ -1307,7 +1311,7 @@ const addNewContent = () => {
     DOM('video-id').value = '';
     appState.currentEditingVideoId = null;
   } else {
-    // 重置文件编辑表单
+    // 重置文件編輯表單
     DOM('file-edit-section').classList.remove('hidden');
     DOM('video-edit-section').classList.add('hidden');
     DOM('file-edit-title').textContent = '新增文件';
@@ -1317,7 +1321,7 @@ const addNewContent = () => {
   }
 };
 
-// 隐藏视频编辑区域
+// 隱藏視頻編輯區域
 const hideVideoEditSection = () => {
   DOM('video-edit-section').classList.add('hidden');
   DOM('content-manage-section').classList.remove('hidden');
@@ -1325,7 +1329,7 @@ const hideVideoEditSection = () => {
   resetSubmitState();
 };
 
-// 隐藏文件编辑区域
+// 隱藏文件編輯區域
 const hideFileEditSection = () => {
   DOM('file-edit-section').classList.add('hidden');
   DOM('content-manage-section').classList.remove('hidden');
@@ -1333,7 +1337,7 @@ const hideFileEditSection = () => {
   resetSubmitState();
 };
 
-// 保存视频
+// 保存視頻
 const saveVideo = (e) => {
   e.preventDefault();
   if (appState.isSubmitting) return;
@@ -1368,7 +1372,7 @@ const saveVideo = (e) => {
     if (success) {
       // 更新本地列表
       if (id) {
-        // 编辑模式
+        // 編輯模式
         const index = appState.videoList.findIndex(v => v.id === id);
         if (index !== -1) {
           appState.videoList[index] = videoData;
@@ -1385,7 +1389,7 @@ const saveVideo = (e) => {
       renderContentList('viewer');
       updateContentCountDisplay();
       
-      // 隐藏编辑区域
+      // 隱藏編輯區域
       hideVideoEditSection();
     }
   });
@@ -1426,7 +1430,7 @@ const saveFile = (e) => {
     if (success) {
       // 更新本地列表
       if (id) {
-        // 编辑模式
+        // 編輯模式
         const index = appState.fileList.findIndex(f => f.id === id);
         if (index !== -1) {
           appState.fileList[index] = fileData;
@@ -1443,13 +1447,13 @@ const saveFile = (e) => {
       renderContentList('viewer');
       updateContentCountDisplay();
       
-      // 隐藏编辑区域
+      // 隱藏編輯區域
       hideFileEditSection();
     }
   });
 };
 
-// 删除内容
+// 刪除內容
 const deleteContent = (type, id) => {
   if (!isManageUser()) {
     showError('您沒有刪除權限');
@@ -1465,10 +1469,10 @@ const deleteContent = (type, id) => {
 
   deleteFunc(id, (success) => {
     if (success) {
-      // 从本地列表移除
+      // 從本地列表移除
       appState[listKey] = appState[listKey].filter(item => item.id !== id);
       
-      // 如果删除的是当前选中的内容，清空选择
+      // 如果刪除的是當前選中的內容，清空選擇
       if (appState.selectedContentId === id) {
         appState.selectedContentId = '';
       }
@@ -1483,29 +1487,29 @@ const deleteContent = (type, id) => {
   });
 };
 
-// 切换内容类型（影音/文件）
+// 切換內容類型（影音/文件）
 const switchContentType = (type) => {
   CONFIG.currentContentType = type;
   
-  // 更新按钮显示文本
+  // 更新按鈕顯示文本
   DOM('current-content-type').textContent = type === 'video' ? '影音列表' : '文件列表';
   
-  // 更新查看区域标题
+  // 更新查看區域標題
   DOM('viewer-section-title').innerHTML = type === 'video' 
     ? '<i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影音列表' 
     : '<i class="fa fa-file text-primary mr-2 text-sm"></i> 文件列表';
   
-  // 更新管理区域标题
+  // 更新管理區域標題
   DOM('manage-section-title').innerHTML = type === 'video' 
     ? '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表' 
     : '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 文件管理列表';
   
-  // 更新新增按钮文本
+  // 更新新增按鈕文本
   DOM('add-content-btn').innerHTML = type === 'video' 
     ? '<i class="fa fa-plus text-lg"></i> 新增影音' 
     : '<i class="fa fa-plus text-lg"></i> 新增文件';
   
-  // 隐藏下拉菜单
+  // 隱藏下拉菜單
   DOM('content-type-dropdown').classList.add('hidden');
   
   // 重新渲染列表
@@ -1513,18 +1517,18 @@ const switchContentType = (type) => {
   renderContentList('manage');
 };
 
-// 切换管理/查看区域
+// 切換管理/查看區域
 const toggleManageSection = () => {
   const manageSection = DOM('content-manage-section');
   const viewerSection = DOM('content-viewer-section');
   
   if (manageSection.classList.contains('hidden')) {
-    // 显示管理区域
+    // 顯示管理區域
     manageSection.classList.remove('hidden');
     viewerSection.classList.add('hidden');
     renderContentList('manage');
   } else {
-    // 显示查看区域
+    // 顯示查看區域
     manageSection.classList.add('hidden');
     viewerSection.classList.remove('hidden');
     renderContentList('viewer');
@@ -1553,10 +1557,10 @@ const initLIFF = () => {
   });
 };
 
-// 初始化应用
+// 初始化應用
 const initApp = async () => {
   try {
-    // 初始化LIFF并获取用户信息
+    // 初始化LIFF並獲取用戶信息
     const idToken = await initLIFF();
     appState.currentUser = {
       userId: idToken.sub,
@@ -1564,21 +1568,21 @@ const initApp = async () => {
       picture: idToken.picture || ''
     };
 
-    // 验证用户权限
+    // 驗證用戶權限
     await verifyUserPermission();
     
-    // 获取视频和文件列表
+    // 獲取視頻和文件列表
     await Promise.all([fetchVideoListFromGAS(), fetchFileListFromGAS()]);
     
-    // 更新内容计数
+    // 更新內容計數
     updateContentCountDisplay();
     
-    // 隐藏加载状态，显示主内容
+    // 隱藏加載狀態，顯示主內容
     DOM('status').classList.add('hidden');
     DOM('result-card').classList.remove('hidden');
     DOM('content-viewer-section').classList.remove('hidden');
     
-    // 渲染用户信息
+    // 渲染用戶信息
     const expiryInfo = calculateRemainingDaysByDate(appState.userExpiryInfo.expiryDate);
     DOM('result-main').textContent = `歡迎尊爵用戶！`;
     DOM('user-role-display').textContent = isAdminUser() ? '系統管理員' : (isProUser() ? '尊爵用戶' : '普通用戶');
@@ -1591,12 +1595,12 @@ const initApp = async () => {
     // 渲染初始列表
     renderContentList('viewer');
     
-    // 绑定内容类型切换按钮事件
+    // 綁定內容類型切換按鈕事件
     DOM('content-type-toggle').addEventListener('click', () => {
       DOM('content-type-dropdown').classList.toggle('hidden');
     });
     
-    // 点击外部关闭下拉菜单
+    // 點擊外部關閉下拉菜單
     document.addEventListener('click', (e) => {
       const dropdown = DOM('content-type-dropdown');
       const toggleBtn = DOM('content-type-toggle');
@@ -1611,10 +1615,10 @@ const initApp = async () => {
   }
 };
 
-// 页面加载完成后初始化
+// 頁面加載完成後初始化
 document.addEventListener('DOMContentLoaded', initApp);
 
-// 处理窗口关闭/刷新时的未保存提示
+// 處理窗口關閉/刷新時的未保存提示
 window.addEventListener('beforeunload', (e) => {
   if (appState.isSubmitting) {
     e.preventDefault();
@@ -1623,22 +1627,22 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// 原生分享功能实现
+// 原生分享功能實現
 const shareContentLink = async (title, url) => {
   try {
-    // 解码URL
+    // 解碼URL
     const decodedUrl = decodeURIComponent(url);
     
-    // 获取用户名（兼容元素不存在的情况）
+    // 獲取用戶名（兼容元素不存在的情況）
     const userNameElement = document.getElementById('user-name');
     const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
     
-    // 构建多行分享文本（适配不同平台的换行符）
-    const shareText = `🎬 ${title}標題
+    // 構建多行分享文本（適配不同平台的換行符）
+    const shareText = `🎬 ${title}
 ${userName}
 分享學習資訊給您`;
     
-    // 优先使用Web Share API（原生分享）
+    // 優先使用Web Share API（原生分享）
     if (navigator.share) {
       await navigator.share({
         title: title,
@@ -1647,7 +1651,7 @@ ${userName}
       });
       showSuccess('分享成功！');
     } else {
-      // 降级方案：复制链接到剪贴板（添加链接到文本末尾）
+      // 降級方案：複製鏈接到剪貼板（添加鏈接到文本末尾）
       const copyText = `${shareText}
 
 ${decodedUrl}`;
@@ -1655,7 +1659,7 @@ ${decodedUrl}`;
       showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
     }
   } catch (error) {
-    // 终极降级：手动选中并提示
+    // 終極降級：手動選中並提示
     const userNameElement = document.getElementById('user-name');
     const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
     const shareText = `<br>🎬 ${title}<br>${userName}<br>分享學習資訊給您`;
@@ -1670,7 +1674,7 @@ ${decodeURIComponent(url)}`;
     document.execCommand('copy');
     document.body.removeChild(textArea);
     
-    if (error.name !== 'AbortError') { // 排除用户取消分享的情况
+    if (error.name !== 'AbortError') { // 排除用戶取消分享的情況
       showSuccess('分享功能暫不支援當前設備，鏈接已複製到剪貼簿！');
     }
   }
