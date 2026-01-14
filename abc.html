@@ -1678,26 +1678,49 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// 原生分享功能實現
+// 封装获取已保存昵称的函数（供分享功能调用）
+function getSavedShareNickname() {
+  // 优先级：本地存储的分享昵称 > 应用内用户昵称 > LINE昵称 > 兜底"用戶"
+  const savedNickname = localStorage.getItem('shareNickname');
+  if (savedNickname && savedNickname.trim()) {
+    return savedNickname.trim();
+  }
+  
+  // 兼容原有逻辑的兜底方案
+  const fallbackName = appState?.userNickname || appState?.currentUser?.displayName || '用戶';
+  return fallbackName.trim() || '用戶';
+}
+
+// 优化后的原生分享功能實現
 const shareContentLink = async (title, url) => {
   try {
-    // 解碼URL
-    const decodedUrl = decodeURIComponent(url);
+    // 參數校驗
+    if (!title || !url) {
+      showError('分享內容不完整，請稍後再試');
+      return;
+    }
     
-    // 獲取用戶名（兼容元素不存在的情況）
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    // 解碼URL（增加异常处理）
+    let decodedUrl = '';
+    try {
+      decodedUrl = decodeURIComponent(url);
+    } catch (e) {
+      decodedUrl = url; // 解码失败时直接使用原URL
+    }
     
-    // 構建多行分享文本（適配不同平台的換行符）
-    const shareText = `🎬 ${title}
+    // 獲取最終使用的分享暱稱（核心修改：使用保存的昵称）
+    const shareNickname = getSavedShareNickname();
+    
+    // 構建優化的多行分享文本（适配不同平台，格式更美观）
+    const shareText = `🎬 ${title || '學習內容'}
 
-${userName}
-分享學習資訊給您`;
+${shareNickname}
+邀請您一起學習✨`;
     
     // 優先使用Web Share API（原生分享）
     if (navigator.share) {
       await navigator.share({
-        title: title,
+        title: title || '學習內容',
         url: decodedUrl,
         text: shareText
       });
@@ -1706,39 +1729,80 @@ ${userName}
       // 降級方案：複製鏈接到剪貼板（添加鏈接到文本末尾）
       const copyText = `${shareText}
 
-${decodedUrl}`;
-      await navigator.clipboard.writeText(copyText);
-      showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
+🔗 學習鏈接：${decodedUrl}`;
+      
+      // 现代剪贴板API
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(copyText);
+        showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
+      } else {
+        // 终极降级方案
+        fallbackCopyToClipboard(copyText);
+        showSuccess('分享功能暫不支援當前設備，鏈接已複製到剪貼簿！');
+      }
     }
   } catch (error) {
-    // 終極降級：手動選中並提示
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
-    const shareText = `🎬 ${title}
-    
-${userName}
-邀請您學習`;
-    const copyText = `${shareText}
-
-${decodeURIComponent(url)}`;
-    
-    const textArea = document.createElement('textarea');
-    textArea.value = copyText;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textArea);
-    
-    if (error.name !== 'AbortError') { // 排除用戶取消分享的情況
-      showSuccess('分享功能暫不支援當前設備，鏈接已複製到剪貼簿！');
+    // 錯誤處理優化（区分用户取消和真错误）
+    if (error.name === 'AbortError' || error.message.includes('cancel')) {
+      // 用户主动取消分享，不提示错误
+      return;
     }
+    
+    // 終極降級方案（兼容老旧浏览器）
+    const shareNickname = getSavedShareNickname();
+    const fallbackTitle = title || '學習內容';
+    let fallbackUrl = '';
+    try {
+      fallbackUrl = decodeURIComponent(url);
+    } catch (e) {
+      fallbackUrl = url;
+    }
+    
+    const copyText = `🎬 ${fallbackTitle}
+
+${shareNickname}
+邀請您一起學習✨
+
+🔗 學習鏈接：${fallbackUrl}`;
+    
+    fallbackCopyToClipboard(copyText);
+    showSuccess('分享功能暫不支援當前設備，鏈接已複製到剪貼簿！');
   }
 };
+
+// 兜底的剪贴板复制函数（兼容所有浏览器）
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  
+  // 隐藏textarea避免闪烁
+  textArea.style.position = 'fixed';
+  textArea.style.top = '0';
+  textArea.style.left = '0';
+  textArea.style.opacity = '0';
+  
+  document.body.appendChild(textArea);
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.error('剪贴板复制失败:', err);
+    showError('無法複製鏈接，請手動複製');
+  } finally {
+    document.body.removeChild(textArea);
+  }
+}
 
 // 打开昵称设置弹窗
 function openShareNicknameModal() {
   const modal = document.getElementById('share-nickname-modal');
   const modalContent = document.getElementById('modal-content');
+  
+  if (!modal || !modalContent) {
+    showError('暱稱設置面板加載失敗，請刷新頁面');
+    return;
+  }
   
   // 显示弹窗并添加动画
   modal.classList.remove('hidden');
@@ -1749,18 +1813,23 @@ function openShareNicknameModal() {
   
   // 从本地存储读取已保存的昵称并填充
   const savedNickname = localStorage.getItem('shareNickname');
-  if (savedNickname) {
-    document.getElementById('share-nickname-input').value = savedNickname;
+  const nicknameInput = document.getElementById('share-nickname-input');
+  if (savedNickname && nicknameInput) {
+    nicknameInput.value = savedNickname;
   }
   
   // 聚焦输入框
-  document.getElementById('share-nickname-input').focus();
+  if (nicknameInput) {
+    nicknameInput.focus();
+  }
 }
 
 // 关闭昵称设置弹窗
 function closeShareNicknameModal() {
   const modal = document.getElementById('share-nickname-modal');
   const modalContent = document.getElementById('modal-content');
+  
+  if (!modal || !modalContent) return;
   
   // 关闭动画
   modalContent.classList.remove('scale-100', 'opacity-100');
@@ -1775,10 +1844,22 @@ function closeShareNicknameModal() {
 // 保存分享昵称（永久存储到localStorage）
 function saveShareNickname() {
   const nicknameInput = document.getElementById('share-nickname-input');
+  if (!nicknameInput) {
+    showError('輸入框加載失敗，請刷新頁面');
+    return;
+  }
+  
   const nickname = nicknameInput.value.trim();
   
   if (!nickname) {
-    alert('請輸入有效的分享暱稱');
+    showError('請輸入有效的分享暱稱');
+    nicknameInput.focus();
+    return;
+  }
+  
+  // 昵称长度限制（避免过长影响分享体验）
+  if (nickname.length > 20) {
+    showError('暱稱長度不能超過20個字');
     nicknameInput.focus();
     return;
   }
@@ -1786,21 +1867,20 @@ function saveShareNickname() {
   // 永久保存到本地存储（浏览器本地，除非手动清除）
   localStorage.setItem('shareNickname', nickname);
   
-  // 提示成功
-  alert(`分享暱稱「${nickname}」已保存！此暱稱將永久生效`);
+  // 使用统一的提示函数（替代alert，体验更好）
+  showSuccess(`分享暱稱「${nickname}」已保存！此暱稱將永久生效`);
   
   // 关闭弹窗
   closeShareNicknameModal();
   
-  // 可选：更新页面上已显示的昵称（如果有）
+  // 更新页面上所有显示的昵称
   if (document.getElementById('share-name-display')) {
     document.getElementById('share-name-display').textContent = nickname;
   }
-}
-
-// 封装获取已保存昵称的函数（供分享功能调用）
-function getSavedShareNickname() {
-  return localStorage.getItem('shareNickname') || (appState.userNickname || appState.currentUser?.displayName || '用戶');
+  // 同步更新user-name显示（如果有）
+  if (document.getElementById('user-name')) {
+    document.getElementById('user-name').textContent = nickname;
+  }
 }
 
 
