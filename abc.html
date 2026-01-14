@@ -1627,15 +1627,18 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// 原生分享功能實現
-const shareContentLink = async (title, url) => {
+// 原生分享功能實現（新增customName参数支持自定义名称）
+const shareContentLink = async (title, url, customName = '') => {
   try {
     // 解碼URL
     const decodedUrl = decodeURIComponent(url);
     
-    // 獲取用戶名（兼容元素不存在的情況）
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    // 獲取用戶名：优先使用自定义名称 → 其次读取页面元素 → 最后使用默认值
+    let userName = customName.trim();
+    if (!userName) {
+      const userNameElement = document.getElementById('user-name');
+      userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    }
     
     // 構建多行分享文本（適配不同平台的換行符）
     const shareText = `🎬 ${title}
@@ -1659,10 +1662,15 @@ ${decodedUrl}`;
       showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
     }
   } catch (error) {
-    // 終極降級：手動選中並提示
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
-    const shareText = `<br>🎬 ${title}<br>${userName}<br>分享學習資訊給您`;
+    // 終極降級：手動選中並提示（同步自定义名称逻辑）
+    let userName = customName.trim();
+    if (!userName) {
+      const userNameElement = document.getElementById('user-name');
+      userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    }
+    const shareText = `🎬 ${title}
+${userName}
+分享學習資訊給您`;
     const copyText = `${shareText}
 
 ${decodeURIComponent(url)}`;
@@ -1679,7 +1687,6 @@ ${decodeURIComponent(url)}`;
     }
   }
 };
-
 
 </script>
 </body>
