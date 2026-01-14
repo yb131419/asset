@@ -1137,8 +1137,25 @@ const selectContent = (contentId) => {
       </div>
       
       <!-- 操作按鈕 -->
-<div class="mt-4 flex justify-center gap-3">
+<div class="mt-4 flex justify-center gap-3 flex-wrap">
   ${isProUser() ? `
+    <!-- 显示当前分享名称的标签 -->
+    <div id="current-share-name-tag" class="bg-white/90 text-primary font-medium text-xs px-3 py-2 rounded-full shadow-md border border-primary/20 flex items-center gap-1">
+      <i class="fa fa-user-circle"></i>
+      <span id="share-name-display">${appState.userNickname || appState.currentUser?.displayName || '用戶'}</span>
+    </div>
+    
+    <!-- 修改分享名称按钮 -->
+    <button onclick="editShareName()" 
+            class="mobile-btn-sm bg-gradient-to-r from-gold to-darkGold text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-gold/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
+      <!-- 高光裝飾 -->
+      <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
+      <!-- 流光效果 -->
+      <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
+      <i class="fa fa-pencil"></i> 修改名稱
+    </button>
+    
+    <!-- 分享按钮 -->
     <button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}')" 
             class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
       <!-- 高光裝飾 -->
@@ -1794,6 +1811,133 @@ ${decodeURIComponent(url)}`;
     }
   }
 };
+
+// 编辑分享名称函数
+const editShareName = () => {
+  // 创建修改名称的模态框
+  let modal = document.getElementById('edit-share-name-modal');
+  if (modal) modal.remove();
+  
+  modal = document.createElement('div');
+  modal.id = 'edit-share-name-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+  `;
+  
+  // 获取当前使用的名称
+  const currentName = cachedShareName || appState.userNickname || appState.currentUser?.displayName || '用戶';
+  
+  // 弹窗内容
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    ">
+      <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 18px; font-weight: 600; text-align: center;">
+        🎬 修改分享顯示名稱
+      </h3>
+      <input type="text" id="edit-share-name-input" 
+             value="${currentName}"
+             placeholder="請輸入您想要顯示的分享名稱"
+             style="
+               width: 100%;
+               padding: 0.8rem;
+               border: 2px solid #e0e0e0;
+               border-radius: 8px;
+               font-size: 16px;
+               margin-bottom: 1rem;
+               box-sizing: border-box;
+               outline: none;
+               transition: border-color 0.3s;
+             ">
+      <div style="display: flex; gap: 0.8rem;">
+        <button id="confirm-edit-share-name" style="
+          flex: 1;
+          padding: 0.8rem;
+          background: linear-gradient(to right, #008C76, #00A88D);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">確認修改</button>
+        <button id="cancel-edit-share-name" style="
+          flex: 1;
+          padding: 0.8rem;
+          background: #f5f5f5;
+          color: #666;
+          border: 1px solid #e0e0e0;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+        ">取消</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // 确认修改按钮事件
+  document.getElementById('confirm-edit-share-name').addEventListener('click', () => {
+    const newName = document.getElementById('edit-share-name-input').value.trim();
+    if (newName) {
+      // 更新缓存的分享名称
+      cachedShareName = newName;
+      // 更新显示的名称
+      updateShareNameDisplay();
+      // 显示成功提示
+      showSuccess(`分享名稱已修改為：${newName}`);
+    } else {
+      showError('名稱不能為空！');
+      return;
+    }
+    modal.remove();
+  });
+  
+  // 取消按钮事件
+  document.getElementById('cancel-edit-share-name').addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  // 点击外部关闭
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.remove();
+    }
+  });
+};
+
+// 更新分享名称显示函数
+const updateShareNameDisplay = () => {
+  const displayEl = document.getElementById('share-name-display');
+  if (displayEl) {
+    const currentName = cachedShareName || appState.userNickname || appState.currentUser?.displayName || '用戶';
+    displayEl.textContent = currentName;
+  }
+};
+
+// 在页面初始化完成后更新名称显示
+document.addEventListener('DOMContentLoaded', () => {
+  // 确保DOM加载完成后更新显示
+  setTimeout(updateShareNameDisplay, 100);
+});
 
 </script>
 </body>
