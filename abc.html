@@ -1136,11 +1136,37 @@ const selectContent = (contentId) => {
         最後更新：${contentItem.updatedAt}
       </div>
       
-      <!-- 操作按鈕 -->
+
 <!-- 分享按钮区域 -->
 <div class="mt-4 flex justify-center gap-3">
   ${isProUser() ? `
    <!-- 分享学习链接按钮 -->
+     <!-- 第一行：显示昵称 + 设定昵称 -->
+    <div class="flex justify-center gap-3 items-center">
+      <!-- 显示当前分享昵称（纯展示型界面，非按钮样式） -->
+      <div class="bg-white/90 border border-amber-200 text-amber-800 text-sm font-medium px-4 py-2 rounded-xl shadow-md flex items-center justify-center gap-1 min-w-[120px] max-w-[180px]">
+        <!-- 装饰图标 -->
+        <i class="fa fa-user-circle text-amber-500"></i>
+        <!-- 昵称显示区域 -->
+        <span id="current-share-nickname-display" class="truncate">
+          ${localStorage.getItem('shareNickname') || (appState.userNickname || appState.currentUser?.displayName || '未設定')}
+        </span>
+      </div>
+
+      <!-- 设置分享昵称按钮（高质感黄色渐变） -->
+      <button onclick="openShareNicknameModal()" 
+              class="mobile-btn-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-amber/30 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
+        <!-- 高光裝飾 -->
+        <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
+        <!-- 流光效果 -->
+        <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
+        <!-- 脉冲动效（增强质感） -->
+        <span class="absolute inset-0 rounded-xl bg-white/5 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
+        <i class="fa fa-user-edit"></i> 設定分享暱稱
+      </button>
+    </div>
+
+    <!-- 第二行：分享学习链接按钮 -->
     <button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}')" 
             class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
       <!-- 高光裝飾 -->
