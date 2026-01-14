@@ -1137,8 +1137,10 @@ const selectContent = (contentId) => {
       </div>
       
       <!-- 操作按鈕 -->
+<!-- 分享按钮区域 -->
 <div class="mt-4 flex justify-center gap-3">
   ${isProUser() ? `
+    <!-- 分享学习链接按钮 -->
     <button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}')" 
             class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
       <!-- 高光裝飾 -->
@@ -1147,7 +1149,56 @@ const selectContent = (contentId) => {
       <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
       <i class="fa fa-share-alt"></i> 分享學習鏈接
     </button>
+
+    <!-- 新增：设置分享昵称按钮（高质感样式） -->
+    <button onclick="openShareNicknameModal()" 
+            class="mobile-btn-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-amber/30 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
+      <!-- 高光裝飾 -->
+      <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
+      <!-- 流光效果 -->
+      <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
+      <!-- 脉冲动效（增强质感） -->
+      <span class="absolute inset-0 rounded-xl bg-white/5 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
+      <i class="fa fa-user-edit"></i> 設定分享暱稱
+    </button>
   ` : ''}
+</div>
+
+<!-- 新增：分享昵称设置弹窗（隐藏状态） -->
+<div id="share-nickname-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+        <i class="fa fa-user-circle text-amber-500"></i>
+        設定分享專屬暱稱
+      </h3>
+      <button onclick="closeShareNicknameModal()" class="text-gray-500 hover:text-gray-800 transition-colors">
+        <i class="fa fa-times text-xl"></i>
+      </button>
+    </div>
+    
+    <div class="mb-4">
+      <label for="share-nickname-input" class="block text-sm font-medium text-gray-700 mb-1">
+        請輸入分享時顯示的暱稱
+      </label>
+      <input 
+        type="text" 
+        id="share-nickname-input" 
+        class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all duration-200 shadow-sm"
+        placeholder="例如：幸福學員_小幸運"
+        maxlength="20"
+      >
+    </div>
+    
+    <div class="flex gap-3 justify-end">
+      <button onclick="closeShareNicknameModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors">
+        取消
+      </button>
+      <button onclick="saveShareNickname()" class="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl shadow-lg shadow-amber/20 hover:brightness-105 transition-all">
+        保存暱稱
+      </button>
+    </div>
+  </div>
 </div>
     </div>
   `;
@@ -1666,7 +1717,7 @@ ${decodedUrl}`;
     const shareText = `🎬 ${title}
     
 ${userName}
-分享學習資訊給您`;
+邀請您學習`;
     const copyText = `${shareText}
 
 ${decodeURIComponent(url)}`;
@@ -1683,6 +1734,74 @@ ${decodeURIComponent(url)}`;
     }
   }
 };
+
+// 打开昵称设置弹窗
+function openShareNicknameModal() {
+  const modal = document.getElementById('share-nickname-modal');
+  const modalContent = document.getElementById('modal-content');
+  
+  // 显示弹窗并添加动画
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    modalContent.classList.remove('scale-95', 'opacity-0');
+    modalContent.classList.add('scale-100', 'opacity-100');
+  }, 10);
+  
+  // 从本地存储读取已保存的昵称并填充
+  const savedNickname = localStorage.getItem('shareNickname');
+  if (savedNickname) {
+    document.getElementById('share-nickname-input').value = savedNickname;
+  }
+  
+  // 聚焦输入框
+  document.getElementById('share-nickname-input').focus();
+}
+
+// 关闭昵称设置弹窗
+function closeShareNicknameModal() {
+  const modal = document.getElementById('share-nickname-modal');
+  const modalContent = document.getElementById('modal-content');
+  
+  // 关闭动画
+  modalContent.classList.remove('scale-100', 'opacity-100');
+  modalContent.classList.add('scale-95', 'opacity-0');
+  
+  // 延迟隐藏弹窗
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+}
+
+// 保存分享昵称（永久存储到localStorage）
+function saveShareNickname() {
+  const nicknameInput = document.getElementById('share-nickname-input');
+  const nickname = nicknameInput.value.trim();
+  
+  if (!nickname) {
+    alert('請輸入有效的分享暱稱');
+    nicknameInput.focus();
+    return;
+  }
+  
+  // 永久保存到本地存储（浏览器本地，除非手动清除）
+  localStorage.setItem('shareNickname', nickname);
+  
+  // 提示成功
+  alert(`分享暱稱「${nickname}」已保存！此暱稱將永久生效`);
+  
+  // 关闭弹窗
+  closeShareNicknameModal();
+  
+  // 可选：更新页面上已显示的昵称（如果有）
+  if (document.getElementById('share-name-display')) {
+    document.getElementById('share-name-display').textContent = nickname;
+  }
+}
+
+// 封装获取已保存昵称的函数（供分享功能调用）
+function getSavedShareNickname() {
+  return localStorage.getItem('shareNickname') || (appState.userNickname || appState.currentUser?.displayName || '用戶');
+}
 
 
 </script>
