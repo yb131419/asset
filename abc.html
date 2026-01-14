@@ -998,35 +998,40 @@ const renderManageContentList = () => {
       itemEl.addEventListener('dragend', dragHandlers.end);
     }
     
-    // 內容預覽排版顺序为 标题 → 备注 → 更新时间
-    itemEl.innerHTML = `
-      <div class="flex justify-between items-start">
-        <div class="flex items-center gap-2 self-end">
-          <button onclick="previewContent('${type}', '${item.id}')" class="p-2.5 text-primary hover:text-[#007A69] rounded-full hover:bg-primary/5 transition-colors">
-            <i class="fa fa-eye text-lg"></i>
-          </button>
-          ${isManageUser() ? `
-            <button onclick="editContent('${type}', '${item.id}')" class="p-2.5 text-gold hover:text-darkGold rounded-full hover:bg-gold/5 transition-colors">
-              <i class="fa fa-pencil text-lg"></i>
-            </button>
-            <button onclick="deleteContent('${type}', '${item.id}')" class="p-2.5 text-red-500 hover:text-red-600 rounded-full hover:bg-red-500/5 transition-colors">
-              <i class="fa fa-trash text-lg"></i>
-            </button>
-          ` : ''}
-        </div>
-      <h3 class="font-bold text-textPrimary text-base">${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}</h3>
-      </div>
-      ${item.note ? `
-        <div class="bg-neutral/50 rounded-lg p-3">
-          <p class="text-textSecondary text-sm">${item.note}</p>
-        </div>
-      ` : ''}
-      <div class="text-xs text-textSecondary bg-neutral px-2 py-0.5 rounded self-start">
-        ${item.updatedAt}
-      </div>
-    `;
-    container.appendChild(itemEl);
-  });
+// 內容預覽排版顺序为 标题 → 备注 → 更新时间
+itemEl.innerHTML = `
+  <!-- 按钮区域 - 置顶居中 -->
+  <div class="flex justify-center items-center gap-2 mb-2">
+    <button onclick="previewContent('${type}', '${item.id}')" class="p-2.5 text-primary hover:text-[#007A69] rounded-full hover:bg-primary/5 transition-colors">
+      <i class="fa fa-eye text-lg"></i>
+    </button>
+    ${isManageUser() ? `
+      <button onclick="editContent('${type}', '${item.id}')" class="p-2.5 text-gold hover:text-darkGold rounded-full hover:bg-gold/5 transition-colors">
+        <i class="fa fa-pencil text-lg"></i>
+      </button>
+      <button onclick="deleteContent('${type}', '${item.id}')" class="p-2.5 text-red-500 hover:text-red-600 rounded-full hover:bg-red-500/5 transition-colors">
+        <i class="fa fa-trash text-lg"></i>
+      </button>
+    ` : ''}
+  </div>
+  
+  <!-- 标题区域 - 按钮下一行，居中显示 -->
+  <h3 class="font-bold text-textPrimary text-base text-center mb-3">${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}</h3>
+  
+  <!-- 备注区域 - 居中显示 -->
+  ${item.note ? `
+    <div class="bg-neutral/50 rounded-lg p-3 text-center mb-3">
+      <p class="text-textSecondary text-sm">${item.note}</p>
+    </div>
+  ` : ''}
+  
+  <!-- 更新时间 - 居中显示 -->
+  <div class="text-xs text-textSecondary bg-neutral px-2 py-0.5 rounded mx-auto">
+    ${item.updatedAt}
+  </div>
+`;
+container.appendChild(itemEl);
+});
 };
 
 // 统一的列表渲染入口
