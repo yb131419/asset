@@ -1000,33 +1000,43 @@ const renderManageContentList = () => {
     
 // 內容預覽排版顺序为 标题 → 备注 → 更新时间
 itemEl.innerHTML = `
-  <!-- 按钮区域 - 置顶居中 -->
-  <div class="flex justify-center items-center gap-2 mb-2">
-    <button onclick="previewContent('${type}', '${item.id}')" class="p-2.5 text-primary hover:text-[#007A69] rounded-full hover:bg-primary/5 transition-colors">
+  <!-- 按钮区域 - 置顶居中 + 高质感样式 -->
+  <div class="flex justify-center items-center gap-2 mb-3">
+    <button onclick="previewContent('${type}', '${item.id}')" class="p-2.5 text-white bg-primary/90 hover:bg-primary rounded-full hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
       <i class="fa fa-eye text-lg"></i>
     </button>
     ${isManageUser() ? `
-      <button onclick="editContent('${type}', '${item.id}')" class="p-2.5 text-gold hover:text-darkGold rounded-full hover:bg-gold/5 transition-colors">
+      <button onclick="editContent('${type}', '${item.id}')" class="p-2.5 text-white bg-gold/90 hover:bg-gold rounded-full hover:shadow-lg hover:shadow-gold/20 transition-all duration-300">
         <i class="fa fa-pencil text-lg"></i>
       </button>
-      <button onclick="deleteContent('${type}', '${item.id}')" class="p-2.5 text-red-500 hover:text-red-600 rounded-full hover:bg-red-500/5 transition-colors">
+      <button onclick="deleteContent('${type}', '${item.id}')" class="p-2.5 text-white bg-red-600 hover:bg-red-700 rounded-full hover:shadow-lg hover:shadow-red-200 transition-all duration-300">
         <i class="fa fa-trash text-lg"></i>
       </button>
     ` : ''}
   </div>
   
-  <!-- 标题区域 - 按钮下一行，居中显示 -->
-<h3 class="font-bold text-textPrimary text-xs text-center mb-3">${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}</h3>
+  <!-- 标题区域 - 按钮下一行，居中显示 + 白字黑框高质感样式 -->
+  <h3 class="font-bold text-white text-xs text-center mb-4 
+             px-4 py-2 rounded-xl 
+             bg-gradient-to-r from-black/90 to-gray-800/90 
+             shadow-lg shadow-black/20 
+             border border-gray-700/50 
+             backdrop-blur-sm
+             tracking-wide
+             relative overflow-hidden">
+    <span class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent to-white/30"></span>
+    ${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}
+  </h3>
   
-  <!-- 备注区域 - 居中显示 -->
+  <!-- 备注区域 - 居中显示 + 高质感样式 -->
   ${item.note ? `
-    <div class="bg-neutral/50 rounded-lg p-3 text-center mb-3">
-      <p class="text-textSecondary text-sm">${item.note}</p>
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 text-center mb-3 shadow-md border border-gray-100">
+      <p class="text-textSecondary text-sm leading-relaxed">${item.note}</p>
     </div>
   ` : ''}
   
-  <!-- 更新时间 - 居中显示 -->
-  <div class="text-xs text-textSecondary bg-neutral px-2 py-0.5 rounded mx-auto">
+  <!-- 更新时间 - 居中显示 + 高质感样式 -->
+  <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl mx-auto shadow-md border border-gray-700/50">
     ${item.updatedAt}
   </div>
 `;
@@ -1074,11 +1084,18 @@ const selectContent = (contentId) => {
   viewerContentCard.innerHTML = `
     <div class="p-4">
       <!-- 标题区域 -->
-      <h3 class="text-sm font-bold text-white text-center mb-4 
-           drop-shadow-[0_0_1px_#000] drop-shadow-[0_0_1px_#000] 
-           bg-black/80 px-3 py-1 rounded-lg">
-      ${contentItem.name}
-      </h3>
+<h3 class="text-sm font-bold text-white text-center mb-4 
+           px-4 py-2 rounded-xl 
+           bg-gradient-to-r from-black/90 to-gray-800/90 
+           shadow-lg shadow-black/20 
+           border border-gray-700/50 
+           backdrop-blur-sm
+           tracking-wide
+           relative overflow-hidden">
+  <!-- 装饰性高光 -->
+  <span class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent to-white/30"></span>
+  ${contentItem.name}
+</h3>
       
       <!-- 预览容器 -->
       <div class="mb-4">
