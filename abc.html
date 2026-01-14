@@ -1873,6 +1873,16 @@ function saveShareNickname() {
   // 永久保存到本地存储（浏览器本地，除非手动清除）
   localStorage.setItem('shareNickname', nickname);
   
+  // ========== 新增：即时更新显示区域 ==========
+  const displayElement = document.getElementById('current-share-nickname-display');
+  if (displayElement) {
+    displayElement.textContent = nickname;
+    // 强制触发DOM重绘，确保更新生效
+    displayElement.style.display = 'none';
+    displayElement.offsetHeight; // 触发重绘
+    displayElement.style.display = '';
+  }
+  
   // 使用统一的提示函数（替代alert，体验更好）
   showSuccess(`分享暱稱「${nickname}」已保存！此暱稱將永久生效`);
   
