@@ -1000,8 +1000,8 @@ const renderManageContentList = () => {
     
 // 內容預覽排版顺序为 标题 → 备注 → 更新时间
 itemEl.innerHTML = `
-  <!-- 按钮区域 - 置顶居中 + 高质感样式 -->
-  <div class="flex justify-center items-center gap-2 mb-3">
+  <!-- 按钮区域 - 置左显示 + 高质感样式 -->
+  <div class="flex items-center gap-2 mb-3 justify-start">
     <button onclick="previewContent('${type}', '${item.id}')" class="p-2.5 text-white bg-primary/90 hover:bg-primary rounded-full hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
       <i class="fa fa-eye text-lg"></i>
     </button>
@@ -1015,28 +1015,29 @@ itemEl.innerHTML = `
     ` : ''}
   </div>
   
-  <!-- 标题区域 - 按钮下一行，居中显示 + 白字黑框高质感样式 -->
-  <h3 class="font-bold text-white text-xs text-center mb-4 
+  <!-- 标题区域 - 置左显示 + 白字黑框高质感样式 -->
+  <h3 class="font-bold text-white text-xs mb-4 
              px-4 py-2 rounded-xl 
              bg-gradient-to-r from-black/90 to-gray-800/90 
              shadow-lg shadow-black/20 
              border border-gray-700/50 
              backdrop-blur-sm
              tracking-wide
-             relative overflow-hidden">
+             relative overflow-hidden
+             inline-block">
     <span class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent to-white/30"></span>
     ${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}
   </h3>
   
-  <!-- 备注区域 - 居中显示 + 高质感样式 -->
+  <!-- 备注区域 - 置左显示 + 高质感样式 -->
   ${item.note ? `
-    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 text-center mb-3 shadow-md border border-gray-100">
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 mb-3 shadow-md border border-gray-100">
       <p class="text-textSecondary text-sm leading-relaxed">${item.note}</p>
     </div>
   ` : ''}
   
-  <!-- 更新时间 - 居中显示 + 高质感样式 -->
-  <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl mx-auto shadow-md border border-gray-700/50">
+  <!-- 更新时间 - 置左显示 + 高质感样式 -->
+  <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl shadow-md border border-gray-700/50 inline-block">
     ${item.updatedAt}
   </div>
 `;
@@ -1625,23 +1626,44 @@ const shareContentLink = async (title, url) => {
     // 解码URL
     const decodedUrl = decodeURIComponent(url);
     
+    // 获取用户名（兼容元素不存在的情况）
+    const userNameElement = document.getElementById('user-name');
+    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    
+    // 构建多行分享文本（适配不同平台的换行符）
+    const shareText = `🎬 ${title}標題
+${userName}
+分享學習資訊給您`;
+    
     // 优先使用Web Share API（原生分享）
     if (navigator.share) {
       await navigator.share({
         title: title,
         url: decodedUrl,
-        text: `🎬 ${title} - 幸福系統分享`
+        text: shareText
       });
       showSuccess('分享成功！');
     } else {
-      // 降级方案：复制链接到剪贴板
-      await navigator.clipboard.writeText(decodedUrl);
+      // 降级方案：复制链接到剪贴板（添加链接到文本末尾）
+      const copyText = `${shareText}
+
+${decodedUrl}`;
+      await navigator.clipboard.writeText(copyText);
       showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
     }
   } catch (error) {
     // 终极降级：手动选中并提示
+    const userNameElement = document.getElementById('user-name');
+    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    const shareText = `🎬 ${title}標題
+${userName}
+分享學習資訊給您`;
+    const copyText = `${shareText}
+
+${decodeURIComponent(url)}`;
+    
     const textArea = document.createElement('textarea');
-    textArea.value = decodeURIComponent(url);
+    textArea.value = copyText;
     document.body.appendChild(textArea);
     textArea.select();
     document.execCommand('copy');
