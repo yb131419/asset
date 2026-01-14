@@ -1627,17 +1627,131 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// 原生分享功能實現
+// 全局变量存储用户自定义名称（首次输入后缓存）
+let cachedShareName = '';
+
+// 弹出输入框获取自定义名称的函数
+const getCustomShareName = () => {
+  // 如果已有缓存名称，直接返回
+  if (cachedShareName) {
+    return Promise.resolve(cachedShareName);
+  }
+  
+  // 首次分享：弹出输入框
+  return new Promise((resolve) => {
+    // 创建模态框（避免重复创建）
+    let modal = document.getElementById('share-name-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'share-name-modal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px);
+      `;
+      
+      // 弹窗内容（适配你的UI风格）
+      modal.innerHTML = `
+        <div style="
+          background: white;
+          padding: 2rem;
+          border-radius: 16px;
+          width: 90%;
+          max-width: 400px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        ">
+          <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 18px; font-weight: 600; text-align: center;">
+            🎬 自定義分享名稱
+          </h3>
+          <input type="text" id="custom-share-name-input" 
+                 placeholder="請輸入您的名稱（預設：${appState.currentUser?.displayName || '用戶'}）"
+                 style="
+                   width: 100%;
+                   padding: 0.8rem;
+                   border: 2px solid #e0e0e0;
+                   border-radius: 8px;
+                   font-size: 16px;
+                   margin-bottom: 1rem;
+                   box-sizing: border-box;
+                   outline: none;
+                   transition: border-color 0.3s;
+                 ">
+          <div style="display: flex; gap: 0.8rem;">
+            <button id="confirm-share-name" style="
+              flex: 1;
+              padding: 0.8rem;
+              background: linear-gradient(to right, #008C76, #00A88D);
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.2s;
+            ">確認</button>
+            <button id="cancel-share-name" style="
+              flex: 1;
+              padding: 0.8rem;
+              background: #f5f5f5;
+              color: #666;
+              border: 1px solid #e0e0e0;
+              border-radius: 8px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: transform 0.2s;
+            ">取消</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // 确认按钮事件
+      document.getElementById('confirm-share-name').addEventListener('click', () => {
+        const inputVal = document.getElementById('custom-share-name-input').value.trim();
+        // 缓存名称（为空则用LINE用户名）
+        cachedShareName = inputVal || appState.currentUser?.displayName || '用戶';
+        resolve(cachedShareName);
+        modal.remove();
+      });
+      
+      // 取消按钮事件
+      document.getElementById('cancel-share-name').addEventListener('click', () => {
+        cachedShareName = appState.currentUser?.displayName || '用戶'; // 取消时用LINE用户名
+        resolve(cachedShareName);
+        modal.remove();
+      });
+      
+      // 点击外部关闭
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          cachedShareName = appState.currentUser?.displayName || '用戶';
+          resolve(cachedShareName);
+          modal.remove();
+        }
+      });
+    }
+  });
+};
+
+// 原生分享功能實現（修复自定义名称逻辑）
 const shareContentLink = async (title, url) => {
   try {
+    // 第一步：获取自定义名称（首次弹窗，后续缓存）
+    const userName = await getCustomShareName();
+    
     // 解碼URL
     const decodedUrl = decodeURIComponent(url);
     
-    // 獲取用戶名（兼容元素不存在的情況）
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
-    
-    // 構建多行分享文本（適配不同平台的換行符）
+    // 構建多行分享文本
     const shareText = `🎬 ${title}
 ${userName}
 分享學習資訊給您`;
@@ -1651,7 +1765,7 @@ ${userName}
       });
       showSuccess('分享成功！');
     } else {
-      // 降級方案：複製鏈接到剪貼板（添加鏈接到文本末尾）
+      // 降級方案：複製鏈接到剪貼板
       const copyText = `${shareText}
 
 ${decodedUrl}`;
@@ -1659,9 +1773,8 @@ ${decodedUrl}`;
       showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
     }
   } catch (error) {
-    // 終極降級：手動選中並提示
-    const userNameElement = document.getElementById('user-name');
-    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    // 終極降級：手動選中並提示（使用缓存的名称）
+    const userName = cachedShareName || appState.currentUser?.displayName || '用戶';
     const shareText = `🎬 ${title}
 ${userName}
 分享學習資訊給您`;
@@ -1681,7 +1794,6 @@ ${decodeURIComponent(url)}`;
     }
   }
 };
-
 
 </script>
 </body>
