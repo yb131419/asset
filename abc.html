@@ -1622,6 +1622,40 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
+// 原生分享功能实现
+const shareContentLink = async (title, url) => {
+  try {
+    // 解码URL
+    const decodedUrl = decodeURIComponent(url);
+    
+    // 优先使用Web Share API（原生分享）
+    if (navigator.share) {
+      await navigator.share({
+        title: title,
+        url: decodedUrl,
+        text: `🎬 ${title} - 幸福系統分享`
+      });
+      showSuccess('分享成功！');
+    } else {
+      // 降级方案：复制链接到剪贴板
+      await navigator.clipboard.writeText(decodedUrl);
+      showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
+    }
+  } catch (error) {
+    // 终极降级：手动选中并提示
+    const textArea = document.createElement('textarea');
+    textArea.value = decodeURIComponent(url);
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    
+    if (error.name !== 'AbortError') { // 排除用户取消分享的情况
+      showSuccess('分享功能暫不支援當前設備，鏈接已複製到剪貼簿！');
+    }
+  }
+};
+
 
 </script>
 </body>
