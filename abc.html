@@ -1139,14 +1139,14 @@ const selectContent = (contentId) => {
       <!-- 操作按鈕 -->
 <div class="mt-4 flex justify-center gap-3">
   ${isProUser() ? `
-<button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}', '自定義名稱')" 
-        class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
-  <!-- 高光装饰 -->
-  <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
-  <!-- 流光效果 -->
-  <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
-  <i class="fa fa-share-alt"></i> 分享學習鏈接
-</button>
+    <button onclick="shareContentLink('${contentItem.name}', '${encodeURIComponent(contentItem.url)}')" 
+            class="mobile-btn-sm bg-gradient-to-r from-primary to-[#00A88D] text-white text-sm font-medium px-6 py-2 rounded-xl shadow-lg shadow-primary/20 transition-all duration-300 flex items-center justify-center gap-1 hover:translate-y-[-2px] active:translate-y-[1px] relative overflow-hidden group">
+      <!-- 高光裝飾 -->
+      <span class="absolute inset-0 bg-white/10 group-hover:bg-white/20 rounded-xl transition-all duration-500"></span>
+      <!-- 流光效果 -->
+      <span class="absolute -left-full top-0 w-full h-full bg-gradient-to-r from-transparent to-white/20 to-transparent group-hover:left-full transition-all duration-700"></span>
+      <i class="fa fa-share-alt"></i> 分享學習鏈接
+    </button>
   ` : ''}
 </div>
     </div>
@@ -1627,18 +1627,15 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// 原生分享功能實現（新增customName参数支持自定义名称）
-const shareContentLink = async (title, url, customName = '') => {
+// 原生分享功能實現
+const shareContentLink = async (title, url) => {
   try {
     // 解碼URL
     const decodedUrl = decodeURIComponent(url);
     
-    // 獲取用戶名：优先使用自定义名称 → 其次读取页面元素 → 最后使用默认值
-    let userName = customName.trim();
-    if (!userName) {
-      const userNameElement = document.getElementById('user-name');
-      userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
-    }
+    // 獲取用戶名（兼容元素不存在的情況）
+    const userNameElement = document.getElementById('user-name');
+    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
     
     // 構建多行分享文本（適配不同平台的換行符）
     const shareText = `🎬 ${title}
@@ -1662,15 +1659,10 @@ ${decodedUrl}`;
       showSuccess('鏈接已複製到剪貼簿，您可以手動分享！');
     }
   } catch (error) {
-    // 終極降級：手動選中並提示（同步自定义名称逻辑）
-    let userName = customName.trim();
-    if (!userName) {
-      const userNameElement = document.getElementById('user-name');
-      userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
-    }
-    const shareText = `🎬 ${title}
-${userName}
-分享學習資訊給您`;
+    // 終極降級：手動選中並提示
+    const userNameElement = document.getElementById('user-name');
+    const userName = userNameElement ? userNameElement.textContent.trim() : '用戶';
+    const shareText = `<br>🎬 ${title}<br>${userName}<br>分享學習資訊給您`;
     const copyText = `${shareText}
 
 ${decodeURIComponent(url)}`;
@@ -1687,6 +1679,7 @@ ${decodeURIComponent(url)}`;
     }
   }
 };
+
 
 </script>
 </body>
