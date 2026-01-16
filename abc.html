@@ -226,17 +226,16 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
           <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表
         </h2>
         <!-- 替換原有的 manage-action-buttons 區塊 -->
-
 <div id="manage-action-buttons" class="w-full">
   <!-- 第一行：下拉式內容類型切換選單 -->
-  <div class="mb-3 relative">
+  <div class="mb-3">
     <button id="manage-content-type-toggle" class="mobile-btn-sm bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium flex items-center gap-1 px-4 py-2 rounded-xl shadow-elevation-1 transition-all duration-300">
       <i class="fa fa-th-list text-sm"></i> 
       <span id="manage-current-type">影音</span>
       <i class="fa fa-chevron-down text-xs ml-1"></i>
     </button>
     <!-- 下拉菜单位置微调 -->
-    <div id="manage-content-type-dropdown" class="dropdown-menu hidden absolute mt-1 z-50">
+    <div id="manage-content-type-dropdown" class="dropdown-menu hidden absolute mt-1 z-10">
       <div class="dropdown-item" onclick="switchManageContentType('video')">
         <i class="fa fa-play-circle mr-2"></i>影音列表
       </div>
@@ -256,7 +255,6 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
     </button>
   </div>
 </div>
-
       </div>
       <div id="video-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2"></div>
       <div id="file-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2 hidden"></div>
@@ -1330,7 +1328,7 @@ const deleteCurrentContent = () => {
   hideContentPreview();
 };
 
-// 編輯內容 - 單筆修改模式優化
+// 編輯內容
 const editContent = (type, id) => {
   if (!isManageUser()) {
     showError('您沒有編輯權限');
@@ -1345,51 +1343,42 @@ const editContent = (type, id) => {
     return;
   }
 
-  // 隱藏其他區域，只顯示當前編輯項的編輯區域（單筆修改模式）
+  // 隱藏其他區域，顯示編輯區域
   DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
   DOM('content-preview').classList.add('hidden');
-  
-  // 保留管理列表顯示，只在下方顯示編輯表單（單筆修改體驗優化）
-  DOM('content-manage-section').classList.remove('hidden');
   
   if (type === 'video') {
     DOM('video-edit-section').classList.remove('hidden');
     DOM('file-edit-section').classList.add('hidden');
-    DOM('video-edit-title').textContent = `編輯影音：${contentItem.name.length > 20 ? contentItem.name.substring(0, 20) + '...' : contentItem.name}`;
+    DOM('video-edit-title').textContent = '編輯影音';
     DOM('video-id').value = contentItem.id;
     DOM('video-name').value = contentItem.name;
     DOM('video-url').value = contentItem.url;
     DOM('video-note').value = contentItem.note;
     appState.currentEditingVideoId = id;
-    
-    // 滾動到編輯區域
-    DOM('video-edit-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else {
     DOM('file-edit-section').classList.remove('hidden');
     DOM('video-edit-section').classList.add('hidden');
-    DOM('file-edit-title').textContent = `編輯文件：${contentItem.name.length > 20 ? contentItem.name.substring(0, 20) + '...' : contentItem.name}`;
+    DOM('file-edit-title').textContent = '編輯文件';
     DOM('file-id-hidden').value = contentItem.id;
     DOM('file-name').value = contentItem.name;
     DOM('file-url').value = contentItem.url;
     DOM('file-note').value = contentItem.note;
     appState.currentEditingFileId = id;
-    
-    // 滾動到編輯區域
-    DOM('file-edit-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 };
 
-
-// 新增內容 - 單筆新增模式優化
+// 新增內容
 const addNewContent = () => {
   if (!isManageUser()) {
     showError('您沒有新增權限');
     return;
   }
 
-  // 保留管理列表顯示，只顯示新增表單
-  DOM('content-manage-section').classList.remove('hidden');
+  // 隱藏其他區域
   DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.add('hidden');
   DOM('content-preview').classList.add('hidden');
   
   if (CONFIG.currentContentType === 'video') {
@@ -1400,9 +1389,6 @@ const addNewContent = () => {
     DOM('video-form').reset();
     DOM('video-id').value = '';
     appState.currentEditingVideoId = null;
-    
-    // 滾動到新增表單
-    DOM('video-edit-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else {
     // 重置文件編輯表單
     DOM('file-edit-section').classList.remove('hidden');
@@ -1411,36 +1397,24 @@ const addNewContent = () => {
     DOM('file-form').reset();
     DOM('file-id-hidden').value = '';
     appState.currentEditingFileId = null;
-    
-    // 滾動到新增表單
-    DOM('file-edit-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 };
 
-// 隱藏視頻編輯區域 - 單筆修改模式優化
+// 隱藏視頻編輯區域
 const hideVideoEditSection = () => {
   DOM('video-edit-section').classList.add('hidden');
-  // 保留管理列表顯示
   DOM('content-manage-section').classList.remove('hidden');
   appState.currentEditingVideoId = null;
   resetSubmitState();
-  
-  // 返回管理列表頂部
-  DOM('content-manage-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-// 隱藏文件編輯區域 - 單筆修改模式優化
+// 隱藏文件編輯區域
 const hideFileEditSection = () => {
   DOM('file-edit-section').classList.add('hidden');
-  // 保留管理列表顯示
   DOM('content-manage-section').classList.remove('hidden');
   appState.currentEditingFileId = null;
   resetSubmitState();
-  
-  // 返回管理列表頂部
-  DOM('content-manage-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
-
 
 // 保存視頻
 const saveVideo = (e) => {
@@ -1707,12 +1681,6 @@ DOM('manage-current-type').textContent = CONFIG.currentContentType === 'video' ?
       DOM('content-type-dropdown').classList.toggle('hidden');
     });
     
-        // 綁定管理區域下拉菜單事件 - 新增
-    DOM('manage-content-type-toggle').addEventListener('click', (e) => {
-      e.stopPropagation();
-      DOM('manage-content-type-dropdown').classList.toggle('hidden');
-    });
-    
     // 點擊外部關閉下拉菜單
     document.addEventListener('click', (e) => {
       const dropdown = DOM('content-type-dropdown');
@@ -1955,7 +1923,7 @@ function saveShareNickname() {
   }
 }
 
-// 切換管理模式下的內容類型 - 下拉選單優化
+// 新增：切換管理模式下的內容類型
 const switchManageContentType = (type) => {
   CONFIG.currentContentType = type;
   
@@ -1975,17 +1943,8 @@ const switchManageContentType = (type) => {
   // 隱藏下拉菜單
   DOM('manage-content-type-dropdown').classList.add('hidden');
   
-  // 隱藏編輯表單（切換類型時重置編輯狀態）
-  DOM('video-edit-section').classList.add('hidden');
-  DOM('file-edit-section').classList.add('hidden');
-  appState.currentEditingVideoId = null;
-  appState.currentEditingFileId = null;
-  
   // 重新渲染管理列表
   renderContentList('manage');
-  
-  // 滾動到管理列表頂部
-  DOM('content-manage-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 // 初始化時綁定管理區域下拉菜單事件（添加到 initApp 函數中）
