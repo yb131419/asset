@@ -225,14 +225,32 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
         <h2 id="manage-section-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
           <i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表
         </h2>
-        <div id="manage-action-buttons" class="flex gap-2 w-full md:w-auto">
-          <button id="add-content-btn" onclick="addNewContent()" class="mobile-btn primary-gradient text-white text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-center gap-1">
-            <i class="fa fa-plus text-lg"></i> 新增影音
-          </button>
-          <button onclick="toggleManageSection()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1">
-            <i class="fa fa-arrow-left text-lg"></i> 返回
-          </button>
-        </div>
+        <!-- 替換原有的 manage-action-buttons 區塊 -->
+<div id="manage-action-buttons" class="flex gap-2 w-full md:w-auto">
+  <!-- 下拉式內容類型切換選單 -->
+  <div class="relative">
+    <button id="manage-content-type-toggle" class="mobile-btn-sm bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium flex items-center gap-1 px-4 py-2 rounded-xl shadow-elevation-1 transition-all duration-300">
+      <i class="fa fa-th-list text-sm"></i> 
+      <span id="manage-current-type">影音</span>
+      <i class="fa fa-chevron-down text-xs ml-1"></i>
+    </button>
+    <div id="manage-content-type-dropdown" class="dropdown-menu hidden">
+      <div class="dropdown-item" onclick="switchManageContentType('video')">
+        <i class="fa fa-play-circle mr-2"></i>影音列表
+      </div>
+      <div class="dropdown-item" onclick="switchManageContentType('file')">
+        <i class="fa fa-file mr-2"></i>文件列表
+      </div>
+    </div>
+  </div>
+  
+  <button id="add-content-btn" onclick="addNewContent()" class="mobile-btn primary-gradient text-white text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center justify-center gap-1">
+    <i class="fa fa-plus text-lg"></i> 新增影音
+  </button>
+  <button onclick="toggleManageSection()" class="mobile-btn bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium flex-1 md:flex-none px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center justify-center gap-1">
+    <i class="fa fa-arrow-left text-lg"></i> 返回
+  </button>
+</div>
       </div>
       <div id="video-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2"></div>
       <div id="file-list-container" class="space-y-3 mb-3 max-h-[600px] overflow-y-auto pr-2 hidden"></div>
@@ -1651,6 +1669,8 @@ const initApp = async () => {
     
     // 渲染初始列表
     renderContentList('viewer');
+    // 在 renderContentList('viewer') 後添加初始化管理區域默認值：
+DOM('manage-current-type').textContent = CONFIG.currentContentType === 'video' ? '影音' : '文件';
     
     // 綁定內容類型切換按鈕事件
     DOM('content-type-toggle').addEventListener('click', () => {
@@ -1898,6 +1918,55 @@ function saveShareNickname() {
     document.getElementById('user-name').textContent = nickname;
   }
 }
+
+// 新增：切換管理模式下的內容類型
+const switchManageContentType = (type) => {
+  CONFIG.currentContentType = type;
+  
+  // 更新下拉按鈕顯示文本
+  DOM('manage-current-type').textContent = type === 'video' ? '影音' : '文件';
+  
+  // 更新管理區域標題
+  DOM('manage-section-title').innerHTML = type === 'video' 
+    ? '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 影音管理列表' 
+    : '<i class="fa fa-th-list text-primary mr-2 text-sm"></i> 文件管理列表';
+  
+  // 更新新增按鈕文本
+  DOM('add-content-btn').innerHTML = type === 'video' 
+    ? '<i class="fa fa-plus text-lg"></i> 新增影音' 
+    : '<i class="fa fa-plus text-lg"></i> 新增文件';
+  
+  // 隱藏下拉菜單
+  DOM('manage-content-type-dropdown').classList.add('hidden');
+  
+  // 重新渲染管理列表
+  renderContentList('manage');
+};
+
+// 初始化時綁定管理區域下拉菜單事件（添加到 initApp 函數中）
+// 在原有的 content-type-toggle 事件綁定後添加：
+DOM('manage-content-type-toggle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  DOM('manage-content-type-dropdown').classList.toggle('hidden');
+});
+
+// 修改全局點擊關閉下拉菜單的事件（替換原有的）
+document.addEventListener('click', (e) => {
+  const contentDropdown = DOM('content-type-dropdown');
+  const contentToggleBtn = DOM('content-type-toggle');
+  const manageDropdown = DOM('manage-content-type-dropdown');
+  const manageToggleBtn = DOM('manage-content-type-toggle');
+  
+  // 關閉內容選擇下拉
+  if (!contentDropdown.contains(e.target) && !contentToggleBtn.contains(e.target)) {
+    contentDropdown.classList.add('hidden');
+  }
+  
+  // 關閉管理模式下拉
+  if (!manageDropdown.contains(e.target) && !manageToggleBtn.contains(e.target)) {
+    manageDropdown.classList.add('hidden');
+  }
+});
 
 
 </script>
