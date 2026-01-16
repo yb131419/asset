@@ -971,7 +971,7 @@ const renderViewerContentList = () => {
   }
 };
 
-// 渲染管理列表（修復：恢復標題顯示，排版順序調整為 標題 → 備注 → 更新時間）
+// 渲染管理列表（修改為下拉選單操作方式）
 const renderManageContentList = () => {
   const type = CONFIG.currentContentType;
   const listKey = `${type}List`;
@@ -999,7 +999,7 @@ const renderManageContentList = () => {
   // 顯示當前類型容器
   container.classList.remove('hidden');
   
-  // 渲染每個內容項（修復：恢復標題顯示，排版順序為 標題 → 備注 → 更新時間）
+  // 渲染每個內容項（修改為下拉選單操作）
   appState[listKey].forEach((item, index) => {
     const itemEl = document.createElement('div');
     itemEl.className = 'video-item bg-cardBg p-4 rounded-xl shadow-elevation-1 flex flex-col gap-2 border border-gray-100';
@@ -1016,54 +1016,137 @@ const renderManageContentList = () => {
       itemEl.addEventListener('dragend', dragHandlers.end);
     }
     
-// 內容預覽排版順序為 標題 → 備注 → 更新時間
-itemEl.innerHTML = `
-  <!-- 按鈕區域 - 置左顯示 + 高質感樣式 -->
-<div class="flex items-center gap-2 mb-3 justify-center flex-wrap">
-  <button onclick="previewContent('${type}', '${item.id}')" class="p-2 px-3 text-white bg-primary/90 hover:bg-primary rounded-full hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 flex items-center gap-1">
-    <i class="fa fa-eye text-base"></i>
-    <span class="text-xs">預覽</span>
-  </button>
-  ${isManageUser() ? `
-    <button onclick="editContent('${type}', '${item.id}')" class="p-2 px-3 text-white bg-gold/90 hover:bg-gold rounded-full hover:shadow-lg hover:shadow-gold/20 transition-all duration-300 flex items-center gap-1">
-      <i class="fa fa-pencil text-base"></i>
-      <span class="text-xs">編輯</span>
-    </button>
-    <button onclick="deleteContent('${type}', '${item.id}')" class="p-2 px-3 text-white bg-red-600 hover:bg-red-700 rounded-full hover:shadow-lg hover:shadow-red-200 transition-all duration-300 flex items-center gap-1">
-      <i class="fa fa-trash text-base"></i>
-      <span class="text-xs">刪除</span>
-    </button>
-  ` : ''}
-</div>
+    // 修改為下拉選單操作方式
+    itemEl.innerHTML = `
+      <!-- 主要內容區域 -->
+      <div class="flex justify-between items-center mb-3 w-full">
+        <!-- 標題區域 -->
+        <h3 class="font-bold text-white text-xs 
+                   px-4 py-2 rounded-xl 
+                   bg-gradient-to-r from-black/90 to-gray-800/90 
+                   shadow-lg shadow-black/20 
+                   border border-gray-700/50 
+                   backdrop-blur-sm
+                   tracking-wide
+                   relative overflow-hidden
+                   inline-block">
+          <span class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent to-white/30"></span>
+          ${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}
+        </h3>
+        
+        <!-- 下拉操作按鈕 -->
+        <div class="relative">
+          <button id="action-btn-${item.id}" onclick="toggleActionMenu('${item.id}')" 
+                  class="p-2 text-primary hover:text-primary/80 bg-white rounded-full hover:bg-primary/5 transition-all duration-300 flex items-center justify-center shadow-sm">
+            <i class="fa fa-ellipsis-v text-base"></i>
+          </button>
+          <!-- 下拉菜單 -->
+          <div id="action-menu-${item.id}" class="dropdown-menu hidden right-auto left-full top-0 ml-2 w-40">
+            <div class="dropdown-item" onclick="previewContent('${type}', '${item.id}');closeAllActionMenus()">
+              <i class="fa fa-eye mr-2"></i>預覽
+            </div>
+            ${isManageUser() ? `
+              <div class="dropdown-item" onclick="editContent('${type}', '${item.id}');closeAllActionMenus()">
+                <i class="fa fa-pencil mr-2"></i>編輯
+              </div>
+              <div class="dropdown-item text-red-500 hover:text-white" onclick="deleteContent('${type}', '${item.id}');closeAllActionMenus()">
+                <i class="fa fa-trash mr-2"></i>刪除
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+      
+      <!-- 備注區域 -->
+      備注
+      ${item.note ? `
+        <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 mb-3 shadow-md border border-gray-100 whitespace-pre-wrap break-words">
+          <p class="text-textSecondary text-sm leading-relaxed">${item.note.replace(/\n/g, '<br>')}</p>
+        </div>
+      ` : ''}
+      
+      <!-- 更新時間 -->
+      <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl shadow-md border border-gray-700/50 inline-block">
+        ${item.updatedAt}
+      </div>
+      
+      <!-- 編輯表單區域（預設隱藏，一次只顯示一個） -->
+      <div id="edit-form-${item.id}" class="hidden mt-4 pt-4 border-t border-gray-200">
+        <!-- 編輯表單內容會在點擊編輯時動態加載 -->
+      </div>
+    `;
+    container.appendChild(itemEl);
+  });
+};
+
+// 新增：切換操作菜單顯示/隱藏
+const toggleActionMenu = (itemId) => {
+  // 先關閉所有其他菜單
+  closeAllActionMenus();
   
-  <!-- 標題區域 - 置左顯示 + 白字黑框高質感樣式 -->
-  <h3 class="font-bold text-white text-xs mb-4 
-             px-4 py-2 rounded-xl 
-             bg-gradient-to-r from-black/90 to-gray-800/90 
-             shadow-lg shadow-black/20 
-             border border-gray-700/50 
-             backdrop-blur-sm
-             tracking-wide
-             relative overflow-hidden
-             inline-block">
-    <span class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent to-white/30"></span>
-    ${item.name.length > 40 ? item.name.substring(0, 40) + '...' : item.name}
-  </h3>
+  // 切換當前菜單
+  const menu = document.getElementById(`action-menu-${itemId}`);
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+};
+
+// 新增：關閉所有操作菜單
+const closeAllActionMenus = () => {
+  const allMenus = document.querySelectorAll('[id^="action-menu-"]');
+  allMenus.forEach(menu => {
+    menu.classList.add('hidden');
+  });
+};
+
+// 修改：編輯內容函數 - 確保一次只顯示一個編輯表單
+const editContent = (type, id) => {
+  if (!isManageUser()) {
+    showError('您沒有編輯權限');
+    return;
+  }
+
+  const listKey = `${type}List`;
+  const contentItem = appState[listKey].find(item => item.id === id);
   
-  備注
-  ${item.note ? `
-    <div class="bg-white/80 backdrop-blur-sm rounded-xl p-3 mb-3 shadow-md border border-gray-100 whitespace-pre-wrap break-words">
-      <p class="text-textSecondary text-sm leading-relaxed">${item.note.replace(/\n/g, '<br>')}</p>
-    </div>
-  ` : ''}
+  if (!contentItem) {
+    showError('要編輯的內容不存在');
+    return;
+  }
+
+  // 關閉所有其他編輯表單
+  closeAllEditForms();
   
-  <!-- 更新時間 - 置左顯示 + 高質感樣式 -->
-  <div class="text-xs text-white bg-gradient-to-r from-gray-800/90 to-black/90 px-3 py-1 rounded-xl shadow-md border border-gray-700/50 inline-block">
-    ${item.updatedAt}
-  </div>
-`;
-container.appendChild(itemEl);
-});
+  // 隱藏其他區域，顯示編輯區域
+  DOM('content-viewer-section').classList.add('hidden');
+  DOM('content-manage-section').classList.remove('hidden'); // 確保管理區域可見
+  DOM('content-preview').classList.add('hidden');
+  
+  if (type === 'video') {
+    DOM('video-edit-section').classList.remove('hidden');
+    DOM('file-edit-section').classList.add('hidden');
+    DOM('video-edit-title').textContent = '編輯影音';
+    DOM('video-id').value = contentItem.id;
+    DOM('video-name').value = contentItem.name;
+    DOM('video-url').value = contentItem.url;
+    DOM('video-note').value = contentItem.note;
+    appState.currentEditingVideoId = id;
+    
+    // 滾動到編輯區域
+    scrollToEditSection('video-edit-section');
+  } else {
+    DOM('file-edit-section').classList.remove('hidden');
+    DOM('video-edit-section').classList.add('hidden');
+    DOM('file-edit-title').textContent = '編輯文件';
+    DOM('file-id-hidden').value = contentItem.id;
+    DOM('file-name').value = contentItem.name;
+    DOM('file-url').value = contentItem.url;
+    DOM('file-note').value = contentItem.note;
+    appState.currentEditingFileId = id;
+    
+    // 滾動到編輯區域
+    scrollToEditSection('file-edit-section');
+  }
 };
 
 // 統一的列表渲染入口
@@ -1324,7 +1407,30 @@ const deleteCurrentContent = () => {
   hideContentPreview();
 };
 
-// 編輯內容
+
+// 新增：關閉所有操作菜單
+const closeAllActionMenus = () => {
+  const allMenus = document.querySelectorAll('[id^="action-menu-"]');
+  allMenus.forEach(menu => {
+    menu.classList.add('hidden');
+  });
+};
+
+
+// 新增：切換操作菜單顯示/隱藏
+const toggleActionMenu = (itemId) => {
+  // 先關閉所有其他菜單
+  closeAllActionMenus();
+  
+  // 切換當前菜單
+  const menu = document.getElementById(`action-menu-${itemId}`);
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+};
+
+
+// 修改：編輯內容函數 - 確保一次只顯示一個編輯表單
 const editContent = (type, id) => {
   if (!isManageUser()) {
     showError('您沒有編輯權限');
@@ -1339,9 +1445,12 @@ const editContent = (type, id) => {
     return;
   }
 
+  // 關閉所有其他編輯表單
+  closeAllEditForms();
+  
   // 隱藏其他區域，顯示編輯區域
   DOM('content-viewer-section').classList.add('hidden');
-  DOM('content-manage-section').classList.add('hidden');
+  DOM('content-manage-section').classList.remove('hidden'); // 確保管理區域可見
   DOM('content-preview').classList.add('hidden');
   
   if (type === 'video') {
@@ -1353,6 +1462,9 @@ const editContent = (type, id) => {
     DOM('video-url').value = contentItem.url;
     DOM('video-note').value = contentItem.note;
     appState.currentEditingVideoId = id;
+    
+    // 滾動到編輯區域
+    scrollToEditSection('video-edit-section');
   } else {
     DOM('file-edit-section').classList.remove('hidden');
     DOM('video-edit-section').classList.add('hidden');
@@ -1362,6 +1474,9 @@ const editContent = (type, id) => {
     DOM('file-url').value = contentItem.url;
     DOM('file-note').value = contentItem.note;
     appState.currentEditingFileId = id;
+    
+    // 滾動到編輯區域
+    scrollToEditSection('file-edit-section');
   }
 };
 
@@ -1950,7 +2065,29 @@ DOM('manage-content-type-toggle').addEventListener('click', (e) => {
   DOM('manage-content-type-dropdown').classList.toggle('hidden');
 });
 
-// 修改全局點擊關閉下拉菜單的事件（替換原有的）
+
+// 新增：關閉所有編輯表單
+const closeAllEditForms = () => {
+  const allEditForms = document.querySelectorAll('[id^="edit-form-"]');
+  allEditForms.forEach(form => {
+    form.classList.add('hidden');
+  });
+  
+  // 重置編輯狀態
+  appState.currentEditingVideoId = null;
+  appState.currentEditingFileId = null;
+};
+
+// 新增：滾動到編輯區域
+const scrollToEditSection = (sectionId) => {
+  const section = document.getElementById(sectionId);
+  if (section) {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+
+// 新增：點擊空白處關閉菜單和編輯表單
 document.addEventListener('click', (e) => {
   const contentDropdown = DOM('content-type-dropdown');
   const contentToggleBtn = DOM('content-type-toggle');
@@ -1965,6 +2102,13 @@ document.addEventListener('click', (e) => {
   // 關閉管理模式下拉
   if (!manageDropdown.contains(e.target) && !manageToggleBtn.contains(e.target)) {
     manageDropdown.classList.add('hidden');
+  }
+  
+  // 關閉操作菜單（點擊非按鈕區域）
+  const isActionBtn = e.target.closest('[id^="action-btn-"]');
+  const isActionMenu = e.target.closest('[id^="action-menu-"]');
+  if (!isActionBtn && !isActionMenu) {
+    closeAllActionMenus();
   }
 });
 
