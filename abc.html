@@ -85,12 +85,27 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
 .dropdown-menu {
   @apply absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-elevation-2 border border-gray-100 z-50 content-transition rounded-xl overflow-hidden;
 }
-.dropdown-item {
-  @apply block px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary cursor-pointer transition-colors font-medium;
+/* 新增单选复选框样式 */
+.single-item-checkbox:checked {
+  background-color: #008C76;
+  border-color: #008C76;
 }
-.dropdown-item:hover {
-  background:linear-gradient(135deg, #008C76 0%, #00A88D 100%);
-  color:white !important;
+
+.single-item-checkbox:focus {
+  ring: 2px solid rgba(0, 140, 118, 0.25);
+  ring-offset: 2px;
+}
+
+/* 禁用状态的操作按钮 */
+#single-action-btn.btn-disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#single-action-btn.btn-disabled:hover {
+  background-color: #f3f4f6;
+  transform: none;
+  box-shadow: none;
 }
 .premium-badge{
   background:linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
@@ -194,11 +209,30 @@ body{font-feature-settings:"palt";letter-spacing:0.02em;background-color:#F5F7FA
         <h2 id="viewer-section-title" class="text-base md:text-xl font-bold text-textPrimary flex items-center">
           <i class="fa fa-play-circle text-primary mr-2 text-sm"></i> 影音列表
         </h2>
-        <div id="manage-content-btn-container" class="flex gap-2">
-          <button onclick="toggleManageSection()" class="mobile-btn-sm primary-gradient text-white text-sm font-medium px-4 py-2 rounded-xl shadow-primary-hover transition-all duration-300 flex items-center gap-1">
-            <i class="fa fa-cog text-sm"></i> 內容管理
-          </button>
-        </div>
+<div id="manage-content-btn-container" class="flex gap-2">
+  <!-- 单条操作下拉按钮 -->
+  <div class="relative">
+    <button id="single-action-btn" class="mobile-btn-sm bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-4 py-2 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
+      <i class="fa fa-cog text-sm"></i> 單筆操作
+      <i class="fa fa-chevron-down text-xs ml-1"></i>
+    </button>
+    <!-- 单条操作下拉菜单 -->
+    <div id="single-action-menu" class="dropdown-menu hidden">
+      <div class="dropdown-item" onclick="selectSingleItem('edit')">
+        <i class="fa fa-pencil mr-2"></i>編輯選取項
+      </div>
+      <div class="dropdown-item" onclick="selectSingleItem('delete')">
+        <i class="fa fa-trash mr-2"></i>刪除選取項
+      </div>
+      <div class="dropdown-item" onclick="selectSingleItem('preview')">
+        <i class="fa fa-eye mr-2"></i>預覽選取項
+      </div>
+    </div>
+      <!-- 返回按钮 -->
+  <button onclick="toggleManageSection()" class="mobile-btn-sm bg-gray-100 hover:bg-gray-200 text-textPrimary text-sm font-medium px-4 py-2 rounded-xl shadow-elevation-1 transition-all duration-300 flex items-center gap-1">
+    <i class="fa fa-arrow-left text-sm"></i> 返回
+  </button>
+  </div>
       </div>
       
       <div class="content-selector" id="content-select-container">
@@ -1022,6 +1056,12 @@ const renderManageContentList = () => {
     
 // 內容預覽排版順序為 標題 → 備注 → 更新時間
 itemEl.innerHTML = `
+  <!-- 新增：单条选择复选框 -->
+  <div class="flex items-start gap-3 mb-3">
+    <input type="checkbox" class="single-item-checkbox" data-id="${item.id}" data-type="${type}" 
+           onchange="toggleSingleItemSelect(this)" 
+           class="w-4 h-4 rounded text-primary focus:ring-primary mt-1">
+    <div class="flex-1">
   <!-- 按鈕區域 - 置左顯示 + 高質感樣式 -->
 <div class="flex items-center gap-2 mb-3 justify-center flex-wrap">
   <button onclick="previewContent('${type}', '${item.id}')" class="p-2 px-3 text-white bg-primary/90 hover:bg-primary rounded-full hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 flex items-center gap-1">
@@ -1977,6 +2017,89 @@ document.addEventListener('click', (e) => {
   const isActionMenu = e.target.closest('[id^="action-menu-"]');
   if (!isActionBtn && !isActionMenu) {
     closeAllActionMenus();
+  }
+});
+
+
+// 存储当前选中的单条项目
+let selectedSingleItem = null;
+
+// 切换单条项目选择状态
+const toggleSingleItemSelect = (checkbox) => {
+  const allCheckboxes = document.querySelectorAll('.single-item-checkbox');
+  
+  // 取消其他复选框选中状态（实现单选）
+  allCheckboxes.forEach(cb => {
+    if (cb !== checkbox) cb.checked = false;
+  });
+  
+  // 更新选中项
+  if (checkbox.checked) {
+    selectedSingleItem = {
+      id: checkbox.dataset.id,
+      type: checkbox.dataset.type
+    };
+    // 启用操作按钮
+    document.getElementById('single-action-btn').classList.remove('btn-disabled');
+  } else {
+    selectedSingleItem = null;
+    // 禁用操作按钮
+    document.getElementById('single-action-btn').classList.add('btn-disabled');
+  }
+};
+
+// 执行单条项目操作
+const selectSingleItem = (action) => {
+  if (!selectedSingleItem) {
+    showError('請先選擇要操作的項目');
+    return;
+  }
+  
+  const { id, type } = selectedSingleItem;
+  
+  switch(action) {
+    case 'edit':
+      editContent(type, id);
+      break;
+    case 'delete':
+      deleteContent(type, id);
+      break;
+    case 'preview':
+      previewContent(type, id);
+      break;
+    default:
+      showError('未知操作類型');
+  }
+  
+  // 执行操作后清空选择
+  const checkbox = document.querySelector(`.single-item-checkbox[data-id="${id}"][data-type="${type}"]`);
+  if (checkbox) checkbox.checked = false;
+  selectedSingleItem = null;
+};
+
+// 关闭所有操作菜单
+const closeAllActionMenus = () => {
+  document.getElementById('single-action-menu')?.classList.add('hidden');
+  document.getElementById('manage-content-type-dropdown')?.classList.add('hidden');
+};
+
+// 绑定单条操作下拉菜单事件
+document.addEventListener('DOMContentLoaded', () => {
+  const singleActionBtn = document.getElementById('single-action-btn');
+  const singleActionMenu = document.getElementById('single-action-menu');
+  
+  if (singleActionBtn && singleActionMenu) {
+    // 初始禁用操作按钮
+    singleActionBtn.classList.add('btn-disabled');
+    
+    singleActionBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!singleActionBtn.classList.contains('btn-disabled')) {
+        singleActionMenu.classList.toggle('hidden');
+      } else {
+        showError('請先選擇要操作的項目');
+      }
+    });
   }
 });
 
