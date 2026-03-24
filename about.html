@@ -180,7 +180,7 @@
 
       <label for="appointTime">預約時段</label>
       <select id="appointTime" name="appointTime" required>
-        <option value="">請選擇預約時段</option>
+        <option value="">請先選擇預約日期</option>
       </select>
 
       <label for="name">姓名</label>
@@ -229,10 +229,10 @@
         if (response.status === "init" && response.dates && response.times) {
           const dateSelect = document.getElementById('appointDate');
           const timeSelect = document.getElementById('appointTime');
+          
+          // 重置選單
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-          timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
-
-          // 清空舊資料
+          timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
           timeDataMap = {};
 
           // 加載日期
@@ -241,14 +241,9 @@
             opt.value = item.value;
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
-            // 每個日期對應自己的時段
             timeDataMap[item.value] = response.times || [];
           });
 
-          // 預設載入第一個日期的時段
-          if (response.dates.length > 0) {
-            updateTimeOptions(response.dates[0].value);
-          }
           return;
         }
 
@@ -260,6 +255,7 @@
           btnText.textContent = '預約成功 ✅';
           alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
           infoForm.reset();
+          document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
         } else {
           submitBtn.classList.add('error');
           btnText.textContent = '預約失敗 ❌';
@@ -282,12 +278,18 @@
       return `晚上 ${timeValue}`;
     }
 
-    // 更新時段（修復核心）
+    // 更新時段（核心修復）
     function updateTimeOptions(selectedDate) {
       const timeSelect = document.getElementById('appointTime');
-      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
       
-      // 取得該日期對應的時段
+      // 未選擇日期 → 顯示提示
+      if (!selectedDate) {
+        timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+        return;
+      }
+
+      // 有選擇日期 → 載入時段
+      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
       const timeList = timeDataMap[selectedDate] || [];
       
       timeList.forEach(t => {
