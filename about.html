@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>莫凡韓式皮膚管理</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
@@ -83,7 +83,7 @@
     }
     select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
       background-size: 16px;
@@ -205,213 +205,241 @@
   </main>
 
 <script>
-const CONFIG = {
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
-  LIFF_ID: "2008578880-lCRzVTyk",
-  JSONP_TIMEOUT: 15000
-};
+  // 配置项
+  const CONFIG = {
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
+    LIFF_ID: "2008578880-lCRzVTyk"
+  };
 
-let submitBtn, btnText, infoForm;
-let isSubmitting = false;
-let isSubmittedSuccess = false;
-let timeDataMap = {};
-let LINE_USER_ID = "";
-let jsonpTimeout = null;
+  // 全局变量
+  let submitBtn, btnText, infoForm;
+  let isSubmitting = false;
+  let isSubmittedSuccess = false;
+  let timeDataMap = {};
+  let LINE_USER_ID = "";
 
-window.handleResponse = function (response) {
-  try {
-    if (jsonpTimeout) clearTimeout(jsonpTimeout);
-    isSubmitting = false;
-    if (!submitBtn || !btnText) return;
-    submitBtn.classList.remove('loading');
+  // JSONP 回調函數（後端返回資料會進來這裡）
+  window.handleResponse = function(response) {
+    try {
+      isSubmitting = false;
+      if (!submitBtn || !btnText) return;
+      submitBtn.classList.remove('loading');
 
-    if (!response) throw new Error("後端回應異常");
+      // 安全判斷
+      if (!response) {
+        throw new Error("後端回應異常");
+      }
 
-    if (response.status === "init" && response.dates && response.timeMap) {
-      const dateSelect = document.getElementById('appointDate');
-      const timeSelect = document.getElementById('appointTime');
-      dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-      timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
-      timeDataMap = response.timeMap;
+      // 載入 日期 & 時段
+      if (response.status === "init") {
+        const dateSelect = document.getElementById('appointDate');
+        const timeSelect = document.getElementById('appointTime');
+        
+        dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
+        timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+        
+        // 安全備份
+        if (response.timeMap) {
+          timeDataMap = response.timeMap;
+        }
 
-      response.dates.forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item.value;
-        opt.textContent = item.label;
-        dateSelect.appendChild(opt);
-      });
+        // 填入日期
+        if (response.dates && response.dates.length > 0) {
+          response.dates.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.value;
+            opt.textContent = item.label;
+            dateSelect.appendChild(opt);
+          });
+        }
+        return;
+      }
+
+      // 預約成功
+      if (response.status === "success") {
+        isSubmittedSuccess = true;
+        submitBtn.classList.add('success','permanent-disabled');
+        submitBtn.disabled = true;
+        btnText.textContent = '預約成功 ✅';
+        alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
+        infoForm.reset();
+        document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
+      } else {
+        submitBtn.classList.add('error');
+        btnText.textContent = '預約失敗 ❌';
+        alert(response.message || "系統錯誤");
+        setTimeout(resetButtonState, 3000);
+      }
+    } catch (e) {
+      console.error("回調錯誤：", e);
+      resetButtonState();
+      alert("系統異常，請稍後再試");
+    }
+  };
+
+  // 轉換時段格式
+  function formatTimeLabel(timeValue) {
+    if (!timeValue) return "";
+    const hour = parseInt(timeValue.split(':')[0]);
+    if (hour < 12) return `上午 ${timeValue}`;
+    if (hour < 18) return `下午 ${timeValue}`;
+    return `晚上 ${timeValue}`;
+  }
+
+  // 選擇日期後載入對應時段（手機穩定版）
+  function updateTimeOptions(selectedDate) {
+    const timeSelect = document.getElementById('appointTime');
+    timeSelect.innerHTML = '';
+
+    if (!selectedDate) {
+      const opt = document.createElement('option');
+      opt.value = "";
+      opt.textContent = "請先選擇預約日期";
+      timeSelect.appendChild(opt);
       return;
     }
 
-    if (response.status === "success") {
-      isSubmittedSuccess = true;
-      submitBtn.classList.add('success', 'permanent-disabled');
-      submitBtn.disabled = true;
-      btnText.textContent = '預約成功 ✅';
-      alert("✅ 預約成功！\n\n將透過LINE與您確認預約！");
-      infoForm.reset();
-      document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
-    } else {
-      submitBtn.classList.add('error');
-      btnText.textContent = '預約失敗 ❌';
-      alert(response.message || "預約失敗，請稍後再試");
-      setTimeout(resetButtonState, 2500);
+    // 確保一定能取到時段
+    const timeList = timeDataMap[selectedDate] || [];
+
+    if (timeList.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = "";
+      opt.textContent = "當日無可預約時段";
+      timeSelect.appendChild(opt);
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    resetButtonState();
-    alert("系統異常，請稍後再試");
-  }
-};
 
-function formatTimeLabel(timeValue) {
-  if (!timeValue) return "";
-  const hour = parseInt(timeValue.split(':')[0]);
-  if (hour < 12) return `上午 ${timeValue}`;
-  if (hour < 18) return `下午 ${timeValue}`;
-  return `晚上 ${timeValue}`;
-}
+    const defOpt = document.createElement('option');
+    defOpt.value = "";
+    defOpt.textContent = "請選擇預約時段";
+    timeSelect.appendChild(defOpt);
 
-function updateTimeOptions(selectedDate) {
-  const timeSelect = document.getElementById('appointTime');
-  if (!selectedDate) {
-    timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
-    return;
+    timeList.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.value;
+      opt.textContent = formatTimeLabel(t.value);
+      timeSelect.appendChild(opt);
+    });
   }
-  timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
-  const timeList = timeDataMap[selectedDate] || [];
-  timeList.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t.value;
-    opt.textContent = formatTimeLabel(t.value);
-    timeSelect.appendChild(opt);
+
+  // 重置按鈕
+  function resetButtonState() {
+    if (isSubmittedSuccess) return;
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('loading','success','error');
+    btnText.textContent = '確認預約';
+    isSubmitting = false;
+  }
+
+  // 取得今日日期（台北時區）
+  function getTaipeiDate() {
+    const d = new Date();
+    const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
+    return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
+  }
+
+  // 載入日期時段（手機穩定版）
+  function loadDateList() {
+    try {
+      const data = { action: "getDates", pageId: "美容預約系統" };
+      const params = new URLSearchParams(data);
+      params.append('callback', 'handleResponse');
+
+      const script = document.createElement('script');
+      script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+      script.async = true;
+      document.body.appendChild(script);
+    } catch (e) {
+      console.error("載入日期失敗：", e);
+    }
+  }
+
+  // 初始化 LIFF
+  async function initLiff() {
+    try {
+      await liff.init({ liffId: CONFIG.LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      const profile = await liff.getProfile();
+      LINE_USER_ID = profile?.userId || `line_${Date.now()}`;
+    } catch (e) {
+      LINE_USER_ID = `line_${Date.now()}`;
+    } finally {
+      document.getElementById('lineId').value = LINE_USER_ID;
+    }
+  }
+
+  // 表單提交
+  function sendData() {
+    try {
+      const data = {
+        pageId: document.getElementById('pageId').value,
+        date: document.getElementById('date').value,
+        lineId: LINE_USER_ID,
+        serviceType: document.getElementById('serviceType').value,
+        appointDate: document.getElementById('appointDate').value,
+        appointTime: document.getElementById('appointTime').value,
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        extraInfo: document.getElementById('extraInfo').value
+      };
+
+      const params = new URLSearchParams(data);
+      params.append('callback', 'handleResponse');
+
+      const script = document.createElement('script');
+      script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+      document.body.appendChild(script);
+    } catch (e) {
+      alert("提交失敗，請重試");
+      resetButtonState();
+    }
+  }
+
+  // 頁面加載完成
+  document.addEventListener('DOMContentLoaded', async () => {
+    submitBtn = document.getElementById('submitBtn');
+    btnText = submitBtn.querySelector('.btn-text');
+    infoForm = document.getElementById('infoForm');
+    document.getElementById('date').value = getTaipeiDate();
+
+    // 手機穩定：先載入資料，再登入
+    loadDateList();
+    await initLiff();
+
+    // 日期選擇事件
+    document.getElementById('appointDate').addEventListener('change', function() {
+      updateTimeOptions(this.value);
+    });
+
+    // 表單提交
+    infoForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (isSubmitting || isSubmittedSuccess) return;
+      
+      const serviceType = document.getElementById('serviceType').value;
+      const appointDate = document.getElementById('appointDate').value;
+      const appointTime = document.getElementById('appointTime').value;
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+
+      if (!serviceType) return alert("請選擇服務項目");
+      if (!appointDate) return alert("請選擇預約日期");
+      if (!appointTime) return alert("請選擇預約時段");
+      if (!name) return alert("請輸入姓名");
+      if (!phone) return alert("請輸入聯絡電話");
+
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      btnText.textContent = '預約中...';
+      sendData();
+    });
   });
-}
-
-function resetButtonState() {
-  if (isSubmittedSuccess) return;
-  submitBtn.disabled = false;
-  submitBtn.classList.remove('loading', 'success', 'error');
-  btnText.textContent = '確認預約';
-  isSubmitting = false;
-}
-
-function getTaipeiDate() {
-  const d = new Date();
-  const opt = { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' };
-  return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
-}
-
-function jsonpRequest(data = {}) {
-  return new Promise((resolve, reject) => {
-    if (jsonpTimeout) clearTimeout(jsonpTimeout);
-    const params = new URLSearchParams(data);
-    params.append('callback', 'handleResponse');
-    params.append('_t', Date.now());
-
-    const script = document.createElement('script');
-    script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
-    script.async = true;
-
-    jsonpTimeout = setTimeout(() => {
-      script.remove();
-      reject("請求逾時，請檢查網路");
-    }, CONFIG.JSONP_TIMEOUT);
-
-    script.onload = () => {
-      clearTimeout(jsonpTimeout);
-      script.remove();
-      resolve();
-    };
-
-    script.onerror = () => {
-      clearTimeout(jsonpTimeout);
-      script.remove();
-      reject("網路錯誤，請稍後再試");
-    };
-
-    document.body.appendChild(script);
-  });
-}
-
-async function loadDateList() {
-  try {
-    await jsonpRequest({ action: "getDates", pageId: "美容預約系統" });
-  } catch (err) {
-    alert("載入預約時段失敗：" + err);
-  }
-}
-
-async function initLiff() {
-  try {
-    await liff.init({ liffId: CONFIG.LIFF_ID });
-    if (!liff.isLoggedIn()) return liff.login();
-    const p = await liff.getProfile();
-    LINE_USER_ID = p.userId;
-    document.getElementById('lineId').value = LINE_USER_ID;
-  } catch (e) {
-    LINE_USER_ID = `guest_${Date.now()}`;
-    document.getElementById('lineId').value = LINE_USER_ID;
-  }
-}
-
-async function sendData() {
-  try {
-    const data = {
-      pageId: document.getElementById('pageId').value,
-      date: document.getElementById('date').value,
-      lineId: LINE_USER_ID,
-      serviceType: document.getElementById('serviceType').value,
-      appointDate: document.getElementById('appointDate').value,
-      appointTime: document.getElementById('appointTime').value,
-      name: document.getElementById('name').value,
-      phone: document.getElementById('phone').value,
-      email: document.getElementById('email').value,
-      extraInfo: document.getElementById('extraInfo').value
-    };
-    await jsonpRequest(data);
-  } catch (err) {
-    alert("預約失敗：" + err);
-    resetButtonState();
-  }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  submitBtn = document.getElementById('submitBtn');
-  btnText = submitBtn.querySelector('.btn-text');
-  infoForm = document.getElementById('infoForm');
-  document.getElementById('date').value = getTaipeiDate();
-
-  await initLiff();
-  loadDateList();
-
-  document.getElementById('appointDate').addEventListener('change', function () {
-    updateTimeOptions(this.value);
-  });
-
-  infoForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (isSubmitting || isSubmittedSuccess) return;
-
-    const srv = document.getElementById('serviceType').value;
-    const dt = document.getElementById('appointDate').value;
-    const tm = document.getElementById('appointTime').value;
-    const name = document.getElementById('name').value;
-    const phone = document.getElementById('phone').value;
-
-    if (!srv) return alert("請選擇服務項目");
-    if (!dt) return alert("請選擇預約日期");
-    if (!tm) return alert("請選擇預約時段");
-    if (!name) return alert("請輸入姓名");
-    if (!phone) return alert("請輸入聯絡電話");
-
-    isSubmitting = true;
-    submitBtn.disabled = true;
-    submitBtn.classList.add('loading');
-    btnText.textContent = '預約中...';
-    await sendData();
-  });
-});
 </script>
 
 </body>
