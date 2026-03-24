@@ -151,7 +151,6 @@
       background: #ff4444 !important;
     }
 
-    /* LIFF 登入按鈕樣式 */
     #liffLoginBtn {
       background: #00B900 !important;
       display: block;
@@ -209,8 +208,6 @@
           <span class="loader"></span>
           <span class="btn-text">確認預約</span>
         </button>
-
-        <!-- 🔥 新增的 LIFF 登入按鈕 -->
         <button type="button" id="liffLoginBtn">🔐 LIFF 會員登入</button>
       </div>
     </form>
@@ -227,14 +224,26 @@
     let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // ======================================
-    // ✅ 全新 LIFF 登入功能（手機穩定版）
-    // ======================================
+    // 載入日期（修復版）
+    function loadDateData() {
+      return new Promise((resolve) => {
+        const params = new URLSearchParams();
+        params.append('callback', 'handleResponse');
+        const s = document.createElement('script');
+        s.src = `${CONFIG.SCRIPT_URL}?${params}`;
+        s.onload = resolve;
+        s.onerror = () => {
+          document.getElementById('appointDate').innerHTML = '<option value="">載入失敗，請重新整理</option>';
+          resolve();
+        };
+        document.body.appendChild(s);
+      });
+    }
+
+    // LIFF 登入
     async function initLiffLogin() {
       try {
-        if (!liff.isInit()) {
-          await liff.init({ liffId: CONFIG.LIFF_ID });
-        }
+        if (!liff.isInit()) await liff.init({ liffId: CONFIG.LIFF_ID });
         if (!liff.isLoggedIn()) {
           liff.login({ redirectUri: window.location.href });
         } else {
@@ -247,7 +256,7 @@
       }
     }
 
-    // JSONP 回調
+    // 回調
     window.handleResponse = function(response) {
       try {
         isSubmitting = false;
@@ -256,10 +265,11 @@
         if (response.status === "init" && response.dates && response.timeMap) {
           const dateSelect = document.getElementById('appointDate');
           const timeSelect = document.getElementById('appointTime');
+          
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
           timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+          
           timeDataMap = response.timeMap;
-
           response.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
@@ -341,7 +351,7 @@
       });
     }
 
-    // 初始化
+    // 初始化（修復：先載入日期，再檢查登入）
     document.addEventListener('DOMContentLoaded', async () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
@@ -349,10 +359,12 @@
       liffLoginBtn = document.getElementById('liffLoginBtn');
       document.getElementById('date').value = getTaipeiDate();
 
-      // 綁定登入按鈕點擊
       liffLoginBtn.addEventListener('click', initLiffLogin);
 
-      // 自動檢查登入狀態
+      // 🔥 修復關鍵：強制先載入日期選單
+      await loadDateData();
+
+      // 檢查登入
       setTimeout(async () => {
         try {
           await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -362,9 +374,7 @@
             liffLoginBtn.style.display = "none";
           }
         } catch (e) {}
-      }, 300);
-
-      await loadScript();
+      }, 500);
 
       document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
