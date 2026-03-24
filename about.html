@@ -214,19 +214,43 @@
     let isSubmitting = false;
     let isSubmittedSuccess = false;
     let timeDataMap = {};
+    let loadAttempts = 0;
+    const MAX_ATTEMPTS = 2;
 
-    // 先載入日期資料（手機/電腦通用 JSONP）
+    // 立即執行 JSONP 載入（完全不依賴 LIFF）
+    loadDateData();
+    startRetryTimer();
+
     function loadDateData() {
-      const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse&t=${Date.now()}`;
-      document.body.appendChild(script);
+      try {
+        const script = document.createElement('script');
+        script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse&t=${Date.now()}`;
+        script.onerror = () => {
+          if (loadAttempts < MAX_ATTEMPTS) {
+            loadAttempts++;
+            setTimeout(loadDateData, 800);
+          } else {
+            document.getElementById('appointDate').innerHTML = '<option value="">載入失敗，請重整</option>';
+          }
+        };
+        document.body.appendChild(script);
+      } catch (e) {}
     }
 
-    // JSONP 回調
+    function startRetryTimer() {
+      setTimeout(() => {
+        const el = document.getElementById('appointDate');
+        if (el.innerHTML.includes('載入中') && loadAttempts < MAX_ATTEMPTS) {
+          loadAttempts++;
+          loadDateData();
+        }
+      }, 1200);
+    }
+
     window.handleResponse = function(response) {
       try {
-        isSubmitting = false;
         if (submitBtn) submitBtn.classList.remove('loading');
+        isSubmitting = false;
         if (!response) return;
 
         if (response.status === "init" && response.dates && response.timeMap) {
@@ -252,10 +276,7 @@
           alert("✅ 預約成功！客服將盡快與您聯繫");
           infoForm.reset();
         }
-      } catch (e) {
-        console.error(e);
-        resetButtonState();
-      }
+      } catch (e) {}
     };
 
     function formatTimeLabel(v) {
@@ -291,19 +312,20 @@
       }).format(new Date()).replace(/\//g, '-');
     }
 
-    // 安全 LIFF 初始化：不彈窗、不強制登入
-    async function initLiff() {
-      try {
-        await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (liff.isLoggedIn()) {
-          const profile = await liff.getProfile();
-          document.getElementById('lineId').value = profile.userId || 'guest';
-        }
-      } catch (err) {
-        // 不彈窗提示，静默失敗
-        console.log('LIFF 初始化完成，非 LINE 環境正常使用');
-      }
-    }
+    // LIFF 完全獨立，不干擾資料載入
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        try {
+          liff.init({ liffId: CONFIG.LIFF_ID }).then(() => {
+            if (liff.isLoggedIn()) {
+              liff.getProfile().then(p => {
+                document.getElementById('lineId').value = p.userId || 'guest';
+              });
+            }
+          });
+        } catch (e) {}
+      }, 1000);
+    });
 
     function sendData() {
       const data = {
@@ -325,16 +347,11 @@
       document.body.appendChild(s);
     }
 
-    // 頁面啟動
-    document.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
       document.getElementById('date').value = getTaipeiDate();
-
-      // 核心：先載入資料 → 再安全初始化 LIFF
-      loadDateData();
-      initLiff();
 
       document.getElementById('appointDate').addEventListener('change', function(){
         updateTimeOptions(this.value);
