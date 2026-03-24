@@ -2,54 +2,53 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>美容預約📘線上預約系統</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>美容預約💆‍♀️線上預約系統</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #121212;
+      background: #f8f9fa;
       font-family: 'Roboto', sans-serif;
-      color: #eee;
+      color: #333;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      padding: 40px 20px;
+      padding: 30px 15px;
     }
     main {
-      background: #1f1f1f;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       width: 100%;
       max-width: 420px;
-      padding: 32px 28px;
+      padding: 32px 26px;
     }
     h2 {
       font-weight: 700;
       margin-bottom: 28px;
       text-align: center;
-      letter-spacing: 1.2px;
-      color: #ff97c1;
+      color: #ff69b4;
       line-height: 1.4;
     }
     h2 .main-title {
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     h2 .sub-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 500;
-      letter-spacing: 0.8px;
+      color: #666;
     }
     form label {
       display: block;
       margin-bottom: 6px;
       font-weight: 500;
-      font-size: 1rem;
-      color: #ccc;
+      font-size: 0.95rem;
+      color: #444;
     }
     input[type="text"],
     input[type="email"],
@@ -57,14 +56,14 @@
     select,
     textarea {
       width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-      background: #2a2a2a;
-      color: #eee;
-      margin-bottom: 20px;
-      transition: background-color 0.3s ease;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 1px solid #eee;
+      font-size: 0.95rem;
+      background: #fafafa;
+      color: #333;
+      margin-bottom: 18px;
+      transition: all 0.3s ease;
       font-family: 'Roboto', sans-serif;
     }
     textarea {
@@ -73,7 +72,8 @@
       line-height: 1.5;
     }
     input:focus, select:focus, textarea:focus {
-      background: #3a3a3a;
+      background: #fff;
+      border-color: #ff69b4;
       outline: none;
     }
     input[readonly] {
@@ -82,28 +82,27 @@
     }
     select {
       appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
       background-size: 16px;
       cursor: pointer;
     }
     .btn-container {
-      position: relative;
-      width: 100%;
+      margin-top: 10px;
     }
     button {
       width: 100%;
-      background: linear-gradient(135deg, #ff69b4, #d43a8e);
+      background: linear-gradient(135deg, #ff69b4, #ff4fa8);
       border: none;
-      padding: 14px;
-      border-radius: 10px;
-      font-size: 1.1rem;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 1rem;
       color: #fff;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(255,105,180,0.5);
+      box-shadow: 0 3px 10px rgba(255,105,180,0.2);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -112,17 +111,15 @@
     button:disabled {
       opacity: 0.7;
       cursor: not-allowed;
-      background: linear-gradient(135deg, #e05a9e, #b8307a);
-      box-shadow: none;
     }
     button.permanent-disabled {
       opacity: 0.5;
-      background: linear-gradient(135deg, #444444, #222222) !important;
+      background: #666 !important;
       cursor: not-allowed;
     }
     .loader {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border: 2px solid #fff;
       border-bottom-color: transparent;
       border-radius: 50%;
@@ -143,11 +140,11 @@
     }
     .success {
       animation: successPulse 0.6s ease-in-out;
-      background: linear-gradient(135deg, #00c851, #007e33) !important;
+      background: #00c851 !important;
     }
     .error {
       animation: successPulse 0.6s ease-in-out;
-      background: linear-gradient(135deg, #ff4444, #cc0000) !important;
+      background: #ff4444 !important;
     }
   </style>
 </head>
@@ -175,26 +172,46 @@
         <option value="其他服務">其他服務</option>
       </select>
 
+      <!-- 管理員可自訂的預約日期選單 -->
       <label for="appointDate">預約日期</label>
-      <input type="text" id="appointDate" name="appointDate" required autocomplete="off" placeholder="範例：2026-03-25" />
+      <select id="appointDate" name="appointDate" required>
+        <option value="">請選擇預約日期</option>
+        <option value="2026-03-25">2026-03-25（星期三）</option>
+        <option value="2026-03-26">2026-03-26（星期四）</option>
+        <option value="2026-03-27">2026-03-27（星期五）</option>
+        <option value="2026-03-28">2026-03-28（星期六）</option>
+        <option value="2026-03-29">2026-03-29（星期日）</option>
+      </select>
 
+      <!-- 管理員可自訂的預約時段選單 -->
       <label for="appointTime">預約時段</label>
-      <input type="text" id="appointTime" name="appointTime" required autocomplete="off" placeholder="範例：14:00" />
+      <select id="appointTime" name="appointTime" required>
+        <option value="">請選擇預約時段</option>
+        <option value="10:00">10:00</option>
+        <option value="11:00">11:00</option>
+        <option value="13:00">13:00</option>
+        <option value="14:00">14:00</option>
+        <option value="15:00">15:00</option>
+        <option value="16:00">16:00</option>
+        <option value="17:00">17:00</option>
+        <option value="18:00">18:00</option>
+        <option value="19:00">19:00</option>
+      </select>
 
       <label for="name">姓名</label>
-      <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
+      <input type="text" id="name" name="name" required placeholder="請輸入您的姓名" />
 
       <label for="phone">聯絡電話</label>
-      <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入聯絡電話" />
+      <input type="tel" id="phone" name="phone" required placeholder="請輸入聯絡電話" />
 
       <label for="userId">Line ID</label>
-      <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
+      <input type="text" id="userId" name="userId" placeholder="請輸入您的Line ID" />
 
-      <label for="email">電子信箱</label>
-      <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子信箱（選填）" />
+      <label for="email">電子信箱（選填）</label>
+      <input type="email" id="email" name="email" placeholder="請輸入電子信箱" />
 
       <label for="extraInfo">備註說明</label>
-      <textarea id="extraInfo" name="extraInfo" autocomplete="off" placeholder="肌膚狀況、特殊需求或其他備註（選填）"></textarea>
+      <textarea id="extraInfo" name="extraInfo" placeholder="肌膚狀況、特殊需求備註（選填）"></textarea>
 
       <div class="btn-container">
         <button type="submit" id="submitBtn">
@@ -357,8 +374,8 @@
         ];
 
         if (!serviceType) { alert("請選擇服務項目"); return; }
-        if (!appointDate) { alert("請輸入預約日期"); return; }
-        if (!appointTime) { alert("請輸入預約時段"); return; }
+        if (!appointDate) { alert("請選擇預約日期"); return; }
+        if (!appointTime) { alert("請選擇預約時段"); return; }
         if (!name) { alert("請輸入姓名"); return; }
         if (!phone) { alert("請輸入聯絡電話"); return; }
         if (!lineId) { alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。"); return; }
