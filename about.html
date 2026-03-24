@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>莫凡韓式皮膚管理</title>
-  <script src="https://static.line-liff.com/liff/edge/2/sdk.js"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400,500,700&display=swap');
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: #f8f9fa;
@@ -91,6 +91,9 @@
     }
     .btn-container {
       margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     button {
       width: 100%;
@@ -147,6 +150,12 @@
       animation: successPulse 0.6s ease-in-out;
       background: #ff4444 !important;
     }
+
+    /* LIFF 登入按鈕樣式 */
+    #liffLoginBtn {
+      background: #00B900 !important;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -159,7 +168,7 @@
     <form id="infoForm">
       <input type="hidden" id="pageId" name="pageId" value="美容預約系統" />
       <input type="hidden" id="date" name="date" />
-      <input type="hidden" id="lineId" name="lineId" value="guest" />
+      <input type="hidden" id="lineId" name="lineId" />
 
       <label for="serviceType">服務項目</label>
       <select id="serviceType" name="serviceType" required>
@@ -175,7 +184,7 @@
 
       <label for="appointDate">預約日期</label>
       <select id="appointDate" name="appointDate" required>
-        <option value="">載入中...</option>
+        <option value="">載入日期中...</option>
       </select>
 
       <label for="appointTime">預約時段</label>
@@ -200,6 +209,9 @@
           <span class="loader"></span>
           <span class="btn-text">確認預約</span>
         </button>
+
+        <!-- 🔥 新增的 LIFF 登入按鈕 -->
+        <button type="button" id="liffLoginBtn">🔐 LIFF 會員登入</button>
       </div>
     </form>
   </main>
@@ -210,95 +222,98 @@
       LIFF_ID: "2008578880-lCRzVTyk"
     };
 
-    let submitBtn, btnText, infoForm;
+    let submitBtn, btnText, infoForm, liffLoginBtn;
     let isSubmitting = false;
     let isSubmittedSuccess = false;
     let timeDataMap = {};
-    let loadAttempts = 0;
-    const MAX_ATTEMPTS = 2;
 
-    // 立即執行 JSONP 載入（完全不依賴 LIFF）
-    loadDateData();
-    startRetryTimer();
-
-    function loadDateData() {
+    // ======================================
+    // ✅ 全新 LIFF 登入功能（手機穩定版）
+    // ======================================
+    async function initLiffLogin() {
       try {
-        const script = document.createElement('script');
-        script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse&t=${Date.now()}`;
-        script.onerror = () => {
-          if (loadAttempts < MAX_ATTEMPTS) {
-            loadAttempts++;
-            setTimeout(loadDateData, 800);
-          } else {
-            document.getElementById('appointDate').innerHTML = '<option value="">載入失敗，請重整</option>';
-          }
-        };
-        document.body.appendChild(script);
-      } catch (e) {}
-    }
-
-    function startRetryTimer() {
-      setTimeout(() => {
-        const el = document.getElementById('appointDate');
-        if (el.innerHTML.includes('載入中') && loadAttempts < MAX_ATTEMPTS) {
-          loadAttempts++;
-          loadDateData();
+        if (!liff.isInit()) {
+          await liff.init({ liffId: CONFIG.LIFF_ID });
         }
-      }, 1200);
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: window.location.href });
+        } else {
+          const profile = await liff.getProfile();
+          document.getElementById('lineId').value = profile.userId;
+          liffLoginBtn.style.display = "none";
+        }
+      } catch (err) {
+        alert("請在 LINE 內開啟此頁面進行登入");
+      }
     }
 
+    // JSONP 回調
     window.handleResponse = function(response) {
       try {
-        if (submitBtn) submitBtn.classList.remove('loading');
         isSubmitting = false;
-        if (!response) return;
+        if (submitBtn) submitBtn.classList.remove('loading');
 
         if (response.status === "init" && response.dates && response.timeMap) {
           const dateSelect = document.getElementById('appointDate');
+          const timeSelect = document.getElementById('appointTime');
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
+          timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
           timeDataMap = response.timeMap;
+
           response.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
           });
-          document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
+          return;
         }
 
         if (response.status === "success") {
           isSubmittedSuccess = true;
-          if (submitBtn) {
-            submitBtn.classList.add('success','permanent-disabled');
-            submitBtn.disabled = true;
-            btnText.textContent = '預約成功 ✅';
-          }
-          alert("✅ 預約成功！客服將盡快與您聯繫");
+          submitBtn.classList.add('success','permanent-disabled');
+          submitBtn.disabled = true;
+          btnText.textContent = '預約成功 ✅';
+          alert("✅ 預約成功！\n\n將透過LINE與您確認！");
           infoForm.reset();
+          document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
+        } else {
+          submitBtn.classList.add('error');
+          btnText.textContent = '預約失敗';
+          alert(response.message || "系統錯誤");
+          setTimeout(resetButtonState, 2000);
         }
-      } catch (e) {}
+      } catch (e) {
+        resetButtonState();
+      }
     };
 
-    function formatTimeLabel(v) {
-      if (!v) return "";
-      const h = parseInt(v.split(':')[0]);
-      return h < 12 ? `上午 ${v}` : h < 18 ? `下午 ${v}` : `晚上 ${v}`;
+    function formatTimeLabel(timeValue) {
+      if (!timeValue) return "";
+      const hour = parseInt(timeValue.split(':')[0]);
+      if (hour < 12) return `上午 ${timeValue}`;
+      if (hour < 18) return `下午 ${timeValue}`;
+      return `晚上 ${timeValue}`;
     }
 
-    function updateTimeOptions(d) {
-      const t = document.getElementById('appointTime');
-      if (!d) { t.innerHTML = '<option value="">請先選擇預約日期</option>'; return; }
-      t.innerHTML = '<option value="">請選擇預約時段</option>';
-      (timeDataMap[d] || []).forEach(i => {
-        const o = document.createElement('option');
-        o.value = i.value;
-        o.textContent = formatTimeLabel(i.value);
-        t.appendChild(o);
+    function updateTimeOptions(selectedDate) {
+      const timeSelect = document.getElementById('appointTime');
+      if (!selectedDate) {
+        timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+        return;
+      }
+      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
+      const list = timeDataMap[selectedDate] || [];
+      list.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = formatTimeLabel(t.value);
+        timeSelect.appendChild(opt);
       });
     }
 
     function resetButtonState() {
-      if (isSubmittedSuccess || !submitBtn) return;
+      if (isSubmittedSuccess) return;
       submitBtn.disabled = false;
       submitBtn.classList.remove('loading','success','error');
       btnText.textContent = '確認預約';
@@ -306,78 +321,94 @@
     }
 
     function getTaipeiDate() {
-      return new Intl.DateTimeFormat('zh-CN', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric', month: '2-digit', day: '2-digit'
-      }).format(new Date()).replace(/\//g, '-');
+      const d = new Date();
+      const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
+      return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    // LIFF 完全獨立，不干擾資料載入
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        try {
-          liff.init({ liffId: CONFIG.LIFF_ID }).then(() => {
-            if (liff.isLoggedIn()) {
-              liff.getProfile().then(p => {
-                document.getElementById('lineId').value = p.userId || 'guest';
-              });
-            }
-          });
-        } catch (e) {}
-      }, 1000);
-    });
-
-    function sendData() {
-      const data = {
-        pageId: document.getElementById('pageId').value,
-        date: document.getElementById('date').value,
-        lineId: document.getElementById('lineId').value,
-        serviceType: document.getElementById('serviceType').value,
-        appointDate: document.getElementById('appointDate').value,
-        appointTime: document.getElementById('appointTime').value,
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        extraInfo: document.getElementById('extraInfo').value,
-        callback: 'handleResponse',
-        t: Date.now()
-      };
-      const s = document.createElement('script');
-      s.src = `${CONFIG.SCRIPT_URL}?${new URLSearchParams(data)}`;
-      document.body.appendChild(s);
+    function loadScript(data = {}) {
+      return new Promise(resolve => {
+        const params = new URLSearchParams(data);
+        params.append('callback', 'handleResponse');
+        const s = document.createElement('script');
+        s.src = `${CONFIG.SCRIPT_URL}?${params}`;
+        s.onload = resolve;
+        s.onerror = function() {
+          document.getElementById('appointDate').innerHTML = '<option value="">請選擇預約日期</option>';
+          resolve();
+        };
+        document.body.appendChild(s);
+      });
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
+      liffLoginBtn = document.getElementById('liffLoginBtn');
       document.getElementById('date').value = getTaipeiDate();
 
-      document.getElementById('appointDate').addEventListener('change', function(){
+      // 綁定登入按鈕點擊
+      liffLoginBtn.addEventListener('click', initLiffLogin);
+
+      // 自動檢查登入狀態
+      setTimeout(async () => {
+        try {
+          await liff.init({ liffId: CONFIG.LIFF_ID });
+          if (liff.isLoggedIn()) {
+            const p = await liff.getProfile();
+            document.getElementById('lineId').value = p.userId;
+            liffLoginBtn.style.display = "none";
+          }
+        } catch (e) {}
+      }, 300);
+
+      await loadScript();
+
+      document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
       });
 
-      infoForm.addEventListener('submit', e => {
+      infoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (isSubmitting) return;
+        if (isSubmitting || isSubmittedSuccess) return;
 
         const st = document.getElementById('serviceType').value;
         const ad = document.getElementById('appointDate').value;
         const at = document.getElementById('appointTime').value;
-        const nm = document.getElementById('name').value;
-        const ph = document.getElementById('phone').value;
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const lineId = document.getElementById('lineId').value;
 
-        if (!st) return alert('請選擇服務項目');
-        if (!ad) return alert('請選擇預約日期');
-        if (!at) return alert('請選擇預約時段');
-        if (!nm) return alert('請輸入姓名');
-        if (!ph) return alert('請輸入聯絡電話');
+        if (!st) return alert("請選擇服務項目");
+        if (!ad) return alert("請選擇預約日期");
+        if (!at) return alert("請選擇預約時段");
+        if (!name) return alert("請輸入姓名");
+        if (!phone) return alert("請輸入電話");
+        if (!lineId) {
+          alert("請點擊下方按鈕完成 LIFF 登入");
+          return;
+        }
 
         isSubmitting = true;
         submitBtn.disabled = true;
         submitBtn.classList.add('loading');
-        btnText.textContent = '提交中...';
-        sendData();
+        btnText.textContent = '預約中...';
+
+        const formData = {
+          pageId: document.getElementById('pageId').value,
+          date: document.getElementById('date').value,
+          lineId: lineId,
+          serviceType: st,
+          appointDate: ad,
+          appointTime: at,
+          name: name,
+          phone: phone,
+          email: document.getElementById('email').value,
+          extraInfo: document.getElementById('extraInfo').value
+        };
+        await loadScript(formData);
       });
     });
   </script>
