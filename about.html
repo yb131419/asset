@@ -226,14 +226,17 @@
         submitBtn.classList.remove('loading');
         if (!response) throw new Error("後端返回空回應");
 
-        if (response.status === "init" && response.dates && response.times) {
+        // ✅ 修正：讀取後端傳的 timeMap
+        if (response.status === "init" && response.dates && response.timeMap) {
           const dateSelect = document.getElementById('appointDate');
           const timeSelect = document.getElementById('appointTime');
           
           // 重置選單
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
           timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
-          timeDataMap = {};
+          
+          // ✅ 修正：接收完整的時段資料
+          timeDataMap = response.timeMap;
 
           // 加載日期
           response.dates.forEach(item => {
@@ -241,7 +244,6 @@
             opt.value = item.value;
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
-            timeDataMap[item.value] = response.times || [];
           });
 
           return;
@@ -288,7 +290,7 @@
         return;
       }
 
-      // 有選擇日期 → 載入時段
+      // 有選擇日期 → 載入對應時段
       timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
       const timeList = timeDataMap[selectedDate] || [];
       
