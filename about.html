@@ -79,6 +79,7 @@
     input[readonly] {
       opacity: 0.7;
       cursor: not-allowed;
+      background: #f1f1f1 !important;
     }
     select {
       appearance: none;
@@ -172,30 +173,16 @@
         <option value="其他服務">其他服務</option>
       </select>
 
-      <!-- 管理員可自訂的預約日期選單 -->
+      <!-- 可由Google表單後台編輯的日期 -->
       <label for="appointDate">預約日期</label>
       <select id="appointDate" name="appointDate" required>
         <option value="">請選擇預約日期</option>
-        <option value="2026-03-25">2026-03-25（星期三）</option>
-        <option value="2026-03-26">2026-03-26（星期四）</option>
-        <option value="2026-03-27">2026-03-27（星期五）</option>
-        <option value="2026-03-28">2026-03-28（星期六）</option>
-        <option value="2026-03-29">2026-03-29（星期日）</option>
       </select>
 
-      <!-- 管理員可自訂的預約時段選單 -->
+      <!-- 可由Google表單後台編輯的時段 -->
       <label for="appointTime">預約時段</label>
       <select id="appointTime" name="appointTime" required>
         <option value="">請選擇預約時段</option>
-        <option value="10:00">10:00</option>
-        <option value="11:00">11:00</option>
-        <option value="13:00">13:00</option>
-        <option value="14:00">14:00</option>
-        <option value="15:00">15:00</option>
-        <option value="16:00">16:00</option>
-        <option value="17:00">17:00</option>
-        <option value="18:00">18:00</option>
-        <option value="19:00">19:00</option>
       </select>
 
       <label for="name">姓名</label>
@@ -204,8 +191,8 @@
       <label for="phone">聯絡電話</label>
       <input type="tel" id="phone" name="phone" required placeholder="請輸入聯絡電話" />
 
-      <label for="userId">Line ID</label>
-      <input type="text" id="userId" name="userId" placeholder="請輸入您的Line ID" />
+      <label for="userId">Line ID（自動取得）</label>
+      <input type="text" id="userId" name="userId" readonly placeholder="自動取得LINE ID，無法修改">
 
       <label for="email">電子信箱（選填）</label>
       <input type="email" id="email" name="email" placeholder="請輸入電子信箱" />
@@ -243,6 +230,27 @@
         submitBtn.classList.remove('loading');
         if (!response) throw new Error("後端返回空回應");
         
+        // 加載後台設定的日期&時段選項
+        if (response.dates) {
+          const dateSelect = document.getElementById('appointDate');
+          response.dates.forEach(date => {
+            const option = document.createElement('option');
+            option.value = date.value;
+            option.textContent = date.label;
+            dateSelect.appendChild(option);
+          });
+        }
+        if (response.times) {
+          const timeSelect = document.getElementById('appointTime');
+          response.times.forEach(time => {
+            const option = document.createElement('option');
+            option.value = time.value;
+            option.textContent = time.label;
+            timeSelect.appendChild(option);
+          });
+        }
+
+        // 提交成功邏輯
         if (response.status === "success") {
           isSubmittedSuccess = true;
           submitBtn.classList.add('success', 'permanent-disabled');
@@ -250,6 +258,8 @@
           btnText.textContent = '預約成功 ✅';
           alert("✅ 預約資料已成功送出！\n美容師將透過LINE與您確認預約！");
           infoForm?.reset();
+        } else if(response.status === "init"){
+          // 初始化完成，不處理
         } else {
           submitBtn.classList.add('error');
           btnText.textContent = '預約失敗 ❌';
@@ -288,18 +298,24 @@
       }
     }
 
-    // 初始化LIFF
+    // 初始化LIFF + 自動填入Line ID
     async function initLiff() {
       try {
         if (typeof liff === 'undefined') throw new Error("LINE LIFF SDK 加載失敗");
         await liff.init({ liffId: CONFIG.LIFF_ID });
+        
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
         }
+        
         const profile = await liff.getProfile();
         const lineIdInput = document.getElementById('lineId');
+        const userIdInput = document.getElementById('userId');
+        
         if (lineIdInput) lineIdInput.value = profile.userId || '';
+        if (userIdInput) userIdInput.value = profile.userId || ''; // 自動填入
+        
       } catch (error) {
         console.error("LIFF初始化出錯：", error);
         alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
@@ -359,6 +375,7 @@
 
       document.getElementById('date').value = getTaipeiDate();
       initLiff();
+      sendData(); // 加載後台日期&時段
 
       infoForm?.addEventListener('submit', function(e) {
         e.preventDefault();
