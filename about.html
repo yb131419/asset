@@ -173,13 +173,11 @@
         <option value="其他服務">其他服務</option>
       </select>
 
-      <!-- 可由Google表單後台編輯的日期 -->
       <label for="appointDate">預約日期</label>
       <select id="appointDate" name="appointDate" required>
         <option value="">請選擇預約日期</option>
       </select>
 
-      <!-- 可由Google表單後台編輯的時段 -->
       <label for="appointTime">預約時段</label>
       <select id="appointTime" name="appointTime" required>
         <option value="">請選擇預約時段</option>
@@ -190,9 +188,6 @@
 
       <label for="phone">聯絡電話</label>
       <input type="tel" id="phone" name="phone" required placeholder="請輸入聯絡電話" />
-
-      <label for="userId">Line ID（自動取得）</label>
-      <input type="text" id="userId" name="userId" readonly placeholder="自動取得LINE ID，無法修改">
 
       <label for="email">電子信箱（選填）</label>
       <input type="email" id="email" name="email" placeholder="請輸入電子信箱" />
@@ -220,6 +215,8 @@
     let [submitBtn, btnText, infoForm] = [null, null, null];
     let isSubmitting = false;
     let isSubmittedSuccess = false;
+    let timeDataMap = {}; // 儲存日期對應的時段
+    let allDateList = []; // 儲存所有日期
 
     // JSONP回调
     window.handleResponse = function(response) {
@@ -229,25 +226,37 @@
         
         submitBtn.classList.remove('loading');
         if (!response) throw new Error("後端返回空回應");
-        
-        // 加載後台設定的日期&時段選項
-        if (response.dates) {
+
+        // 初始化：載入日期與時段資料
+        if (response.status === "init" && response.dates && response.times) {
+          allDateList = response.dates;
+          timeDataMap = {};
+
+          // 先清空選項
           const dateSelect = document.getElementById('appointDate');
-          response.dates.forEach(date => {
-            const option = document.createElement('option');
-            option.value = date.value;
-            option.textContent = date.label;
-            dateSelect.appendChild(option);
-          });
-        }
-        if (response.times) {
           const timeSelect = document.getElementById('appointTime');
-          response.times.forEach(time => {
-            const option = document.createElement('option');
-            option.value = time.value;
-            option.textContent = time.label;
-            timeSelect.appendChild(option);
+          dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
+          timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
+
+          // 填入所有日期
+          response.dates.forEach(date => {
+            const opt = document.createElement('option');
+            opt.value = date.value;
+            opt.textContent = date.label;
+            dateSelect.appendChild(opt);
           });
+
+          // 儲存每個日期對應的時段
+          response.dates.forEach(dateItem => {
+            timeDataMap[dateItem.value] = response.times || [];
+          });
+
+          // 預設載入第一個日期的時段
+          if (response.dates.length > 0) {
+            const firstDate = response.dates[0].value;
+            updateTimeOptions(firstDate);
+          }
+          return;
         }
 
         // 提交成功邏輯
@@ -258,8 +267,6 @@
           btnText.textContent = '預約成功 ✅';
           alert("✅ 預約資料已成功送出！\n美容師將透過LINE與您確認預約！");
           infoForm?.reset();
-        } else if(response.status === "init"){
-          // 初始化完成，不處理
         } else {
           submitBtn.classList.add('error');
           btnText.textContent = '預約失敗 ❌';
@@ -276,6 +283,20 @@
         alert(`❌ 處理回應失敗：${error.message}\n請稍後再試或聯繫管理員`);
       }
     };
+
+    // 更新時段選項（切換日期時自動更換）
+    function updateTimeOptions(selectedDate) {
+      const timeSelect = document.getElementById('appointTime');
+      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
+      
+      const times = timeDataMap[selectedDate] || [];
+      times.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.value;
+        opt.textContent = t.label;
+        timeSelect.appendChild(opt);
+      });
+    }
 
     // 重置按钮状态
     function resetButtonState() {
@@ -311,10 +332,7 @@
         
         const profile = await liff.getProfile();
         const lineIdInput = document.getElementById('lineId');
-        const userIdInput = document.getElementById('userId');
-        
         if (lineIdInput) lineIdInput.value = profile.userId || '';
-        if (userIdInput) userIdInput.value = profile.userId || ''; // 自動填入
         
       } catch (error) {
         console.error("LIFF初始化出錯：", error);
@@ -332,7 +350,6 @@
           serviceType: document.getElementById('serviceType')?.value || '',
           appointDate: document.getElementById('appointDate')?.value || '',
           appointTime: document.getElementById('appointTime')?.value || '',
-          userId: document.getElementById('userId')?.value || '',
           name: document.getElementById('name')?.value || '',
           phone: document.getElementById('phone')?.value || '',
           email: document.getElementById('email')?.value || '',
@@ -376,6 +393,11 @@
       document.getElementById('date').value = getTaipeiDate();
       initLiff();
       sendData(); // 加載後台日期&時段
+
+      // 切換日期 → 自動更新對應時段
+      document.getElementById('appointDate').addEventListener('change', function() {
+        updateTimeOptions(this.value);
+      });
 
       infoForm?.addEventListener('submit', function(e) {
         e.preventDefault();
