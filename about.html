@@ -318,13 +318,19 @@
       return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    // LIFF 初始化
+    // LIFF 初始化 + 登入完成後再載入日期
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) return liff.login();
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
         const p = await liff.getProfile();
         document.getElementById('lineId').value = p.userId || '';
+        
+        // ✅ 關鍵修正：登入完成後 再載入日期
+        sendData();
       } catch (e) {
         alert("請在LINE內開啟");
       }
@@ -348,7 +354,10 @@
       params.append('callback','handleResponse');
       const script = document.createElement('script');
       script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-      script.onerror = () => { alert("網路錯誤，請重新嘗試"); resetButtonState(); };
+      script.onerror = () => { 
+        console.log("請求異常");
+        setTimeout(sendData, 1000); // 失敗自動重試
+      };
       document.body.appendChild(script);
     }
 
@@ -359,9 +368,8 @@
       infoForm = document.getElementById('infoForm');
       document.getElementById('date').value = getTaipeiDate();
       
-      // 初始化
+      // 初始化（只執行 LIFF，裡面會自動載入日期）
       initLiff();
-      sendData();
 
       // 切換日期 → 自動更新時段
       document.getElementById('appointDate').addEventListener('change', function() {
