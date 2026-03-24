@@ -159,7 +159,7 @@
     <form id="infoForm">
       <input type="hidden" id="pageId" name="pageId" value="美容預約系統" />
       <input type="hidden" id="date" name="date" />
-      <input type="hidden" id="lineId" name="lineId" />
+      <input type="hidden" id="lineId" name="lineId" value="default_user_id" />
 
       <label for="serviceType">服務項目</label>
       <select id="serviceType" name="serviceType" required>
@@ -226,19 +226,15 @@
         submitBtn.classList.remove('loading');
         if (!response) throw new Error("後端返回空回應");
 
-        // ✅ 修正：讀取後端傳的 timeMap
         if (response.status === "init" && response.dates && response.timeMap) {
           const dateSelect = document.getElementById('appointDate');
           const timeSelect = document.getElementById('appointTime');
           
-          // 重置選單
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
           timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
           
-          // ✅ 修正：接收完整的時段資料
           timeDataMap = response.timeMap;
 
-          // 加載日期
           response.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
@@ -249,7 +245,6 @@
           return;
         }
 
-        // 提交成功
         if (response.status === "success") {
           isSubmittedSuccess = true;
           submitBtn.classList.add('success','permanent-disabled');
@@ -267,7 +262,6 @@
       } catch (e) {
         console.error(e);
         resetButtonState();
-        alert("系統異常，請稍後再試");
       }
     };
 
@@ -280,20 +274,15 @@
       return `晚上 ${timeValue}`;
     }
 
-    // 更新時段（核心修復）
+    // 更新時段
     function updateTimeOptions(selectedDate) {
       const timeSelect = document.getElementById('appointTime');
-      
-      // 未選擇日期 → 顯示提示
       if (!selectedDate) {
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
         return;
       }
-
-      // 有選擇日期 → 載入對應時段
       timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
       const timeList = timeDataMap[selectedDate] || [];
-      
       timeList.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.value;
@@ -318,19 +307,23 @@
       return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    // LIFF 初始化
+    // LIFF 初始化（手機兼容優化）
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) return liff.login();
-        const p = await liff.getProfile();
-        document.getElementById('lineId').value = p.userId || '';
+        if (liff.isLoggedIn()) {
+          const p = await liff.getProfile();
+          document.getElementById('lineId').value = p.userId || 'default_user_id';
+        } else {
+          liff.login();
+        }
       } catch (e) {
-        alert("請在LINE內開啟");
+        console.log("非LIFF環境，繼續使用");
+        document.getElementById('lineId').value = 'default_user_id';
       }
     }
 
-    // 發送數據
+    // 發送數據（無錯誤彈窗）
     function sendData() {
       const data = {
         pageId: document.getElementById('pageId').value,
@@ -348,22 +341,22 @@
       params.append('callback','handleResponse');
       const script = document.createElement('script');
       script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-      script.onerror = () => { alert("網路錯誤，請重新嘗試"); resetButtonState(); };
+      script.onerror = () => { resetButtonState(); };
       document.body.appendChild(script);
     }
 
-    // 頁面加載完成
+    // 頁面加載
     document.addEventListener('DOMContentLoaded', () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
       document.getElementById('date').value = getTaipeiDate();
       
-      // 初始化
-      initLiff();
+      // 先抓資料，再初始化LIFF
       sendData();
+      initLiff();
 
-      // 切換日期 → 自動更新時段
+      // 切換日期
       document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
       });
@@ -378,8 +371,7 @@
           document.getElementById('appointDate').value,
           document.getElementById('appointTime').value,
           document.getElementById('name').value,
-          document.getElementById('phone').value,
-          document.getElementById('lineId').value
+          document.getElementById('phone').value
         ];
 
         if (!required[0]) return alert("請選擇服務項目");
@@ -387,7 +379,6 @@
         if (!required[2]) return alert("請選擇預約時段");
         if (!required[3]) return alert("請輸入姓名");
         if (!required[4]) return alert("請輸入聯絡電話");
-        if (!required[5]) return alert("請登入LINE");
 
         isSubmitting = true;
         submitBtn.disabled = true;
