@@ -40,7 +40,6 @@
     }
     h2 .sub-title {
       font-size: 0.95rem;
-      font-weight: 500;
       color: #666;
     }
     form label {
@@ -60,11 +59,10 @@
       border-radius: 10px;
       border: 1px solid #eee;
       font-size: 0.95rem;
-      background: #fafafa;
+      background: #fff;
       color: #333;
       margin-bottom: 18px;
       transition: all 0.3s ease;
-      font-family: 'Roboto', sans-serif;
     }
     textarea {
       min-height: 80px;
@@ -72,14 +70,8 @@
       line-height: 1.5;
     }
     input:focus, select:focus, textarea:focus {
-      background: #fff;
       border-color: #ff69b4;
       outline: none;
-    }
-    input[readonly] {
-      opacity: 0.7;
-      cursor: not-allowed;
-      background: #f1f1f1 !important;
     }
     select {
       appearance: none;
@@ -87,7 +79,6 @@
       background-repeat: no-repeat;
       background-position: right 14px center;
       background-size: 16px;
-      cursor: pointer;
     }
     .btn-container {
       margin-top: 10px;
@@ -106,7 +97,6 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(255,105,180,0.2);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -114,11 +104,6 @@
     }
     button:disabled {
       opacity: 0.7;
-      cursor: not-allowed;
-    }
-    button.permanent-disabled {
-      opacity: 0.5;
-      background: #666 !important;
       cursor: not-allowed;
     }
     .loader {
@@ -137,23 +122,8 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    @keyframes successPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    .success {
-      animation: successPulse 0.6s ease-in-out;
-      background: #00c851 !important;
-    }
-    .error {
-      animation: successPulse 0.6s ease-in-out;
-      background: #ff4444 !important;
-    }
-
     #lineLoginBtn {
       background: #00B900 !important;
-      display: block !important;
     }
   </style>
 </head>
@@ -214,31 +184,32 @@
   </main>
 
   <script>
+    // ====================== 配置 ======================
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
       LIFF_ID: "2008578880-lCRzVTyk"
     };
 
-    let submitBtn, btnText, infoForm, lineLoginBtn;
+    // ====================== 全局變數 ======================
+    let submitBtn, btnText, lineLoginBtn;
     let isSubmitting = false;
-    let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // 載入日期（純 Fetch，無 JSONP，手機穩定）
+    // ====================== 【參考你試算系統】穩定讀取資料 ======================
     async function loadDateData() {
       try {
-        const res = await fetch(CONFIG.SCRIPT_URL);
-        const response = await res.json();
-        
-        if (response.status === "init" && response.dates && response.timeMap) {
+        const res = await fetch(CONFIG.SCRIPT_URL + "?action=getDates", {
+          cache: "no-store",
+          mode: "cors"
+        });
+        const data = await res.json();
+
+        if (data.status === "success" && data.dates && data.timeMap) {
           const dateSelect = document.getElementById('appointDate');
-          const timeSelect = document.getElementById('appointTime');
-          
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-          timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
-          
-          timeDataMap = response.timeMap;
-          response.dates.forEach(item => {
+
+          timeDataMap = data.timeMap;
+          data.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
             opt.textContent = item.label;
@@ -246,145 +217,115 @@
           });
         }
       } catch (e) {
-        setTimeout(loadDateData, 800);
+        setTimeout(loadDateData, 1000);
       }
     }
 
-    // LINE 手動登入
+    // ====================== LINE 登入 ======================
     async function lineLogin() {
       try {
         if (!liff.isInit()) await liff.init({ liffId: CONFIG.LIFF_ID });
         if (!liff.isLoggedIn()) {
           liff.login({ redirectUri: window.location.href });
-        } else {
-          const p = await liff.getProfile();
-          document.getElementById('lineId').value = p.userId;
-          alert("✅ LINE 登入成功！");
+          return;
         }
+        const profile = await liff.getProfile();
+        document.getElementById('lineId').value = profile.userId;
+        alert("✅ LINE 登入成功");
       } catch (e) {
-        alert("請在 LINE 內開啟頁面使用登入功能");
+        alert("請在 LINE 內開啟");
       }
     }
 
-    // 提交預約（純 Fetch）
-    async function submitBooking(data) {
-      try {
-        const params = new URLSearchParams(data);
-        const res = await fetch(CONFIG.SCRIPT_URL + "?" + params);
-        const response = await res.json();
-
-        isSubmitting = false;
-        submitBtn.classList.remove('loading');
-
-        if (response.status === "success") {
-          isSubmittedSuccess = true;
-          submitBtn.classList.add('success','permanent-disabled');
-          submitBtn.disabled = true;
-          btnText.textContent = '預約成功 ✅';
-          alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
-          infoForm.reset();
-          document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
-        } else {
-          submitBtn.classList.add('error');
-          btnText.textContent = '預約失敗 ❌';
-          alert(response.message || "系統錯誤");
-          setTimeout(resetButtonState, 3000);
-        }
-      } catch (e) {
-        alert("網路錯誤，請重新嘗試");
-        resetButtonState();
-      }
-    }
-
-    function formatTimeLabel(timeValue) {
-      if (!timeValue) return "";
-      const hour = parseInt(timeValue.split(':')[0]);
-      if (hour < 12) return `上午 ${timeValue}`;
-      if (hour < 18) return `下午 ${timeValue}`;
-      return `晚上 ${timeValue}`;
-    }
-
-    function updateTimeOptions(selectedDate) {
+    // ====================== 切換日期更新時段 ======================
+    function updateTimeOptions(dateVal) {
       const timeSelect = document.getElementById('appointTime');
-      if (!selectedDate) {
+      if (!dateVal) {
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
         return;
       }
-      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
-      const list = timeDataMap[selectedDate] || [];
+      timeSelect.innerHTML = '';
+      const list = timeDataMap[dateVal] || [];
       list.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = t.value;
-        opt.textContent = formatTimeLabel(t.value);
+        opt.value = t;
+        opt.textContent = t;
         timeSelect.appendChild(opt);
       });
     }
 
-    function resetButtonState() {
-      if (isSubmittedSuccess) return;
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('loading','success','error');
-      btnText.textContent = '確認預約';
-      isSubmitting = false;
-    }
+    // ====================== 提交預約 ======================
+    async function submitForm(e) {
+      e.preventDefault();
 
-    function getTaipeiDate() {
-      const d = new Date();
-      const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
-      return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
-    }
+      const lineId = document.getElementById('lineId').value;
+      const service = document.getElementById('serviceType').value;
+      const date = document.getElementById('appointDate').value;
+      const time = document.getElementById('appointTime').value;
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
 
-    // 初始化
-    document.addEventListener('DOMContentLoaded', async () => {
-      submitBtn = document.getElementById('submitBtn');
-      btnText = submitBtn.querySelector('.btn-text');
-      infoForm = document.getElementById('infoForm');
-      lineLoginBtn = document.getElementById('lineLoginBtn');
-      document.getElementById('date').value = getTaipeiDate();
+      if (!lineId) return alert("請先登入 LINE");
+      if (!service) return alert("請選擇服務");
+      if (!date) return alert("請選擇日期");
+      if (!time) return alert("請選擇時段");
+      if (!name) return alert("請輸入姓名");
+      if (!phone) return alert("請輸入電話");
 
-      lineLoginBtn.addEventListener('click', lineLogin);
-      await loadDateData();
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      btnText.textContent = '提交中...';
 
-      document.getElementById('appointDate').addEventListener('change', function() {
-        updateTimeOptions(this.value);
-      });
-
-      infoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (isSubmitting || isSubmittedSuccess) return;
-
-        const st = document.getElementById('serviceType').value;
-        const ad = document.getElementById('appointDate').value;
-        const at = document.getElementById('appointTime').value;
-        const name = document.getElementById('name').value;
-        const phone = document.getElementById('phone').value;
-        const lineId = document.getElementById('lineId').value;
-
-        if (!st) return alert("請選擇服務項目");
-        if (!ad) return alert("請選擇預約日期");
-        if (!at) return alert("請選擇預約時段");
-        if (!name) return alert("請輸入姓名");
-        if (!phone) return alert("請輸入電話");
-        if (!lineId) return alert("請點擊下方按鈕登入 LINE");
-
-        isSubmitting = true;
-        submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-        btnText.textContent = '預約中...';
-
-        submitBooking({
-          pageId: "美容預約系統",
-          date: getTaipeiDate(),
+      try {
+        const params = new URLSearchParams({
+          action: "submit",
           lineId: lineId,
-          serviceType: st,
-          appointDate: ad,
-          appointTime: at,
+          service: service,
+          date: date,
+          time: time,
           name: name,
           phone: phone,
           email: document.getElementById('email').value,
-          extraInfo: document.getElementById('extraInfo').value
+          note: document.getElementById('extraInfo').value
         });
+
+        const res = await fetch(CONFIG.SCRIPT_URL + "?" + params, {
+          method: "GET",
+          mode: "cors"
+        });
+
+        const result = await res.json();
+        if (result.status === "success") {
+          alert("✅ 預約成功！");
+          document.getElementById('infoForm').reset();
+        } else {
+          alert("❌ 預約失敗：" + result.message);
+        }
+      } catch (err) {
+        alert("網路錯誤，請重試");
+      } finally {
+        isSubmitting = false;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        btnText.textContent = '確認預約';
+      }
+    }
+
+    // ====================== 初始化 ======================
+    window.addEventListener('DOMContentLoaded', async () => {
+      submitBtn = document.getElementById('submitBtn');
+      btnText = submitBtn.querySelector('.btn-text');
+      lineLoginBtn = document.getElementById('lineLoginBtn');
+
+      lineLoginBtn.addEventListener('click', lineLogin);
+      document.getElementById('infoForm').addEventListener('submit', submitForm);
+      document.getElementById('appointDate').addEventListener('change', function () {
+        updateTimeOptions(this.value);
       });
+
+      // 自動讀取日期（跟你試算系統一樣穩定）
+      await loadDateData();
     });
   </script>
 </body>
