@@ -215,10 +215,10 @@
     let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // 先載入日期資料（手機永不失效）
+    // 先載入日期資料（手機/電腦通用 JSONP）
     function loadDateData() {
       const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
+      script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse&t=${Date.now()}`;
       document.body.appendChild(script);
     }
 
@@ -291,15 +291,18 @@
       }).format(new Date()).replace(/\//g, '-');
     }
 
-    // LIFF 登入（不阻塞日期載入）
+    // 安全 LIFF 初始化：不彈窗、不強制登入
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
         if (liff.isLoggedIn()) {
-          const p = await liff.getProfile();
-          document.getElementById('lineId').value = p.userId || 'guest';
+          const profile = await liff.getProfile();
+          document.getElementById('lineId').value = profile.userId || 'guest';
         }
-      } catch (e) {}
+      } catch (err) {
+        // 不彈窗提示，静默失敗
+        console.log('LIFF 初始化完成，非 LINE 環境正常使用');
+      }
     }
 
     function sendData() {
@@ -314,7 +317,8 @@
         phone: document.getElementById('phone').value,
         email: document.getElementById('email').value,
         extraInfo: document.getElementById('extraInfo').value,
-        callback: 'handleResponse'
+        callback: 'handleResponse',
+        t: Date.now()
       };
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${new URLSearchParams(data)}`;
@@ -328,7 +332,7 @@
       infoForm = document.getElementById('infoForm');
       document.getElementById('date').value = getTaipeiDate();
 
-      // 關鍵修復：先抓資料 → 再登入
+      // 核心：先載入資料 → 再安全初始化 LIFF
       loadDateData();
       initLiff();
 
