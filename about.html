@@ -205,205 +205,221 @@
   </main>
 
   <script>
-    // 配置项
-    const CONFIG = {
-      SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
-      LIFF_ID: "2008578880-lCRzVTyk"
-    };
+  // 配置项
+  const CONFIG = {
+    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
+    LIFF_ID: "2008578880-lCRzVTyk"
+  };
 
-    // 全局变量
-    let submitBtn, btnText, infoForm;
-    let isSubmitting = false;
-    let isSubmittedSuccess = false;
-    let timeDataMap = {};
+  // 全局变量
+  let submitBtn, btnText, infoForm;
+  let isSubmitting = false;
+  let isSubmittedSuccess = false;
+  let timeDataMap = {};
 
-    // JSONP回调
-    window.handleResponse = function(response) {
-      try {
-        isSubmitting = false;
-        if (!submitBtn || !btnText) return;
-        
-        submitBtn.classList.remove('loading');
-        if (!response) throw new Error("後端返回空回應");
-
-        // ✅ 修正：讀取後端傳的 timeMap
-        if (response.status === "init" && response.dates && response.timeMap) {
-          const dateSelect = document.getElementById('appointDate');
-          const timeSelect = document.getElementById('appointTime');
-          
-          // 重置選單
-          dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-          timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
-          
-          // ✅ 修正：接收完整的時段資料
-          timeDataMap = response.timeMap;
-
-          // 加載日期
-          response.dates.forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item.value;
-            opt.textContent = item.label;
-            dateSelect.appendChild(opt);
-          });
-
-          return;
-        }
-
-        // 提交成功
-        if (response.status === "success") {
-          isSubmittedSuccess = true;
-          submitBtn.classList.add('success','permanent-disabled');
-          submitBtn.disabled = true;
-          btnText.textContent = '預約成功 ✅';
-          alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
-          infoForm.reset();
-          document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
-        } else {
-          submitBtn.classList.add('error');
-          btnText.textContent = '預約失敗 ❌';
-          alert(response.message || "系統錯誤");
-          setTimeout(resetButtonState, 3000);
-        }
-      } catch (e) {
-        console.error(e);
-        resetButtonState();
-        alert("系統異常，請稍後再試");
-      }
-    };
-
-    // 轉換時段格式
-    function formatTimeLabel(timeValue) {
-      if (!timeValue) return "";
-      const hour = parseInt(timeValue.split(':')[0]);
-      if (hour < 12) return `上午 ${timeValue}`;
-      if (hour < 18) return `下午 ${timeValue}`;
-      return `晚上 ${timeValue}`;
-    }
-
-    // 更新時段（核心修復）
-    function updateTimeOptions(selectedDate) {
-      const timeSelect = document.getElementById('appointTime');
+  // JSONP回调
+  window.handleResponse = function(response) {
+    try {
+      isSubmitting = false;
+      if (!submitBtn || !btnText) return;
       
-      // 未選擇日期 → 顯示提示
-      if (!selectedDate) {
+      submitBtn.classList.remove('loading');
+      if (!response) throw new Error("後端返回空回應");
+
+      // ✅ 讀取後端傳的日期與時段
+      if (response.status === "init" && response.dates && response.timeMap) {
+        const dateSelect = document.getElementById('appointDate');
+        const timeSelect = document.getElementById('appointTime');
+        
+        dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+        
+        timeDataMap = response.timeMap;
+
+        // 加載日期選單
+        response.dates.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.value;
+          opt.textContent = item.label;
+          dateSelect.appendChild(opt);
+        });
         return;
       }
 
-      // 有選擇日期 → 載入對應時段
-      timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
-      const timeList = timeDataMap[selectedDate] || [];
-      
-      timeList.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.value;
-        opt.textContent = formatTimeLabel(t.value);
-        timeSelect.appendChild(opt);
-      });
-    }
-
-    // 重置按鈕
-    function resetButtonState() {
-      if (isSubmittedSuccess) return;
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('loading','success','error');
-      btnText.textContent = '確認預約';
-      isSubmitting = false;
-    }
-
-    // 取得台北日期
-    function getTaipeiDate() {
-      const d = new Date();
-      const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
-      return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
-    }
-
-    // LIFF 初始化 + 登入完成後再載入日期
-    async function initLiff() {
-      try {
-        await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-        const p = await liff.getProfile();
-        document.getElementById('lineId').value = p.userId || '';
-        
-        // ✅ 關鍵修正：登入完成後 再載入日期
-        sendData();
-      } catch (e) {
-        alert("請在LINE內開啟");
-      }
-    }
-
-    // 發送數據
-    function sendData() {
-      const data = {
-        pageId: document.getElementById('pageId').value,
-        date: document.getElementById('date').value,
-        lineId: document.getElementById('lineId').value,
-        serviceType: document.getElementById('serviceType').value,
-        appointDate: document.getElementById('appointDate').value,
-        appointTime: document.getElementById('appointTime').value,
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        extraInfo: document.getElementById('extraInfo').value
-      };
-      const params = new URLSearchParams(data);
-      params.append('callback','handleResponse');
-      const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-      script.onerror = () => { 
-        console.log("請求異常");
-        setTimeout(sendData, 1000); // 失敗自動重試
-      };
-      document.body.appendChild(script);
-    }
-
-    // 頁面加載完成
-    document.addEventListener('DOMContentLoaded', () => {
-      submitBtn = document.getElementById('submitBtn');
-      btnText = submitBtn.querySelector('.btn-text');
-      infoForm = document.getElementById('infoForm');
-      document.getElementById('date').value = getTaipeiDate();
-      
-      // 初始化（只執行 LIFF，裡面會自動載入日期）
-      initLiff();
-
-      // 切換日期 → 自動更新時段
-      document.getElementById('appointDate').addEventListener('change', function() {
-        updateTimeOptions(this.value);
-      });
-
-      // 表單提交
-      infoForm.addEventListener('submit', e => {
-        e.preventDefault();
-        if (isSubmitting || isSubmittedSuccess) return;
-        
-        const required = [
-          document.getElementById('serviceType').value,
-          document.getElementById('appointDate').value,
-          document.getElementById('appointTime').value,
-          document.getElementById('name').value,
-          document.getElementById('phone').value,
-          document.getElementById('lineId').value
-        ];
-
-        if (!required[0]) return alert("請選擇服務項目");
-        if (!required[1]) return alert("請選擇預約日期");
-        if (!required[2]) return alert("請選擇預約時段");
-        if (!required[3]) return alert("請輸入姓名");
-        if (!required[4]) return alert("請輸入聯絡電話");
-        if (!required[5]) return alert("請登入LINE");
-
-        isSubmitting = true;
+      // 提交成功
+      if (response.status === "success") {
+        isSubmittedSuccess = true;
+        submitBtn.classList.add('success','permanent-disabled');
         submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-        btnText.textContent = '預約中...';
-        sendData();
-      });
+        btnText.textContent = '預約成功 ✅';
+        alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
+        infoForm.reset();
+        document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
+      } else {
+        submitBtn.classList.add('error');
+        btnText.textContent = '預約失敗 ❌';
+        alert(response.message || "系統錯誤");
+        setTimeout(resetButtonState, 3000);
+      }
+    } catch (e) {
+      console.error(e);
+      resetButtonState();
+      alert("系統異常，請稍後再試");
+    }
+  };
+
+  // 轉換時段格式
+  function formatTimeLabel(timeValue) {
+    if (!timeValue) return "";
+    const hour = parseInt(timeValue.split(':')[0]);
+    if (hour < 12) return `上午 ${timeValue}`;
+    if (hour < 18) return `下午 ${timeValue}`;
+    return `晚上 ${timeValue}`;
+  }
+
+  // 更新時段
+  function updateTimeOptions(selectedDate) {
+    const timeSelect = document.getElementById('appointTime');
+    if (!selectedDate) {
+      timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
+      return;
+    }
+    timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
+    const timeList = timeDataMap[selectedDate] || [];
+    timeList.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.value;
+      opt.textContent = formatTimeLabel(t.value);
+      timeSelect.appendChild(opt);
     });
-  </script>
+  }
+
+  // 重置按鈕
+  function resetButtonState() {
+    if (isSubmittedSuccess) return;
+    submitBtn.disabled = false;
+    submitBtn.classList.remove('loading','success','error');
+    btnText.textContent = '確認預約';
+    isSubmitting = false;
+  }
+
+  // 取得台北日期
+  function getTaipeiDate() {
+    const d = new Date();
+    const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
+    return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
+  }
+
+  // LIFF 初始化 + 登入完成 加載日期
+  async function initLiff() {
+    try {
+      await liff.init({ liffId: CONFIG.LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      const p = await liff.getProfile();
+      document.getElementById('lineId').value = p.userId || '';
+      
+      // ✅ 修正：專門用於載入日期（單獨請求，確保後端返回日期）
+      loadDateList();
+    } catch (e) {
+      alert("請在LINE內開啟");
+    }
+  }
+
+  // ✅ 專門載入日期選單（獨立函式，確保後端回傳 init 資料）
+  function loadDateList() {
+    const data = {
+      pageId: document.getElementById('pageId').value,
+      date: document.getElementById('date').value,
+      lineId: document.getElementById('lineId').value,
+      // 清空所有表單欄位 → 強制後端返回日期
+      serviceType: "",
+      appointDate: "",
+      appointTime: "",
+      name: "",
+      phone: "",
+      email: "",
+      extraInfo: ""
+    };
+    const params = new URLSearchParams(data);
+    params.append('callback','handleResponse');
+    const script = document.createElement('script');
+    script.src = `${CONFIG.SCRIPT_URL}?${params}`;
+    script.onerror = () => setTimeout(loadDateList, 1000);
+    document.body.appendChild(script);
+  }
+
+  // 表單提交發送數據
+  function sendData() {
+    const data = {
+      pageId: document.getElementById('pageId').value,
+      date: document.getElementById('date').value,
+      lineId: document.getElementById('lineId').value,
+      serviceType: document.getElementById('serviceType').value,
+      appointDate: document.getElementById('appointDate').value,
+      appointTime: document.getElementById('appointTime').value,
+      name: document.getElementById('name').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      extraInfo: document.getElementById('extraInfo').value
+    };
+    const params = new URLSearchParams(data);
+    params.append('callback','handleResponse');
+    const script = document.createElement('script');
+    script.src = `${CONFIG.SCRIPT_URL}?${params}`;
+    script.onerror = () => { 
+      alert("網路錯誤，請重新嘗試");
+      resetButtonState();
+    };
+    document.body.appendChild(script);
+  }
+
+  // 頁面加載完成
+  document.addEventListener('DOMContentLoaded', () => {
+    submitBtn = document.getElementById('submitBtn');
+    btnText = submitBtn.querySelector('.btn-text');
+    infoForm = document.getElementById('infoForm');
+    document.getElementById('date').value = getTaipeiDate();
+    
+    // 初始化
+    initLiff();
+
+    // 切換日期更新時段
+    document.getElementById('appointDate').addEventListener('change', function() {
+      updateTimeOptions(this.value);
+    });
+
+    // 表單提交
+    infoForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if (isSubmitting || isSubmittedSuccess) return;
+      
+      const required = [
+        document.getElementById('serviceType').value,
+        document.getElementById('appointDate').value,
+        document.getElementById('appointTime').value,
+        document.getElementById('name').value,
+        document.getElementById('phone').value,
+        document.getElementById('lineId').value
+      ];
+
+      if (!required[0]) return alert("請選擇服務項目");
+      if (!required[1]) return alert("請選擇預約日期");
+      if (!required[2]) return alert("請選擇預約時段");
+      if (!required[3]) return alert("請輸入姓名");
+      if (!required[4]) return alert("請輸入聯絡電話");
+      if (!required[5]) return alert("請登入LINE");
+
+      isSubmitting = true;
+      submitBtn.disabled = true;
+      submitBtn.classList.add('loading');
+      btnText.textContent = '預約中...';
+      sendData();
+    });
+  });
+</script>
+
 </body>
 </html>
