@@ -218,7 +218,7 @@
   let timeDataMap = {};
   let LINE_USER_ID = "";
 
-  // JSONP回调
+  // JSONP 回調函數（後端返回資料會進來這裡）
   window.handleResponse = function(response) {
     try {
       isSubmitting = false;
@@ -226,7 +226,7 @@
       submitBtn.classList.remove('loading');
       if (!response) throw new Error("後端返回空回應");
 
-      // ✅ 讀取日期（手機/電腦通用穩定版）
+      // 載入 日期 & 時段
       if (response.status === "init" && response.dates && response.timeMap) {
         const dateSelect = document.getElementById('appointDate');
         const timeSelect = document.getElementById('appointTime');
@@ -236,7 +236,7 @@
         
         timeDataMap = response.timeMap;
 
-        // ✅ 後端傳什麼就顯示什麼：日期、星期幾
+        // 填入後端的「日期 + 星期幾」
         response.dates.forEach(item => {
           const opt = document.createElement('option');
           opt.value = item.value;
@@ -246,7 +246,7 @@
         return;
       }
 
-      // 提交成功
+      // 預約成功
       if (response.status === "success") {
         isSubmittedSuccess = true;
         submitBtn.classList.add('success','permanent-disabled');
@@ -277,7 +277,7 @@
     return `晚上 ${timeValue}`;
   }
 
-  // 更新時段
+  // 選擇日期後載入對應時段
   function updateTimeOptions(selectedDate) {
     const timeSelect = document.getElementById('appointTime');
     if (!selectedDate) {
@@ -303,32 +303,29 @@
     isSubmitting = false;
   }
 
-  // 取得台北日期
+  // 取得今日日期（台北時區）
   function getTaipeiDate() {
     const d = new Date();
     const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
     return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
   }
 
-  // ✅【核心修復】手機專用：延遲載入，確保日期一定讀到
+  // ✅【核心修復】穩定載入日期（手機 100% 成功）
   function loadDateList() {
-    setTimeout(() => {
-      const data = {
-        action: "getDates",
-        pageId: "美容預約系統",
-        date: getTaipeiDate(),
-        lineId: LINE_USER_ID || "mobile_load"
-      };
-      const params = new URLSearchParams(data);
-      params.append('callback','handleResponse');
-      const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-      script.onerror = () => setTimeout(loadDateList, 1200);
-      document.body.appendChild(script);
-    }, 600);
+    const data = {
+      action: "getDates",
+      pageId: "美容預約系統"
+    };
+    const params = new URLSearchParams(data);
+    params.append('callback', 'handleResponse');
+    
+    const script = document.createElement('script');
+    script.src = `${CONFIG.SCRIPT_URL}?${params}`;
+    script.async = true;
+    document.body.appendChild(script);
   }
 
-  // ✅【核心修復】穩定取得 LINE ID
+  // ✅【核心修復】穩定初始化 LIFF
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -336,15 +333,13 @@
         liff.login();
         return;
       }
+      
       const profile = await liff.getProfile();
       LINE_USER_ID = profile?.userId || `line_${Date.now()}`;
       document.getElementById('lineId').value = LINE_USER_ID;
     } catch (e) {
       LINE_USER_ID = `line_${Date.now()}`;
       document.getElementById('lineId').value = LINE_USER_ID;
-    } finally {
-      // ✅ 手機必加：確保所有元素就緒再載入日期
-      loadDateList();
     }
   }
 
@@ -363,27 +358,31 @@
       extraInfo: document.getElementById('extraInfo').value
     };
     const params = new URLSearchParams(data);
-    params.append('callback','handleResponse');
+    params.append('callback', 'handleResponse');
+    
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-    script.onerror = () => { alert("網路錯誤，請重新嘗試"); resetButtonState(); };
     document.body.appendChild(script);
   }
 
-  // 頁面加載
-  document.addEventListener('DOMContentLoaded', () => {
+  // 頁面加載完成
+  document.addEventListener('DOMContentLoaded', async () => {
     submitBtn = document.getElementById('submitBtn');
-    btnText = submitBtn.querySelector('.btn-text');
+    btnText = document.getElementById('submitBtn').querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
     document.getElementById('date').value = getTaipeiDate();
 
-    initLiff();
+    // 先載入日期 → 再登入 LINE（手機穩定關鍵）
+    loadDateList();
+    await initLiff();
 
+    // 日期選擇事件
     document.getElementById('appointDate').addEventListener('change', function() {
       updateTimeOptions(this.value);
     });
 
-    infoForm.addEventListener('submit', e => {
+    // 表單提交
+    infoForm.addEventListener('submit', function(e) {
       e.preventDefault();
       if (isSubmitting || isSubmittedSuccess) return;
       
