@@ -216,18 +216,17 @@
   let isSubmitting = false;
   let isSubmittedSuccess = false;
   let timeDataMap = {};
-  let LINE_USER_ID = ""; // 全局儲存 LINE ID
+  let LINE_USER_ID = "";
 
   // JSONP回调
   window.handleResponse = function(response) {
     try {
       isSubmitting = false;
       if (!submitBtn || !btnText) return;
-      
       submitBtn.classList.remove('loading');
       if (!response) throw new Error("後端返回空回應");
 
-      // 讀取後端傳的日期與時段
+      // ✅ 讀取日期（手機/電腦通用穩定版）
       if (response.status === "init" && response.dates && response.timeMap) {
         const dateSelect = document.getElementById('appointDate');
         const timeSelect = document.getElementById('appointTime');
@@ -237,6 +236,7 @@
         
         timeDataMap = response.timeMap;
 
+        // ✅ 後端傳什麼就顯示什麼：日期、星期幾
         response.dates.forEach(item => {
           const opt = document.createElement('option');
           opt.value = item.value;
@@ -310,58 +310,50 @@
     return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
   }
 
-  // ✅【核心修復】強制取得 LINE USER ID + 確保不為空
+  // ✅【核心修復】手機專用：延遲載入，確保日期一定讀到
+  function loadDateList() {
+    setTimeout(() => {
+      const data = {
+        action: "getDates",
+        pageId: "美容預約系統",
+        date: getTaipeiDate(),
+        lineId: LINE_USER_ID || "mobile_load"
+      };
+      const params = new URLSearchParams(data);
+      params.append('callback','handleResponse');
+      const script = document.createElement('script');
+      script.src = `${CONFIG.SCRIPT_URL}?${params}`;
+      script.onerror = () => setTimeout(loadDateList, 1200);
+      document.body.appendChild(script);
+    }, 600);
+  }
+
+  // ✅【核心修復】穩定取得 LINE ID
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
-      
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
       }
-
       const profile = await liff.getProfile();
       LINE_USER_ID = profile?.userId || `line_${Date.now()}`;
       document.getElementById('lineId').value = LINE_USER_ID;
-
-      // 取得成功後才載入日期
-      loadDateList();
     } catch (e) {
-      // 失敗也給一組預設 ID，不會變 guest
-      LINE_USER_ID = `line_guest_${Date.now()}`;
+      LINE_USER_ID = `line_${Date.now()}`;
       document.getElementById('lineId').value = LINE_USER_ID;
+    } finally {
+      // ✅ 手機必加：確保所有元素就緒再載入日期
       loadDateList();
     }
   }
 
-  // 載入日期選單
-  function loadDateList() {
-    const data = {
-      pageId: document.getElementById('pageId').value,
-      date: document.getElementById('date').value,
-      lineId: LINE_USER_ID,
-      serviceType: "",
-      appointDate: "",
-      appointTime: "",
-      name: "",
-      phone: "",
-      email: "",
-      extraInfo: ""
-    };
-    const params = new URLSearchParams(data);
-    params.append('callback','handleResponse');
-    const script = document.createElement('script');
-    script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-    script.onerror = () => setTimeout(loadDateList, 1000);
-    document.body.appendChild(script);
-  }
-
-  // 表單提交（強制帶入正確 LINE ID）
+  // 表單提交
   function sendData() {
     const data = {
       pageId: document.getElementById('pageId').value,
       date: document.getElementById('date').value,
-      lineId: LINE_USER_ID, // ✅ 永遠帶正確的 ID
+      lineId: LINE_USER_ID,
       serviceType: document.getElementById('serviceType').value,
       appointDate: document.getElementById('appointDate').value,
       appointTime: document.getElementById('appointTime').value,
@@ -374,10 +366,7 @@
     params.append('callback','handleResponse');
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-    script.onerror = () => { 
-      alert("網路錯誤，請重新嘗試");
-      resetButtonState();
-    };
+    script.onerror = () => { alert("網路錯誤，請重新嘗試"); resetButtonState(); };
     document.body.appendChild(script);
   }
 
@@ -387,7 +376,7 @@
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
     document.getElementById('date').value = getTaipeiDate();
-    
+
     initLiff();
 
     document.getElementById('appointDate').addEventListener('change', function() {
@@ -403,8 +392,7 @@
         document.getElementById('appointDate').value,
         document.getElementById('appointTime').value,
         document.getElementById('name').value,
-        document.getElementById('phone').value,
-        LINE_USER_ID
+        document.getElementById('phone').value
       ];
 
       if (!required[0]) return alert("請選擇服務項目");
