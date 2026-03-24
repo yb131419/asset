@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>美容預約📘線上預約系統</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #121212;
+      font-family: 'Roboto', sans-serif;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    main {
+      background: #1f1f1f;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+      width: 100%;
+      max-width: 420px;
+      padding: 32px 28px;
+    }
+    h2 {
+      font-weight: 700;
+      margin-bottom: 28px;
+      text-align: center;
+      letter-spacing: 1.2px;
+      color: #ff97c1;
+      line-height: 1.4;
+    }
+    h2 .main-title {
+      font-size: 1.8rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+    h2 .sub-title {
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.8px;
+    }
+    form label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      font-size: 1rem;
+      color: #ccc;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      background: #2a2a2a;
+      color: #eee;
+      margin-bottom: 20px;
+      transition: background-color 0.3s ease;
+      font-family: 'Roboto', sans-serif;
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    input:focus, select:focus, textarea:focus {
+      background: #3a3a3a;
+      outline: none;
+    }
+    input[readonly] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      cursor: pointer;
+    }
+    .btn-container {
+      position: relative;
+      width: 100%;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(135deg, #ff69b4, #d43a8e);
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255,105,180,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: linear-gradient(135deg, #e05a9e, #b8307a);
+      box-shadow: none;
+    }
+    button.permanent-disabled {
+      opacity: 0.5;
+      background: linear-gradient(135deg, #444444, #222222) !important;
+      cursor: not-allowed;
+    }
+    .loader {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      animation: rotation 1s linear infinite;
+      display: none;
+    }
+    button.loading .loader {
+      display: block;
+    }
+    @keyframes rotation {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .success {
+      animation: successPulse 0.6s ease-in-out;
+      background: linear-gradient(135deg, #00c851, #007e33) !important;
+    }
+    .error {
+      animation: successPulse 0.6s ease-in-out;
+      background: linear-gradient(135deg, #ff4444, #cc0000) !important;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h2>
+      <span class="main-title">美容預約💆‍♀️ 線上預約系統</span>
+      <span class="sub-title">『選擇服務項目』<br>填寫資料預約<br>『LINE即時通知』</span>
+    </h2>
+
+    <form id="infoForm">
+      <input type="hidden" id="pageId" name="pageId" value="美容預約系統" />
+      <input type="hidden" id="date" name="date" />
+      <input type="hidden" id="lineId" name="lineId" />
+
+      <label for="serviceType">服務項目</label>
+      <select id="serviceType" name="serviceType" required>
+        <option value="">請選擇服務項目</option>
+        <option value="臉部保養">臉部保養</option>
+        <option value="深層清潔">深層清潔</option>
+        <option value="除毛服務">除毛服務</option>        
+        <option value="身體SPA">身體SPA</option>
+        <option value="美甲美睫">美甲美睫</option>
+        <option value="彩妝造型">彩妝造型</option>
+        <option value="其他服務">其他服務</option>
+      </select>
+
+      <label for="appointDate">預約日期</label>
+      <input type="text" id="appointDate" name="appointDate" required autocomplete="off" placeholder="範例：2026-03-25" />
+
+      <label for="appointTime">預約時段</label>
+      <input type="text" id="appointTime" name="appointTime" required autocomplete="off" placeholder="範例：14:00" />
+
+      <label for="name">姓名</label>
+      <input type="text" id="name" name="name" required autocomplete="off" placeholder="請輸入您的姓名" />
+
+      <label for="phone">聯絡電話</label>
+      <input type="tel" id="phone" name="phone" required autocomplete="off" placeholder="請輸入聯絡電話" />
+
+      <label for="userId">Line ID</label>
+      <input type="text" id="userId" name="userId" autocomplete="off" placeholder="請輸入您的Line ID" />
+
+      <label for="email">電子信箱</label>
+      <input type="email" id="email" name="email" autocomplete="off" placeholder="請輸入電子信箱（選填）" />
+
+      <label for="extraInfo">備註說明</label>
+      <textarea id="extraInfo" name="extraInfo" autocomplete="off" placeholder="肌膚狀況、特殊需求或其他備註（選填）"></textarea>
+
+      <div class="btn-container">
+        <button type="submit" id="submitBtn">
+          <span class="loader"></span>
+          <span class="btn-text">確認預約</span>
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // 配置项
+    const CONFIG = {
+      SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
+      LIFF_ID: "2008578880-lCRzVTyk"
+    };
+
+    // 全局变量
+    let [submitBtn, btnText, infoForm] = [null, null, null];
+    let isSubmitting = false;
+    let isSubmittedSuccess = false;
+
+    // JSONP回调
+    window.handleResponse = function(response) {
+      try {
+        isSubmitting = false;
+        if (!submitBtn || !btnText) return;
+        
+        submitBtn.classList.remove('loading');
+        if (!response) throw new Error("後端返回空回應");
+        
+        if (response.status === "success") {
+          isSubmittedSuccess = true;
+          submitBtn.classList.add('success', 'permanent-disabled');
+          submitBtn.disabled = true;
+          btnText.textContent = '預約成功 ✅';
+          alert("✅ 預約資料已成功送出！\n美容師將透過LINE與您確認預約！");
+          infoForm?.reset();
+        } else {
+          submitBtn.classList.add('error');
+          btnText.textContent = '預約失敗 ❌';
+          let errorMsg = response.message || "未知錯誤";
+          if (errorMsg.includes("appendRow") || errorMsg.includes("null")) {
+            errorMsg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱是否正確。";
+          }
+          alert(errorMsg);
+          setTimeout(resetButtonState, 3000);
+        }
+      } catch (error) {
+        console.error("處理回應出錯：", error);
+        resetButtonState();
+        alert(`❌ 處理回應失敗：${error.message}\n請稍後再試或聯繫管理員`);
+      }
+    };
+
+    // 重置按钮状态
+    function resetButtonState() {
+      if (!submitBtn || !btnText || isSubmittedSuccess) return;
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('loading', 'success', 'error', 'permanent-disabled');
+      btnText.textContent = '確認預約';
+      isSubmitting = false;
+    }
+
+    // 获取台北时间
+    function getTaipeiDate() {
+      try {
+        const dtf = new Intl.DateTimeFormat('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'});
+        const parts = dtf.formatToParts(new Date());
+        return `${parts.find(p => p.type === 'year')?.value}-${parts.find(p => p.type === 'month')?.value}-${parts.find(p => p.type === 'day')?.value}`;
+      } catch (error) {
+        console.error("獲取日期出錯：", error);
+        return new Date().toLocaleDateString('zh-TW');
+      }
+    }
+
+    // 初始化LIFF
+    async function initLiff() {
+      try {
+        if (typeof liff === 'undefined') throw new Error("LINE LIFF SDK 加載失敗");
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        const lineIdInput = document.getElementById('lineId');
+        if (lineIdInput) lineIdInput.value = profile.userId || '';
+      } catch (error) {
+        console.error("LIFF初始化出錯：", error);
+        alert("無法取得 LINE 用戶資料，請確認已在 LINE 裡開啟此頁面。");
+      }
+    }
+
+    // 发送数据
+    function sendData() {
+      try {
+        const data = {
+          pageId: document.getElementById('pageId')?.value || '',
+          date: document.getElementById('date')?.value || '',
+          lineId: document.getElementById('lineId')?.value || '',
+          serviceType: document.getElementById('serviceType')?.value || '',
+          appointDate: document.getElementById('appointDate')?.value || '',
+          appointTime: document.getElementById('appointTime')?.value || '',
+          userId: document.getElementById('userId')?.value || '',
+          name: document.getElementById('name')?.value || '',
+          phone: document.getElementById('phone')?.value || '',
+          email: document.getElementById('email')?.value || '',
+          extraInfo: document.getElementById('extraInfo')?.value || ''
+        };
+
+        const params = new URLSearchParams(data);
+        params.append('callback', 'handleResponse');
+        const script = document.createElement('script');
+        script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+        
+        script.onerror = function() {
+          console.error("JSONP請求失敗");
+          isSubmitting = false;
+          if (submitBtn && btnText) {
+            submitBtn.classList.remove('loading');
+            submitBtn.classList.add('error');
+            btnText.textContent = '請求失敗 ❌';
+          }
+          alert("⚠️ 網路錯誤或後端服務不可用，請稍後再試");
+          setTimeout(resetButtonState, 3000);
+          document.body.removeChild(script);
+        };
+        
+        script.onload = () => document.body.removeChild(script);
+        document.body.appendChild(script);
+      } catch (error) {
+        console.error("發送資料出錯：", error);
+        isSubmitting = false;
+        resetButtonState();
+        alert("❌ 發送資料失敗，請稍後再試");
+      }
+    }
+
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      submitBtn = document.getElementById('submitBtn');
+      btnText = submitBtn?.querySelector('.btn-text');
+      infoForm = document.getElementById('infoForm');
+
+      document.getElementById('date').value = getTaipeiDate();
+      initLiff();
+
+      infoForm?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (submitBtn?.disabled || isSubmitting || isSubmittedSuccess) return;
+
+        const [serviceType, appointDate, appointTime, name, phone, lineId] = [
+          document.getElementById('serviceType')?.value,
+          document.getElementById('appointDate')?.value,
+          document.getElementById('appointTime')?.value,
+          document.getElementById('name')?.value,
+          document.getElementById('phone')?.value,
+          document.getElementById('lineId')?.value
+        ];
+
+        if (!serviceType) { alert("請選擇服務項目"); return; }
+        if (!appointDate) { alert("請輸入預約日期"); return; }
+        if (!appointTime) { alert("請輸入預約時段"); return; }
+        if (!name) { alert("請輸入姓名"); return; }
+        if (!phone) { alert("請輸入聯絡電話"); return; }
+        if (!lineId) { alert("LINE 用戶ID尚未取得，請重新載入頁面並登入 LINE。"); return; }
+
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        btnText.textContent = '預約中...';
+
+        sendData();
+      });
+    });
+  </script>
+</body>
+</html>
