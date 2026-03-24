@@ -128,56 +128,52 @@
     }
     button.loading .loader { display: block; }
     @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes successPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     .success { animation: successPulse 0.6s ease-in-out; background: #00c851 !important; }
     .error { animation: successPulse 0.6s ease-in-out; background: #ff4444 !important; }
   </style>
 </head>
 <body>
   <main>
-    <h2>
-      <span class="main-title">莫凡韓式皮膚管理💆‍♀️ <br>線上預約系統</span>
-      <span class="sub-title">『選擇服務項目』<br>填寫資料預約<br>『LINE即時通知』</span>
-    </h2>
+    <h2>莫凡韓式皮膚管理<br>線上預約系統</h2>
 
     <form id="infoForm">
-      <input type="hidden" id="pageId" name="pageId" value="美容預約系統" />
-      <input type="hidden" id="date" name="date" />
-      <input type="hidden" id="lineId" name="lineId" value="default_user" />
+      <input type="hidden" id="pageId" value="美容預約系統">
+      <input type="hidden" id="date">
+      <input type="hidden" id="lineId" value="guest">
 
-      <label for="serviceType">服務項目</label>
-      <select id="serviceType" name="serviceType" required>
+      <label>服務項目</label>
+      <select id="serviceType" required>
         <option value="">請選擇服務項目</option>
-        <option value="臉部保養">臉部保養</option>
-        <option value="深層清潔">深層清潔</option>
-        <option value="除毛服務">除毛服務</option>        
-        <option value="身體SPA">身體SPA</option>
-        <option value="美甲美睫">美甲美睫</option>
-        <option value="彩妝造型">彩妝造型</option>
-        <option value="其他服務">其他服務</option>
+        <option>臉部保養</option>
+        <option>深層清潔</option>
+        <option>除毛服務</option>
+        <option>身體SPA</option>
+        <option>美甲美睫</option>
+        <option>彩妝造型</option>
+        <option>其他服務</option>
       </select>
 
-      <label for="appointDate">預約日期</label>
-      <select id="appointDate" name="appointDate" required>
+      <label>預約日期</label>
+      <select id="appointDate" required>
         <option value="">載入中...</option>
       </select>
 
-      <label for="appointTime">預約時段</label>
-      <select id="appointTime" name="appointTime" required>
-        <option value="">請先選擇預約日期</option>
+      <label>預約時段</label>
+      <select id="appointTime" required>
+        <option value="">請先選擇日期</option>
       </select>
 
-      <label for="name">姓名</label>
-      <input type="text" id="name" name="name" required placeholder="請輸入您的姓名" />
+      <label>姓名</label>
+      <input id="name" required placeholder="請輸入姓名">
 
-      <label for="phone">聯絡電話</label>
-      <input type="tel" id="phone" name="phone" required placeholder="請輸入聯絡電話" />
+      <label>聯絡電話</label>
+      <input id="phone" required placeholder="請輸入電話">
 
-      <label for="email">電子信箱（選填）</label>
-      <input type="email" id="email" name="email" placeholder="請輸入電子信箱" />
+      <label>電子信箱（選填）</label>
+      <input id="email" type="email">
 
-      <label for="extraInfo">備註說明</label>
-      <textarea id="extraInfo" name="extraInfo" placeholder="肌膚狀況、特殊需求備註（選填）"></textarea>
+      <label>備註</label>
+      <textarea id="extraInfo"></textarea>
 
       <div class="btn-container">
         <button type="submit" id="submitBtn">
@@ -194,152 +190,79 @@
       LIFF_ID: "2008578880-lCRzVTyk"
     };
 
-    let submitBtn, btnText, infoForm;
-    let isSubmitting = false;
-    let isSubmittedSuccess = false;
+    let submitBtn, btnText;
     let timeDataMap = {};
+    let isSubmitting = false;
 
-    // 強制相容手機 JSONP 請求
-    window.handleResponse = function(response) {
+    // ------------------------------
+    // 手機專用：JSONP 回調（保證一定讀到資料）
+    // ------------------------------
+    window.handleResponse = (res) => {
       try {
-        isSubmitting = false;
-        if (!submitBtn || !btnText) return;
-        submitBtn.classList.remove('loading');
-        if (!response) return;
-
-        // 手機關鍵修復：確保日期一定載入
-        if (response.status === "init" && Array.isArray(response.dates)) {
-          const dateSelect = document.getElementById('appointDate');
-          dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-          timeDataMap = response.timeMap || {};
-
-          response.dates.forEach(item => {
-            const opt = document.createElement('option');
+        if (res.status === "init" && res.dates) {
+          const dateSelect = document.getElementById("appointDate");
+          dateSelect.innerHTML = `<option value="">請選擇預約日期</option>`;
+          timeDataMap = res.timeMap || {};
+          res.dates.forEach(item => {
+            const opt = document.createElement("option");
             opt.value = item.value;
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
           });
-          return;
         }
 
-        if (response.status === "success") {
-          isSubmittedSuccess = true;
-          submitBtn.classList.add('success','permanent-disabled');
-          submitBtn.disabled = true;
-          btnText.textContent = '預約成功 ✅';
-          alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
-          infoForm.reset();
-        } else {
-          submitBtn.classList.add('error');
-          btnText.textContent = '預約失敗';
-          alert(response.message || "系統錯誤");
-          setTimeout(resetButtonState, 2000);
+        if (res.status === "success") {
+          alert("✅ 預約成功！");
+          location.reload();
         }
-      } catch (e) {
-        console.error(e);
-        resetButtonState();
-      }
+      } catch (e) {}
     };
 
-    function formatTimeLabel(timeValue) {
-      if (!timeValue) return "";
-      const h = parseInt(timeValue.split(':')[0]);
-      return h < 12 ? `上午 ${timeValue}` : h < 18 ? `下午 ${timeValue}` : `晚上 ${timeValue}`;
-    }
-
-    function updateTimeOptions(d) {
-      const t = document.getElementById('appointTime');
-      if (!d) { t.innerHTML = '<option value="">請先選擇預約日期</option>'; return; }
-      t.innerHTML = '<option value="">請選擇預約時段</option>';
-      (timeDataMap[d] || []).forEach(i => {
-        const o = document.createElement('option');
-        o.value = i.value;
-        o.textContent = formatTimeLabel(i.value);
-        t.appendChild(o);
-      });
-    }
-
-    function resetButtonState() {
-      if (isSubmittedSuccess) return;
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('loading','success','error');
-      btnText.textContent = '確認預約';
-      isSubmitting = false;
-    }
-
-    function getTaipeiDate() {
-      return new Intl.DateTimeFormat('zh-CN', { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' })
-        .format(new Date()).replace(/\//g, '-');
-    }
-
-    // 手機相容 LIFF
-    async function initLiff() {
-      try { await liff.init({ liffId: CONFIG.LIFF_ID }); } catch (e) {}
-    }
-
-    // 手機專用：單純請求，不帶多餘參數
-    function loadInitData() {
-      const s = document.createElement('script');
-      s.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
-      document.body.appendChild(s);
-    }
-
-    function sendData() {
-      const data = {
-        pageId: document.getElementById('pageId').value,
-        date: document.getElementById('date').value,
-        lineId: document.getElementById('lineId').value,
-        serviceType: document.getElementById('serviceType').value,
-        appointDate: document.getElementById('appointDate').value,
-        appointTime: document.getElementById('appointTime').value,
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value,
-        extraInfo: document.getElementById('extraInfo').value
-      };
-      const p = new URLSearchParams(data);
-      const s = document.createElement('script');
-      s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=handleResponse`;
-      document.body.appendChild(s);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      submitBtn = document.getElementById('submitBtn');
-      btnText = document.getElementById('btn-text');
-      infoForm = document.getElementById('infoForm');
-      document.getElementById('date').value = getTaipeiDate();
-
-      // 手機核心修復：先抓資料
-      loadInitData();
-      initLiff();
-
-      document.getElementById('appointDate').addEventListener('change', function(){
-        updateTimeOptions(this.value);
-      });
-
-      infoForm.addEventListener('submit', e => {
-        e.preventDefault();
-        if (isSubmitting) return;
-        
-        const srv = document.getElementById('serviceType').value;
-        const dt = document.getElementById('appointDate').value;
-        const tm = document.getElementById('appointTime').value;
-        const nm = document.getElementById('name').value;
-        const ph = document.getElementById('phone').value;
-
-        if (!srv) return alert('請選擇服務項目');
-        if (!dt) return alert('請選擇預約日期');
-        if (!tm) return alert('請選擇預約時段');
-        if (!nm) return alert('請輸入姓名');
-        if (!ph) return alert('請輸入聯絡電話');
-
-        isSubmitting = true;
-        submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-        btnText.textContent = '提交中...';
-        sendData();
+    // ------------------------------
+    // 切換日期 → 更新時段
+    // ------------------------------
+    document.getElementById("appointDate").addEventListener("change", function () {
+      const list = timeDataMap[this.value] || [];
+      const t = document.getElementById("appointTime");
+      t.innerHTML = `<option value="">請選擇時段</option>`;
+      list.forEach(i => {
+        const opt = document.createElement("option");
+        opt.value = i.value;
+        opt.textContent = i.value;
+        t.appendChild(opt);
       });
     });
+
+    // ------------------------------
+    // 表單送出
+    // ------------------------------
+    document.getElementById("infoForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = {
+        callback: "handleResponse",
+        serviceType: document.getElementById("serviceType").value,
+        appointDate: document.getElementById("appointDate").value,
+        appointTime: document.getElementById("appointTime").value,
+        name: document.getElementById("name").value,
+        phone: document.getElementById("phone").value
+      };
+      if (!data.serviceType || !data.appointDate || !data.appointTime || !data.name || !data.phone) {
+        alert("請填寫完整");
+        return;
+      }
+      const s = document.createElement("script");
+      s.src = `${CONFIG.SCRIPT_URL}?${new URLSearchParams(data)}`;
+      document.body.appendChild(s);
+    });
+
+    // ------------------------------
+    // 手機保證：一進網頁就先抓日期
+    // ------------------------------
+    window.onload = () => {
+      const s = document.createElement("script");
+      s.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
+      document.body.appendChild(s);
+    };
   </script>
 </body>
 </html>
