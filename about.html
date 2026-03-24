@@ -40,6 +40,7 @@
     }
     h2 .sub-title {
       font-size: 0.95rem;
+      font-weight: 500;
       color: #666;
     }
     form label {
@@ -59,10 +60,11 @@
       border-radius: 10px;
       border: 1px solid #eee;
       font-size: 0.95rem;
-      background: #fff;
+      background: #fafafa;
       color: #333;
       margin-bottom: 18px;
       transition: all 0.3s ease;
+      font-family: 'Roboto', sans-serif;
     }
     textarea {
       min-height: 80px;
@@ -70,8 +72,14 @@
       line-height: 1.5;
     }
     input:focus, select:focus, textarea:focus {
+      background: #fff;
       border-color: #ff69b4;
       outline: none;
+    }
+    input[readonly] {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background: #f1f1f1 !important;
     }
     select {
       appearance: none;
@@ -79,12 +87,10 @@
       background-repeat: no-repeat;
       background-position: right 14px center;
       background-size: 16px;
+      cursor: pointer;
     }
     .btn-container {
       margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
     }
     button {
       width: 100%;
@@ -97,6 +103,7 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(255,105,180,0.2);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -104,6 +111,11 @@
     }
     button:disabled {
       opacity: 0.7;
+      cursor: not-allowed;
+    }
+    button.permanent-disabled {
+      opacity: 0.5;
+      background: #666 !important;
       cursor: not-allowed;
     }
     .loader {
@@ -122,8 +134,18 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    #lineLoginBtn {
-      background: #00B900 !important;
+    @keyframes successPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .success {
+      animation: successPulse 0.6s ease-in-out;
+      background: #00c851 !important;
+    }
+    .error {
+      animation: successPulse 0.6s ease-in-out;
+      background: #ff4444 !important;
     }
   </style>
 </head>
@@ -178,37 +200,37 @@
           <span class="loader"></span>
           <span class="btn-text">確認預約</span>
         </button>
-        <button type="button" id="lineLoginBtn">🔐 LINE 會員登入</button>
       </div>
     </form>
   </main>
 
   <script>
-    // ====================== 配置 ======================
+    // 配置
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
       LIFF_ID: "2008578880-lCRzVTyk"
     };
 
-    // ====================== 全局變數 ======================
-    let submitBtn, btnText, lineLoginBtn;
+    let submitBtn, btnText, infoForm;
     let isSubmitting = false;
+    let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // ====================== 【參考你試算系統】穩定讀取資料 ======================
+    // ======================
+    // 【跟你試算系統一樣】穩定讀取後端
+    // ======================
     async function loadDateData() {
       try {
         const res = await fetch(CONFIG.SCRIPT_URL + "?action=getDates", {
-          cache: "no-store",
-          mode: "cors"
+          cache: "no-store"
         });
         const data = await res.json();
 
-        if (data.status === "success" && data.dates && data.timeMap) {
+        if (data.status === "init" && data.dates && data.timeMap) {
           const dateSelect = document.getElementById('appointDate');
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
-
           timeDataMap = data.timeMap;
+
           data.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
@@ -217,46 +239,47 @@
           });
         }
       } catch (e) {
-        setTimeout(loadDateData, 1000);
+        setTimeout(loadDateData, 800);
       }
     }
 
-    // ====================== LINE 登入 ======================
-    async function lineLogin() {
-      try {
-        if (!liff.isInit()) await liff.init({ liffId: CONFIG.LIFF_ID });
-        if (!liff.isLoggedIn()) {
-          liff.login({ redirectUri: window.location.href });
-          return;
-        }
-        const profile = await liff.getProfile();
-        document.getElementById('lineId').value = profile.userId;
-        alert("✅ LINE 登入成功");
-      } catch (e) {
-        alert("請在 LINE 內開啟");
-      }
-    }
-
-    // ====================== 切換日期更新時段 ======================
-    function updateTimeOptions(dateVal) {
+    // ======================
+    // 更新時段
+    // ======================
+    function updateTimeOptions(selectedDate) {
       const timeSelect = document.getElementById('appointTime');
-      if (!dateVal) {
+      if (!selectedDate) {
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
         return;
       }
       timeSelect.innerHTML = '';
-      const list = timeDataMap[dateVal] || [];
+      const list = timeDataMap[selectedDate] || [];
       list.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
+        opt.value = t.value;
+        opt.textContent = t.label;
         timeSelect.appendChild(opt);
       });
     }
 
-    // ====================== 提交預約 ======================
+    // ======================
+    // LIFF 登入
+    // ======================
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) liff.login();
+        const p = await liff.getProfile();
+        document.getElementById('lineId').value = p.userId;
+      } catch (e) {}
+    }
+
+    // ======================
+    // 提交表單
+    // ======================
     async function submitForm(e) {
       e.preventDefault();
+      if (isSubmitting || isSubmittedSuccess) return;
 
       const lineId = document.getElementById('lineId').value;
       const service = document.getElementById('serviceType').value;
@@ -265,7 +288,7 @@
       const name = document.getElementById('name').value;
       const phone = document.getElementById('phone').value;
 
-      if (!lineId) return alert("請先登入 LINE");
+      if (!lineId) return alert("請登入LINE");
       if (!service) return alert("請選擇服務");
       if (!date) return alert("請選擇日期");
       if (!time) return alert("請選擇時段");
@@ -279,28 +302,31 @@
 
       try {
         const params = new URLSearchParams({
-          action: "submit",
+          pageId: document.getElementById('pageId').value,
+          date: document.getElementById('date').value,
           lineId: lineId,
-          service: service,
-          date: date,
-          time: time,
+          serviceType: service,
+          appointDate: date,
+          appointTime: time,
           name: name,
           phone: phone,
           email: document.getElementById('email').value,
-          note: document.getElementById('extraInfo').value
+          extraInfo: document.getElementById('extraInfo').value
         });
 
         const res = await fetch(CONFIG.SCRIPT_URL + "?" + params, {
-          method: "GET",
-          mode: "cors"
+          method: "GET"
         });
 
         const result = await res.json();
         if (result.status === "success") {
-          alert("✅ 預約成功！");
-          document.getElementById('infoForm').reset();
+          isSubmittedSuccess = true;
+          submitBtn.classList.add('success','permanent-disabled');
+          btnText.textContent = '預約成功 ✅';
+          alert("✅ 預約成功！管理員已收到通知");
+          infoForm.reset();
         } else {
-          alert("❌ 預約失敗：" + result.message);
+          alert(result.message || "預約失敗");
         }
       } catch (err) {
         alert("網路錯誤，請重試");
@@ -312,20 +338,23 @@
       }
     }
 
-    // ====================== 初始化 ======================
-    window.addEventListener('DOMContentLoaded', async () => {
+    // ======================
+    // 初始化
+    // ======================
+    document.addEventListener('DOMContentLoaded', () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
-      lineLoginBtn = document.getElementById('lineLoginBtn');
+      infoForm = document.getElementById('infoForm');
+      document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-      lineLoginBtn.addEventListener('click', lineLogin);
-      document.getElementById('infoForm').addEventListener('submit', submitForm);
+      initLiff();
+      loadDateData();
+
       document.getElementById('appointDate').addEventListener('change', function () {
         updateTimeOptions(this.value);
       });
 
-      // 自動讀取日期（跟你試算系統一樣穩定）
-      await loadDateData();
+      infoForm.addEventListener('submit', submitForm);
     });
   </script>
 </body>
