@@ -151,9 +151,11 @@
       background: #ff4444 !important;
     }
 
+    /* 🔥 固定顯示：永不隱藏 */
     #liffLoginBtn {
       background: #00B900 !important;
-      display: block;
+      display: block !important;
+      visibility: visible !important;
     }
   </style>
 </head>
@@ -224,23 +226,19 @@
     let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // 載入日期（修復版）
-    function loadDateData() {
-      return new Promise((resolve) => {
-        const params = new URLSearchParams();
-        params.append('callback', 'handleResponse');
-        const s = document.createElement('script');
-        s.src = `${CONFIG.SCRIPT_URL}?${params}`;
-        s.onload = resolve;
-        s.onerror = () => {
-          document.getElementById('appointDate').innerHTML = '<option value="">載入失敗，請重新整理</option>';
-          resolve();
-        };
-        document.body.appendChild(s);
-      });
+    // 🔥 修復：手機 JSONP 阻塞問題
+    async function loadDateData() {
+      try {
+        const response = await fetch(CONFIG.SCRIPT_URL);
+        const data = await response.json();
+        handleResponse(data);
+      } catch (e) {
+        document.getElementById('appointDate').innerHTML = '<option value="">載入日期中...</option>';
+        setTimeout(loadDateData, 800);
+      }
     }
 
-    // LIFF 登入
+    // 🔥 LIFF 登入（按鈕永不隱藏）
     async function initLiffLogin() {
       try {
         if (!liff.isInit()) await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -249,7 +247,7 @@
         } else {
           const profile = await liff.getProfile();
           document.getElementById('lineId').value = profile.userId;
-          liffLoginBtn.style.display = "none";
+          alert("✅ LINE 登入成功");
         }
       } catch (err) {
         alert("請在 LINE 內開啟此頁面進行登入");
@@ -336,22 +334,19 @@
       return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    function loadScript(data = {}) {
-      return new Promise(resolve => {
+    async function loadScript(data = {}) {
+      try {
         const params = new URLSearchParams(data);
-        params.append('callback', 'handleResponse');
-        const s = document.createElement('script');
-        s.src = `${CONFIG.SCRIPT_URL}?${params}`;
-        s.onload = resolve;
-        s.onerror = function() {
-          document.getElementById('appointDate').innerHTML = '<option value="">請選擇預約日期</option>';
-          resolve();
-        };
-        document.body.appendChild(s);
-      });
+        const res = await fetch(`${CONFIG.SCRIPT_URL}?${params}`);
+        const result = await res.json();
+        handleResponse(result);
+      } catch (e) {
+        alert("網路錯誤，請重新提交");
+        resetButtonState();
+      }
     }
 
-    // 初始化（修復：先載入日期，再檢查登入）
+    // 初始化
     document.addEventListener('DOMContentLoaded', async () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
@@ -360,21 +355,7 @@
       document.getElementById('date').value = getTaipeiDate();
 
       liffLoginBtn.addEventListener('click', initLiffLogin);
-
-      // 🔥 修復關鍵：強制先載入日期選單
       await loadDateData();
-
-      // 檢查登入
-      setTimeout(async () => {
-        try {
-          await liff.init({ liffId: CONFIG.LIFF_ID });
-          if (liff.isLoggedIn()) {
-            const p = await liff.getProfile();
-            document.getElementById('lineId').value = p.userId;
-            liffLoginBtn.style.display = "none";
-          }
-        } catch (e) {}
-      }, 500);
 
       document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
@@ -406,9 +387,9 @@
         submitBtn.classList.add('loading');
         btnText.textContent = '預約中...';
 
-        const formData = {
-          pageId: document.getElementById('pageId').value,
-          date: document.getElementById('date').value,
+        await loadScript({
+          pageId: "美容預約系統",
+          date: getTaipeiDate(),
           lineId: lineId,
           serviceType: st,
           appointDate: ad,
@@ -417,8 +398,7 @@
           phone: phone,
           email: document.getElementById('email').value,
           extraInfo: document.getElementById('extraInfo').value
-        };
-        await loadScript(formData);
+        });
       });
     });
   </script>
