@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>莫凡韓式皮膚管理</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
@@ -151,7 +151,7 @@
       background: #ff4444 !important;
     }
 
-    #liffLoginBtn {
+    #lineLoginBtn {
       background: #00B900 !important;
       display: block !important;
     }
@@ -208,7 +208,7 @@
           <span class="loader"></span>
           <span class="btn-text">確認預約</span>
         </button>
-        <button type="button" id="liffLoginBtn">🔐 LINE 會員登入</button>
+        <button type="button" id="lineLoginBtn">🔐 LINE 會員登入</button>
       </div>
     </form>
   </main>
@@ -219,45 +219,17 @@
       LIFF_ID: "2008578880-lCRzVTyk"
     };
 
-    let submitBtn, btnText, infoForm, liffLoginBtn;
+    let submitBtn, btnText, infoForm, lineLoginBtn;
     let isSubmitting = false;
     let isSubmittedSuccess = false;
     let timeDataMap = {};
 
-    // 穩定載入日期（JSONP 手機專用）
-    function loadDateData() {
-      const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?callback=handleResponse`;
-      script.onerror = function() {
-        setTimeout(loadDateData, 1000);
-      };
-      document.body.appendChild(script);
-    }
-
-    // LINE 登入（永遠可點、永遠可重新登入）
-    async function lineLogin() {
+    // 載入日期（純 Fetch，無 JSONP，手機穩定）
+    async function loadDateData() {
       try {
-        if (!liff.isInit()) {
-          await liff.init({ liffId: CONFIG.LIFF_ID });
-        }
-        if (!liff.isLoggedIn()) {
-          liff.login({ redirectUri: window.location.href });
-        } else {
-          const profile = await liff.getProfile();
-          document.getElementById('lineId').value = profile.userId;
-          alert("✅ LINE 登入成功！");
-        }
-      } catch (e) {
-        alert("請在 LINE 內開啟頁面使用登入功能");
-      }
-    }
-
-    // 回調
-    window.handleResponse = function(response) {
-      try {
-        isSubmitting = false;
-        if (submitBtn) submitBtn.classList.remove('loading');
-
+        const res = await fetch(CONFIG.SCRIPT_URL);
+        const response = await res.json();
+        
         if (response.status === "init" && response.dates && response.timeMap) {
           const dateSelect = document.getElementById('appointDate');
           const timeSelect = document.getElementById('appointTime');
@@ -272,27 +244,57 @@
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
           });
-          return;
         }
+      } catch (e) {
+        setTimeout(loadDateData, 800);
+      }
+    }
+
+    // LINE 手動登入
+    async function lineLogin() {
+      try {
+        if (!liff.isInit()) await liff.init({ liffId: CONFIG.LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: window.location.href });
+        } else {
+          const p = await liff.getProfile();
+          document.getElementById('lineId').value = p.userId;
+          alert("✅ LINE 登入成功！");
+        }
+      } catch (e) {
+        alert("請在 LINE 內開啟頁面使用登入功能");
+      }
+    }
+
+    // 提交預約（純 Fetch）
+    async function submitBooking(data) {
+      try {
+        const params = new URLSearchParams(data);
+        const res = await fetch(CONFIG.SCRIPT_URL + "?" + params);
+        const response = await res.json();
+
+        isSubmitting = false;
+        submitBtn.classList.remove('loading');
 
         if (response.status === "success") {
           isSubmittedSuccess = true;
           submitBtn.classList.add('success','permanent-disabled');
           submitBtn.disabled = true;
           btnText.textContent = '預約成功 ✅';
-          alert("✅ 預約成功！\n\n將透過LINE與您確認！");
+          alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
           infoForm.reset();
           document.getElementById('appointTime').innerHTML = '<option value="">請先選擇預約日期</option>';
         } else {
           submitBtn.classList.add('error');
-          btnText.textContent = '預約失敗';
+          btnText.textContent = '預約失敗 ❌';
           alert(response.message || "系統錯誤");
-          setTimeout(resetButtonState, 2000);
+          setTimeout(resetButtonState, 3000);
         }
       } catch (e) {
+        alert("網路錯誤，請重新嘗試");
         resetButtonState();
       }
-    };
+    }
 
     function formatTimeLabel(timeValue) {
       if (!timeValue) return "";
@@ -332,40 +334,22 @@
       return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    // 穩定提交（JSONP）
-    function sendData(data) {
-      const params = new URLSearchParams(data);
-      params.append('callback', 'handleResponse');
-      const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?${params}`;
-      script.onerror = function() {
-        alert("網路不穩定，請重新提交");
-        resetButtonState();
-      };
-      document.body.appendChild(script);
-    }
-
     // 初始化
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
-      liffLoginBtn = document.getElementById('liffLoginBtn');
+      lineLoginBtn = document.getElementById('lineLoginBtn');
       document.getElementById('date').value = getTaipeiDate();
 
-      // 登入按鈕
-      liffLoginBtn.addEventListener('click', lineLogin);
+      lineLoginBtn.addEventListener('click', lineLogin);
+      await loadDateData();
 
-      // 載入日期
-      loadDateData();
-
-      // 日期變更
       document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
       });
 
-      // 表單提交
-      infoForm.addEventListener('submit', (e) => {
+      infoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (isSubmitting || isSubmittedSuccess) return;
 
@@ -381,17 +365,14 @@
         if (!at) return alert("請選擇預約時段");
         if (!name) return alert("請輸入姓名");
         if (!phone) return alert("請輸入電話");
-        if (!lineId) {
-          alert("請點擊下方按鈕登入 LINE");
-          return;
-        }
+        if (!lineId) return alert("請點擊下方按鈕登入 LINE");
 
         isSubmitting = true;
         submitBtn.disabled = true;
         submitBtn.classList.add('loading');
         btnText.textContent = '預約中...';
 
-        sendData({
+        submitBooking({
           pageId: "美容預約系統",
           date: getTaipeiDate(),
           lineId: lineId,
