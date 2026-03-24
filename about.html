@@ -212,7 +212,7 @@
     };
 
     // 全局变量
-    let [submitBtn, btnText, infoForm] = [null, null, null];
+    let submitBtn, btnText, infoForm;
     let isSubmitting = false;
     let isSubmittedSuccess = false;
     let timeDataMap = {};
@@ -232,27 +232,27 @@
           dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
           timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
 
-          // 日期格式：2026-03-25（星期三）
+          // 清空舊資料
+          timeDataMap = {};
+
+          // 加載日期
           response.dates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
             opt.textContent = item.label;
             dateSelect.appendChild(opt);
+            // 每個日期對應自己的時段
+            timeDataMap[item.value] = response.times || [];
           });
 
-          // 儲存時段
-          response.dates.forEach(d => {
-            timeDataMap[d.value] = response.times || [];
-          });
-
-          // 預設時段
-          if (response.dates.length) {
+          // 預設載入第一個日期的時段
+          if (response.dates.length > 0) {
             updateTimeOptions(response.dates[0].value);
           }
           return;
         }
 
-        // 成功
+        // 提交成功
         if (response.status === "success") {
           isSubmittedSuccess = true;
           submitBtn.classList.add('success','permanent-disabled');
@@ -273,24 +273,27 @@
       }
     };
 
-    // 轉換時段格式：10:00 → 上午 10:00
+    // 轉換時段格式
     function formatTimeLabel(timeValue) {
+      if (!timeValue) return "";
       const hour = parseInt(timeValue.split(':')[0]);
       if (hour < 12) return `上午 ${timeValue}`;
       if (hour < 18) return `下午 ${timeValue}`;
       return `晚上 ${timeValue}`;
     }
 
-    // 更新時段
+    // 更新時段（修復核心）
     function updateTimeOptions(selectedDate) {
       const timeSelect = document.getElementById('appointTime');
       timeSelect.innerHTML = '<option value="">請選擇預約時段</option>';
-      const list = timeDataMap[selectedDate] || [];
       
-      list.forEach(t => {
+      // 取得該日期對應的時段
+      const timeList = timeDataMap[selectedDate] || [];
+      
+      timeList.forEach(t => {
         const opt = document.createElement('option');
         opt.value = t.value;
-        opt.textContent = formatTimeLabel(t.value); // 關鍵：自動加上 上午/下午/晚上
+        opt.textContent = formatTimeLabel(t.value);
         timeSelect.appendChild(opt);
       });
     }
@@ -304,14 +307,14 @@
       isSubmitting = false;
     }
 
-    // 日期
+    // 取得台北日期
     function getTaipeiDate() {
       const d = new Date();
       const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
       return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
     }
 
-    // LIFF
+    // LIFF 初始化
     async function initLiff() {
       try {
         await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -323,7 +326,7 @@
       }
     }
 
-    // 發送
+    // 發送數據
     function sendData() {
       const data = {
         pageId: document.getElementById('pageId').value,
@@ -337,35 +340,36 @@
         email: document.getElementById('email').value,
         extraInfo: document.getElementById('extraInfo').value
       };
-      const p = new URLSearchParams(data);
-      p.append('callback','handleResponse');
-      const s = document.createElement('script');
-      s.src = `${CONFIG.SCRIPT_URL}?${p}`;
-      s.onerror = () => { alert("網路錯誤"); resetButtonState(); };
-      document.body.appendChild(s);
+      const params = new URLSearchParams(data);
+      params.append('callback','handleResponse');
+      const script = document.createElement('script');
+      script.src = `${CONFIG.SCRIPT_URL}?${params}`;
+      script.onerror = () => { alert("網路錯誤，請重新嘗試"); resetButtonState(); };
+      document.body.appendChild(script);
     }
 
-    // 初始化
+    // 頁面加載完成
     document.addEventListener('DOMContentLoaded', () => {
       submitBtn = document.getElementById('submitBtn');
       btnText = submitBtn.querySelector('.btn-text');
       infoForm = document.getElementById('infoForm');
       document.getElementById('date').value = getTaipeiDate();
       
+      // 初始化
       initLiff();
       sendData();
 
-      // 切換日期更新時段
-      document.getElementById('appointDate').addEventListener('change', function(){
+      // 切換日期 → 自動更新時段
+      document.getElementById('appointDate').addEventListener('change', function() {
         updateTimeOptions(this.value);
       });
 
-      // 提交
+      // 表單提交
       infoForm.addEventListener('submit', e => {
         e.preventDefault();
         if (isSubmitting || isSubmittedSuccess) return;
         
-        const req = [
+        const required = [
           document.getElementById('serviceType').value,
           document.getElementById('appointDate').value,
           document.getElementById('appointTime').value,
@@ -373,12 +377,13 @@
           document.getElementById('phone').value,
           document.getElementById('lineId').value
         ];
-        if (!req[0]) return alert("請選擇服務項目");
-        if (!req[1]) return alert("請選擇預約日期");
-        if (!req[2]) return alert("請選擇預約時段");
-        if (!req[3]) return alert("請輸入姓名");
-        if (!req[4]) return alert("請輸入聯絡電話");
-        if (!req[5]) return alert("請登入LINE");
+
+        if (!required[0]) return alert("請選擇服務項目");
+        if (!required[1]) return alert("請選擇預約日期");
+        if (!required[2]) return alert("請選擇預約時段");
+        if (!required[3]) return alert("請輸入姓名");
+        if (!required[4]) return alert("請輸入聯絡電話");
+        if (!required[5]) return alert("請登入LINE");
 
         isSubmitting = true;
         submitBtn.disabled = true;
