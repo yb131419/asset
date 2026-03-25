@@ -244,7 +244,20 @@
   let isSubmitting = false;
   let isSubmittedSuccess = false;
   let timeDataMap = {};
-  let LINE_USER_ID = "guest_" + Date.now(); // ✅ 預設ID，永不報錯
+  
+  // 🔥 自動生成永久唯一 ID（不管是 LINE 還是瀏覽器都會有真實不重複 ID）
+  function getUniqueUserId() {
+    const key = "beauty_user_unique_id";
+    let uid = localStorage.getItem(key);
+    if (!uid) {
+      uid = "web_" + Date.now() + "_" + Math.random().toString(36).substr(2, 10);
+      localStorage.setItem(key, uid);
+    }
+    return uid;
+  }
+
+  // 預設為唯一ID，LIFF 會自動覆蓋
+  let LINE_USER_ID = getUniqueUserId();
 
   // 取得今日日期（台北時區）
   function getTodayDate() {
@@ -362,7 +375,7 @@
     }
   }
 
-  // ✅ 修正：100% 不會出現 LINE 驗證失敗
+  // ✅ LIFF 自動抓取 LINE 使用者 ID
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -373,7 +386,7 @@
         }
       }
     } catch (e) {
-      console.log("LIFF 初始化略過（不影響預約）");
+      console.log("外部瀏覽器模式，使用自動唯一ID");
     } finally {
       document.getElementById('lineId').value = LINE_USER_ID;
     }
