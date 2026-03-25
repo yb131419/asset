@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>莫凡韓式皮膚管理</title>
+  <title>莫凡韓式皮膚管理｜線上預約系統</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
@@ -14,48 +14,59 @@
     }
 
     body {
-      background: #fdf2f8;
+      background: linear-gradient(135deg, #fff5f9, #fdf2f8, #fce7f3);
+      min-height: 100vh;
       font-family: 'Noto Sans TC', sans-serif;
-      color: #444;
+      color: #333;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      min-height: 100vh;
-      padding: 30px 15px;
+      padding: 40px 20px;
     }
 
     main {
       background: #ffffff;
-      border-radius: 24px;
-      box-shadow: 0 12px 40px rgba(255, 133, 162, 0.1);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(255, 133, 162, 0.12);
       width: 100%;
-      max-width: 440px;
-      padding: 45px 32px;
+      max-width: 460px;
+      padding: 50px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    main::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #ff9ebb, #ff85a2, #c77dff);
     }
 
     h2 {
-      font-weight: 700;
-      margin-bottom: 40px;
       text-align: center;
-      line-height: 1.6;
+      margin-bottom: 44px;
+      line-height: 1.7;
     }
 
     h2 .main-title {
-      font-size: 1.8rem;
+      font-size: 2rem;
+      font-weight: 700;
       display: block;
       margin-bottom: 10px;
-      background: linear-gradient(90deg, #ff8da1, #c77dff);
+      background: linear-gradient(90deg, #ff8da1, #ff79a6, #c77dff);
       -webkit-background-clip: text;
       color: transparent;
-      white-space: nowrap;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
     }
 
     h2 .sub-title {
       font-size: 0.95rem;
-      font-weight: 500;
-      color: #888;
-      letter-spacing: 0.5px;
+      font-weight: 400;
+      color: #999;
+      letter-spacing: 0.6px;
     }
 
     form label {
@@ -64,7 +75,7 @@
       font-weight: 500;
       font-size: 0.95rem;
       color: #555;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
     }
 
     input[type="text"],
@@ -74,122 +85,122 @@
     select,
     textarea {
       width: 100%;
-      height: 54px;
-      padding: 0 18px;
-      border-radius: 14px;
-      border: 1px solid #f3f3f3;
+      height: 56px;
+      padding: 0 20px;
+      border-radius: 16px;
+      border: 1px solid #f4f4f4;
       font-size: 1rem;
       background: #fefefe;
       color: #333;
-      margin-bottom: 24px;
-      transition: all 0.3s ease;
+      margin-bottom: 26px;
+      transition: all 0.35s ease;
       font-family: 'Noto Sans TC', sans-serif;
       font-weight: 500;
     }
 
     textarea {
-      min-height: 100px;
+      min-height: 110px;
       height: auto;
       resize: vertical;
-      line-height: 1.5;
-      padding: 16px 18px;
+      line-height: 1.6;
+      padding: 18px 20px;
     }
 
     input:focus, select:focus, textarea:focus {
       background: #fff;
       border-color: #ff85a2;
       outline: none;
-      box-shadow: 0 0 0 4px rgba(255,133,162,0.12);
+      box-shadow: 0 0 0 5px rgba(255,133,162,0.1);
     }
 
     select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 16px center;
-      background-size: 16px;
+      background-position: right 18px center;
+      background-size: 17px;
       cursor: pointer;
     }
 
-    /* 時段格狀美化 */
+    /* 高質感時段格子 */
     .time-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 26px;
+      gap: 12px;
+      margin-bottom: 30px;
     }
 
     .time-btn {
-      height: 54px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid #eee;
       background: #fff;
       font-size: 0.95rem;
       font-weight: 500;
       color: #444;
       cursor: pointer;
-      transition: 0.25s ease;
+      transition: all 0.3s ease;
     }
 
     .time-btn:hover {
       border-color: #ff85a2;
-      color: #ff4d88;
-      transform: translateY(-1px);
+      color: #ff7099;
+      transform: translateY(-2px);
     }
 
     .time-btn.active {
-      background: linear-gradient(135deg, #ff8da1, #ff85a2);
+      background: linear-gradient(135deg, #ff8da1, #ff7099);
       color: #fff;
       border-color: #ff85a2;
-      box-shadow: 0 4px 12px rgba(255,133,162,0.2);
+      box-shadow: 0 6px 16px rgba(255,133,162,0.22);
     }
 
     .btn-container {
-      margin-top: 20px;
+      margin-top: 24px;
     }
 
     button {
       width: 100%;
-      height: 58px;
+      height: 62px;
       background: linear-gradient(135deg, #ff87b2, #e05686);
       border: none;
-      border-radius: 16px;
-      font-size: 1rem;
+      border-radius: 18px;
+      font-size: 1.05rem;
       color: #fff;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 8px 22px rgba(255,135,178,0.25);
+      transition: all 0.35s ease;
+      box-shadow: 0 10px 28px rgba(255,135,178,0.25);
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       font-family: 'Noto Sans TC', sans-serif;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
     }
 
     button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(255,135,178,0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 36px rgba(255,135,178,0.32);
     }
 
     button:disabled {
-      opacity: 0.7;
+      opacity: 0.75;
       cursor: not-allowed;
     }
 
     button.permanent-disabled {
       opacity: 0.5;
       background: #777 !important;
-      box-shadow: none;
+      box-shadow: none !important;
     }
 
     .loader {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       border: 2px solid #fff;
       border-bottom-color: transparent;
       border-radius: 50%;
@@ -208,28 +219,28 @@
 
     @keyframes successPulse {
       0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
+      50% { transform: scale(1.06); }
       100% { transform: scale(1); }
     }
 
     .success {
-      animation: successPulse 0.6s ease-in-out;
+      animation: successPulse 0.65s ease-in-out;
       background: #2dd386 !important;
-      box-shadow: 0 6px 18px rgba(45,211,134,0.25) !important;
+      box-shadow: 0 8px 24px rgba(45,211,134,0.28) !important;
     }
 
     .error {
-      animation: successPulse 0.6s ease-in-out;
+      animation: successPulse 0.65s ease-in-out;
       background: #ff4d6d !important;
     }
   </style>
 </head>
-<body>
 
+<body>
 <main>
   <h2>
     <span class="main-title">莫凡韓式皮膚管理<br>線上預約系統</span>
-    <span class="sub-title">選擇服務項目｜填寫資料預約｜LINE即時通知</span>
+    <span class="sub-title">專業肌膚管理<br>精緻服務｜LINE 一對一確認</span>
   </h2>
 
   <form id="infoForm">
@@ -254,7 +265,7 @@
 
     <label>預約時段</label>
     <div class="time-grid" id="timeGrid">
-      <div style="color:#999;text-align:center;grid-column:1/3;height:54px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>
+      <div style="color:#999;text-align:center;grid-column:1/3;height:56px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>
     </div>
 
     <label>姓名</label>
@@ -267,7 +278,7 @@
     <input type="email" id="email" placeholder="請輸入電子信箱">
 
     <label>備註說明（選填）</label>
-    <textarea id="extraInfo" placeholder="肌膚狀況、特殊需求備註"></textarea>
+    <textarea id="extraInfo" placeholder="肌膚狀況、過敏紀錄、特殊需求"></textarea>
 
     <div class="btn-container">
       <button type="submit" id="submitBtn">
@@ -315,15 +326,15 @@
         submitBtn.classList.add('success','permanent-disabled');
         submitBtn.disabled = true;
         btnText.textContent = '預約成功 ✅';
-        alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式美容』\n將透過LINE與您確認預約！");
+        alert("\n✅ 預約資料已成功送出！\n\n『莫凡韓式皮膚管理』\n將透過LINE與您一對一確認預約！");
         infoForm.reset();
-        document.getElementById('timeGrid').innerHTML = `<div style="color:#999;text-align:center;grid-column:1/3;height:54px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>`;
+        document.getElementById('timeGrid').innerHTML = `<div style="color:#999;text-align:center;grid-column:1/3;height:56px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>`;
         document.getElementById('appointTime').value = '';
       } else {
         submitBtn.classList.add('error');
         btnText.textContent = '預約失敗 ❌';
         alert(response.message || "系統錯誤，請稍後再試");
-        setTimeout(resetButtonState, 2500);
+        setTimeout(resetButtonState, 2600);
       }
     } catch (e) {
       resetButtonState();
@@ -340,7 +351,7 @@
 
     const list = timeDataMap[date] || [];
     if (list.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/3;text-align:center;color:#999;height:54px;display:flex;align-items:center;justify-content:center;">當日無可預約時段</div>`;
+      grid.innerHTML = `<div style="grid-column:1/3;text-align:center;color:#999;height:56px;display:flex;align-items:center;justify-content:center;">當日無可預約時段</div>`;
       return;
     }
 
@@ -442,6 +453,5 @@
     });
   });
 </script>
-
 </body>
 </html>
