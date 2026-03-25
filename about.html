@@ -273,13 +273,14 @@
     <label>服務項目</label>
     <select id="serviceType" required>
       <option value="">請選擇服務項目</option>
+      <option value="手足保養">手足保養</option>
+      <option value="美甲光療凝膠">美甲光療凝膠</option>
+      <option value="霧眉">霧眉</option>
       <option value="臉部保養">臉部保養</option>
-      <option value="深層清潔">深層清潔</option>
-      <option value="除毛服務">除毛服務</option>        
-      <option value="身體SPA">身體SPA</option>
-      <option value="美甲美睫">美甲美睫</option>
-      <option value="彩妝造型">彩妝造型</option>
-      <option value="其他服務">其他服務</option>
+      <option value="粉刺管理">粉刺管理</option>
+      <option value="韓式皮膚管理">韓式皮膚管理</option>
+      <option value="重返青春">重返青春</option>
+      <option value="雷射換膚">雷射換膚</option>
     </select>
 
     <label>預約日期</label>
@@ -297,7 +298,7 @@
     <input type="text" id="name" required placeholder="請輸入您的姓名">
 
     <label>聯絡電話</label>
-    <input type="tel" id="phone" required placeholder="請輸入聯絡電話">
+    <input type="tel" id="phone" required placeholder="0912-345-678" autocomplete="off">
 
     <label>電子信箱（選填）</label>
     <input type="email" id="email" placeholder="請輸入電子信箱">
@@ -356,6 +357,20 @@
     if (h < nowH) return true;
     if (h === nowH && m <= nowM) return true;
     return false;
+  }
+
+  // 電話號碼格式化 4-3-3
+  function formatPhoneNumber(value) {
+    const phone = value.replace(/\D/g, '');
+    if (phone.length <= 4) return phone;
+    if (phone.length <= 7) return `${phone.slice(0,4)}-${phone.slice(4)}`;
+    return `${phone.slice(0,4)}-${phone.slice(4,7)}-${phone.slice(7,10)}`;
+  }
+
+  // 驗證電話號碼 10碼
+  function validatePhone(phone) {
+    const clean = phone.replace(/\D/g, '');
+    return clean.length === 10;
   }
 
   // 全域回調
@@ -488,6 +503,12 @@
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
     const appointDate = document.getElementById('appointDate');
+    const phoneInput = document.getElementById('phone');
+
+    // 電話號碼即時格式化
+    phoneInput.addEventListener('input', (e) => {
+      e.target.value = formatPhoneNumber(e.target.value);
+    });
 
     // 禁止選過去日期
     appointDate.min = getToday();
@@ -501,6 +522,15 @@
     // 表單提交
     infoForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      
+      // 驗證電話
+      const phone = phoneInput.value.trim();
+      if (!validatePhone(phone)) {
+        alert("請輸入正確 10 碼手機號碼！\n格式：0912-345-678");
+        phoneInput.focus();
+        return;
+      }
+
       const t = document.getElementById('appointTime').value;
       if (!t) return alert("請選擇預約時段");
       
