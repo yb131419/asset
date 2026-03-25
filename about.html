@@ -63,6 +63,7 @@
       color: #555;
     }
 
+    /* === 統一所有輸入框樣式 === */
     input[type="text"],
     input[type="email"],
     input[type="tel"],
@@ -70,7 +71,8 @@
     select,
     textarea {
       width: 100%;
-      padding: 14px 16px;
+      height: 50px;
+      padding: 0 16px;
       border-radius: 12px;
       border: 1px solid #f0f0f0;
       font-size: 1rem;
@@ -85,8 +87,10 @@
 
     textarea {
       min-height: 85px;
+      height: auto;
       resize: vertical;
       line-height: 1.5;
+      padding: 14px 16px;
     }
 
     input:focus, select:focus, textarea:focus {
@@ -96,6 +100,16 @@
       box-shadow: 0 0 0 3px rgba(255,133,162,0.1);
     }
 
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      cursor: pointer;
+    }
+
+    /* === 預約時段 格狀樣式 === */
     .time-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -104,7 +118,10 @@
     }
 
     .time-btn {
-      padding: 12px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 10px;
       border: 1px solid #eee;
       background: #fff;
@@ -134,9 +151,9 @@
 
     button {
       width: 100%;
+      height: 54px;
       background: linear-gradient(135deg, #ff87b2, #e05686);
       border: none;
-      padding: 16px;
       border-radius: 14px;
       font-size: 1rem;
       color: #fff;
@@ -229,7 +246,7 @@
 
       <label>預約時段</label>
       <div class="time-grid" id="timeGrid">
-        <div style="color:#999;text-align:center;grid-column:1/3">請先選擇日期</div>
+        <div style="color:#999;text-align:center;grid-column:1/3;height:50px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>
       </div>
 
       <label>姓名</label>
@@ -263,13 +280,21 @@
   let isSubmittedSuccess = false;
   let timeDataMap = {};
 
+  // 取得今日日期 (YYYY-MM-DD)
+  function getToday() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   window.callback = function (response) {
     try {
       isSubmitting = false;
       submitBtn.classList.remove('loading');
       if (response.status === "init") {
         timeDataMap = response.timeMap || {};
-        renderTimeList();
       }
       if (response.status === "success") {
         isSubmittedSuccess = true;
@@ -278,10 +303,13 @@
         btnText.textContent = '預約成功 ✅';
         alert("✅ 預約成功！管理員已收到通知");
         infoForm.reset();
+        document.getElementById('timeGrid').innerHTML = `<div style="color:#999;text-align:center;grid-column:1/3;height:50px;display:flex;align-items:center;justify-content:center;">請先選擇日期</div>`;
+        document.getElementById('appointTime').value = '';
       }
     } catch (e) {}
   };
 
+  // 渲染時段
   function renderTimeList() {
     const date = document.getElementById('appointDate').value;
     const grid = document.getElementById('timeGrid');
@@ -291,7 +319,7 @@
 
     const list = timeDataMap[date] || [];
     if (list.length === 0) {
-      grid.innerHTML = `<div style="grid-column:1/3;text-align:center;color:#999">當日無可預約時段</div>`;
+      grid.innerHTML = `<div style="grid-column:1/3;text-align:center;color:#999;height:50px;display:flex;align-items:center;justify-content:center;">當日無可預約時段</div>`;
       return;
     }
 
@@ -315,6 +343,13 @@
     submitBtn.classList.remove('loading','success','error');
     btnText.textContent = '確認預約';
     isSubmitting = false;
+  }
+
+  // 載入時段資料
+  function loadTimeData() {
+    const script = document.createElement('script');
+    script.src = `${CONFIG.SCRIPT_URL}?action=getDates&pageId=美容預約系統&callback=callback&_=${Date.now()}`;
+    document.body.appendChild(script);
   }
 
   function sendData() {
@@ -344,9 +379,19 @@
     submitBtn = document.getElementById('submitBtn');
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
+    const appointDate = document.getElementById('appointDate');
+    
+    // 設定日曆最小日期 = 今日（禁止選過去日期）
+    const todayStr = getToday();
+    appointDate.min = todayStr;
 
-    document.getElementById('appointDate').addEventListener('change', renderTimeList);
+    // 載入後端時段
+    loadTimeData();
 
+    // 日期改變時刷新時段
+    appointDate.addEventListener('change', renderTimeList);
+
+    // 表單提交
     infoForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const t = document.getElementById('appointTime').value;
