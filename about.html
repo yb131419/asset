@@ -6,118 +6,143 @@
   <title>莫凡韓式皮膚管理</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background: #f8f9fa;
-      font-family: 'Roboto', sans-serif;
-      color: #333;
+      background: #fdf2f8;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: #444;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
       padding: 30px 15px;
     }
+
     main {
       background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
       width: 100%;
       max-width: 420px;
-      padding: 32px 26px;
+      padding: 36px 28px;
     }
+
     h2 {
       font-weight: 700;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
       text-align: center;
-      color: #ff69b4;
-      line-height: 1.4;
+      line-height: 1.5;
     }
+
     h2 .main-title {
-      font-size: 1.7rem;
+      font-size: 1.6rem;
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #ff8da1, #c77dff);
+      -webkit-background-clip: text;
+      color: transparent;
     }
+
     h2 .sub-title {
       font-size: 0.95rem;
       font-weight: 500;
-      color: #666;
+      color: #888;
     }
+
     form label {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       font-weight: 500;
       font-size: 0.95rem;
-      color: #444;
+      color: #555;
     }
+
     input[type="text"],
     input[type="email"],
     input[type="tel"],
     select,
     textarea {
       width: 100%;
-      padding: 12px 15px;
-      border-radius: 10px;
-      border: 1px solid #eee;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid #f0f0f0;
       font-size: 0.95rem;
-      background: #fafafa;
+      background: #fefefe;
       color: #333;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       transition: all 0.3s ease;
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Noto Sans TC', sans-serif;
     }
+
     textarea {
-      min-height: 80px;
+      min-height: 85px;
       resize: vertical;
       line-height: 1.5;
     }
+
     input:focus, select:focus, textarea:focus {
       background: #fff;
-      border-color: #ff69b4;
+      border-color: #ff85a2;
       outline: none;
+      box-shadow: 0 0 0 3px rgba(255,133,162,0.1);
     }
+
     input[readonly] {
       opacity: 0.7;
       cursor: not-allowed;
-      background: #f1f1f1 !important;
+      background: #f9f9f9 !important;
     }
+
     select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
       background-size: 16px;
       cursor: pointer;
     }
+
     .btn-container {
-      margin-top: 10px;
+      margin-top: 12px;
     }
+
     button {
       width: 100%;
-      background: linear-gradient(135deg, #ff69b4, #ff4fa8);
+      background: linear-gradient(135deg, #ff87b2, #e05686);
       border: none;
-      padding: 15px;
-      border-radius: 12px;
+      padding: 16px;
+      border-radius: 14px;
       font-size: 1rem;
       color: #fff;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(255,105,180,0.2);
+      box-shadow: 0 6px 16px rgba(255,135,178,0.25);
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 8px;
+      font-family: 'Noto Sans TC', sans-serif;
     }
+
     button:disabled {
       opacity: 0.7;
       cursor: not-allowed;
     }
+
     button.permanent-disabled {
       opacity: 0.5;
-      background: #666 !important;
+      background: #777 !important;
+      box-shadow: none;
       cursor: not-allowed;
     }
+
     .loader {
       width: 18px;
       height: 18px;
@@ -127,25 +152,31 @@
       animation: rotation 1s linear infinite;
       display: none;
     }
+
     button.loading .loader {
       display: block;
     }
+
     @keyframes rotation {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
     @keyframes successPulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
+
     .success {
       animation: successPulse 0.6s ease-in-out;
-      background: #00c851 !important;
+      background: #2dd386 !important;
+      box-shadow: 0 6px 16px rgba(45,211,134,0.25) !important;
     }
+
     .error {
       animation: successPulse 0.6s ease-in-out;
-      background: #ff4444 !important;
+      background: #ff4d6d !important;
     }
   </style>
 </head>
