@@ -241,12 +241,9 @@
         
         if (response.timeMap) timeDataMap = response.timeMap;
         
-        // ✅ 核心：過濾「過期日期」，只顯示今天 & 未來
+        // 只顯示未過期日期
         if (response.dates && response.dates.length > 0) {
-          const validDates = response.dates.filter(item => {
-            return item.value >= TODAY;
-          });
-
+          const validDates = response.dates.filter(item => item.value >= TODAY);
           validDates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
@@ -334,14 +331,24 @@
     }
   }
 
+  // ✅ 修正：強制確保拿到真實 LINE ID
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
-      if (!liff.isLoggedIn()) { liff.login(); return; }
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
       const profile = await liff.getProfile();
-      LINE_USER_ID = profile?.userId || `line_${Date.now()}`;
+      if (profile && profile.userId) {
+        LINE_USER_ID = profile.userId;
+      } else {
+        alert("無法取得LINE資訊，請重新開啟");
+        window.close();
+      }
     } catch (e) {
-      LINE_USER_ID = `line_${Date.now()}`;
+      alert("LINE驗證失敗，請重新開啟");
+      window.close();
     } finally {
       document.getElementById('lineId').value = LINE_USER_ID;
     }
@@ -375,8 +382,8 @@
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
 
-    loadDateList();
     await initLiff();
+    loadDateList();
 
     document.getElementById('appointDate').addEventListener('change', function() {
       updateTimeOptions(this.value);
