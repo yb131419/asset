@@ -158,7 +158,6 @@
 
     <form id="infoForm">
       <input type="hidden" id="pageId" name="pageId" value="美容預約系統" />
-      <input type="hidden" id="date" name="date" />
       <input type="hidden" id="lineId" name="lineId" />
 
       <label for="serviceType">服務項目</label>
@@ -205,32 +204,26 @@
   </main>
 
 <script>
-  // 配置项
   const CONFIG = {
     SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK69yZdryeXLsZZsgeIyqy-DNLrJ3aztFDyc8fhXABUEOfBP8OsAF8_v-Dfi4E9JVDtA/exec",
     LIFF_ID: "2008578880-lCRzVTyk"
   };
 
-  // 全局变量
   let submitBtn, btnText, infoForm;
   let isSubmitting = false;
   let isSubmittedSuccess = false;
   let timeDataMap = {};
   let LINE_USER_ID = "";
 
-  // JSONP 回調函數（後端返回資料會進來這裡）
-  window.handleResponse = function(response) {
+  // 統一回調函數（與後端完全對齊）
+  window.callback = function(response) {
     try {
       isSubmitting = false;
       if (!submitBtn || !btnText) return;
       submitBtn.classList.remove('loading');
 
-      // 安全判斷
-      if (!response) {
-        throw new Error("後端回應異常");
-      }
+      if (!response) throw new Error("後端回應異常");
 
-      // 載入 日期 & 時段
       if (response.status === "init") {
         const dateSelect = document.getElementById('appointDate');
         const timeSelect = document.getElementById('appointTime');
@@ -238,12 +231,7 @@
         dateSelect.innerHTML = '<option value="">請選擇預約日期</option>';
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
         
-        // 安全備份
-        if (response.timeMap) {
-          timeDataMap = response.timeMap;
-        }
-
-        // 填入日期
+        if (response.timeMap) timeDataMap = response.timeMap;
         if (response.dates && response.dates.length > 0) {
           response.dates.forEach(item => {
             const opt = document.createElement('option');
@@ -255,7 +243,6 @@
         return;
       }
 
-      // 預約成功
       if (response.status === "success") {
         isSubmittedSuccess = true;
         submitBtn.classList.add('success','permanent-disabled');
@@ -277,7 +264,6 @@
     }
   };
 
-  // 轉換時段格式
   function formatTimeLabel(timeValue) {
     if (!timeValue) return "";
     const hour = parseInt(timeValue.split(':')[0]);
@@ -286,11 +272,9 @@
     return `晚上 ${timeValue}`;
   }
 
-  // 選擇日期後載入對應時段（手機穩定版）
   function updateTimeOptions(selectedDate) {
     const timeSelect = document.getElementById('appointTime');
     timeSelect.innerHTML = '';
-
     if (!selectedDate) {
       const opt = document.createElement('option');
       opt.value = "";
@@ -298,10 +282,7 @@
       timeSelect.appendChild(opt);
       return;
     }
-
-    // 確保一定能取到時段
     const timeList = timeDataMap[selectedDate] || [];
-
     if (timeList.length === 0) {
       const opt = document.createElement('option');
       opt.value = "";
@@ -309,12 +290,10 @@
       timeSelect.appendChild(opt);
       return;
     }
-
     const defOpt = document.createElement('option');
     defOpt.value = "";
     defOpt.textContent = "請選擇預約時段";
     timeSelect.appendChild(defOpt);
-
     timeList.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.value;
@@ -323,7 +302,6 @@
     });
   }
 
-  // 重置按鈕
   function resetButtonState() {
     if (isSubmittedSuccess) return;
     submitBtn.disabled = false;
@@ -332,37 +310,21 @@
     isSubmitting = false;
   }
 
-  // 取得今日日期（台北時區）
-  function getTaipeiDate() {
-    const d = new Date();
-    const opt = { timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit' };
-    return new Intl.DateTimeFormat('zh-CN', opt).format(d).replace(/\//g, '-');
-  }
-
-  // 載入日期時段（手機穩定版）
+  // 載入日期（修復版）
   function loadDateList() {
     try {
-      const data = { action: "getDates", pageId: "美容預約系統" };
-      const params = new URLSearchParams(data);
-      params.append('callback', 'handleResponse');
-
       const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
-      script.async = true;
+      script.src = `${CONFIG.SCRIPT_URL}?action=getDates&pageId=美容預約系統&callback=callback&_=${Date.now()}`;
       document.body.appendChild(script);
     } catch (e) {
       console.error("載入日期失敗：", e);
     }
   }
 
-  // 初始化 LIFF
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
+      if (!liff.isLoggedIn()) { liff.login(); return; }
       const profile = await liff.getProfile();
       LINE_USER_ID = profile?.userId || `line_${Date.now()}`;
     } catch (e) {
@@ -372,12 +334,11 @@
     }
   }
 
-  // 表單提交
+  // 提交預約（修復版）
   function sendData() {
     try {
       const data = {
         pageId: document.getElementById('pageId').value,
-        date: document.getElementById('date').value,
         lineId: LINE_USER_ID,
         serviceType: document.getElementById('serviceType').value,
         appointDate: document.getElementById('appointDate').value,
@@ -387,12 +348,9 @@
         email: document.getElementById('email').value,
         extraInfo: document.getElementById('extraInfo').value
       };
-
       const params = new URLSearchParams(data);
-      params.append('callback', 'handleResponse');
-
       const script = document.createElement('script');
-      script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
+      script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(script);
     } catch (e) {
       alert("提交失敗，請重試");
@@ -400,23 +358,18 @@
     }
   }
 
-  // 頁面加載完成
   document.addEventListener('DOMContentLoaded', async () => {
     submitBtn = document.getElementById('submitBtn');
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
-    document.getElementById('date').value = getTaipeiDate();
 
-    // 手機穩定：先載入資料，再登入
     loadDateList();
     await initLiff();
 
-    // 日期選擇事件
     document.getElementById('appointDate').addEventListener('change', function() {
       updateTimeOptions(this.value);
     });
 
-    // 表單提交
     infoForm.addEventListener('submit', function(e) {
       e.preventDefault();
       if (isSubmitting || isSubmittedSuccess) return;
