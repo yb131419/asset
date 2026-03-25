@@ -215,7 +215,15 @@
   let timeDataMap = {};
   let LINE_USER_ID = "";
 
-  // 統一回調函數（與後端完全對齊）
+  // 取得今日日期（台北時區）
+  function getTodayDate() {
+    const now = new Date();
+    const options = { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Intl.DateTimeFormat('fr-CA', options).format(now);
+  }
+  const TODAY = getTodayDate();
+
+  // 統一回調函數
   window.callback = function(response) {
     try {
       isSubmitting = false;
@@ -232,8 +240,14 @@
         timeSelect.innerHTML = '<option value="">請先選擇預約日期</option>';
         
         if (response.timeMap) timeDataMap = response.timeMap;
+        
+        // ✅ 核心：過濾「過期日期」，只顯示今天 & 未來
         if (response.dates && response.dates.length > 0) {
-          response.dates.forEach(item => {
+          const validDates = response.dates.filter(item => {
+            return item.value >= TODAY;
+          });
+
+          validDates.forEach(item => {
             const opt = document.createElement('option');
             opt.value = item.value;
             opt.textContent = item.label;
@@ -310,7 +324,6 @@
     isSubmitting = false;
   }
 
-  // 載入日期（修復版）
   function loadDateList() {
     try {
       const script = document.createElement('script');
@@ -334,7 +347,6 @@
     }
   }
 
-  // 提交預約（修復版）
   function sendData() {
     try {
       const data = {
