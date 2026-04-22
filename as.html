@@ -1155,6 +1155,7 @@
     document.body.appendChild(script);
   }
 
+  // ✅ 核心修改：预约列表展示 日期 → 地點 → 時間
   function renderReservationsList(list) {
     const keyword = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
     let filtered = list || [];
@@ -1197,11 +1198,11 @@
           </div>
         </div>
 <div class="reservation-info">
+  日期：${formatToStandardDateSafe(item.appointDate)}<br>
   地點：${item.serviceType}<br>
-  預約：${formatToStandardDateSafe(item.appointDate)} ${item.appointTime}<br>
+  時間：${item.appointTime}<br>
   姓名：${item.name}<br>
-  電話：${item.phone}<br>LINE：${item.lineName || '未取得'}<br>
-  備註：${item.remark || '無'}
+  電話：${item.phone}
 </div>
       </div>`).join('');
 
