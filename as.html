@@ -80,8 +80,6 @@
       position: relative;
       overflow: hidden;
       margin-top: 20px;
-      margin-left: auto;
-      margin-right: auto;
     }
 
     main::before {
@@ -248,75 +246,66 @@
 
     .btn-container {
       margin-top: 20px;
+    }
+
+    /* 美化後的確認預約按鈕 */
+    button {
       width: 100%;
+      height: 58px;
+      background: linear-gradient(135deg, #4cd991, #2ecc71, #27ae60);
+      background-size: 200% 200%;
+      border: none;
+      border-radius: 20px;
+      font-size: 1.1rem;
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 8px 28px rgba(46, 204, 113, 0.3);
       display: flex;
       justify-content: center;
       align-items: center;
+      gap: 10px;
+      font-family: 'Noto Sans TC', sans-serif;
+      letter-spacing: 1.8px;
+      position: relative;
+      overflow: hidden;
+      animation: gradientShift 3s ease infinite;
     }
-
-    /* 美化後的確認預約按鈕 + 完美置中 */
-button {
-  width: 92%;
-  max-width: 380px;
-  height: 58px;
-  background: linear-gradient(135deg, #4cd991, #2ecc71, #27ae60);
-  background-size: 200% 200%;
-  border: none;
-  border-radius: 20px;
-  font-size: 1.1rem;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 8px 28px rgba(46, 204, 113, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  font-family: 'Noto Sans TC', sans-serif;
-  letter-spacing: 1.8px;
-  position: relative;
-  overflow: hidden;
-  animation: gradientShift 3s ease infinite;
-  margin: 0 auto;
-  /* 修復：移除全域影響 */
-  appearance: none;
-  -webkit-appearance: none;
-}
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-  transition: left 0.6s ease;
-}
-button:hover:not(:disabled)::before {
-  left: 100%;
-}
-button:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 36px rgba(46, 204, 113, 0.4);
-  letter-spacing: 2.2px;
-}
-button:disabled {
-  opacity: 0.75;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.15) !important;
-}
-button.permanent-disabled {
-  opacity: 1;
-  background: linear-gradient(135deg, #38e08d, #2ecc71);
-  box-shadow: 0 8px 25px rgba(45, 211, 134, 0.3);
-}
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+      transition: left 0.6s ease;
+    }
+    button:hover:not(:disabled)::before {
+      left: 100%;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 36px rgba(46, 204, 113, 0.4);
+      letter-spacing: 2.2px;
+    }
+    button:disabled {
+      opacity: 0.75;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.15) !important;
+    }
+    button.permanent-disabled {
+      opacity: 1;
+      background: linear-gradient(135deg, #38e08d, #2ecc71);
+      box-shadow: 0 8px 25px rgba(45, 211, 134, 0.3);
+    }
 
     .loader {
       width: 20px;
@@ -742,7 +731,7 @@ button.permanent-disabled {
 
       <label>預約地點</label>
       <select id="location" required>
-        <option value="">載入地點中...</option>
+        <option value="">請選擇預約地點</option>
       </select>
 
       <label>預約時間</label>
@@ -1038,7 +1027,6 @@ button.permanent-disabled {
     }
   };
 
-  // 修正：自動從後端載入預約地點
   function updateAutoTimeAndLocation() {
     const today = getTaipeiDateString();
     document.getElementById('appointDate').value = today;
@@ -1054,28 +1042,26 @@ button.permanent-disabled {
       return;
     }
 
-    const locations = [...new Set(data.map(item => item.location))];
-    
-    locations.forEach(location => {
+    data.forEach(item => {
       const opt = document.createElement('option');
-      opt.value = location;
-      opt.textContent = location;
+      opt.value = item.location || '';
+      opt.textContent = item.location || '';
+      opt.dataset.time = item.time || '';
       locationSelect.appendChild(opt);
     });
 
     locationSelect.addEventListener('change', () => {
-      const selectedLoc = locationSelect.value;
-      const timeItem = data.find(item => item.location === selectedLoc);
-      const time = timeItem?.time || '';
+      const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+      const time = selectedOption.dataset.time || '';
       appointTimeDisplay.value = time;
       document.getElementById('appointTime').value = time;
     });
 
-    if (locations.length > 0) {
+    if (data.length > 0) {
       locationSelect.selectedIndex = 1;
-      const firstTime = data.find(item => item.location === locations[0])?.time || '';
-      appointTimeDisplay.value = firstTime;
-      document.getElementById('appointTime').value = firstTime;
+      const firstOption = locationSelect.options[1];
+      appointTimeDisplay.value = firstOption.dataset.time || '';
+      document.getElementById('appointTime').value = firstOption.dataset.time || '';
     }
   }
 
