@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
@@ -6,7 +7,7 @@
   <title> 自然美學 </title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;50 0;700;900&display=swap');
     * {
       box-sizing: border-box;
       margin: 0;
@@ -989,7 +990,7 @@
 
       if (response.status === "init") {
         locationDataMap = response.timeMap || {};
-        // 核心修復：後台數據返回後強制刷新地點列表
+        // 修復：每次後台返回數據都強制刷新前台下拉選單
         updateAutoTimeAndLocation();
         return;
       }
@@ -1007,7 +1008,8 @@
           btnText.textContent = '預約成功 ✅';
           alert("\n✅ 預約成功！\n\n專人將透過LINE與您聯繫");
           infoForm.reset();
-          updateAutoTimeAndLocation();
+          // 預約成功後重新加載數據
+          loadLocationData();
           loadReservationCount();
         }else{
           alert("✅ 操作成功");
@@ -1033,21 +1035,26 @@
     }
   };
 
-  // 核心修復：日期選擇 → 自動加載對應地點&時間
+  // 核心修復：選擇日期後 重新從後台獲取最新數據並渲染
   function updateAutoTimeAndLocation() {
     const selectedDate = userSelectDate.value || getTaipeiDateString();
     document.getElementById('appointDate').value = selectedDate;
     
+    // 獲取當天設置的地點與時間
     const data = locationDataMap[selectedDate] || [];
+    
+    // 清空並重製下拉選單
     locationSelect.innerHTML = '<option value="">請選擇預約地點</option>';
     appointTimeDisplay.value = '';
     document.getElementById('appointTime').value = '';
     
+    // 無數據時禁用提交
     if (data.length === 0) {
       submitBtn.disabled = true;
       return;
     }
 
+    // 組裝下拉選項
     data.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.location || '';
@@ -1056,6 +1063,7 @@
       locationSelect.appendChild(opt);
     });
 
+    // 地點選擇事件
     locationSelect.onchange = function() {
       const selectedOption = this.options[this.selectedIndex];
       const time = selectedOption.dataset.time || '';
@@ -1063,7 +1071,7 @@
       document.getElementById('appointTime').value = time;
     };
 
-    // 自動選擇第一個地點
+    // 自動選擇第一個選項
     if (locationSelect.options.length > 1) {
       locationSelect.selectedIndex = 1;
       const firstOption = locationSelect.options[1];
@@ -1072,6 +1080,11 @@
     }
     
     submitBtn.disabled = false;
+  }
+
+  // 修復：每次切換日期都重新獲取數據
+  function refreshLocationDataByDate() {
+    loadLocationData();
   }
 
   function resetButtonState() {
@@ -1086,7 +1099,6 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=getDates&pageId=自然美學預約系統&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    // 自動清理腳本標籤
     setTimeout(() => {
       if (document.body.contains(s)) document.body.removeChild(s);
     }, 5000);
@@ -1357,7 +1369,7 @@
       document.getElementById('lineId').value = LINE_USER_ID;
       document.getElementById('lineName').value = LINE_USER_NAME;
       checkAdminByBackend();
-      // 核心修復：確保數據加載
+      // 初始化加載數據
       loadLocationData();
       loadReservationCount();
     }
@@ -1371,12 +1383,15 @@
     appointTimeDisplay = document.getElementById('appointTimeDisplay');
     const phoneInput = document.getElementById('phone');
     
-    // 核心修復：日期初始化
+    // 日期初始化與綁定事件
     userSelectDate = document.getElementById('userSelectDate');
     const todayStr = getTaipeiDateString();
     userSelectDate.min = todayStr;
     userSelectDate.value = todayStr;
-    userSelectDate.addEventListener('change', updateAutoTimeAndLocation);
+    // 修復：切換日期 → 刷新數據 → 更新選單
+    userSelectDate.addEventListener('change', () => {
+      refreshLocationDataByDate();
+    });
     
     prevManageDateBtn = document.getElementById('prevManageDateBtn');
     nextManageDateBtn = document.getElementById('nextManageDateBtn');
