@@ -80,6 +80,8 @@
       position: relative;
       overflow: hidden;
       margin-top: 20px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     main::before {
@@ -246,11 +248,16 @@
 
     .btn-container {
       margin-top: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    /* 美化後的確認預約按鈕 */
+    /* 美化後的確認預約按鈕 + 完美置中 */
     button {
-      width: 100%;
+      width: 92%;
+      max-width: 380px;
       height: 58px;
       background: linear-gradient(135deg, #4cd991, #2ecc71, #27ae60);
       background-size: 200% 200%;
@@ -271,6 +278,7 @@
       position: relative;
       overflow: hidden;
       animation: gradientShift 3s ease infinite;
+      margin: 0 auto;
     }
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
@@ -731,7 +739,7 @@
 
       <label>預約地點</label>
       <select id="location" required>
-        <option value="">請選擇預約地點</option>
+        <option value="">載入地點中...</option>
       </select>
 
       <label>預約時間</label>
@@ -1027,6 +1035,7 @@
     }
   };
 
+  // 修正：自動從後端載入預約地點
   function updateAutoTimeAndLocation() {
     const today = getTaipeiDateString();
     document.getElementById('appointDate').value = today;
@@ -1042,26 +1051,28 @@
       return;
     }
 
-    data.forEach(item => {
+    const locations = [...new Set(data.map(item => item.location))];
+    
+    locations.forEach(location => {
       const opt = document.createElement('option');
-      opt.value = item.location || '';
-      opt.textContent = item.location || '';
-      opt.dataset.time = item.time || '';
+      opt.value = location;
+      opt.textContent = location;
       locationSelect.appendChild(opt);
     });
 
     locationSelect.addEventListener('change', () => {
-      const selectedOption = locationSelect.options[locationSelect.selectedIndex];
-      const time = selectedOption.dataset.time || '';
+      const selectedLoc = locationSelect.value;
+      const timeItem = data.find(item => item.location === selectedLoc);
+      const time = timeItem?.time || '';
       appointTimeDisplay.value = time;
       document.getElementById('appointTime').value = time;
     });
 
-    if (data.length > 0) {
+    if (locations.length > 0) {
       locationSelect.selectedIndex = 1;
-      const firstOption = locationSelect.options[1];
-      appointTimeDisplay.value = firstOption.dataset.time || '';
-      document.getElementById('appointTime').value = firstOption.dataset.time || '';
+      const firstTime = data.find(item => item.location === locations[0])?.time || '';
+      appointTimeDisplay.value = firstTime;
+      document.getElementById('appointTime').value = firstTime;
     }
   }
 
