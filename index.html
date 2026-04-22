@@ -1388,23 +1388,38 @@
     setTimeout(() => document.body.removeChild(s), 5000);
   }
 
-  async function initLiff() {
-    try {
-      await liff.init({ liffId: CONFIG.LIFF_ID });
-      if (liff.isLoggedIn()) {
-        const p = await liff.getProfile();
-        LINE_USER_ID = p.userId ? p.userId.toString() : LINE_USER_ID;
-        LINE_USER_NAME = p.displayName || LINE_USER_NAME;
-      }
-    } catch (e) { console.log("LIFF 略過"); }
-    finally {
-      document.getElementById('lineId').value = LINE_USER_ID;
-      document.getElementById('lineName').value = LINE_USER_NAME;
-      checkAdminByBackend();
-      loadLocationData();
-      loadReservationCount();
+async function initLiff() {
+  try {
+    // 初始化 LIFF
+    await liff.init({ liffId: CONFIG.LIFF_ID });
+    
+    // 強制登入（沒登入就導向登入頁）
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
     }
+
+    // 取得 LINE 個人檔案（確保拿到 userId）
+    const profile = await liff.getProfile();
+    if (profile && profile.userId) {
+      LINE_USER_ID = profile.userId;
+      LINE_USER_NAME = profile.displayName || "LINE使用者";
+      console.log("✅ 成功取得LINE ID:", LINE_USER_ID);
+    }
+  } catch (e) {
+    console.error("LIFF 初始化失敗:", e);
+    // 失敗也保留預設 guest，但會記錄錯誤
+  } finally {
+    // 強制寫入表單
+    document.getElementById('lineId').value = LINE_USER_ID;
+    document.getElementById('lineName').value = LINE_USER_NAME;
+    
+    // 繼續後續流程
+    checkAdminByBackend();
+    loadLocationData();
+    loadReservationCount();
   }
+}
 
   document.addEventListener('DOMContentLoaded', async () => {
     submitBtn = document.getElementById('submitBtn');
