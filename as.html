@@ -196,7 +196,7 @@
     select {
       -webkit-appearance: none;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23777" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpolyline points="6 9 12 15 18 9"%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 18px center;
       background-size: 18px;
@@ -298,7 +298,7 @@
       opacity: 0.75;
       cursor: not-allowed;
       transform: none !important;
-      box-shadow: 0 4px 15px rgba(46, 204, 113, 0.15) !important;
+      box-shadow: 0 4px 15px rgba(46,204,113,0.15) !important;
     }
     button.permanent-disabled {
       opacity: 1;
@@ -728,6 +728,10 @@
       <input type="hidden" id="appointTime" name="appointTime">
       <input type="hidden" id="appointDate">
 
+      <!-- 修復：日期選擇器 -->
+      <label>預約日期</label>
+      <input type="date" id="userSelectDate" required>
+
       <label>預約地點</label>
       <select id="location" required>
         <option value="">請選擇預約地點</option>
@@ -858,6 +862,7 @@
   let prevManageDateBtn, nextManageDateBtn;
   let headerTimeEl;
   let locationSelect, appointTimeDisplay, timeInput, locationInput;
+  let userSelectDate;
 
   function toggleCollapse(id) {
     const body = document.getElementById(id);
@@ -1026,11 +1031,12 @@
     }
   };
 
+  // 修復：根據選擇的日期更新地點
   function updateAutoTimeAndLocation() {
-    const today = getTaipeiDateString();
-    document.getElementById('appointDate').value = today;
+    const selectedDate = userSelectDate.value || getTaipeiDateString();
+    document.getElementById('appointDate').value = selectedDate;
     
-    const data = locationDataMap[today] || [];
+    const data = locationDataMap[selectedDate] || [];
     locationSelect.innerHTML = '<option value="">請選擇預約地點</option>';
     appointTimeDisplay.value = '';
     document.getElementById('appointTime').value = '';
@@ -1081,7 +1087,7 @@
       const data = {
         pageId: "自然美學預約系統", lineId: LINE_USER_ID, lineName: LINE_USER_NAME,
         serviceType: document.getElementById('location').value,
-        appointDate: getTaipeiDateString(),
+        appointDate: document.getElementById('appointDate').value,
         appointTime: document.getElementById('appointTime').value,
         name: document.getElementById('name').value, phone: document.getElementById('phone').value,
         email: "", extraInfo: document.getElementById('extraInfo').value
@@ -1343,6 +1349,12 @@
     locationSelect = document.getElementById('location');
     appointTimeDisplay = document.getElementById('appointTimeDisplay');
     const phoneInput = document.getElementById('phone');
+    
+    // 修復：使用者日期選擇
+    userSelectDate = document.getElementById('userSelectDate');
+    userSelectDate.min = getTaipeiDateString();
+    userSelectDate.value = getTaipeiDateString();
+    userSelectDate.addEventListener('change', updateAutoTimeAndLocation);
     
     prevManageDateBtn = document.getElementById('prevManageDateBtn');
     nextManageDateBtn = document.getElementById('nextManageDateBtn');
