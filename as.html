@@ -728,7 +728,6 @@
       <input type="hidden" id="appointTime" name="appointTime">
       <input type="hidden" id="appointDate">
 
-      <!-- 修復：日期選擇器 -->
       <label>預約日期</label>
       <input type="date" id="userSelectDate" required>
 
@@ -959,12 +958,14 @@
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?action=checkAdmin&lineId=${LINE_USER_ID}&callback=onAdminCheck&_=${Date.now()}`;
     document.body.appendChild(script);
+    setTimeout(() => document.body.removeChild(script), 5000);
   }
 
   function loadReservationCount() {
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=getReservationCount&pageId=自然美學預約系統&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   window.onAdminCheck = function(res) {
@@ -988,6 +989,7 @@
 
       if (response.status === "init") {
         locationDataMap = response.timeMap || {};
+        // 核心修復：後台數據返回後強制刷新地點列表
         updateAutoTimeAndLocation();
         return;
       }
@@ -1031,7 +1033,7 @@
     }
   };
 
-  // 修復：根據選擇的日期更新地點
+  // 核心修復：日期選擇 → 自動加載對應地點&時間
   function updateAutoTimeAndLocation() {
     const selectedDate = userSelectDate.value || getTaipeiDateString();
     document.getElementById('appointDate').value = selectedDate;
@@ -1061,10 +1063,14 @@
       document.getElementById('appointTime').value = time;
     };
 
-    locationSelect.selectedIndex = 1;
-    const firstOption = locationSelect.options[1];
-    appointTimeDisplay.value = firstOption.dataset.time || '';
-    document.getElementById('appointTime').value = firstOption.dataset.time || '';
+    // 自動選擇第一個地點
+    if (locationSelect.options.length > 1) {
+      locationSelect.selectedIndex = 1;
+      const firstOption = locationSelect.options[1];
+      appointTimeDisplay.value = firstOption.dataset.time || '';
+      document.getElementById('appointTime').value = firstOption.dataset.time || '';
+    }
+    
     submitBtn.disabled = false;
   }
 
@@ -1080,6 +1086,10 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=getDates&pageId=自然美學預約系統&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    // 自動清理腳本標籤
+    setTimeout(() => {
+      if (document.body.contains(s)) document.body.removeChild(s);
+    }, 5000);
   }
 
   function sendData() {
@@ -1096,6 +1106,9 @@
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(s);
+      setTimeout(() => {
+        if (document.body.contains(s)) document.body.removeChild(s);
+      }, 5000);
     } catch(e) {
       alert("提交失敗");
       resetButtonState();
@@ -1110,6 +1123,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=adminGetAll&pageId=自然美學預約系統&lineId=${LINE_USER_ID}&cleanBeforeDays=7&today=${todayStr}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function editReservation(item) {
@@ -1149,6 +1163,7 @@
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?${params}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(script);
+    setTimeout(() => document.body.removeChild(script), 5000);
   }
 
   function renderReservationsList(list) {
@@ -1237,6 +1252,7 @@
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(s);
+      setTimeout(() => document.body.removeChild(s), 5000);
     });
     selectedReservations = [];
   }
@@ -1248,6 +1264,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=adminGetTimes&pageId=自然美學預約系統&lineId=${LINE_USER_ID}&date=${date}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function renderManageLocationList(date, items) {
@@ -1288,6 +1305,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?${params}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function deleteSelectedLocations() {
@@ -1307,6 +1325,7 @@
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(s);
+      setTimeout(() => document.body.removeChild(s), 5000);
     });
     selectedLocations = [];
   }
@@ -1322,6 +1341,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   async function initLiff() {
@@ -1337,6 +1357,7 @@
       document.getElementById('lineId').value = LINE_USER_ID;
       document.getElementById('lineName').value = LINE_USER_NAME;
       checkAdminByBackend();
+      // 核心修復：確保數據加載
       loadLocationData();
       loadReservationCount();
     }
@@ -1350,10 +1371,11 @@
     appointTimeDisplay = document.getElementById('appointTimeDisplay');
     const phoneInput = document.getElementById('phone');
     
-    // 修復：使用者日期選擇
+    // 核心修復：日期初始化
     userSelectDate = document.getElementById('userSelectDate');
-    userSelectDate.min = getTaipeiDateString();
-    userSelectDate.value = getTaipeiDateString();
+    const todayStr = getTaipeiDateString();
+    userSelectDate.min = todayStr;
+    userSelectDate.value = todayStr;
     userSelectDate.addEventListener('change', updateAutoTimeAndLocation);
     
     prevManageDateBtn = document.getElementById('prevManageDateBtn');
@@ -1391,9 +1413,8 @@
     manageDate.addEventListener('change', loadManageLocations);
     
     phoneInput.addEventListener('input', e => e.target.value = formatPhoneNumber(e.target.value));
-    const today = getTaipeiDateString();
-    manageDate.min = today;
-    manageDate.value = today;
+    manageDate.min = todayStr;
+    manageDate.value = todayStr;
 
     await initLiff();
 
