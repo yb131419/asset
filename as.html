@@ -798,10 +798,10 @@
             <span class="collapse-arrow" id="timeArrow">▼</span>
           </div>
           <div class="collapse-body" id="timeCollapse">
-            <div class="date-nav-row">
-              <button type="button" class="date-nav-btn" id="prevManageDateBtn">&lt;</button>
-              <input type="date" id="manageDate" placeholder="選擇日期">
-              <button type="button" class="date-nav-btn" id="nextManageDateBtn">&gt;</button>
+            <div class="date-nav-row" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+              <button type="button" class="date-nav-btn" id="prevManageDateBtn" style="width:40px;height:40px;border-radius:8px; border:1px solid #eee; background:#fff;cursor:pointer;">&lt;</button>
+              <input type="date" id="manageDate" placeholder="選擇日期" style="flex:1;">
+              <button type="button" class="date-nav-btn" id="nextManageDateBtn" style="width:40px;height:40px;border-radius:8px; border:1px solid #eee; background:#fff;cursor:pointer;">&gt;</button>
             </div>
             <p style="margin:-10px 0 10px; font-size:12px; color:#888;">💡 設定地點、日期、時間，前台自動帶入</p>
             
@@ -984,6 +984,7 @@
 
       if (response.status === "init") {
         locationDataMap = response.timeMap || {};
+        // 核心修复：数据加载完成后渲染
         updateAutoTimeAndLocation();
         return;
       }
@@ -1027,21 +1028,26 @@
     }
   };
 
+  // 核心修复：优化地点时间渲染逻辑，移除重复事件绑定
   function updateAutoTimeAndLocation() {
     const today = getTaipeiDateString();
     document.getElementById('appointDate').value = today;
     
     const data = locationDataMap[today] || [];
     
+    // 清空下拉框
     locationSelect.innerHTML = '<option value="">請選擇預約地點</option>';
     appointTimeDisplay.value = '';
     document.getElementById('appointTime').value = '';
     
+    // 无数据容错
     if (data.length === 0) {
       alert('今日未設定地點與時間，請聯繫管理員');
+      submitBtn.disabled = true;
       return;
     }
 
+    // 渲染选项
     data.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.location || '';
@@ -1050,19 +1056,20 @@
       locationSelect.appendChild(opt);
     });
 
-    locationSelect.addEventListener('change', () => {
-      const selectedOption = locationSelect.options[locationSelect.selectedIndex];
+    // 单次绑定事件
+    locationSelect.onchange = function() {
+      const selectedOption = this.options[this.selectedIndex];
       const time = selectedOption.dataset.time || '';
       appointTimeDisplay.value = time;
       document.getElementById('appointTime').value = time;
-    });
+    };
 
-    if (data.length > 0) {
-      locationSelect.selectedIndex = 1;
-      const firstOption = locationSelect.options[1];
-      appointTimeDisplay.value = firstOption.dataset.time || '';
-      document.getElementById('appointTime').value = firstOption.dataset.time || '';
-    }
+    // 默认选中第一个
+    locationSelect.selectedIndex = 1;
+    const firstOption = locationSelect.options[1];
+    appointTimeDisplay.value = firstOption.dataset.time || '';
+    document.getElementById('appointTime').value = firstOption.dataset.time || '';
+    submitBtn.disabled = false;
   }
 
   function resetButtonState() {
@@ -1321,26 +1328,30 @@
     document.body.appendChild(s);
   }
 
-async function initLiff() {
-  try {
-    await liff.init({ liffId: CONFIG.LIFF_ID });
-    if (liff.isLoggedIn()) {
-      const p = await liff.getProfile();
-      LINE_USER_ID = p.userId ? p.userId.toString() : LINE_USER_ID;
-      LINE_USER_NAME = p.displayName || LINE_USER_NAME;
+  // 核心修复：等待数据加载完成再渲染
+  async function initLiff() {
+    try {
+      await liff.init({ liffId: CONFIG.LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const p = await liff.getProfile();
+        LINE_USER_ID = p.userId ? p.userId.toString() : LINE_USER_ID;
+        LINE_USER_NAME = p.displayName || LINE_USER_NAME;
+      }
+    } catch (e) { console.log("LIFF 略過"); }
+    finally {
+      document.getElementById('lineId').value = LINE_USER_ID;
+      document.getElementById('lineName').value = LINE_USER_NAME;
+      checkAdminByBackend();
+      
+      // 等待地点时间数据加载完成
+      await new Promise(resolve => {
+        loadLocationData();
+        setTimeout(resolve, 800);
+      });
+      // 加载预约统计
+      loadReservationCount();
     }
-  } catch (e) { console.log("LIFF 略過"); }
-  finally {
-    document.getElementById('lineId').value = LINE_USER_ID;
-    document.getElementById('lineName').value = LINE_USER_NAME;
-    checkAdminByBackend();
-    
-    Promise.all([
-      new Promise(resolve => { loadLocationData(); resolve(); }),
-      new Promise(resolve => { loadReservationCount(); resolve(); })
-    ]);
   }
-}
 
   document.addEventListener('DOMContentLoaded', async () => {
     submitBtn = document.getElementById('submitBtn');
@@ -1387,7 +1398,9 @@ async function initLiff() {
     phoneInput.addEventListener('input', e => e.target.value = formatPhoneNumber(e.target.value));
     const today = getTaipeiDateString();
     manageDate.min = today;
-    
+    manageDate.value = today; // 默认选中今日
+
+    // 初始化LIFF并加载数据
     await initLiff();
 
     infoForm.onsubmit = (e) => {
