@@ -196,7 +196,7 @@
     select {
       -webkit-appearance: none;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg" viewBox="0 24 24" fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 18px center;
       background-size: 18px;
@@ -248,7 +248,6 @@
       margin-top: 20px;
     }
 
-    /* 美化後的確認預約按鈕 */
     button {
       width: 100%;
       height: 58px;
@@ -984,7 +983,6 @@
 
       if (response.status === "init") {
         locationDataMap = response.timeMap || {};
-        // 核心修复：数据加载完成后渲染
         updateAutoTimeAndLocation();
         return;
       }
@@ -1028,26 +1026,20 @@
     }
   };
 
-  // 核心修复：优化地点时间渲染逻辑，移除重复事件绑定
   function updateAutoTimeAndLocation() {
     const today = getTaipeiDateString();
     document.getElementById('appointDate').value = today;
     
     const data = locationDataMap[today] || [];
-    
-    // 清空下拉框
     locationSelect.innerHTML = '<option value="">請選擇預約地點</option>';
     appointTimeDisplay.value = '';
     document.getElementById('appointTime').value = '';
     
-    // 无数据容错
     if (data.length === 0) {
-      alert('今日未設定地點與時間，請聯繫管理員');
       submitBtn.disabled = true;
       return;
     }
 
-    // 渲染选项
     data.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.location || '';
@@ -1056,7 +1048,6 @@
       locationSelect.appendChild(opt);
     });
 
-    // 单次绑定事件
     locationSelect.onchange = function() {
       const selectedOption = this.options[this.selectedIndex];
       const time = selectedOption.dataset.time || '';
@@ -1064,7 +1055,6 @@
       document.getElementById('appointTime').value = time;
     };
 
-    // 默认选中第一个
     locationSelect.selectedIndex = 1;
     const firstOption = locationSelect.options[1];
     appointTimeDisplay.value = firstOption.dataset.time || '';
@@ -1155,7 +1145,6 @@
     document.body.appendChild(script);
   }
 
-  // ✅ 核心修改：预约列表展示 日期 → 地點 → 時間
   function renderReservationsList(list) {
     const keyword = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
     let filtered = list || [];
@@ -1329,7 +1318,6 @@
     document.body.appendChild(s);
   }
 
-  // 核心修复：等待数据加载完成再渲染
   async function initLiff() {
     try {
       await liff.init({ liffId: CONFIG.LIFF_ID });
@@ -1343,13 +1331,7 @@
       document.getElementById('lineId').value = LINE_USER_ID;
       document.getElementById('lineName').value = LINE_USER_NAME;
       checkAdminByBackend();
-      
-      // 等待地点时间数据加载完成
-      await new Promise(resolve => {
-        loadLocationData();
-        setTimeout(resolve, 800);
-      });
-      // 加载预约统计
+      loadLocationData();
       loadReservationCount();
     }
   }
@@ -1399,9 +1381,8 @@
     phoneInput.addEventListener('input', e => e.target.value = formatPhoneNumber(e.target.value));
     const today = getTaipeiDateString();
     manageDate.min = today;
-    manageDate.value = today; // 默认选中今日
+    manageDate.value = today;
 
-    // 初始化LIFF并加载数据
     await initLiff();
 
     infoForm.onsubmit = (e) => {
