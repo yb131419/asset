@@ -759,7 +759,7 @@ h2 .sub-title {
         <option value="">請選擇預約地點</option>
       </select>
 
-      <label>預約日期</label>
+      <label>預約日期 <span id="weekDayText" style="color:#2ecc71; font-weight:600; margin-left:6px;"></span></label>
       <input type="date" id="userSelectDate" required>
 
       <label>預約時間</label>
@@ -888,6 +888,14 @@ h2 .sub-title {
   let headerTimeEl;
   let locationSelect, appointTimeDisplay, timeInput, locationInput;
   let userSelectDate;
+
+  // 取得星期幾
+  function getWeekDay(dateStr) {
+    if(!dateStr) return '';
+    const date = new Date(dateStr);
+    const weekArr = ['日', '一', '二', '三', '四', '五', '六'];
+    return '星期' + weekArr[date.getDay()];
+  }
 
   function toggleCollapse(id) {
     const body = document.getElementById(id);
@@ -1032,6 +1040,7 @@ h2 .sub-title {
           btnText.textContent = '預約成功 ✅';
           alert("\n✅ 預約成功！\n\n專人將透過LINE與您聯繫");
           infoForm.reset();
+          document.getElementById('weekDayText').textContent = '';
           loadLocationData();
           loadReservationCount();
         }else{
@@ -1059,7 +1068,6 @@ h2 .sub-title {
   };
 
   function updateLocationList() {
-    // 提取所有不重複的地點
     const locations = new Set();
     Object.values(locationDataMap || {}).forEach(items => {
       items.forEach(item => locations.add(item.location));
@@ -1069,6 +1077,7 @@ h2 .sub-title {
     appointTimeDisplay.value = '';
     document.getElementById('appointTime').value = '';
     userSelectDate.value = '';
+    document.getElementById('weekDayText').textContent = '';
     userSelectDate.disabled = true;
     appointTimeDisplay.disabled = true;
     submitBtn.disabled = true;
@@ -1082,7 +1091,6 @@ h2 .sub-title {
       locationSelect.appendChild(opt);
     });
 
-    // 選擇地點後載入可用日期
     locationSelect.onchange = function () {
       const selectedLoc = this.value;
       userSelectDate.disabled = !selectedLoc;
@@ -1090,11 +1098,11 @@ h2 .sub-title {
       appointTimeDisplay.value = '';
       document.getElementById('appointTime').value = '';
       userSelectDate.value = '';
+      document.getElementById('weekDayText').textContent = '';
       submitBtn.disabled = true;
 
       if (!selectedLoc) return;
 
-      // 取得該地點有設定的所有日期
       const availableDates = [];
       Object.entries(locationDataMap || {}).forEach(([date, items]) => {
         const hasLocation = items.some(i => i.location === selectedLoc);
@@ -1106,7 +1114,6 @@ h2 .sub-title {
         return;
       }
 
-      // 設定日期最小/可選值
       const today = getTaipeiDateString();
       userSelectDate.min = today;
       const validDates = availableDates.filter(d => d >= today);
@@ -1115,9 +1122,9 @@ h2 .sub-title {
         return;
       }
 
-      // 自動選最早可預約日期
       userSelectDate.value = validDates[0];
       document.getElementById('appointDate').value = validDates[0];
+      document.getElementById('weekDayText').textContent = getWeekDay(validDates[0]);
       updateTimeByLocationAndDate(selectedLoc, validDates[0]);
     };
   }
@@ -1139,6 +1146,9 @@ h2 .sub-title {
   function refreshLocationDataByDate() {
     const selectedLoc = locationSelect.value;
     const selectedDate = userSelectDate.value;
+    
+    document.getElementById('weekDayText').textContent = getWeekDay(selectedDate);
+    
     if (!selectedLoc || !selectedDate) return;
     document.getElementById('appointDate').value = selectedDate;
     updateTimeByLocationAndDate(selectedLoc, selectedDate);
@@ -1415,16 +1425,13 @@ h2 .sub-title {
 
 async function initLiff() {
   try {
-    // 初始化 LIFF
     await liff.init({ liffId: CONFIG.LIFF_ID });
     
-    // 強制登入（沒登入就導向登入頁）
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
 
-    // 取得 LINE 個人檔案（確保拿到 userId）
     const profile = await liff.getProfile();
     if (profile && profile.userId) {
       LINE_USER_ID = profile.userId;
@@ -1433,13 +1440,10 @@ async function initLiff() {
     }
   } catch (e) {
     console.error("LIFF 初始化失敗:", e);
-    // 失敗也保留預設 guest，但會記錄錯誤
   } finally {
-    // 強制寫入表單
     document.getElementById('lineId').value = LINE_USER_ID;
     document.getElementById('lineName').value = LINE_USER_NAME;
     
-    // 繼續後續流程
     checkAdminByBackend();
     loadLocationData();
     loadReservationCount();
