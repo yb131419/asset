@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title> 自然美學 </title>
   <!-- 台灣高速 CDN -->
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@line/liff@2.22.0/dist/liff.stable.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
     * {
@@ -1516,52 +1516,53 @@
     setTimeout(() => document.body.removeChild(s), 3000);
   }
 
-  // ✅ 修复：100%稳定获取U开头LINE ID，彻底解决 liff is not defined
-async function initLiff() {
-  // 等待 LIFF SDK 完全加载
-  if (typeof liff === 'undefined') {
-    console.log("等待 LIFF SDK 加载中...");
-    setTimeout(initLiff, 500); // 每500ms重试一次，不报错
-    return;
-  }
+  // ✅ 修复：100%稳定获取U开头LINE ID + 登录跳转自动重试
+  async function initLiff() {
+    let retryCount = 0;
+    const maxRetries = 3;
 
-  try {
-    // 初始化 LIFF
-    await liff.init({ liffId: CONFIG.LIFF_ID });
+    while (retryCount < maxRetries) {
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
 
-    // 未登录 → 自动跳转 LINE 登录
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
+        // 未登录 → 跳转登录
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        // 获取用户资料
+        const profile = await liff.getProfile();
+        
+        // 强制验证：必须U开头
+        if (!profile?.userId || !profile.userId.startsWith("U")) {
+          throw new Error("非U开头的无效ID");
+        }
+
+        // ✅ 永久写入DOM（不会丢失）
+        document.getElementById('lineId').value = profile.userId;
+        document.getElementById('lineName').value = profile.displayName || "";
+        
+        // 初始化完成
+        submitBtn.disabled = false;
+        checkAdminByBackend();
+        loadLocationData();
+        loadReservationCount();
+        return;
+
+      } catch (e) {
+        console.error("LIFF初始化失败，重试中：", e);
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
-    // 获取用户资料
-    const profile = await liff.getProfile();
-    
-    // 强制校验：必须是 U 开头的真实 LINE ID
-    if (!profile?.userId || !profile.userId.startsWith("U")) {
-      throw new Error("获取不到真实 LINE ID");
-    }
-
-    // 写入隐藏输入框（永久存储，不丢失）
-    document.getElementById('lineId').value = profile.userId;
-    document.getElementById('lineName').value = profile.displayName || "";
-    
-    // 解锁提交按钮 + 加载数据
-    submitBtn.disabled = false;
-    checkAdminByBackend();
-    loadLocationData();
-    loadReservationCount();
-
-  } catch (e) {
-    console.error("LIFF 初始化错误：", e);
-    alert("請透過 LINE 官方客戶端開啟此頁面！");
+    // 最终失败
+    alert("請透過LINE官方客戶端開啟，才能取得預約權限");
     submitBtn.disabled = true;
   }
-}
 
-  // 等待页面所有资源（包括 LIFF SDK）加载完成
-    window.onload = async function () {
+  document.addEventListener('DOMContentLoaded', async () => {
     submitBtn = document.getElementById('submitBtn');
     btnText = submitBtn.querySelector('.btn-text');
     infoForm = document.getElementById('infoForm');
