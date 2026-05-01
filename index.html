@@ -5,8 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title> 自然美學 </title>
-  <!-- 台灣高速 CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@line/liff@2.22.0/dist/liff.stable.js"></script>
+  <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-100-M/liff-sdk/2.22.0/liff-stable.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
     * {
@@ -704,89 +703,6 @@
       box-shadow: 0 0 0 4px rgba(0,0,0,0.1);
       transform: translateY(-1px);
     }
-
-    /* 高質感預約成功浮窗 */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-    .modal-overlay.show {
-      opacity: 1;
-      visibility: visible;
-    }
-    .success-modal {
-      background: #fff;
-      width: 90%;
-      max-width: 380px;
-      border-radius: 24px;
-      padding: 40px 30px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(46, 204, 113, 0.25);
-      transform: scale(0.9);
-      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-      position: relative;
-    }
-    .modal-overlay.show .success-modal {
-      transform: scale(1);
-    }
-    .success-icon {
-      width: 70px;
-      height: 70px;
-      background: #2ecc71;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 32px;
-      color: #fff;
-      animation: successPop 0.6s ease;
-    }
-    @keyframes successPop {
-      0% { transform: scale(0); opacity: 0; }
-      70% { transform: scale(1.15); }
-      100% { transform: scale(1); }
-    }
-    .success-modal h3 {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: #2ecc71;
-      margin-bottom: 12px;
-    }
-    .success-modal p {
-      font-size: 1rem;
-      color: #666;
-      line-height: 1.6;
-      margin-bottom: 30px;
-    }
-    .modal-close-btn {
-      width: 100%;
-      height: 54px;
-      background: #2ecc71;
-      color: #fff;
-      border: none;
-      border-radius: 16px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .modal-close-btn:hover {
-      background: #27ae60;
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body>
@@ -918,16 +834,6 @@
   </div>
 </main>
 
-<!-- 高質感成功浮窗 -->
-<div class="modal-overlay" id="successModal">
-  <div class="success-modal">
-    <div class="success-icon">✓</div>
-    <h3>預約成功 ✅</h3>
-    <p>專人將透過 LINE 與您聯繫<br>感謝您的預約</p>
-    <button class="modal-close-btn" onclick="closeSuccessModal()">確認</button>
-  </div>
-</div>
-
 <script>
   const CONFIG = {
     SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzfFbC_xI1L6MnPP0IITT6B3Zto9Vs19KQZRwUIYTIRdQEKIT8wmuv7T-JYgQYBOFOh/exec",
@@ -940,8 +846,8 @@
   let isSubmittedSuccess = false;
   let locationDataMap = {};
   let reservationCountMap = {};
-  let LINE_USER_ID = ""; // 先清空，不給預設
-  let LINE_USER_NAME = "";
+  let LINE_USER_ID = "guest_" + Date.now();
+  let LINE_USER_NAME = "LINE使用者";
   let isAdmin = false;
   let currentPage = "user";
   let selectedReservations = [];
@@ -957,15 +863,6 @@
   let headerTimeEl;
   let locationSelect, appointTimeDisplay, timeInput, locationInput;
   let userSelectDate;
-  let successModal;
-
-  // 高質感浮窗
-  function showSuccessModal() {
-    successModal.classList.add('show');
-  }
-  function closeSuccessModal() {
-    successModal.classList.remove('show');
-  }
 
   function toggleCollapse(id) {
     const body = document.getElementById(id);
@@ -1062,14 +959,14 @@
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?action=checkAdmin&lineId=${LINE_USER_ID}&callback=onAdminCheck&_=${Date.now()}`;
     document.body.appendChild(script);
-    setTimeout(() => document.body.removeChild(script), 3000);
+    setTimeout(() => document.body.removeChild(script), 5000);
   }
 
   function loadReservationCount() {
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=getReservationCount&pageId=自然美學預約系統&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    setTimeout(() => document.body.removeChild(s), 3000);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   window.onAdminCheck = function(res) {
@@ -1108,10 +1005,7 @@
           submitBtn.classList.add('success','permanent-disabled');
           submitBtn.disabled = true;
           btnText.textContent = '預約成功 ✅';
-          
-          // 高質感浮窗
-          showSuccessModal();
-          
+          alert("\n✅ 預約成功！\n\n專人將透過LINE與您聯繫");
           infoForm.reset();
           loadLocationData();
           loadReservationCount();
@@ -1122,6 +1016,13 @@
           loadLocationData();
           loadReservationCount();
         }
+      } else if (response.status === "adminList") {
+        window.fullReservationList = response.data || [];
+        window.fullReservationList.sort((a, b) => (a.submitTime || 0) - (b.submitTime || 0));
+        currentReservationPage = 1;
+        renderReservationsList(window.fullReservationList);
+      } else if (response.status === "adminTimeList") {
+        renderManageLocationList(response.date, response.times);
       } else if (response.status === "error") {
         alert("❌ 錯誤：" + (response.message || "系統異常"));
         currentPage === "user" && resetButtonState();
@@ -1133,6 +1034,7 @@
   };
 
   function updateLocationList() {
+    // 提取所有不重複的地點
     const locations = new Set();
     Object.values(locationDataMap || {}).forEach(items => {
       items.forEach(item => locations.add(item.location));
@@ -1155,6 +1057,7 @@
       locationSelect.appendChild(opt);
     });
 
+    // 選擇地點後載入可用日期
     locationSelect.onchange = function () {
       const selectedLoc = this.value;
       userSelectDate.disabled = !selectedLoc;
@@ -1166,6 +1069,7 @@
 
       if (!selectedLoc) return;
 
+      // 取得該地點有設定的所有日期
       const availableDates = [];
       Object.entries(locationDataMap || {}).forEach(([date, items]) => {
         const hasLocation = items.some(i => i.location === selectedLoc);
@@ -1177,6 +1081,7 @@
         return;
       }
 
+      // 設定日期最小/可選值
       const today = getTaipeiDateString();
       userSelectDate.min = today;
       const validDates = availableDates.filter(d => d >= today);
@@ -1185,6 +1090,7 @@
         return;
       }
 
+      // 自動選最早可預約日期
       userSelectDate.value = validDates[0];
       document.getElementById('appointDate').value = validDates[0];
       updateTimeByLocationAndDate(selectedLoc, validDates[0]);
@@ -1227,7 +1133,7 @@
     document.body.appendChild(s);
     setTimeout(() => {
       if (document.body.contains(s)) document.body.removeChild(s);
-    }, 3000);
+    }, 5000);
   }
 
   function sendData() {
@@ -1246,7 +1152,7 @@
       document.body.appendChild(s);
       setTimeout(() => {
         if (document.body.contains(s)) document.body.removeChild(s);
-      }, 3000);
+      }, 5000);
     } catch(e) {
       alert("提交失敗");
       resetButtonState();
@@ -1261,7 +1167,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=adminGetAll&pageId=自然美學預約系統&lineId=${LINE_USER_ID}&cleanBeforeDays=7&today=${todayStr}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    setTimeout(() => document.body.removeChild(s), 3000);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function editReservation(item) {
@@ -1301,7 +1207,7 @@
     const script = document.createElement('script');
     script.src = `${CONFIG.SCRIPT_URL}?${params}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(script);
-    setTimeout(() => document.body.removeChild(script), 3000);
+    setTimeout(() => document.body.removeChild(script), 5000);
   }
 
   function renderReservationsList(list) {
@@ -1390,7 +1296,7 @@
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(s);
-      setTimeout(() => document.body.removeChild(s), 3000);
+      setTimeout(() => document.body.removeChild(s), 5000);
     });
     selectedReservations = [];
   }
@@ -1402,7 +1308,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?action=adminGetTimes&pageId=自然美學預約系統&lineId=${LINE_USER_ID}&date=${date}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    setTimeout(() => document.body.removeChild(s), 3000);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function renderManageLocationList(date, items) {
@@ -1443,7 +1349,7 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?${params}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    setTimeout(() => document.body.removeChild(s), 3000);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
   function deleteSelectedLocations() {
@@ -1463,7 +1369,7 @@
       const s = document.createElement('script');
       s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
       document.body.appendChild(s);
-      setTimeout(() => document.body.removeChild(s), 3000);
+      setTimeout(() => document.body.removeChild(s), 5000);
     });
     selectedLocations = [];
   }
@@ -1479,46 +1385,40 @@
     const s = document.createElement('script');
     s.src = `${CONFIG.SCRIPT_URL}?${p}&callback=callback&_=${Date.now()}`;
     document.body.appendChild(s);
-    setTimeout(() => document.body.removeChild(s), 3000);
+    setTimeout(() => document.body.removeChild(s), 5000);
   }
 
-  // ✅ 最穩定版本：保證 100% 拿到 U 開頭 ID
 async function initLiff() {
   try {
+    // 初始化 LIFF
     await liff.init({ liffId: CONFIG.LIFF_ID });
-
+    
+    // 強制登入（沒登入就導向登入頁）
     if (!liff.isLoggedIn()) {
       liff.login();
       return;
     }
 
+    // 取得 LINE 個人檔案（確保拿到 userId）
     const profile = await liff.getProfile();
-    
-    // ✅ 強制驗證：必須是 U 開頭
-    if (profile?.userId && profile.userId.startsWith("U")) {
+    if (profile && profile.userId) {
       LINE_USER_ID = profile.userId;
-      LINE_USER_NAME = profile.displayName;
-    } else {
-      throw new Error("無法取得真實 LINE ID");
+      LINE_USER_NAME = profile.displayName || "LINE使用者";
+      console.log("✅ 成功取得LINE ID:", LINE_USER_ID);
     }
-
   } catch (e) {
-    console.error("LIFF 錯誤:", e);
-    alert("請透過 LINE 官方客戶端開啟，才能取得真實 ID");
-    LINE_USER_ID = "";
-    return;
+    console.error("LIFF 初始化失敗:", e);
+    // 失敗也保留預設 guest，但會記錄錯誤
+  } finally {
+    // 強制寫入表單
+    document.getElementById('lineId').value = LINE_USER_ID;
+    document.getElementById('lineName').value = LINE_USER_NAME;
+    
+    // 繼續後續流程
+    checkAdminByBackend();
+    loadLocationData();
+    loadReservationCount();
   }
-
-  // 寫入表單
-  document.getElementById('lineId').value = LINE_USER_ID;
-  document.getElementById('lineName').value = LINE_USER_NAME;
-
-  // ✅ 確定拿到 ID 才開放按鈕
-  submitBtn.disabled = false;
-
-  checkAdminByBackend();
-  loadLocationData();
-  loadReservationCount();
 }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -1552,11 +1452,6 @@ async function initLiff() {
     adminAccessDenied = document.getElementById('adminAccessDenied');
     
     headerTimeEl = document.getElementById('headerTime');
-    successModal = document.getElementById('successModal');
-
-    // 預設禁用提交按鈕，等 LIFF 拿到 ID 才開放
-    submitBtn.disabled = true;
-
     updateHeaderTime();
     setInterval(updateHeaderTime, 1000);
 
@@ -1577,19 +1472,10 @@ async function initLiff() {
 
     userSelectDate.addEventListener('change', refreshLocationDataByDate);
 
-    // ✅ 強制先執行 LIFF，再啟用表單
     await initLiff();
 
-    // ✅ 表單提交：確保一定有 U 開頭 ID
-    infoForm.onsubmit = async (e) => {
+    infoForm.onsubmit = (e) => {
       e.preventDefault();
-
-      // 防呆：沒有拿到真實 ID 就不給提交
-      if (!LINE_USER_ID || LINE_USER_ID.startsWith("guest_")) {
-        alert("請透過 LINE 開啟，並允許登入權限");
-        return;
-      }
-
       const phone = phoneInput.value.trim();
       if (!validatePhone(phone)) { alert("請輸入正確10碼手機號碼"); phoneInput.focus(); return; }
       if (!locationSelect.value) { alert("請選擇預約地點"); return; }
