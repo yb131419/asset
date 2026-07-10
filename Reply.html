@@ -5,490 +5,295 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>回覆靈感</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
-/* ── Reset ── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-
-/* ── Tokens ── */
 :root{
-  --bg:       #F5F4F1;
-  --surface:  #FFFFFF;
-  --surface2: #EFEDE9;
-  --border:   #E2DFD8;
-  --border2:  #C5C1B8;
-  --ink:      #1A1916;
-  --ink2:     #4A4844;
-  --ink3:     #908D86;
-  --green:    #2A6644;
-  --green-bg: #E8F2EC;
-  --green-dk: #1F4F33;
-  --amber:    #A8720A;
-  --amber-bg: #FBF3E0;
-  --red:      #B83232;
-  --red-bg:   #FBEEEE;
-  --tab-h:    56px;
-  --nav-h:    52px;
-  --safe-b:   env(safe-area-inset-bottom, 0px);
-  --r:        14px;
-  --r-sm:     10px;
-  --ease:     cubic-bezier(.16,1,.3,1);
-  --shadow:   0 1px 6px rgba(0,0,0,.07);
+  --bg:#F5F4F1;--surface:#FFFFFF;--surface2:#EFEDE9;
+  --border:#E2DFD8;--border2:#C5C1B8;
+  --ink:#1A1916;--ink2:#4A4844;--ink3:#908D86;
+  --green:#2A6644;--green-bg:#E8F2EC;
+  --amber:#A8720A;--amber-bg:#FBF3E0;
+  --red:#B83232;--red-bg:#FBEEEE;
+  --tab-h:56px;--nav-h:52px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --r:14px;--r-sm:10px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --shadow:0 1px 6px rgba(0,0,0,.07);
   --shadow-md:0 4px 20px rgba(0,0,0,.10);
 }
-
-/* ── Base ── */
 html,body{
-  background:var(--bg);
-  color:var(--ink);
-  font-family:'Inter',sans-serif;
-  font-size:15px;
-  line-height:1.6;
-  overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
+  background:var(--bg);color:var(--ink);
+  font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
 }
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
 
-/* ── App Shell ── */
-.app{
-  display:flex;flex-direction:column;
-  height:100vh;height:100dvh;
-  overflow:hidden;
-}
-
-/* ════════════════════════════
-   TOP NAV
-════════════════════════════ */
+/* ── TOP NAV ── */
 .topnav{
-  flex:none;
-  height:var(--nav-h);
-  padding:0 16px;
+  flex:none;height:var(--nav-h);padding:0 14px;
   padding-top:env(safe-area-inset-top,0);
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;
-  box-shadow:var(--shadow);
-  z-index:100;
-}
-.topnav-brand{
-  flex:1;min-width:0;
+  background:var(--surface);border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:8px;
+  box-shadow:var(--shadow);z-index:100;
 }
+.topnav-brand{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
 .topnav-icon{
-  width:32px;height:32px;border-radius:9px;
-  background:var(--green);
+  width:32px;height:32px;border-radius:9px;background:var(--green);
   display:grid;place-items:center;flex:none;
 }
 .topnav-icon svg{width:17px;height:17px;fill:#fff}
 .topnav-title{
-  font-family:'Noto Serif TC',serif;
-  font-size:17px;font-weight:700;
-  color:var(--ink);letter-spacing:-.01em;
-  white-space:nowrap;
+  font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;
+  color:var(--ink);white-space:nowrap;
 }
-.topnav-sep{width:1px;height:14px;background:var(--border);flex:none}
-.model-pill{
-  font-size:10.5px;color:var(--ink3);
-  letter-spacing:.03em;white-space:nowrap;
-  padding:3px 9px;border-radius:99px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  cursor:pointer;
-  transition:background .15s;
+.pill{
+  font-size:10.5px;color:var(--ink3);white-space:nowrap;
+  padding:4px 10px;border-radius:99px;
+  background:var(--surface2);border:1px solid var(--border);
+  cursor:pointer;transition:background .15s;
+  font-family:'Inter',sans-serif;
 }
-.model-pill:active{background:var(--border)}
-.model-pill b{color:var(--green);font-weight:600}
-
+.pill:active{background:var(--border)}
+.pill b{color:var(--green);font-weight:600}
+.pill.gold b{color:var(--amber)}
 .settings-btn{
-  flex:none;
-  width:38px;height:38px;
-  border-radius:var(--r-sm);
-  border:1px solid var(--border);
-  background:var(--surface2);
-  color:var(--ink2);
-  font-size:17px;
-  display:grid;place-items:center;
-  cursor:pointer;
-  transition:background .15s;
+  flex:none;width:38px;height:38px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--ink2);font-size:17px;
+  display:grid;place-items:center;cursor:pointer;transition:background .15s;
 }
 .settings-btn:active{background:var(--border)}
 
-/* ════════════════════════════
-   SCROLL AREA
-════════════════════════════ */
+/* ── SCROLL ── */
 .scroll{
-  flex:1;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding-bottom:calc(var(--tab-h) + var(--safe-b) + 60px);
 }
-
-/* ════════════════════════════
-   CONTENT
-════════════════════════════ */
 .page{display:none;padding:16px 14px 0}
 .page.show{display:block;animation:fadeUp .2s var(--ease) both}
 @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
 .page-head{margin-bottom:16px}
 .page-head-title{
-  font-size:13px;font-weight:600;
-  color:var(--ink3);
-  letter-spacing:.06em;text-transform:uppercase;
-  margin-bottom:2px;
+  font-size:13px;font-weight:600;color:var(--ink3);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;
 }
 .page-head-desc{font-size:13px;color:var(--ink3);line-height:1.65}
 
-/* ════════════════════════════
-   STEP CARD
-════════════════════════════ */
+/* ── STEPS ── */
 .steps{display:flex;flex-direction:column;gap:10px}
-
 .step{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  overflow:hidden;
-  box-shadow:var(--shadow);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);
 }
 .step-head{
   display:flex;align-items:center;gap:10px;
-  padding:13px 16px;
-  border-bottom:1px solid var(--border);
+  padding:13px 16px;border-bottom:1px solid var(--border);
 }
 .step-num{
-  width:26px;height:26px;
-  border-radius:8px;
-  background:var(--green);
-  color:#fff;
-  font-size:12px;font-weight:700;
-  display:grid;place-items:center;
-  flex:none;
+  width:26px;height:26px;border-radius:8px;background:var(--green);
+  color:#fff;font-size:12px;font-weight:700;
+  display:grid;place-items:center;flex:none;
 }
 .step-num.amber{background:var(--amber)}
-.step-label{
-  font-size:14px;font-weight:600;
-  color:var(--ink);flex:1;min-width:0;
-}
+.step-label{font-size:14px;font-weight:600;color:var(--ink);flex:1;min-width:0}
 .step-badge{
-  flex:none;
-  font-size:11px;padding:2px 9px;border-radius:99px;
+  flex:none;font-size:11px;padding:2px 9px;border-radius:99px;
   background:var(--green-bg);color:var(--green);
   border:1px solid rgba(42,102,68,.15);font-weight:500;
 }
-.step-badge.amber{
-  background:var(--amber-bg);color:var(--amber);
-  border-color:rgba(168,114,10,.2);
-}
+.step-badge.amber{background:var(--amber-bg);color:var(--amber);border-color:rgba(168,114,10,.2)}
 .step-body{padding:14px 16px}
 
-/* ════════════════════════════
-   INPUT TABS
-════════════════════════════ */
-.itabs{
-  display:flex;
-  border-bottom:1px solid var(--border);
-  margin-bottom:14px;
-}
+/* ── INPUT TABS ── */
+.itabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:14px}
 .itab{
-  flex:1;
-  padding:9px 4px 10px;
+  flex:1;padding:9px 4px 10px;
   border:none;border-bottom:2px solid transparent;
-  background:transparent;
-  color:var(--ink3);
+  background:transparent;color:var(--ink3);
   font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
-  cursor:pointer;
-  margin-bottom:-1px;
+  cursor:pointer;margin-bottom:-1px;
   transition:color .15s,border-color .15s;
 }
 .itab.on{color:var(--green);border-bottom-color:var(--green)}
 .ipane{display:none}
 .ipane.show{display:block;animation:fadeUp .15s var(--ease) both}
 
-/* ════════════════════════════
-   DROP ZONE
-════════════════════════════ */
+/* ── DROP ZONE ── */
 .dropzone{
-  display:flex;flex-direction:column;align-items:center;
-  gap:10px;padding:28px 16px;
-  border:1.5px dashed var(--border2);
-  border-radius:var(--r-sm);
-  background:var(--surface2);
-  cursor:pointer;text-align:center;
-  transition:all .18s;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:28px 16px;border:1.5px dashed var(--border2);
+  border-radius:var(--r-sm);background:var(--surface2);
+  cursor:pointer;text-align:center;transition:all .18s;
 }
 .dropzone:active,.dropzone.over{border-color:var(--green);background:var(--green-bg)}
 .dropzone input{display:none}
 .dz-icon{
-  width:48px;height:48px;border-radius:12px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  display:grid;place-items:center;
+  width:48px;height:48px;border-radius:12px;background:var(--surface);
+  border:1px solid var(--border);display:grid;place-items:center;
   font-size:24px;box-shadow:var(--shadow);
 }
 .dz-main{font-size:14px;font-weight:500;color:var(--ink)}
 .dz-hint{font-size:12px;color:var(--ink3);line-height:1.7}
 .dz-tags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px}
-.dz-tag{
-  font-size:11px;padding:2px 8px;border-radius:6px;
-  background:var(--border);color:var(--ink2);
-}
-
-/* Preview */
+.dz-tag{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--border);color:var(--ink2)}
 .prev-wrap{display:none;margin-top:12px;position:relative}
 .prev-wrap.show{display:block}
 .prev-wrap img{
   width:100%;max-height:260px;object-fit:contain;
-  border-radius:var(--r-sm);
-  border:1px solid var(--border);
-  background:var(--surface2);
-  display:block;
+  border-radius:var(--r-sm);border:1px solid var(--border);
+  background:var(--surface2);display:block;
 }
 .prev-rm{
-  position:absolute;top:8px;right:8px;
-  width:30px;height:30px;border-radius:50%;
-  background:rgba(255,255,255,.95);
-  border:1px solid var(--border);
-  color:var(--ink2);font-size:13px;
-  display:grid;place-items:center;
+  position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.95);border:1px solid var(--border);
+  color:var(--ink2);font-size:13px;display:grid;place-items:center;
   cursor:pointer;box-shadow:var(--shadow);
 }
 .prev-rm:active{background:var(--red-bg);color:var(--red)}
 
-/* ════════════════════════════
-   TEXTAREA
-════════════════════════════ */
+/* ── TEXTAREA / FIELD ── */
 textarea{
-  width:100%;min-height:130px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:var(--r-sm);
-  color:var(--ink);
-  font-family:'Inter',sans-serif;font-size:14px;
-  line-height:1.75;padding:12px 14px;
-  resize:vertical;
-  transition:border-color .15s;
-  -webkit-appearance:none;
+  width:100%;min-height:130px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;
+  line-height:1.75;padding:12px 14px;resize:vertical;
+  transition:border-color .15s;-webkit-appearance:none;
 }
 textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(42,102,68,.10)}
 textarea::placeholder{color:var(--ink3)}
-
-/* ════════════════════════════
-   CHIPS
-════════════════════════════ */
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{
-  padding:9px 18px;
-  border-radius:99px;
-  border:1px solid var(--border);
-  background:var(--surface2);
-  color:var(--ink2);
-  font-family:'Inter',sans-serif;font-size:14px;font-weight:400;
-  cursor:pointer;min-height:44px;
-  display:inline-flex;align-items:center;
-  transition:all .15s;
-}
-.chip:active{transform:scale(.95)}
-.chip.on{
-  border-color:var(--green);
-  background:var(--green);
-  color:#fff;font-weight:500;
-}
-.chip.on.amber-chip{border-color:var(--amber);background:var(--amber)}
-
-/* ════════════════════════════
-   FORM FIELD
-════════════════════════════ */
 .field-input{
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:var(--r-sm);
-  color:var(--ink);
-  font-family:'Inter',sans-serif;font-size:14px;
+  width:100%;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;
   padding:12px 14px;min-height:48px;
-  transition:border-color .15s;
-  -webkit-appearance:none;
+  transition:border-color .15s;-webkit-appearance:none;
 }
 .field-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(168,114,10,.10)}
 .field-input::placeholder{color:var(--ink3)}
 .field-ta{resize:vertical;min-height:90px;line-height:1.7}
 
-/* ════════════════════════════
-   CTA
-════════════════════════════ */
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  padding:9px 18px;border-radius:99px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--ink2);font-family:'Inter',sans-serif;font-size:14px;
+  cursor:pointer;min-height:44px;display:inline-flex;align-items:center;
+  transition:all .15s;
+}
+.chip:active{transform:scale(.95)}
+.chip.on{border-color:var(--green);background:var(--green);color:#fff;font-weight:500}
+
+/* ── CTA ── */
 .page-cta{margin-top:14px}
 .btn-primary{
-  position:relative;overflow:hidden;
-  width:100%;padding:16px 24px;
+  position:relative;overflow:hidden;width:100%;padding:16px 24px;
   border:none;border-radius:var(--r);cursor:pointer;
   font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
-  color:#fff;
-  background:var(--green);
-  min-height:54px;
+  color:#fff;background:var(--green);min-height:54px;
   display:flex;align-items:center;justify-content:center;gap:8px;
   box-shadow:0 4px 18px rgba(42,102,68,.35);
-  transition:opacity .15s,transform .15s;
-  -webkit-appearance:none;
+  transition:opacity .15s,transform .15s;-webkit-appearance:none;
 }
 .btn-primary:active{transform:scale(.98);opacity:.9}
 .btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
-.btn-primary.amber{
-  background:var(--amber);
-  box-shadow:0 4px 18px rgba(168,114,10,.35);
-}
+.btn-primary.amber{background:var(--amber);box-shadow:0 4px 18px rgba(168,114,10,.35)}
 .btn-primary::after{
-  content:'';position:absolute;
-  top:0;left:-80%;width:50%;height:100%;
+  content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;
   background:linear-gradient(105deg,transparent,rgba(255,255,255,.18),transparent);
-  transform:skewX(-20deg);
-  transition:left .6s ease;
+  transform:skewX(-20deg);transition:left .6s ease;
 }
 .btn-primary:hover:not(:disabled)::after{left:140%}
 
-/* ════════════════════════════
-   LOADING
-════════════════════════════ */
+/* ── LOADING / ERROR ── */
 .loading{
-  display:none;
-  align-items:center;gap:10px;
+  display:none;align-items:center;gap:10px;
   margin-top:12px;padding:13px 14px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r-sm);
-  font-size:13px;color:var(--ink3);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-sm);font-size:13px;color:var(--ink3);
 }
 .loading.show{display:flex}
 .dots{display:flex;gap:5px}
 .dots i{
-  width:6px;height:6px;border-radius:50%;
-  background:var(--green);display:block;
-  animation:blink 1.2s ease-in-out infinite;
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  display:block;animation:blink 1.2s ease-in-out infinite;
 }
 .loading.amber .dots i{background:var(--amber)}
 .dots i:nth-child(2){animation-delay:.16s}
 .dots i:nth-child(3){animation-delay:.32s}
 @keyframes blink{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
-
-/* ════════════════════════════
-   ERROR
-════════════════════════════ */
 .err{
-  display:none;margin-top:10px;
-  padding:12px 14px;
-  background:var(--red-bg);
-  border:1px solid rgba(184,50,50,.18);
-  border-radius:var(--r-sm);
-  color:var(--red);font-size:13px;line-height:1.6;
+  display:none;margin-top:10px;padding:12px 14px;
+  background:var(--red-bg);border:1px solid rgba(184,50,50,.18);
+  border-radius:var(--r-sm);color:var(--red);font-size:13px;line-height:1.6;
 }
 .err.show{display:block}
 
-/* ════════════════════════════
-   RESULTS
-════════════════════════════ */
+/* ── RESULTS ── */
 .results{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-
 .reply-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  overflow:hidden;
-  box-shadow:var(--shadow);
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);
   animation:fadeUp .35s var(--ease) both;
 }
 .reply-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:11px 14px;
-  background:var(--surface2);
+  padding:11px 14px;background:var(--surface2);
   border-bottom:1px solid var(--border);
 }
 .reply-label{
-  font-size:12px;font-weight:600;
-  color:var(--green);letter-spacing:.04em;text-transform:uppercase;
+  font-size:12px;font-weight:600;color:var(--green);
+  letter-spacing:.04em;text-transform:uppercase;
   display:flex;align-items:center;gap:6px;
 }
 .reply-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex:none}
-.reply-body{
-  padding:14px 16px;
-  font-size:15px;line-height:1.9;
-  color:var(--ink);white-space:pre-wrap;
-}
+.reply-body{padding:14px 16px;font-size:15px;line-height:1.9;color:var(--ink);white-space:pre-wrap}
 .copy-btn{
   padding:7px 14px;border-radius:99px;
-  border:1px solid var(--border);
-  background:var(--surface);
-  color:var(--ink2);
-  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
-  cursor:pointer;min-height:34px;
-  transition:all .15s;
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--ink2);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;min-height:34px;transition:all .15s;
   display:flex;align-items:center;gap:4px;
 }
 .copy-btn:active{transform:scale(.94)}
 .copy-btn.done{background:var(--green);color:#fff;border-color:transparent}
 .copy-btn.done-amber{background:var(--amber);color:#fff;border-color:transparent}
-
 .appr-card{
-  background:var(--surface);
-  border:1px solid rgba(168,114,10,.22);
-  border-radius:var(--r);
-  overflow:hidden;
-  box-shadow:var(--shadow);
+  background:var(--surface);border:1px solid rgba(168,114,10,.22);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);
   animation:fadeUp .35s var(--ease) both;
 }
 .appr-head{
   display:flex;align-items:center;justify-content:space-between;
-  padding:11px 14px;
-  background:var(--amber-bg);
+  padding:11px 14px;background:var(--amber-bg);
   border-bottom:1px solid rgba(168,114,10,.15);
 }
-.appr-label{
-  font-size:13px;font-weight:600;
-  color:var(--amber);
-  display:flex;align-items:center;gap:6px;
-}
-.appr-body{
-  padding:14px 16px;
-  font-size:15px;line-height:2;
-  color:var(--ink);white-space:pre-wrap;
-}
-
+.appr-label{font-size:13px;font-weight:600;color:var(--amber);display:flex;align-items:center;gap:6px}
+.appr-body{padding:14px 16px;font-size:15px;line-height:2;color:var(--ink);white-space:pre-wrap}
 .btn-retry{
-  width:100%;padding:13px;
-  border:1px solid var(--border);
-  border-radius:var(--r-sm);
-  background:var(--surface);
-  color:var(--ink2);
-  font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
-  cursor:pointer;min-height:48px;
-  transition:all .15s;
-  margin-top:4px;
+  width:100%;padding:13px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--surface);
+  color:var(--ink2);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
+  cursor:pointer;min-height:48px;transition:all .15s;margin-top:4px;
 }
 .btn-retry:active{background:var(--surface2)}
 
-/* ════════════════════════════
-   BOTTOM TAB BAR
-════════════════════════════ */
+/* ── TAB BAR ── */
 .tabbar{
-  position:fixed;bottom:0;left:0;right:0;
-  z-index:100;
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
   height:calc(var(--tab-h) + var(--safe-b));
   padding-bottom:var(--safe-b);
-  background:var(--surface);
-  border-top:1px solid var(--border);
-  display:flex;
-  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;box-shadow:0 -2px 12px rgba(0,0,0,.06);
 }
 .tabitem{
-  flex:1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;
-  border:none;background:transparent;
-  cursor:pointer;padding:8px 4px;
-  color:var(--ink3);
-  font-family:'Inter',sans-serif;font-size:10px;font-weight:500;
-  letter-spacing:.02em;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:transparent;cursor:pointer;padding:8px 4px;
+  color:var(--ink3);font-family:'Inter',sans-serif;font-size:10px;font-weight:500;
   transition:color .15s;
 }
 .tabitem.on{color:var(--green)}
@@ -496,84 +301,71 @@ textarea::placeholder{color:var(--ink3)}
 .tabitem-icon{font-size:22px;line-height:1}
 .tabitem-label{line-height:1}
 
-/* ════════════════════════════
-   MODAL
-════════════════════════════ */
+/* ── MODAL ── */
 .overlay{
   position:fixed;inset:0;z-index:200;
   display:none;align-items:flex-end;justify-content:center;
   background:rgba(26,25,22,.5);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  padding:0;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 .overlay.show{display:flex;animation:fadeUp .2s ease both}
 .modal{
-  width:100%;
-  background:var(--surface);
+  width:100%;background:var(--surface);
   border-radius:20px 20px 0 0;
   padding:20px 20px calc(20px + var(--safe-b));
   box-shadow:var(--shadow-md);
 }
-.modal-handle{
-  width:36px;height:4px;border-radius:2px;
-  background:var(--border2);margin:0 auto 20px;
-}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 20px}
 .modal-title{
-  font-family:'Noto Serif TC',serif;
-  font-size:19px;font-weight:700;
-  color:var(--ink);margin-bottom:6px;
+  font-family:'Noto Serif TC',serif;font-size:19px;font-weight:700;
+  color:var(--ink);margin-bottom:14px;
 }
-.modal-desc{font-size:13px;color:var(--ink3);line-height:1.7;margin-bottom:16px}
-.modal-input{
-  width:100%;padding:13px 14px;
-  background:var(--surface2);
-  border:1px solid var(--border);border-radius:var(--r-sm);
-  color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;
-  min-height:50px;transition:border-color .15s;
-  -webkit-appearance:none;
-}
-.modal-input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(42,102,68,.10)}
-.modal-input::placeholder{color:var(--ink3)}
-.modal-row{display:flex;gap:10px;margin-top:14px}
+.modal-sec{font-size:12px;font-weight:600;color:var(--ink2);margin:18px 0 8px;letter-spacing:.04em}
+.modal-row{display:flex;gap:10px;margin-top:18px}
 .modal-save{
   flex:1;padding:14px;border-radius:var(--r-sm);
   border:none;background:var(--green);color:#fff;
   font-family:'Inter',sans-serif;font-size:15px;font-weight:600;
-  min-height:50px;cursor:pointer;
-  transition:opacity .15s;
+  min-height:50px;cursor:pointer;transition:opacity .15s;
 }
 .modal-save:active{opacity:.85}
-.modal-cancel{
-  flex:1;padding:14px;border-radius:var(--r-sm);
-  border:1px solid var(--border);background:var(--surface2);
-  color:var(--ink2);font-family:'Inter',sans-serif;font-size:15px;
-  min-height:50px;cursor:pointer;
-}
-.modal-cancel:active{background:var(--border)}
 
-/* ── Model selector in modal ── */
-.modal-sec{
-  font-size:12px;font-weight:600;color:var(--ink2);
-  margin:18px 0 8px;letter-spacing:.04em;
+/* ── Member card ── */
+.member-card{
+  display:flex;align-items:center;gap:12px;
+  padding:14px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:var(--surface2);
 }
+.member-avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--border);object-fit:cover;flex:none;
+}
+.member-info{flex:1;min-width:0}
+.member-name{
+  font-size:14.5px;font-weight:600;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.member-level{font-size:12px;color:var(--ink3);margin-top:1px}
+.member-remain{
+  flex:none;font-size:12px;font-weight:600;
+  color:var(--green);background:var(--green-bg);
+  padding:4px 10px;border-radius:99px;white-space:nowrap;
+}
+.member-remain.gold{color:var(--amber);background:var(--amber-bg)}
+
+/* ── Model options ── */
 .model-opts{display:flex;flex-direction:column;gap:8px}
 .model-opt{
   display:flex;align-items:center;gap:12px;
-  padding:13px 14px;
-  border:1.5px solid var(--border);
-  border-radius:var(--r-sm);
-  background:var(--surface2);
-  cursor:pointer;
-  transition:border-color .15s,background .15s;
-  text-align:left;width:100%;
-  font-family:'Inter',sans-serif;
+  padding:13px 14px;border:1.5px solid var(--border);
+  border-radius:var(--r-sm);background:var(--surface2);
+  cursor:pointer;transition:border-color .15s,background .15s;
+  text-align:left;width:100%;font-family:'Inter',sans-serif;
 }
 .model-opt.on{border-color:var(--green);background:var(--green-bg)}
 .model-radio{
   width:18px;height:18px;border-radius:50%;flex:none;
-  border:2px solid var(--border2);
-  display:grid;place-items:center;
+  border:2px solid var(--border2);display:grid;place-items:center;
   transition:border-color .15s;
 }
 .model-opt.on .model-radio{border-color:var(--green)}
@@ -586,16 +378,10 @@ textarea::placeholder{color:var(--ink3)}
 .model-info{flex:1;min-width:0}
 .model-name{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
 .model-desc{font-size:11.5px;color:var(--ink3);line-height:1.5;margin-top:1px}
-.model-tag{
-  flex:none;font-size:10px;font-weight:600;
-  padding:3px 8px;border-radius:6px;
-  background:var(--green);color:#fff;
-}
+.model-tag{flex:none;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green);color:#fff}
 .model-tag.blue{background:#3B6FA8}
 
-/* ════════════════════════════
-   SAVED PAGE
-════════════════════════════ */
+/* ── Saved page ── */
 .card-acts{display:flex;gap:6px;flex:none}
 .saved-empty{
   padding:52px 16px;text-align:center;color:var(--ink3);
@@ -603,16 +389,10 @@ textarea::placeholder{color:var(--ink3)}
 }
 .saved-empty i{font-style:normal;font-size:36px;opacity:.55}
 .saved-meta{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
-.saved-type{
-  flex:none;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;
-  background:var(--green-bg);color:var(--green);
-}
+.saved-type{flex:none;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--green-bg);color:var(--green)}
 .saved-type.amber{background:var(--amber-bg);color:var(--amber)}
 .saved-time{font-size:11px;color:var(--ink3);white-space:nowrap;flex:none}
-.saved-label{
-  font-size:12px;font-weight:600;color:var(--ink2);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;
-}
+.saved-label{font-size:12px;font-weight:600;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .del-btn{
   padding:7px 12px;border-radius:99px;
   border:1px solid var(--border);background:var(--surface);
@@ -637,9 +417,9 @@ textarea::placeholder{color:var(--ink3)}
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
       </div>
       <span class="topnav-title">回覆靈感</span>
-      <div class="topnav-sep"></div>
-      <button class="model-pill" id="modelPill">模型 <b id="modelPillName">4o mini</b></button>
     </div>
+    <button class="pill" id="memberPill"><b id="memberPillText">登入中…</b></button>
+    <button class="pill" id="modelPill">模型 <b id="modelPillName">4o mini</b></button>
     <button class="settings-btn" id="settingsBtn">⚙</button>
   </nav>
 
@@ -654,8 +434,6 @@ textarea::placeholder{color:var(--ink3)}
       </div>
 
       <div class="steps">
-
-        <!-- Step 1 -->
         <div class="step">
           <div class="step-head">
             <div class="step-num">1</div>
@@ -666,7 +444,6 @@ textarea::placeholder{color:var(--ink3)}
               <button class="itab on" data-ip="ip-img">📷 上傳截圖</button>
               <button class="itab" data-ip="ip-txt">📋 貼上文字</button>
             </div>
-
             <div class="ipane show" id="ip-img">
               <label class="dropzone" id="dropZone">
                 <input type="file" id="fileIn" accept="image/*">
@@ -674,9 +451,7 @@ textarea::placeholder{color:var(--ink3)}
                 <div class="dz-main">點擊選取或拖曳截圖</div>
                 <div class="dz-hint">超過 3MB / 1600px 自動壓縮</div>
                 <div class="dz-tags">
-                  <span class="dz-tag">JPG</span>
-                  <span class="dz-tag">PNG</span>
-                  <span class="dz-tag">WEBP</span>
+                  <span class="dz-tag">JPG</span><span class="dz-tag">PNG</span><span class="dz-tag">WEBP</span>
                 </div>
               </label>
               <div class="prev-wrap" id="prevWrap">
@@ -684,14 +459,12 @@ textarea::placeholder{color:var(--ink3)}
                 <button class="prev-rm" id="rmImg">✕</button>
               </div>
             </div>
-
             <div class="ipane" id="ip-txt">
               <textarea id="txtIn" placeholder="貼上對話，例如：&#10;&#10;對方：欸你週末有空嗎&#10;我：應該有 怎麼了&#10;對方：沒有啦 就想找你出來走走"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Step 2 -->
         <div class="step">
           <div class="step-head">
             <div class="step-num">2</div>
@@ -708,7 +481,6 @@ textarea::placeholder{color:var(--ink3)}
           </div>
         </div>
 
-        <!-- Step 3 -->
         <div class="step">
           <div class="step-head">
             <div class="step-num">3</div>
@@ -725,7 +497,6 @@ textarea::placeholder{color:var(--ink3)}
             </div>
           </div>
         </div>
-
       </div>
 
       <div class="page-cta">
@@ -747,7 +518,6 @@ textarea::placeholder{color:var(--ink3)}
       </div>
 
       <div class="steps">
-
         <div class="step">
           <div class="step-head">
             <div class="step-num amber">1</div>
@@ -757,7 +527,6 @@ textarea::placeholder{color:var(--ink3)}
             <input class="field-input" id="appr1" type="text" placeholder="例如：我媽、我老公、我同事小美…">
           </div>
         </div>
-
         <div class="step">
           <div class="step-head">
             <div class="step-num amber">2</div>
@@ -767,7 +536,6 @@ textarea::placeholder{color:var(--ink3)}
             <input class="field-input" id="appr2" type="text" placeholder="例如：每天早起送我上班、一個人扛家裡所有事…">
           </div>
         </div>
-
         <div class="step">
           <div class="step-head">
             <div class="step-num amber">3</div>
@@ -778,7 +546,6 @@ textarea::placeholder{color:var(--ink3)}
             <textarea class="field-input field-ta" id="appr3" placeholder="時間、地點、人物、事件&#10;&#10;例如：上週三晚上快十一點，他還在廚房幫我準備隔天便當，我下班回來看到那個畫面…"></textarea>
           </div>
         </div>
-
         <div class="step">
           <div class="step-head">
             <div class="step-num amber">4</div>
@@ -789,7 +556,6 @@ textarea::placeholder{color:var(--ink3)}
             <input class="field-input" id="appr4" type="text" placeholder="例如：又心疼又愧疚，不知道怎麼開口…">
           </div>
         </div>
-
       </div>
 
       <div class="page-cta">
@@ -817,15 +583,15 @@ textarea::placeholder{color:var(--ink3)}
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar">
-    <button class="tabitem on" data-page="reply" id="tab-reply">
+    <button class="tabitem on" data-page="reply">
       <span class="tabitem-icon">💬</span>
       <span class="tabitem-label">回覆建議</span>
     </button>
-    <button class="tabitem amber" data-page="appreciate" id="tab-appreciate">
+    <button class="tabitem amber" data-page="appreciate">
       <span class="tabitem-icon">❤️</span>
       <span class="tabitem-label">點評感謝</span>
     </button>
-    <button class="tabitem" data-page="saved" id="tab-saved">
+    <button class="tabitem" data-page="saved">
       <span class="tabitem-icon">🔖</span>
       <span class="tabitem-label">已儲存</span>
     </button>
@@ -833,13 +599,20 @@ textarea::placeholder{color:var(--ink3)}
 
 </div><!-- /app -->
 
-<!-- Settings Sheet -->
+<!-- 會員中心 Sheet -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">設定</div>
-    <div class="modal-desc">API Key 只存在你的瀏覽器，不會上傳到任何伺服器。</div>
-    <input class="modal-input" type="password" id="keyIn" placeholder="sk-...">
+    <div class="modal-title">會員中心</div>
+
+    <div class="member-card">
+      <img class="member-avatar" id="memberAvatar" alt="">
+      <div class="member-info">
+        <div class="member-name" id="memberName">尚未登入</div>
+        <div class="member-level" id="memberLevel">—</div>
+      </div>
+      <div class="member-remain" id="memberRemain">—</div>
+    </div>
 
     <div class="modal-sec">AI 模型</div>
     <div class="model-opts" id="modelOpts">
@@ -862,8 +635,7 @@ textarea::placeholder{color:var(--ink3)}
     </div>
 
     <div class="modal-row">
-      <button class="modal-cancel" id="closeModal">取消</button>
-      <button class="modal-save" id="saveKey">儲存</button>
+      <button class="modal-save" id="closeModal">完成</button>
     </div>
   </div>
 </div>
@@ -871,18 +643,23 @@ textarea::placeholder{color:var(--ink3)}
 <script>
 (function(){
 'use strict';
+
+/* ═══════════════════════════════════════════
+   ★★ 部署設定（兩個都要填）★★
+   GAS_URL：Apps Script 部署為網頁應用程式後的網址
+   LIFF_ID：LINE Developers 後台建立的 LIFF ID
+═══════════════════════════════════════════ */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzhDR7PproAnrsWQCgbhpv-0STg9FQJk7T6MSNN-BephnMEhOhtEvyHES78N7DJ_aY3/exec';
+const LIFF_ID = '2008578880-MrvjCM33';
+
 const $ = id => document.getElementById(id);
-const K_KEY   = 'rai_key';
 const K_MODEL = 'rai_model';
 let imgData = null, imgMime = 'image/jpeg';
+let profile = { userId: '', displayName: '', pictureUrl: '' };
+let member = null; // 後端回傳的權限資訊
 
-/* ══════════════════════════════════════════
-   模型管理（4o mini / 5 mini 參數不同）
-══════════════════════════════════════════ */
-const MODELS = {
-  'gpt-4o-mini': { label:'4o mini' },
-  'gpt-5-mini':  { label:'5 mini'  },
-};
+/* ══ 模型管理 ══ */
+const MODELS = { 'gpt-4o-mini':{label:'4o mini'}, 'gpt-5-mini':{label:'5 mini'} };
 function curModel(){
   const m = localStorage.getItem(K_MODEL);
   return MODELS[m] ? m : 'gpt-4o-mini';
@@ -893,62 +670,94 @@ function setModel(m){
   $('modelOpts').querySelectorAll('.model-opt').forEach(o =>
     o.classList.toggle('on', o.dataset.model === m));
 }
-/* GPT-5 系列：用 max_completion_tokens、不支援自訂 temperature
-   GPT-4o 系列：用 max_tokens + temperature                     */
-function buildBody(model, sys, userContent, maxTok, temp){
-  const body = {
-    model,
-    response_format: { type:'json_object' },
-    messages: [
-      { role:'system', content: sys },
-      { role:'user',   content: userContent }
-    ]
-  };
-  if (model.startsWith('gpt-5')) {
-    body.max_completion_tokens = maxTok;
-  } else {
-    body.max_tokens = maxTok;
-    body.temperature = temp;
+
+/* ══ LIFF 登入 ══ */
+async function initLiff(){
+  try{
+    if(!LIFF_ID || LIFF_ID.indexOf('2008578880-MrvjCM33') === 0){
+      // 開發模式：沒填 LIFF ID 時以「未登入」身分測試
+      profile = { userId:'未登入', displayName:'測試模式', pictureUrl:'' };
+      $('memberPillText').textContent = '測試模式';
+      await refreshPermission();
+      return;
+    }
+    await liff.init({ liffId: LIFF_ID });
+    if(!liff.isLoggedIn()){ liff.login(); return; }
+    profile = await liff.getProfile();
+    await refreshPermission();
+  }catch(e){
+    $('memberPillText').textContent = '登入失敗';
+    showErr('LINE 登入失敗：' + (e.message || e) + '，請重新開啟頁面。');
   }
-  return body;
 }
 
-/* ══════════════════════════════════════════
-   語言模組 — 台灣口語核心（共用）
-══════════════════════════════════════════ */
-const LANG_CORE = `【語言規則 — 必須嚴格遵守】
-你寫的每一個字都必須像台灣人在手機上打的訊息。
+/* ══ 呼叫 GAS 後端 ══ */
+async function callGAS(params){
+  const body = new URLSearchParams(Object.assign({
+    lineId: profile.userId || '未登入',
+    lineName: profile.displayName || '未登入'
+  }, params));
+  const res = await fetch(GAS_URL, { method:'POST', body });
+  if(!res.ok) throw new Error('伺服器連線失敗（HTTP ' + res.status + '）');
+  return res.json();
+}
 
-1. 用台灣日常口語與語助詞：欸、啦、耶、喔、蛤、齁、好喔、真的假的、笑死、傻眼、是說、對啊
-2. 句子要短，像 LINE 訊息的節奏，可以省略主詞，一則回覆可拆成 1-3 個短句
-3. 標點自然：可用空格代替逗號、結尾不一定要句號，「～」可偶爾出現
-4. 禁用中國用語：視頻、立馬、給力、寶寶、閨蜜、走心、內卷、聊天記錄
-5. 禁止 AI 腔：不說「當然可以！」「希望能幫到你」「以下是我的建議」，不用過多驚嘆號，不過度熱情
-6. emoji 最多 1 個，能不用就不用
-7. 不解釋、不加前後綴，直接就是那句要傳出去的話`;
+/* ══ 會員權限 ══ */
+async function refreshPermission(){
+  try{
+    const d = await callGAS({ action:'getPermission' });
+    if(d.success && d.permission){
+      member = d.permission;
+      updateMemberUI();
+    }
+  }catch(e){
+    $('memberPillText').textContent = '離線';
+  }
+}
+function updateMemberUI(){
+  if(!member) return;
+  const pill = $('memberPill');
+  const isGold = member.level === '黃金';
+  pill.classList.toggle('gold', isGold);
+  $('memberPillText').textContent = isGold
+    ? ('黃金 · 剩 ' + member.remainCount + ' 次')
+    : '尊爵 · 無限';
+  // 會員中心卡片
+  $('memberName').textContent = profile.displayName || '未登入';
+  if(profile.pictureUrl) $('memberAvatar').src = profile.pictureUrl;
+  $('memberLevel').textContent = member.msg || member.level;
+  const remainEl = $('memberRemain');
+  remainEl.classList.toggle('gold', isGold);
+  remainEl.textContent = isGold ? ('剩餘 ' + member.remainCount + ' 次') : '無限次數';
+}
+function applyRemain(d){
+  // 生成成功後，後端回傳最新剩餘次數
+  if(!member) return;
+  if(d.level) member.level = d.level;
+  if(d.remain !== undefined && d.remain !== null && member.level === '黃金'){
+    member.remainCount = d.remain;
+    member.allow = d.remain > 0;
+  }
+  updateMemberUI();
+}
 
-/* 各語氣的細部指引 */
-const TONE_GUIDE = {
-  '幽默風趣':   '用自嘲或輕吐槽製造笑點，時機準、不尬。可以裝傻、可以反轉，但不酸人。',
-  '溫柔體貼':   '先接住對方的情緒再回應內容。用字放軟，讓人感覺被在乎，但不肉麻。',
-  '曖昧撩人':   '輕輕推進、留想像空間。半開玩笑半認真，讓對方心跳但抓不到把柄。絕對不油膩、不噁心、不直球到嚇人。',
-  '正式得體':   '禮貌、清楚、有分寸，適合工作場合。友善但不裝熟，句子完整一點。',
-  '高情商拒絕': '三步驟：先肯定對方或表達感謝 → 委婉說明無法配合 → 給台階或替代方案。讓對方完全不難堪。'
-};
+/* ══ 會員中心面板 ══ */
+function openSettings(){
+  setModel(curModel());
+  updateMemberUI();
+  $('overlay').classList.add('show');
+}
+$('settingsBtn').onclick = openSettings;
+$('memberPill').onclick  = openSettings;
+$('modelPill').onclick   = openSettings;
+$('closeModal').onclick  = () => $('overlay').classList.remove('show');
+$('overlay').onclick     = e => { if(e.target === $('overlay')) $('overlay').classList.remove('show'); };
+$('modelOpts').querySelectorAll('.model-opt').forEach(o => {
+  o.onclick = () => setModel(o.dataset.model);
+});
+setModel(curModel());
 
-/* 各關係的分寸指引 */
-const REL_GUIDE = {
-  '朋友':   '可以損、可以鬧，講話直接沒關係，重點是自然。',
-  '客戶':   '要穩、要專業，但不僵硬。讓對方感覺被重視。',
-  '同事':   '友善中留餘地，不過度熟，也不冷淡。辦公室安全範圍。',
-  '夫妻':   '要暖、要有生活感，可以撒嬌或互虧，是最親密的頻道。',
-  '父母':   '語氣放軟、帶點孩子氣的親暱，報平安式的安心感。',
-  '陌生人': '禮貌、簡潔、保持適當距離，不自來熟。'
-};
-
-/* ══════════════════════════════════════════
-   頁面切換
-══════════════════════════════════════════ */
+/* ══ 頁面切換 ══ */
 document.querySelectorAll('.tabitem').forEach(t => {
   t.onclick = () => {
     document.querySelectorAll('.tabitem').forEach(x => x.classList.toggle('on', x === t));
@@ -960,33 +769,7 @@ document.querySelectorAll('.tabitem').forEach(t => {
 $('goBtn').onclick   = () => generateReply(false);
 $('apprBtn').onclick = () => generateAppr(false);
 
-/* ══════════════════════════════════════════
-   設定面板
-══════════════════════════════════════════ */
-function openSettings(){
-  $('keyIn').value = localStorage.getItem(K_KEY) || '';
-  setModel(curModel());
-  $('overlay').classList.add('show');
-}
-$('settingsBtn').onclick = openSettings;
-$('modelPill').onclick   = openSettings;
-$('closeModal').onclick  = () => $('overlay').classList.remove('show');
-$('overlay').onclick     = e => { if(e.target === $('overlay')) $('overlay').classList.remove('show'); };
-$('modelOpts').querySelectorAll('.model-opt').forEach(o => {
-  o.onclick = () => setModel(o.dataset.model);
-});
-$('saveKey').onclick = () => {
-  const v = $('keyIn').value.trim();
-  if(v && !v.startsWith('sk-')){ alert('Key 格式不對，應以 sk- 開頭。'); return; }
-  localStorage.setItem(K_KEY, v);
-  $('overlay').classList.remove('show');
-};
-// init pill
-setModel(curModel());
-
-/* ══════════════════════════════════════════
-   輸入 Tabs / Chips
-══════════════════════════════════════════ */
+/* ══ 輸入 Tabs / Chips ══ */
 document.querySelectorAll('.itab').forEach(t => {
   t.onclick = () => {
     document.querySelectorAll('.itab').forEach(x => x.classList.remove('on'));
@@ -1002,9 +785,7 @@ document.querySelectorAll('.itab').forEach(t => {
 });
 const picked = id => $(id).querySelector('.chip.on')?.dataset.v || '';
 
-/* ══════════════════════════════════════════
-   圖片上傳
-══════════════════════════════════════════ */
+/* ══ 圖片上傳 ══ */
 const dz=$('dropZone'), fi=$('fileIn');
 ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over')}));
 ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over')}));
@@ -1025,8 +806,8 @@ function loadImg(file){
         const cv=document.createElement('canvas');cv.width=w;cv.height=h;
         cv.getContext('2d').drawImage(img,0,0,w,h);
         const url=cv.toDataURL('image/jpeg',.88);
-        imgData=url.split(',')[1];imgMime='image/jpeg';$('prevImg').src=url;
-      }else{imgData=ev.target.result.split(',')[1];imgMime=file.type;$('prevImg').src=ev.target.result;}
+        imgData=url;imgMime='image/jpeg';$('prevImg').src=url;
+      }else{imgData=ev.target.result;imgMime=file.type;$('prevImg').src=ev.target.result;}
       $('prevWrap').classList.add('show');clearErr();
     };
     img.onerror=()=>showErr('無法解析圖片。');
@@ -1038,59 +819,25 @@ function loadImg(file){
 function showErr(msg){const b=$('errBox');b.textContent=msg;b.classList.add('show');b.scrollIntoView({behavior:'smooth',block:'nearest'})}
 function clearErr(){$('errBox').classList.remove('show')}
 
-/* ══════════════════════════════════════════
-   共用 API 呼叫
-══════════════════════════════════════════ */
-async function callAPI(body, key){
-  const res = await fetch('https://api.openai.com/v1/chat/completions',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
-    body:JSON.stringify(body)
-  });
-  if(!res.ok){
-    if(res.status===401) throw new Error('API Key 無效或過期，請重新輸入。');
-    if(res.status===404) throw new Error(`你的帳號可能還沒有 ${body.model} 的使用權限，請到設定切換另一個模型。`);
-    if(res.status===429) throw new Error('請求太頻繁或額度不足，請稍後再試。');
-    const e=await res.json().catch(()=>null);
-    throw new Error(e?.error?.message||`API 錯誤 ${res.status}`);
-  }
-  const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content || '';
-  try{ return JSON.parse(raw.replace(/```json|```/g,'').trim()); }
-  catch{ throw new Error('AI 回傳格式異常，請再試一次。'); }
-}
-
-/* ══════════════════════════════════════════
-   生成回覆建議
-══════════════════════════════════════════ */
+/* ══ 生成回覆建議（走 GAS，失敗不扣次由後端控管）══ */
 async function generateReply(retry){
   clearErr();
-  const key=localStorage.getItem(K_KEY);
-  if(!key){ openSettings(); return showErr('請先設定 OpenAI API Key。'); }
+  if(member && !member.allow){
+    return showErr('次數已用完或會員已到期，請聯繫管理員儲值。');
+  }
   const usingImg=$('ip-img').classList.contains('show');
   const txt=$('txtIn').value.trim();
   if(usingImg&&!imgData) return showErr('請先上傳截圖，或切換到貼上文字。');
   if(!usingImg&&!txt) return showErr('請先貼上對話內容。');
 
-  const tone=picked('toneChips'), rel=picked('relChips');
-  const sys=`你是台灣人聊天回覆專家，回覆將直接複製傳送，所以必須像真人。
-
-${LANG_CORE}
-
-【這次的任務】
-對方身分：${rel} — ${REL_GUIDE[rel]||''}
-語氣要求：${tone} — ${TONE_GUIDE[tone]||''}
-
-先讀懂對話脈絡與對方最後一句話的真正意圖（字面下的情緒或試探），再產出 3 個彼此有差異的回覆：
-- 第 1 個：最安全自然的回法
-- 第 2 個：更有記憶點、稍微大膽一點的回法
-- 第 3 個：不同角度切入的回法（例如反問、轉移、或推進話題）
-
-只輸出 JSON：{"replies":[{"style":"4-6字風格標籤","text":"回覆內容"},{"style":"...","text":"..."},{"style":"...","text":"..."}]}`;
-
-  const content=usingImg
-    ?[{type:'text',text:'對話截圖如下。請先辨識誰是我、誰是對方（我的訊息通常在右側），再給回覆建議。'},{type:'image_url',image_url:{url:`data:${imgMime};base64,${imgData}`}}]
-    :[{type:'text',text:`對話：\n${txt}`}];
+  const params = {
+    action:'generate', type:'reply',
+    model: curModel(),
+    tone: picked('toneChips'),
+    rel:  picked('relChips')
+  };
+  if(usingImg) params.image = imgData;   // data:image/...;base64,xxx 完整字串
+  else params.text = txt;
 
   const btn=$('goBtn');
   btn.disabled=true;
@@ -1098,11 +845,15 @@ ${LANG_CORE}
   if(!retry)$('results').innerHTML='';
 
   try{
-    const parsed = await callAPI(buildBody(curModel(), sys, content, 1200, .9), key);
-    if(!Array.isArray(parsed.replies)||!parsed.replies.length) throw new Error('沒有取得回覆，請重試。');
-    renderReplies(parsed.replies);
+    const d = await callGAS(params);
+    if(!d.success){
+      if(d.errorType==='no_permission'){ member && (member.allow=false); updateMemberUI(); }
+      throw new Error(d.errMsg||'生成失敗，請再試一次。');
+    }
+    applyRemain(d);
+    renderReplies(d.data.replies);
   }catch(e){
-    showErr(e.name==='TypeError'?'連不上 OpenAI，請確認網路。':e.message);
+    showErr(e.name==='TypeError'?'連不上伺服器，請確認網路。':e.message);
   }finally{
     btn.disabled=false;
     $('loading').classList.remove('show');
@@ -1126,43 +877,24 @@ function renderReplies(replies){
     const acts=document.createElement('div');acts.className='card-acts';acts.append(sv,cp);
     head.append(lbl,acts);
     const body=document.createElement('div');body.className='reply-body';body.textContent=r.text||'';
-    cp.onclick=async()=>{
-      try{await navigator.clipboard.writeText(body.textContent)}catch{const ta=document.createElement('textarea');ta.value=body.textContent;Object.assign(ta.style,{position:'fixed',top:'-9999px'});document.body.append(ta);ta.select();document.execCommand('copy');ta.remove();}
-      cp.textContent='✓ 已複製';cp.classList.add('done');if(navigator.vibrate)navigator.vibrate(28);
-      setTimeout(()=>{cp.textContent='複製';cp.classList.remove('done')},2000);
-    };
+    cp.onclick=()=>copyText(body.textContent,cp,'done');
     card.append(head,body);box.appendChild(card);
   });
   const rb=document.createElement('button');rb.className='btn-retry';rb.textContent='↻ 換一批說法';rb.onclick=()=>generateReply(true);box.appendChild(rb);
   setTimeout(()=>box.firstChild?.scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
 
-/* ══════════════════════════════════════════
-   生成點評感謝
-══════════════════════════════════════════ */
+/* ══ 生成點評感謝（走 GAS）══ */
 async function generateAppr(retry){
   const errB=$('apprErr');
   errB.classList.remove('show');
-  const key=localStorage.getItem(K_KEY);
-  if(!key){ openSettings(); errB.textContent='請先設定 API Key。'; errB.classList.add('show'); return; }
+  if(member && !member.allow){
+    errB.textContent='次數已用完或會員已到期，請聯繫管理員儲值。';
+    errB.classList.add('show');
+    return;
+  }
   const q1=$('appr1').value.trim(),q2=$('appr2').value.trim(),q3=$('appr3').value.trim(),q4=$('appr4').value.trim();
   if(!q1||!q2||!q3){ errB.textContent='請至少填寫前三題。'; errB.classList.add('show'); return; }
-
-  const sys=`你是最會用文字表達感謝的台灣寫手。你寫的文字會被本人直接傳給對方或發到社群，所以必須 100% 像本人親手寫的。
-
-${LANG_CORE}
-
-【寫作要求】
-- 以第一人稱寫，收件人就是被感謝的那個人
-- 具體事件是靈魂：把提供的那件事寫出畫面感（時間、動作、細節），不要只是抽象地說「你辛苦了」
-- 情緒要真實有層次：可以有一點愧疚、心疼、說不出口的彆扭，最後落在感謝與愛
-- 避免成語堆疊與八股感謝文的套路（「感恩的心」「沒有你就沒有我」這類陳腔濫調禁用）
-- 結尾輕輕收，不要喊口號
-- 長度 150-250 字，分 2-3 段
-
-只輸出 JSON：{"title":"溫暖的標題，10字以內","text":"正文，段落之間用\\n\\n分隔"}`;
-
-  const msg=`感謝對象：${q1}\n辛苦之處：${q2}\n具體事件：${q3}${q4?'\n當時感受：'+q4:''}`;
 
   const btn=$('apprBtn');
   btn.disabled=true;
@@ -1170,11 +902,19 @@ ${LANG_CORE}
   if(!retry)$('apprResults').innerHTML='';
 
   try{
-    const parsed = await callAPI(buildBody(curModel(), sys, [{type:'text',text:msg}], 900, .85), key);
-    if(!parsed.text) throw new Error('沒有取得內容，請重試。');
-    renderAppr(parsed);
+    const d = await callGAS({
+      action:'generate', type:'appr',
+      model: curModel(),
+      q1, q2, q3, q4
+    });
+    if(!d.success){
+      if(d.errorType==='no_permission'){ member && (member.allow=false); updateMemberUI(); }
+      throw new Error(d.errMsg||'生成失敗，請再試一次。');
+    }
+    applyRemain(d);
+    renderAppr(d.data);
   }catch(e){
-    errB.textContent=e.name==='TypeError'?'連不上 OpenAI，請確認網路。':e.message;
+    errB.textContent=e.name==='TypeError'?'連不上伺服器，請確認網路。':e.message;
     errB.classList.add('show');
   }finally{
     btn.disabled=false;
@@ -1198,33 +938,23 @@ function renderAppr(parsed){
   const acts=document.createElement('div');acts.className='card-acts';acts.append(sv,cp);
   head.append(lbl,acts);
   const body=document.createElement('div');body.className='appr-body';body.textContent=parsed.text||'';
-  cp.onclick=async()=>{
-    try{await navigator.clipboard.writeText(body.textContent)}catch{const ta=document.createElement('textarea');ta.value=body.textContent;Object.assign(ta.style,{position:'fixed',top:'-9999px'});document.body.append(ta);ta.select();document.execCommand('copy');ta.remove();}
-    cp.textContent='✓ 已複製';cp.classList.add('done-amber');if(navigator.vibrate)navigator.vibrate(28);
-    setTimeout(()=>{cp.textContent='複製';cp.classList.remove('done-amber')},2000);
-  };
+  cp.onclick=()=>copyText(body.textContent,cp,'done-amber');
   card.append(head,body);
   const rb=document.createElement('button');rb.className='btn-retry';rb.textContent='↻ 換一個說法';rb.onclick=()=>generateAppr(true);
   box.append(card,rb);
   card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* ══════════════════════════════════════════
-   已儲存（localStorage）
-══════════════════════════════════════════ */
+/* ══ 已儲存（localStorage）══ */
 const K_SAVED = 'rai_saved';
-
 function loadSaved(){
   try{ return JSON.parse(localStorage.getItem(K_SAVED)) || []; }
   catch{ return []; }
 }
 function saveItem(type, label, text){
   const list = loadSaved();
-  list.unshift({
-    id: Date.now() + '' + Math.floor(Math.random()*1e4),
-    type, label, text, ts: Date.now()
-  });
-  if(list.length > 100) list.length = 100; // 最多保留 100 筆
+  list.unshift({ id: Date.now()+''+Math.floor(Math.random()*1e4), type, label, text, ts: Date.now() });
+  if(list.length > 100) list.length = 100;
   localStorage.setItem(K_SAVED, JSON.stringify(list));
 }
 function delItem(id){
@@ -1247,13 +977,11 @@ function copyText(t, btn, doneClass){
     setTimeout(()=>{btn.textContent='複製';btn.classList.remove(doneClass)},2000);
   })();
 }
-
 function renderSaved(){
   const box = $('savedList');
   const clearBtn = $('clearSaved');
   const list = loadSaved();
   box.innerHTML = '';
-
   if(!list.length){
     const empty = document.createElement('div');
     empty.className = 'saved-empty';
@@ -1263,15 +991,12 @@ function renderSaved(){
     return;
   }
   clearBtn.style.display = 'block';
-
   list.forEach(item => {
     const isAppr = item.type === 'appr';
     const card = document.createElement('div');
     card.className = isAppr ? 'appr-card' : 'reply-card';
-
     const head = document.createElement('div');
     head.className = isAppr ? 'appr-head' : 'reply-head';
-
     const meta = document.createElement('div');
     meta.className = 'saved-meta';
     const typeTag = document.createElement('span');
@@ -1284,7 +1009,6 @@ function renderSaved(){
     time.className = 'saved-time';
     time.textContent = fmtTs(item.ts);
     meta.append(typeTag, label, time);
-
     const acts = document.createElement('div');
     acts.className = 'card-acts';
     const cp = document.createElement('button');
@@ -1294,24 +1018,23 @@ function renderSaved(){
     del.className = 'del-btn'; del.textContent = '刪除';
     del.onclick = () => delItem(item.id);
     acts.append(cp, del);
-
     head.append(meta, acts);
-
     const body = document.createElement('div');
     body.className = isAppr ? 'appr-body' : 'reply-body';
     body.textContent = item.text;
-
     card.append(head, body);
     box.appendChild(card);
   });
 }
-
 $('clearSaved').onclick = () => {
   if(loadSaved().length && confirm('確定要清空所有儲存的內容嗎？此動作無法復原。')){
     localStorage.removeItem(K_SAVED);
     renderSaved();
   }
 };
+
+/* ══ 啟動 ══ */
+initLiff();
 
 })();
 </script>
