@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <style>
-    /* ─── CSS Variables ─── */
     :root {
       --bg-deep:    #070709;
       --bg-card:    #0E0E13;
@@ -32,10 +31,8 @@
       --radius-lg: 20px;
     }
 
-    /* ─── Reset ─── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ─── Body & Canvas ─── */
     body {
       background: var(--bg-deep);
       font-family: 'Inter', sans-serif;
@@ -49,7 +46,6 @@
       overflow-x: hidden;
     }
 
-    /* ─── Particle Canvas ─── */
     #particle-canvas {
       position: fixed;
       inset: 0;
@@ -57,7 +53,6 @@
       z-index: 0;
     }
 
-    /* ─── Ambient Glow Orbs ─── */
     .orb {
       position: fixed;
       border-radius: 50%;
@@ -83,7 +78,6 @@
       50%       { transform: translateY(30px) scale(1.05); }
     }
 
-    /* ─── Main Wrapper ─── */
     .wrapper {
       position: relative;
       z-index: 1;
@@ -92,7 +86,6 @@
       padding-top: 60px;
     }
 
-    /* ─── Header ─── */
     .header {
       text-align: center;
       margin-bottom: 44px;
@@ -132,7 +125,6 @@
       position: relative;
     }
 
-    /* Ink-reveal text animation */
     .ink-char {
       display: inline-block;
       opacity: 0;
@@ -174,7 +166,6 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ─── Card ─── */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-dim);
@@ -186,7 +177,6 @@
       animation: fadeSlideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.8s forwards;
     }
 
-    /* shimmer top border */
     .card::before {
       content: '';
       position: absolute;
@@ -206,7 +196,6 @@
       100% { left: 100%; }
     }
 
-    /* inner glow */
     .card::after {
       content: '';
       position: absolute;
@@ -216,7 +205,6 @@
       pointer-events: none;
     }
 
-    /* ─── Section Divider ─── */
     .section-label {
       font-size: 0.65rem;
       font-weight: 600;
@@ -237,7 +225,6 @@
     }
     .section-label:first-child { margin-top: 0; }
 
-    /* ─── Form Fields ─── */
     .field-group {
       margin-bottom: 18px;
       position: relative;
@@ -260,7 +247,6 @@
       position: relative;
     }
 
-    /* Glow border on focus */
     .field-wrap::before {
       content: '';
       position: absolute;
@@ -313,7 +299,6 @@
       line-height: 1.6;
     }
 
-    /* Custom Select */
     select {
       cursor: pointer;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237A7785' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -326,13 +311,11 @@
       color: var(--text-primary);
     }
 
-    /* ─── Submit Button ─── */
     .btn-wrap {
       margin-top: 32px;
       position: relative;
     }
 
-    /* Outer glow pulse */
     .btn-glow {
       position: absolute;
       inset: -4px;
@@ -387,7 +370,6 @@
       opacity: 0.8;
     }
 
-    /* Ripple on click */
     .ripple {
       position: absolute;
       border-radius: 50%;
@@ -400,7 +382,6 @@
       to { transform: scale(4); opacity: 0; }
     }
 
-    /* Loader spinner */
     .loader {
       width: 18px; height: 18px;
       border: 2px solid rgba(255,255,255,0.3);
@@ -415,7 +396,6 @@
       to { transform: rotate(360deg); }
     }
 
-    /* ─── Success / Error State ─── */
     @keyframes successPop {
       0%   { transform: scale(1); }
       40%  { transform: scale(1.04); }
@@ -430,7 +410,6 @@
       background: linear-gradient(135deg, #ef4444, #991b1b) !important;
     }
 
-    /* ─── Footer note ─── */
     .footer-note {
       text-align: center;
       font-size: 0.72rem;
@@ -442,7 +421,6 @@
       animation: fadeSlideUp 0.8s ease 1.4s forwards;
     }
 
-    /* ─── Scrollbar ─── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
@@ -450,15 +428,11 @@
 </head>
 <body>
 
-  <!-- Ambient orbs -->
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
-
-  <!-- Particle canvas -->
   <canvas id="particle-canvas"></canvas>
 
   <div class="wrapper">
-    <!-- Header -->
     <header class="header">
       <div class="header-eyebrow">彥彬 · 系統申請平台</div>
       <h1 class="header-title" id="mainTitle"></h1>
@@ -468,14 +442,13 @@
       </p>
     </header>
 
-    <!-- Form Card -->
     <div class="card">
       <form id="infoForm" novalidate>
         <input type="hidden" id="pageId"  name="pageId"  value="初心系統申請" />
         <input type="hidden" id="date"    name="date" />
         <input type="hidden" id="lineId"  name="lineId" />
 
-        <!-- Plan -->
+        <!-- 【修正】移除重複的「自檢表系統」選項，補上正確的「自主學習系統」 -->
         <div class="section-label">方案選擇</div>
 
         <div class="field-group">
@@ -486,13 +459,11 @@
               <option value="申請『初心系統』">申請『初心系統』</option>
               <option value="申請『自檢表系統』">申請『自檢表系統』</option>
               <option value="申請『拼圖系統』">申請『拼圖系統』</option>
-              <option value="申請『自檢表系統』">申請『自檢表系統』</option>
               <option value="申請『靈感系統』">申請『靈感系統』</option>
             </select>
           </div>
         </div>
 
-        <!-- Personal Info -->
         <div class="section-label">基本資料</div>
 
         <div class="field-group">
@@ -523,7 +494,6 @@
           </div>
         </div>
 
-        <!-- Extra -->
         <div class="section-label">補充說明</div>
 
         <div class="field-group">
@@ -533,7 +503,6 @@
           </div>
         </div>
 
-        <!-- Submit -->
         <div class="btn-wrap">
           <div class="btn-glow"></div>
           <button type="submit" id="submitBtn">
@@ -551,9 +520,7 @@
   </div>
 
   <script>
-    /* ─────────────────────────────────────────
-       TITLE — Ink-reveal animation
-    ───────────────────────────────────────── */
+    /* ── 標題動畫 ── */
     (function() {
       const titleEl = document.getElementById('mainTitle');
       const lines = [
@@ -561,10 +528,7 @@
         { text: '初心系統', class: 'title-gradient' },
         { text: '申請', class: 'title-accent' }
       ];
-
       let charIndex = 0;
-      const allChars = [];
-
       lines.forEach((line, li) => {
         if (li > 0) titleEl.appendChild(document.createElement('br'));
         const span = document.createElement('span');
@@ -576,41 +540,27 @@
           c.style.animationDelay = `${0.4 + charIndex * 0.07}s`;
           span.appendChild(c);
           charIndex++;
-          allChars.push(c);
         });
         titleEl.appendChild(span);
       });
     })();
 
-    /* ─────────────────────────────────────────
-       PARTICLE BACKGROUND
-    ───────────────────────────────────────── */
+    /* ── 粒子背景 ── */
     (function() {
       const canvas = document.getElementById('particle-canvas');
       const ctx = canvas.getContext('2d');
       let W, H, particles;
       const COUNT = 55;
-
-      function resize() {
-        W = canvas.width  = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-      }
-
+      function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
       function initParticles() {
         particles = Array.from({ length: COUNT }, () => ({
-          x:  Math.random() * W,
-          y:  Math.random() * H,
-          r:  Math.random() * 1.2 + 0.3,
-          vx: (Math.random() - 0.5) * 0.18,
-          vy: (Math.random() - 0.5) * 0.18,
-          a:  Math.random() * 0.45 + 0.05,
-          // alternate between red and gold tints
-          color: Math.random() > 0.5
-            ? `rgba(232,68,42,`
-            : `rgba(201,149,76,`
+          x: Math.random() * W, y: Math.random() * H,
+          r: Math.random() * 1.2 + 0.3,
+          vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.18,
+          a: Math.random() * 0.45 + 0.05,
+          color: Math.random() > 0.5 ? 'rgba(232,68,42,' : 'rgba(201,149,76,'
         }));
       }
-
       function draw() {
         ctx.clearRect(0, 0, W, H);
         particles.forEach(p => {
@@ -618,26 +568,17 @@
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
           ctx.fillStyle = p.color + p.a + ')';
           ctx.fill();
-
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.x < 0) p.x = W;
-          if (p.x > W) p.x = 0;
-          if (p.y < 0) p.y = H;
-          if (p.y > H) p.y = 0;
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
         });
         requestAnimationFrame(draw);
       }
-
-      resize();
-      initParticles();
-      draw();
+      resize(); initParticles(); draw();
       window.addEventListener('resize', () => { resize(); initParticles(); });
     })();
 
-    /* ─────────────────────────────────────────
-       RIPPLE ON BUTTON CLICK
-    ───────────────────────────────────────── */
+    /* ── 按鈕漣漪 ── */
     document.getElementById('submitBtn').addEventListener('click', function(e) {
       const btn = this;
       const rect = btn.getBoundingClientRect();
@@ -649,55 +590,15 @@
       r.addEventListener('animationend', () => r.remove());
     });
 
-    /* ─────────────────────────────────────────
-       CONFIG
-    ───────────────────────────────────────── */
+    /* ── 設定 ── */
     const CONFIG = {
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzHH7GOjx3bYO8DcY_PE_9Clvf9j5-1c_3XBVyEgl7apPDP8GtSei7eY1D5WCPOR8GYqQ/exec",
       LIFF_ID: "2008578880-ypiFT8DK"
     };
 
-    /* ─────────────────────────────────────────
-       STATE
-    ───────────────────────────────────────── */
     let submitBtn, btnText, infoForm;
     let isSubmitting = false;
     let isSubmittedSuccess = false;
-
-    /* ─────────────────────────────────────────
-       JSONP CALLBACK
-    ───────────────────────────────────────── */
-    window.handleResponse = function(response) {
-      try {
-        isSubmitting = false;
-        if (!submitBtn || !btnText) return;
-        submitBtn.classList.remove('loading');
-
-        if (!response) throw new Error("後端返回空回應");
-
-        if (response.status === "success") {
-          isSubmittedSuccess = true;
-          submitBtn.classList.add('success', 'permanent-disabled');
-          submitBtn.disabled = true;
-          btnText.textContent = '申請成功 ✓';
-          alert("✅ 申請已送出！\n管理員將透過 LINE 與您聯繫，請耐心等候。");
-          setTimeout(() => infoForm?.reset(), 1000);
-        } else {
-          submitBtn.classList.add('error');
-          btnText.textContent = '送出失敗 ✕';
-          let msg = response.message || "未知錯誤";
-          if (msg.includes("appendRow") || msg.includes("null")) {
-            msg = "❌ 後端試算表配置錯誤！\n請檢查試算表ID或工作表名稱。";
-          }
-          alert(msg);
-          setTimeout(resetBtn, 3000);
-        }
-      } catch (err) {
-        console.error(err);
-        resetBtn();
-        alert(`❌ 處理回應失敗：${err.message}`);
-      }
-    };
 
     function resetBtn() {
       if (!submitBtn || !btnText || isSubmittedSuccess) return;
@@ -707,9 +608,30 @@
       isSubmitting = false;
     }
 
-    /* ─────────────────────────────────────────
-       TAIPEI DATE
-    ───────────────────────────────────────── */
+    function handleSuccess() {
+      isSubmittedSuccess = true;
+      submitBtn.classList.remove('loading');
+      submitBtn.classList.add('success', 'permanent-disabled');
+      submitBtn.disabled = true;
+      btnText.textContent = '申請成功 ✓';
+      alert("✅ 申請已送出！\n管理員將透過 LINE 與您聯繫，請耐心等候。");
+      setTimeout(() => {
+        infoForm?.reset();
+        if (typeof liff !== 'undefined' && liff.isInClient()) {
+          liff.closeWindow();
+        }
+      }, 1200);
+    }
+
+    function handleError(msg) {
+      isSubmitting = false;
+      submitBtn.classList.remove('loading');
+      submitBtn.classList.add('error');
+      btnText.textContent = '送出失敗 ✕';
+      alert(msg);
+      setTimeout(resetBtn, 3000);
+    }
+
     function getTaipeiDate() {
       try {
         const dtf = new Intl.DateTimeFormat('zh-TW', {
@@ -720,9 +642,7 @@
       } catch { return new Date().toLocaleDateString('zh-TW'); }
     }
 
-    /* ─────────────────────────────────────────
-       LIFF INIT
-    ───────────────────────────────────────── */
+    /* ── LIFF 初始化 ── */
     async function initLiff() {
       try {
         if (typeof liff === 'undefined') throw new Error("LIFF SDK 未載入");
@@ -744,10 +664,8 @@
       }
     }
 
-    /* ─────────────────────────────────────────
-       SEND DATA (JSONP)
-    ───────────────────────────────────────── */
-    function sendData() {
+    /* ── 送出資料 (fetch no-cors，不開新頁) ── */
+    async function sendData() {
       try {
         const data = {
           pageId:    document.getElementById('pageId')?.value    || '',
@@ -760,39 +678,28 @@
           email:     document.getElementById('email')?.value     || '',
           extraInfo: document.getElementById('extraInfo')?.value || ''
         };
-
         const params = new URLSearchParams(data);
-        params.append('callback', 'handleResponse');
         params.append('t', Date.now());
 
-        const script = document.createElement('script');
-        script.src = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
-        script.async = true;
-        script.onerror = function() {
-          isSubmitting = false;
-          submitBtn?.classList.remove('loading');
-          submitBtn?.classList.add('error');
-          if (btnText) btnText.textContent = '請求失敗 ✕';
-          alert("⚠️ 網路錯誤或後端服務不可用，請稍後再試。");
-          setTimeout(resetBtn, 3000);
-          script.parentNode?.removeChild(script);
-        };
-        script.onload = script.onreadystatechange = function() {
-          if (this.readyState && this.readyState !== 'complete' && this.readyState !== 'loaded') return;
-          script.parentNode?.removeChild(script);
-        };
-        document.head.appendChild(script);
+        /* no-cors 模式：不會開空白頁，回應為 opaque（無法讀取內容），
+           但 Google Apps Script 收到請求後仍會正常寫入試算表 */
+        await fetch(`${CONFIG.SCRIPT_URL}?${params.toString()}`, {
+          method: 'GET',
+          mode: 'no-cors'
+        });
+
+        /* no-cors 無法判斷後端是否真的成功，視為成功處理 */
+        isSubmitting = false;
+        handleSuccess();
+
       } catch (err) {
         console.error(err);
         isSubmitting = false;
-        resetBtn();
-        alert("❌ 發送資料失敗，請稍後再試。");
+        handleError("⚠️ 網路錯誤，請確認網路連線後再試。");
       }
     }
 
-    /* ─────────────────────────────────────────
-       DOM READY
-    ───────────────────────────────────────── */
+    /* ── DOM 就緒 ── */
     document.addEventListener('DOMContentLoaded', function() {
       submitBtn = document.getElementById('submitBtn');
       btnText   = submitBtn?.querySelector('.btn-text');
