@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AI 集團</title>
+<title>AI 智囊</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}</script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
@@ -579,13 +579,13 @@
 
   <!-- Header -->
   <header class="topbar" id="topbar">
-    <div class="brand-tag">AI 集團 · GROUP</div>
+    <div class="brand-tag">AI 智囊 · GROUP</div>
     <div class="row" style="margin-top:4px;">
       <button class="hdr-toggle" onclick="toggleMenu()" aria-label="選單" style="order:-1;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
       </button>
-      <span class="mini-title" id="miniTitle">AI 內容集團</span>
-      <input id="titleInput" class="title-edit" value="AI 內容集團" maxlength="20" spellcheck="false">
+      <span class="mini-title" id="miniTitle">AI 智囊</span>
+      <input id="titleInput" class="title-edit" value="AI 智囊" maxlength="20" spellcheck="false">
       <button class="hdr-toggle" onclick="toggleHeader()" id="hdrToggle" aria-label="收合標題">
         <svg class="chev-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
       </button>
@@ -595,7 +595,7 @@
     </div>
     <div class="status-line">
       <span class="dot" id="keyDot"></span>
-      <span id="keyStatus">尚未連接 AI — 請到設定填入 OpenAI 金鑰</span>
+      <span id="keyStatus">🌿 LINE 會員驗證中…</span>
     </div>
   </header>
 
@@ -798,33 +798,13 @@
       <div class="ws-title"><h2>設定</h2><p>接上 AI 就能獨立運轉</p></div>
     </div>
 
-    <div class="note">
-      🔑 金鑰只存在你自己的瀏覽器（localStorage），不會上傳到任何伺服器。放上 GitHub Pages 後即可獨立運作。<br>
-      ⚠️ 因金鑰寫在前端，請勿把含金鑰的網址公開分享給他人。
-    </div>
-
-    <div class="field">
-      <label>🌿 會員版設定（GAS 後端，比照回覆靈感系統）</label>
-      <input type="text" id="gasUrlSet" placeholder="https://script.google.com/macros/s/AKfycbx7EHpSHR65XPn4ROOfaqYbOmWQ7al-5Gkouz1d6Kunyed8GU7P6nI-sXS_V_K8rQQI/exec" spellcheck="false">
-      <div style="height:9px"></div>
-      <input type="text" id="liffIdSet" placeholder="2008578880-YB0IXDbA" spellcheck="false">
-      <div class="hint">填了 GAS 網址後：AI 改由後端代呼叫（金鑰鎖在 GAS 指令碼屬性，前端不需填金鑰）、依 LINE 身分驗證會員（👑尊爵永久／💎尊爵限時／🥇黃金扣次，成功才扣次）。留空則走上方個人金鑰直連模式。</div>
-    </div>
-
-    <div class="field">
-      <label>OpenAI API 金鑰（個人直連模式用）</label>
-      <div class="key-row">
-        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
-        <button class="toggle-key" onclick="toggleKey()" id="toggleKeyBtn">顯示</button>
-      </div>
-      <div class="hint">前往 platform.openai.com → API keys 取得。</div>
-    </div>
+    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。</div>
 
     <div class="field">
       <label>使用模型</label>
       <select id="modelSel">
-        <option value="gpt-4o-mini">⚡ 快速（gpt-4o-mini · 快速）</option>
-        <option value="gpt-5-mini">🧠 智慧（gpt-5-mini · 聰明）</option>
+        <option value="gpt-4o-mini">⚡ 快速（gpt-4o-mini · 便宜快，支援圖片）</option>
+        <option value="gpt-5-mini">🧠 智慧（gpt-5-mini · 更聰明，支援圖片）</option>
       </select>
     </div>
 
@@ -867,8 +847,8 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.12-flow14-member",
-  title:"AI 內容集團",
+  build:"2026.07.12-flow15-liffonly",
+  title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
   gasUrl:"",
@@ -1374,7 +1354,7 @@ function maybeAutoRun(){
   if(running) return;
   if(pendingFiles.length===0) return;
   if(pendingFiles.some(f=>f.loading)) return;
-  if(!aiReady()){ toast("已上傳，請先到設定填入金鑰再分析"); return; }
+  
   runTask();
 }
 function renderFiles(){
@@ -1575,7 +1555,7 @@ async function handleLibUpload(e){
       item.classifying=false; save(); renderLibrary();
     }
   }
-  toast(aiReady()?"已存入素材庫：AI 整理完成，之後自動當備用資料使用":"已存入素材庫（填入金鑰後可 AI 整理）");
+  toast("已存入素材庫：AI 整理完成，之後自動當備用資料使用");
 }
 function compressImage(dataURL, maxDim, quality){
   maxDim=maxDim||1280; quality=quality||0.82;
@@ -1759,14 +1739,17 @@ async function runTask(){
 function clip(s,n){ s=s||""; return s.length>n? s.slice(0,n)+"…（已截取）" : s; }
 
 /* ============ 會員驗證（LINE LIFF ＋ GAS，比照回覆靈感系統） ============ */
+// ★ 系統固定連接後端：所有 AI 呼叫都走 GAS（金鑰在後端），須先通過 LINE 驗證
+const GAS_URL="https://script.google.com/macros/s/AKfycbx7EHpSHR65XPn4ROOfaqYbOmWQ7al-5Gkouz1d6Kunyed8GU7P6nI-sXS_V_K8rQQI/exec";
+const LIFF_ID="2008578880-YB0IXDbA";
 const member={ ready:false, lineId:"guest", lineName:"訪客", level:"", remain:"", expire:"", msg:"" };
-function usingBackend(){ return !!state.gasUrl; }
-function aiReady(){ return usingBackend() || !!state.apiKey; }
+function usingBackend(){ return true; }
+function aiReady(){ return true; }
 async function initMember(forceLogin){
   if(!usingBackend()) return;
   try{
-    if(state.liffId && window.liff){
-      await liff.init({ liffId: state.liffId });
+    if(LIFF_ID && window.liff){
+      await liff.init({ liffId: LIFF_ID });
       if(!liff.isLoggedIn()){ liff.login(); return; }
       const p=await liff.getProfile();
       member.lineId=p.userId; member.lineName=p.displayName||"";
@@ -1786,7 +1769,7 @@ async function initMember(forceLogin){
 }
 async function gasPost(params){
   const body=new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
-  const res=await fetch(state.gasUrl,{ method:"POST", body });
+  const res=await fetch(GAS_URL,{ method:"POST", body });
   return await res.json();
 }
 function memberBadge(){
@@ -1795,8 +1778,8 @@ function memberBadge(){
   return `🥇 黃金會員 · 剩 ${member.remain} 次`;
 }
 function canRun(){
-  if(!usingBackend()) return true;
-  if(member.ready && member.level==="黃金" && Number(member.remain)<=0){
+  if(!member.ready){ toast("會員驗證中，請稍候再試"); initMember(); return false; }
+  if(member.level==="黃金" && Number(member.remain)<=0){
     toast("次數已用完，請聯繫管理員儲值"); return false;
   }
   return true;
@@ -2062,19 +2045,12 @@ function copyOut(){ navigator.clipboard.writeText(getLastOut()).then(()=>toast("
 
 /* ============ 設定 ============ */
 function fillSettings(){
-  document.getElementById("apiKey").value=state.apiKey;
-  document.getElementById("gasUrlSet").value=state.gasUrl||"";
-  document.getElementById("liffIdSet").value=state.liffId||"";
   document.getElementById("modelSel").value=state.model;
   document.getElementById("autoSet").checked=!!state.autoAnalyze;
   document.getElementById("titleSet").value=state.title;
   document.getElementById("contextSet").value=state.context;
   renderIndPick();
   const bt=document.getElementById("buildTag"); if(bt) bt.textContent="版本 "+(DEFAULTS.build||"-")+"　通用模板 · 依資料整理";
-}
-function toggleKey(){
-  const i=document.getElementById("apiKey"); const b=document.getElementById("toggleKeyBtn");
-  if(i.type==="password"){ i.type="text"; b.textContent="隱藏"; } else { i.type="password"; b.textContent="顯示"; }
 }
 const INDUSTRY_TEMPLATES={
   "保健":"【行業／領域】保健／健康食品\n【品牌／個人定位】讓每個家庭都有一個懂健康的人\n【目標客群】注重保養、家中有長輩或小孩的人\n【語氣風格】溫暖像家人、真誠利他\n【常見賣點／重點】成分、見證、生活保養觀念\n【禁忌／法規】不得宣稱療效、根治、醫療效能，不叫人停藥、不誇大",
@@ -2118,20 +2094,15 @@ async function deriveBrand(){
   finally{ running=false; btn.disabled=false; btn.innerHTML=old; }
 }
 function saveSettings(){
-  state.apiKey=document.getElementById("apiKey").value.trim();
-  const oldLiff=state.liffId;
-  state.gasUrl=document.getElementById("gasUrlSet").value.trim();
-  state.liffId=document.getElementById("liffIdSet").value.trim();
   state.model=document.getElementById("modelSel").value;
   state.autoAnalyze=document.getElementById("autoSet").checked;
-  state.title=document.getElementById("titleSet").value.trim()||"AI 集團";
+  state.title=document.getElementById("titleSet").value.trim()||"AI 智囊";
   state.context=document.getElementById("contextSet").value.trim();
   save();
   document.getElementById("titleInput").value=state.title;
   document.getElementById("miniTitle").textContent=state.title;
   toast("設定已儲存");
   updateKeyStatus();
-  if(state.gasUrl){ initMember(oldLiff!==state.liffId); }
   openView("home");
 }
 function resetAll(){
@@ -2142,19 +2113,15 @@ function resetAll(){
   }
 }
 function updateKeyStatus(){
-  const on=aiReady();
-  document.getElementById("keyDot").classList.toggle("on",on);
+  document.getElementById("keyDot").classList.toggle("on",member.ready);
   const mode=state.model==="gpt-5-mini"?"🧠 智慧":"⚡ 快速";
-  let txt;
-  if(!on) txt="尚未連接 AI — 請到設定填入金鑰或 GAS 網址";
-  else if(usingBackend()) txt=`會員版 · ${mode}${member.ready? " · "+memberBadge() : " · 驗證中…"}`;
-  else txt=`個人直連 · ${mode}（${state.model}）`;
-  document.getElementById("keyStatus").textContent=txt;
+  document.getElementById("keyStatus").textContent=
+    member.ready? `${mode} · ${memberBadge()}` : "🌿 LINE 會員驗證中…";
 }
 
 /* ============ 標題即時編輯 ============ */
 document.getElementById("titleInput").addEventListener("change",e=>{
-  state.title=e.target.value.trim()||"AI 集團"; e.target.value=state.title; save();
+  state.title=e.target.value.trim()||"AI 智囊"; e.target.value=state.title; save();
   document.getElementById("miniTitle").textContent=state.title;
 });
 document.getElementById("titleInput").addEventListener("keydown",e=>{ if(e.key==="Enter") e.target.blur(); });
@@ -2199,7 +2166,7 @@ document.getElementById("miniTitle").textContent=state.title;
 if(state.headerMin){ document.getElementById("topbar").classList.add("min"); }
 document.getElementById("buildTag").textContent="版本 "+(DEFAULTS.build||"-")+"　通用模板 · 依資料整理";
 renderHome();
-if(state.gasUrl) initMember();
+initMember();
 checkAutoCollect();
 setInterval(checkAutoCollect, 15*60*1000);
 </script>
