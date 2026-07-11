@@ -309,6 +309,56 @@
   .dr-item .cnt{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-faint);}
   .dr-sep{height:1px;background:var(--line);margin:10px 6px;}
 
+  /* 會員中心 Sheet */
+  .mc-overlay{position:fixed;inset:0;z-index:180;display:none;align-items:flex-end;justify-content:center;
+    background:rgba(30,25,18,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
+  .mc-overlay.show{display:flex;animation:fade .2s var(--ease-out) both;}
+  .mc-modal{width:100%;max-width:500px;background:linear-gradient(168deg,#FFFDF8,#F5EFDF);
+    border-radius:24px 24px 0 0;padding:18px 20px calc(22px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 -14px 48px rgba(30,25,18,.3);border-top:1px solid rgba(217,184,115,.5);
+    animation:sheetUp .35s var(--spring) both;}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:0;}to{transform:none;opacity:1;}}
+  .mc-handle{width:38px;height:4px;border-radius:2px;background:rgba(30,25,18,.18);margin:0 auto 16px;}
+  .mc-title{font-size:19px;font-weight:800;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:9px;}
+  .mc-title::before{content:"";width:16px;height:2px;background:var(--gold);border-radius:1px;}
+  .mc-card{display:flex;align-items:center;gap:13px;padding:15px;border-radius:18px;
+    background:linear-gradient(168deg,#2E2415,#1E1A14);color:#fff;
+    border:1px solid rgba(217,184,115,.4);box-shadow:var(--shadow-gold);}
+  .mc-avatar{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.15);
+    object-fit:cover;flex:0 0 auto;border:2px solid var(--gold-soft);}
+  .mc-info{flex:1;min-width:0;}
+  .mc-name{font-size:15.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .mc-level{font-size:12px;color:rgba(255,255,255,.65);margin-top:2px;}
+  .mc-remain{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--ink);
+    background:linear-gradient(165deg,#FBF6EA,#fff);padding:6px 12px;border-radius:20px;
+    border:1px solid var(--gold-soft);white-space:nowrap;}
+  .mc-rows{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
+  .mc-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);
+    padding:9px 4px;border-bottom:1px solid var(--line-2);}
+  .mc-row b{color:var(--ink);font-weight:700;}
+  .mc-sec{font-size:11.5px;font-weight:800;letter-spacing:2px;color:var(--ink-faint);margin:18px 2px 9px;text-transform:uppercase;}
+  .mopt{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:15px;
+    border:1.5px solid var(--line);background:var(--paper-2);text-align:left;margin-bottom:8px;
+    transition:border-color .15s,background .15s,transform .18s var(--spring);}
+  .mopt:active{transform:scale(.98);}
+  .mopt.on{border-color:var(--gold);background:var(--gold-wash);}
+  .mradio{width:19px;height:19px;border-radius:50%;flex:0 0 auto;border:2px solid var(--line);
+    display:grid;place-items:center;transition:border-color .15s;}
+  .mopt.on .mradio{border-color:var(--gold);}
+  .mradio::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--gold);
+    transform:scale(0);transition:transform .18s var(--spring);}
+  .mopt.on .mradio::after{transform:scale(1);}
+  .mopt-info{flex:1;min-width:0;}
+  .mopt-name{font-size:14.5px;font-weight:800;}
+  .mopt-desc{font-size:11.5px;color:var(--ink-faint);margin-top:1px;line-height:1.5;}
+  .mopt-tag{flex:0 0 auto;font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:8px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;}
+  .mopt-tag.blue{background:#2E6FB0;}
+  .mc-close{width:100%;margin-top:14px;min-height:54px;border-radius:16px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;font-size:16px;font-weight:800;
+    border:1px solid rgba(217,184,115,.35);box-shadow:0 10px 26px rgba(30,25,18,.26);transition:transform .18s var(--spring);}
+  .mc-close:active{transform:scale(.98);}
+
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
     background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13.5px;font-weight:600;
     opacity:0;pointer-events:none;transition:.28s var(--spring);z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.3);
@@ -593,7 +643,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
-    <div class="status-line">
+    <div class="status-line" onclick="openMemberCenter()" style="cursor:pointer;">
       <span class="dot" id="keyDot"></span>
       <span id="keyStatus">🌿 LINE 會員驗證中…</span>
     </div>
@@ -835,6 +885,42 @@
 
 </div>
 
+<div class="mc-overlay" id="mcOverlay" onclick="if(event.target===this)closeMemberCenter()">
+  <div class="mc-modal">
+    <div class="mc-handle"></div>
+    <div class="mc-title">會員中心</div>
+    <div class="mc-card">
+      <img class="mc-avatar" id="mcAvatar" alt="">
+      <div class="mc-info">
+        <div class="mc-name" id="mcName">尚未登入</div>
+        <div class="mc-level" id="mcLevel">—</div>
+      </div>
+      <div class="mc-remain" id="mcRemain">—</div>
+    </div>
+    <div class="mc-rows">
+      <div class="mc-row"><span>會員等級</span><b id="mcRowLevel">—</b></div>
+      <div class="mc-row"><span>到期時間</span><b id="mcRowExpire">—</b></div>
+      <div class="mc-row"><span>剩餘次數</span><b id="mcRowRemain">—</b></div>
+    </div>
+    <div class="mc-sec">AI 模型</div>
+    <div id="mcModels">
+      <button class="mopt" data-model="gpt-4o-mini" onclick="mcPickModel('gpt-4o-mini')">
+        <span class="mradio"></span>
+        <span class="mopt-info"><span class="mopt-name">GPT-4o mini</span>
+        <div class="mopt-desc">速度快、成本低，日常內容產出首選</div></span>
+        <span class="mopt-tag">⚡ 快速</span>
+      </button>
+      <button class="mopt" data-model="gpt-5-mini" onclick="mcPickModel('gpt-5-mini')">
+        <span class="mradio"></span>
+        <span class="mopt-info"><span class="mopt-name">GPT-5 mini</span>
+        <div class="mopt-desc">理解力更好，適合複雜素材與細膩文案</div></span>
+        <span class="mopt-tag blue">🧠 智慧</span>
+      </button>
+    </div>
+    <button class="mc-close" onclick="closeMemberCenter()">完成</button>
+  </div>
+</div>
+
 <div class="drawer-mask" id="drawerMask" onclick="toggleMenu(false)"></div>
 <aside class="drawer" id="drawer">
   <div class="dr-head">選單</div>
@@ -847,7 +933,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.12-flow15-liffonly",
+  build:"2026.07.12-flow16-membercenter",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1742,7 +1828,7 @@ function clip(s,n){ s=s||""; return s.length>n? s.slice(0,n)+"…（已截取）
 // ★ 系統固定連接後端：所有 AI 呼叫都走 GAS（金鑰在後端），須先通過 LINE 驗證
 const GAS_URL="https://script.google.com/macros/s/AKfycbx7EHpSHR65XPn4ROOfaqYbOmWQ7al-5Gkouz1d6Kunyed8GU7P6nI-sXS_V_K8rQQI/exec";
 const LIFF_ID="2008578880-YB0IXDbA";
-const member={ ready:false, lineId:"guest", lineName:"訪客", level:"", remain:"", expire:"", msg:"" };
+const member={ ready:false, lineId:"guest", lineName:"訪客", pic:"", level:"", remain:"", expire:"", msg:"", lastUse:"" };
 function usingBackend(){ return true; }
 function aiReady(){ return true; }
 async function initMember(forceLogin){
@@ -1752,13 +1838,13 @@ async function initMember(forceLogin){
       await liff.init({ liffId: LIFF_ID });
       if(!liff.isLoggedIn()){ liff.login(); return; }
       const p=await liff.getProfile();
-      member.lineId=p.userId; member.lineName=p.displayName||"";
+      member.lineId=p.userId; member.lineName=p.displayName||""; member.pic=p.pictureUrl||"";
     }
     const r=await gasPost({ action:"getPermission" });
     if(r && r.success && r.permission){
       const pm=r.permission;
       member.ready=true; member.level=pm.level; member.remain=pm.remainCount;
-      member.expire=pm.expireDate; member.msg=pm.msg;
+      member.expire=pm.expireDate; member.msg=pm.msg; member.lastUse=pm.lastUseTime||"";
       if(!pm.allow) toast("次數已用完，請聯繫管理員儲值");
     }else{
       member.msg=(r&&r.errMsg)||"會員驗證失敗";
@@ -1766,6 +1852,7 @@ async function initMember(forceLogin){
     }
   }catch(e){ member.msg="LIFF 初始化失敗："+e.message; toast(member.msg); }
   updateKeyStatus();
+  if(document.getElementById("mcOverlay").classList.contains("show")) renderMemberCenter();
 }
 async function gasPost(params){
   const body=new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
@@ -1797,7 +1884,7 @@ async function callOpenAI(sys,userContent,maxTokens,charge){
           maxTok:String(maxTokens||1800), model:state.model, charge: charge?"1":"0" });
       }catch(e){ throw new Error("後端連線失敗："+e.message); }
       if(r && r.success){
-        if(r.remain!==undefined && r.remain!==null && r.remain!==""){ member.remain=r.remain; updateKeyStatus(); }
+        if(r.remain!==undefined && r.remain!==null && r.remain!==""){ member.remain=r.remain; updateKeyStatus(); if(document.getElementById("mcOverlay").classList.contains("show")) renderMemberCenter(); }
         return (r.content||"").trim();
       }
       const m=(r&&r.errMsg)||"後端回應異常";
@@ -2131,6 +2218,30 @@ function toggleHeader(){
   state.headerMin=tb.classList.toggle("min"); save();
 }
 
+/* ============ 會員中心 ============ */
+function openMemberCenter(){
+  if(!member.ready) initMember();
+  renderMemberCenter();
+  document.getElementById("mcOverlay").classList.add("show");
+}
+function closeMemberCenter(){ document.getElementById("mcOverlay").classList.remove("show"); }
+function renderMemberCenter(){
+  const isGold = member.level==="黃金";
+  document.getElementById("mcName").textContent = member.lineName || "尚未登入";
+  const av=document.getElementById("mcAvatar");
+  if(member.pic) av.src=member.pic; else av.removeAttribute("src");
+  document.getElementById("mcLevel").textContent = member.ready ? (member.msg||member.level) : "LINE 會員驗證中…";
+  document.getElementById("mcRemain").textContent = member.ready ? (isGold? `剩餘 ${member.remain} 次` : "♾️ 無限次數") : "—";
+  document.getElementById("mcRowLevel").textContent = member.ready ? (isGold? "🥇 黃金會員" : "👑 尊爵會員") : "—";
+  document.getElementById("mcRowExpire").textContent = member.ready ? (member.expire||"—") : "—";
+  document.getElementById("mcRowRemain").textContent = member.ready ? (isGold? `${member.remain} 次` : "無限次數") : "—";
+  document.querySelectorAll("#mcModels .mopt").forEach(o=>o.classList.toggle("on", o.dataset.model===state.model));
+}
+function mcPickModel(m){
+  state.model=m; save(); updateKeyStatus(); renderMemberCenter();
+  toast(m==="gpt-5-mini"?"已切換：🧠 智慧模式":"已切換：⚡ 快速模式");
+}
+
 /* ============ 漢堡選單 ============ */
 function toggleMenu(force){
   const d=document.getElementById("drawer"), m=document.getElementById("drawerMask");
@@ -2157,6 +2268,7 @@ function renderDrawer(){
     <button class="dr-item" onclick="goMenu(openCollector)"><span class="ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</span>資料收集部<span class="cnt">${state.collections.length} 則</span></button>
     <button class="dr-item" onclick="goMenu(openLibrary)"><span class="ic" style="background:rgba(199,144,43,.14);color:#C7902B">📁</span>素材庫<span class="cnt">${state.library.length} 個</span></button>
     <div class="dr-sep"></div>
+    <button class="dr-item" onclick="goMenu(openMemberCenter)"><span class="ic" style="background:var(--gold-wash);color:var(--gold)">👤</span>會員中心</button>
     <button class="dr-item" onclick="goMenu(()=>openView('settings'))"><span class="ic" style="background:var(--line);color:var(--ink-soft)">⚙️</span>設定</button>`;
 }
 
