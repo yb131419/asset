@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI 集團</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}</script>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+  :root{
+    --paper:#F5F0E3;
+    --paper-2:#FFFCF6;
+    --ink:#1E1A14;
+    --ink-soft:#5C5343;
+    --ink-faint:#A0937A;
+    --line:rgba(30,25,18,.11);
+    --line-2:rgba(30,25,18,.05);
+    --accent:#1F8A72;
+    --gold:#A8782E;
+    --gold-soft:#D9B873;
+    --gold-wash:rgba(168,120,46,.12);
+    --shadow:0 1px 2px rgba(30,25,18,.04), 0 16px 36px rgba(30,25,18,.08);
+    --shadow-lg:0 14px 48px rgba(30,25,18,.16);
+    --shadow-gold:0 10px 26px rgba(168,120,46,.28);
+    --radius:24px;
+    --radius-sm:16px;
+    --tap:54px;
+    --spring:cubic-bezier(.34,1.56,.64,1);
+    --ease-out:cubic-bezier(.22,.8,.36,1);
+    /* 部門色 */
+    --c-post:#E0613B;
+    --c-integrate:#1F8A72;
+    --c-collect:#C7902B;
+    --c-plan:#6B4E9E;
+    --c-develop:#2E6FB0;
+    --c-cards:#8A5A2E;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    background:
+      radial-gradient(ellipse 900px 480px at 50% -8%, rgba(168,120,46,.07), transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    line-height:1.62;
+    font-size:16px;
+    letter-spacing:.1px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:500px;margin:0 auto;min-height:100vh;background:transparent;position:relative;padding-bottom:24px;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  textarea,input,select{font-family:inherit;}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(168deg,#2E2415 0%,#1E1A14 78%);color:#fff;
+    padding:20px 20px 21px;
+    border-radius:0 0 28px 28px;
+    box-shadow:0 10px 30px rgba(30,25,18,.22);
+  }
+  .topbar::after{
+    content:"";position:absolute;left:20px;right:20px;bottom:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(217,184,115,.55) 18%,rgba(217,184,115,.55) 82%,transparent);
+  }
+  .topbar .row{display:flex;align-items:center;gap:12px;position:relative;}
+  .brand-tag{
+    font-size:11px;letter-spacing:4px;color:var(--gold-soft);
+    text-transform:uppercase;font-weight:700;
+    display:flex;align-items:center;gap:7px;
+  }
+  .brand-tag::before{content:"";width:14px;height:1px;background:var(--gold-soft);display:inline-block;}
+  .title-edit{
+    flex:1;font-size:24px;font-weight:800;letter-spacing:.5px;
+    background:transparent;border:none;color:#fff;outline:none;
+    border-bottom:1.5px dashed transparent;padding:3px 0;min-width:0;
+  }
+  .title-edit:focus{border-bottom-color:var(--gold-soft);}
+  .gear{
+    width:46px;height:46px;border-radius:14px;flex:0 0 auto;
+    background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff;
+    transition:background .15s,transform .1s,box-shadow .15s;
+    border:1px solid rgba(217,184,115,.22);
+  }
+  .gear svg,.hdr-toggle svg{width:22px;height:22px;display:block;}
+  .gear:active{background:rgba(217,184,115,.22);transform:scale(.93);box-shadow:0 0 0 3px var(--gold-wash);}
+  .hdr-toggle{
+    width:46px;height:46px;border-radius:14px;flex:0 0 auto;
+    background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff;
+    transition:background .15s,transform .1s,box-shadow .15s;
+    border:1px solid rgba(217,184,115,.22);
+  }
+  .hdr-toggle:active{background:rgba(217,184,115,.22);transform:scale(.93);box-shadow:0 0 0 3px var(--gold-wash);}
+  .chev-ic{transition:transform .2s;}
+  .topbar.min .chev-ic{transform:rotate(180deg);}
+  .topbar.min{padding:8px 16px;border-radius:0 0 18px 18px;}
+  .topbar.min .brand-tag,.topbar.min .status-line,.topbar.min .title-edit{display:none;}
+  .topbar.min .row{margin-top:0!important;justify-content:flex-end;gap:8px;}
+  .topbar.min .mini-title{display:block;}
+  .mini-title{display:none;flex:1;font-size:15px;font-weight:800;color:#fff;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .status-line{
+    margin-top:13px;font-size:12.5px;color:rgba(255,255,255,.68);
+    display:flex;align-items:center;gap:7px;
+    background:rgba(255,255,255,.06);padding:10px 13px;border-radius:13px;
+    border:1px solid rgba(255,255,255,.07);
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:#E0613B;flex:0 0 auto;}
+  .dot.on{background:#4ED9A0;box-shadow:0 0 0 3px rgba(78,217,160,.2);animation:pulse 2.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(78,217,160,.2);}50%{box-shadow:0 0 0 6px rgba(78,217,160,.08);}}
+
+  /* ---------- Views + 進場動效 ---------- */
+  .view{display:none;padding:20px 18px 48px;}
+  .view.active{display:block;animation:fade .32s var(--ease-out);}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .view.active>*{animation:rise .5s var(--ease-out) backwards;}
+  .view.active>*:nth-child(1){animation-delay:.02s;}
+  .view.active>*:nth-child(2){animation-delay:.06s;}
+  .view.active>*:nth-child(3){animation-delay:.1s;}
+  .view.active>*:nth-child(4){animation-delay:.14s;}
+  .view.active>*:nth-child(5){animation-delay:.18s;}
+  .view.active>*:nth-child(6){animation-delay:.22s;}
+  .view.active>*:nth-child(n+7){animation-delay:.26s;}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important;}
+  }
+
+  .section-label{
+    font-size:12px;letter-spacing:2.5px;color:var(--ink-faint);
+    font-weight:800;text-transform:uppercase;margin:18px 4px 12px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .section-label::before{content:"";width:16px;height:2px;background:var(--gold);border-radius:1px;flex:0 0 auto;}
+
+  /* ---------- 任務鏈 ---------- */
+  .chain-wrap{margin-bottom:22px;}
+  .chain-scroll{display:flex;flex-wrap:wrap;gap:8px;padding:2px 4px 8px;}
+  .chain-item{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+    background:var(--paper-2);border:1px solid var(--line);
+    border-radius:30px;padding:7px 12px 7px 8px;box-shadow:var(--shadow);}
+  .chain-empty{font-size:13px;color:var(--ink-faint);padding:16px;text-align:center;
+    border:1px dashed rgba(168,120,46,.3);border-radius:var(--radius-sm);background:var(--gold-wash);}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap;}
+  .chip .pin{width:9px;height:9px;border-radius:50%;flex:0 0 auto;}
+  .arrow{color:var(--ink-faint);font-size:13px;}
+
+  /* ---------- 部門列表 ---------- */
+  .dept-card{
+    background:var(--paper-2);border:1px solid var(--line);
+    border-radius:var(--radius);padding:20px;margin-bottom:14px;
+    box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;
+    position:relative;overflow:hidden;transition:transform .18s var(--spring),box-shadow .2s;
+    min-height:84px;
+  }
+  .dept-card:active{transform:scale(.975);box-shadow:0 1px 2px rgba(30,25,18,.04), 0 6px 16px rgba(30,25,18,.08);}
+  .dept-card .bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
+  .dept-ic,.ws-ic,.flow-ic,.le-ic{
+    box-shadow:inset 0 0 0 1px rgba(30,25,18,.07), inset 0 1.5px 0 rgba(255,255,255,.55);
+  }
+  .dept-ic{width:56px;height:56px;border-radius:17px;flex:0 0 auto;display:grid;place-items:center;font-size:27px;}
+  .dept-meta{flex:1;min-width:0;}
+  .dept-name{font-size:18.5px;font-weight:800;display:flex;align-items:center;gap:8px;}
+  .dept-tag{font-size:13px;color:var(--ink-soft);margin-top:3px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dept-count{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:20px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;flex:0 0 auto;}
+  .dept-count.zero{background:var(--line);color:var(--ink-faint);}
+  .chev{color:var(--gold);opacity:.55;font-size:22px;flex:0 0 auto;}
+
+  /* ---------- 部門工作區 ---------- */
+  .ws-head{display:flex;align-items:flex-start;gap:13px;margin-bottom:8px;}
+  .back{width:48px;height:48px;border-radius:15px;background:var(--paper-2);
+    border:1px solid var(--line);display:grid;place-items:center;font-size:22px;flex:0 0 auto;
+    box-shadow:var(--shadow);transition:transform .18s var(--spring);}
+  .back:active{transform:scale(.88);}
+  .ws-ic{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:25px;flex:0 0 auto;}
+  .ws-title{flex:1;padding-top:2px;}
+  .ws-title h2{margin:0;font-size:21px;font-weight:800;}
+  .ws-title p{margin:2px 0 0;font-size:13px;color:var(--ink-soft);}
+
+  .role-box{margin:16px 0;border:1px solid var(--line);border-radius:var(--radius-sm);
+    background:var(--paper-2);overflow:hidden;box-shadow:var(--shadow);}
+  .role-head{display:flex;align-items:center;justify-content:space-between;
+    padding:15px 16px;font-size:14px;font-weight:700;cursor:pointer;min-height:var(--tap);}
+  .role-head .lbl{display:flex;align-items:center;gap:8px;color:var(--ink-soft);}
+  .role-body{display:none;padding:0 14px 14px;}
+  .role-body.open{display:block;}
+  .role-body textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:12px;
+    padding:12px;font-size:15px;resize:vertical;background:#fff;color:var(--ink);outline:none;transition:border-color .15s;}
+  .role-body textarea:focus{border-color:var(--gold);}
+  .save-role{margin-top:10px;font-size:14px;font-weight:700;padding:12px 18px;border-radius:12px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;min-height:46px;}
+
+  .handoff-banner{display:flex;gap:10px;align-items:flex-start;
+    background:var(--gold-wash);border:1px solid rgba(168,120,46,.3);
+    border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:14px;font-size:13px;}
+  .handoff-banner .x{margin-left:auto;color:var(--ink-faint);font-size:18px;flex:0 0 auto;padding:2px 6px;}
+  .handoff-banner b{color:var(--gold);}
+
+  .input-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow);margin-bottom:16px;transition:box-shadow .2s;}
+  .input-card:focus-within{box-shadow:var(--shadow), 0 0 0 3px var(--gold-wash);}
+  .input-card textarea{width:100%;min-height:108px;border:none;outline:none;resize:vertical;
+    font-size:16px;background:transparent;color:var(--ink);line-height:1.6;}
+  .files{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 2px;}
+  .file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);
+    border:1px solid var(--line);border-radius:20px;padding:7px 11px 7px 13px;font-size:12.5px;}
+  .file-chip .rm{color:var(--ink-faint);font-size:16px;padding:0 2px;}
+  .mini-spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line);
+    border-top-color:var(--ink-soft);border-radius:50%;animation:spin .7s linear infinite;vertical-align:-1px;}
+  .switch-row{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--ink-soft);font-weight:400;line-height:1.5;}
+  .switch-row input{width:26px;height:26px;flex:0 0 auto;accent-color:var(--accent);}
+  .input-actions{display:flex;align-items:center;gap:11px;margin-top:13px;
+    border-top:1px solid var(--line-2);padding-top:14px;}
+  .attach{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:700;
+    color:var(--ink-soft);padding:13px 17px;border-radius:14px;background:var(--paper-2);
+    border:1.5px solid var(--line);min-height:var(--tap);transition:transform .18s var(--spring),border-color .15s;}
+  .attach:active{transform:scale(.96);border-color:var(--gold-soft);}
+  .run-btn{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-size:16px;font-weight:800;color:#fff;padding:0 26px;border-radius:16px;min-height:var(--tap);
+    box-shadow:0 8px 20px rgba(30,25,18,.24), inset 0 1.5px 0 rgba(255,255,255,.28);
+    transition:opacity .15s,transform .18s var(--spring),box-shadow .15s;}
+  .run-btn:active{transform:scale(.95);box-shadow:0 4px 12px rgba(30,25,18,.22), inset 0 1.5px 0 rgba(255,255,255,.2);}
+  .run-btn:disabled{opacity:.5;}
+  .spinner{width:17px;height:17px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;
+    border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .output-card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden;animation:rise .5s var(--ease-out) backwards;}
+  .output-card .oc-head{padding:14px 16px;border-bottom:1px solid var(--line-2);
+    display:flex;align-items:center;gap:9px;font-size:13px;font-weight:800;color:var(--ink-soft);}
+  .output-body{padding:17px;font-size:15.5px;white-space:pre-wrap;word-break:break-word;line-height:1.75;}
+  .output-body.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+  .output-body.clamp.full{display:block;-webkit-line-clamp:unset;overflow:visible;}
+  .saved-tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent);
+    background:rgba(31,138,114,.1);border:1px solid rgba(31,138,114,.28);padding:3px 9px;border-radius:20px;}
+  .oc-actions{padding:0 15px 15px;display:flex;flex-wrap:wrap;gap:9px;}
+  .mini{font-size:14px;font-weight:700;padding:11px 16px;border-radius:13px;min-height:46px;
+    border:1.5px solid var(--line);background:var(--paper-2);color:var(--ink-soft);
+    display:inline-flex;align-items:center;gap:6px;transition:transform .18s var(--spring),border-color .15s;}
+  .mini:active{transform:scale(.95);border-color:var(--gold-soft);}
+  .handoff-title{font-size:11.5px;color:var(--ink-faint);width:100%;font-weight:800;
+    letter-spacing:1px;margin:6px 2px 2px;}
+  .ho-btn{font-size:14px;font-weight:700;padding:11px 15px;border-radius:13px;color:#fff;min-height:46px;
+    display:inline-flex;align-items:center;gap:6px;
+    box-shadow:inset 0 1.5px 0 rgba(255,255,255,.22);transition:transform .18s var(--spring);}
+  .ho-btn:active{transform:scale(.94);}
+
+  .hist-item{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 13px;margin-bottom:9px;}
+  .hist-item .hi-top{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ink-faint);margin-bottom:5px;}
+  .hist-item .hi-in{font-size:13px;color:var(--ink-soft);margin-bottom:6px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .hist-item .hi-out{font-size:13px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:var(--line);color:var(--ink-soft);}
+
+  /* ---------- 設定 ---------- */
+  .field{margin-bottom:22px;}
+  .field label{display:block;font-size:14px;font-weight:800;margin-bottom:9px;}
+  .field .hint{font-size:12.5px;color:var(--ink-faint);font-weight:400;margin-top:7px;line-height:1.5;}
+  .field input[type=text],.field input[type=password],.field select,.field textarea{
+    width:100%;border:1.5px solid var(--line);border-radius:14px;padding:15px;
+    font-size:16px;background:var(--paper-2);color:var(--ink);outline:none;min-height:var(--tap);
+    transition:border-color .15s,box-shadow .15s;}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px var(--gold-wash);}
+  .field textarea{min-height:100px;resize:vertical;line-height:1.6;}
+  .key-row{display:flex;gap:9px;}
+  .key-row input{flex:1;}
+  .toggle-key{flex:0 0 auto;padding:0 18px;border:1.5px solid var(--line);border-radius:14px;min-height:var(--tap);
+    font-size:14px;font-weight:700;color:var(--ink-soft);background:var(--paper-2);transition:transform .1s;}
+  .toggle-key:active{transform:scale(.96);}
+  .save-bar{position:sticky;bottom:0;background:linear-gradient(transparent,var(--paper) 30%);
+    padding:16px 0 6px;margin-top:10px;}
+  .save-main{width:100%;padding:0;min-height:58px;border-radius:16px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;
+    font-size:17px;font-weight:800;box-shadow:0 10px 26px rgba(30,25,18,.26), inset 0 1.5px 0 rgba(255,255,255,.16);
+    border:1px solid rgba(217,184,115,.3);transition:transform .18s var(--spring);}
+  .save-main:active{transform:scale(.98);}
+  .danger{width:100%;margin-top:12px;padding:0;min-height:50px;border-radius:14px;font-size:14px;font-weight:700;
+    color:#A8442E;background:rgba(168,68,46,.06);border:1px solid rgba(168,68,46,.2);transition:transform .1s;}
+  .danger:active{transform:scale(.98);}
+
+  .note{font-size:12px;color:var(--ink-faint);background:var(--paper-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);padding:12px;line-height:1.6;margin-bottom:16px;}
+
+  /* 漢堡選單抽屜 */
+  .drawer-mask{position:fixed;inset:0;background:rgba(30,25,18,.4);opacity:0;pointer-events:none;
+    transition:opacity .25s;z-index:150;backdrop-filter:blur(2px);}
+  .drawer-mask.on{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;bottom:0;left:0;width:272px;max-width:80vw;z-index:160;
+    background:linear-gradient(168deg,#FFFDF8,#F5EFDF);box-shadow:16px 0 48px rgba(30,25,18,.25);
+    transform:translateX(-105%);transition:transform .32s var(--spring);
+    padding:22px 16px;overflow-y:auto;border-right:1px solid rgba(168,120,46,.3);}
+  .drawer.on{transform:none;}
+  .dr-head{font-size:12px;letter-spacing:3px;font-weight:800;color:var(--gold);
+    text-transform:uppercase;margin:2px 6px 14px;display:flex;align-items:center;gap:8px;}
+  .dr-head::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(168,120,46,.4),transparent);}
+  .dr-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;border-radius:14px;
+    font-size:15.5px;font-weight:700;color:var(--ink);text-align:left;min-height:52px;
+    transition:background .15s,transform .18s var(--spring);}
+  .dr-item:active{background:var(--gold-wash);transform:scale(.97);}
+  .dr-item .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:0 0 auto;}
+  .dr-item .cnt{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-faint);}
+  .dr-sep{height:1px;background:var(--line);margin:10px 6px;}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:11px 20px;border-radius:30px;font-size:13.5px;font-weight:600;
+    opacity:0;pointer-events:none;transition:.28s var(--spring);z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.3);
+    border:1px solid rgba(217,184,115,.25);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .build-tag{text-align:center;font-size:11.5px;color:var(--ink-faint);margin-top:16px;letter-spacing:.5px;}
+  .derive-btn{width:100%;margin-top:10px;padding:13px;border-radius:13px;font-size:14px;font-weight:700;
+    color:var(--ink);background:var(--gold-wash);border:1.5px solid rgba(168,120,46,.3);min-height:48px;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s;}
+  .derive-btn:active{transform:scale(.98);}
+  .derive-btn:disabled{opacity:.6;}
+  .ind-pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0 12px;}
+  .ind-chip{font-size:13.5px;font-weight:700;padding:10px 15px;border-radius:20px;min-height:44px;
+    background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:var(--shadow);transition:transform .18s var(--spring),border-color .15s;}
+  .ind-chip:active{transform:scale(.93);background:var(--gold-wash);border-color:var(--gold-soft);}
+  .home-build{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:22px;letter-spacing:.3px;opacity:.8;}
+  .hidden{display:none!important;}
+
+  /* 一鍵運轉 */
+  .pipeline{background:linear-gradient(168deg,#2E2415 0%,#1E1A14 78%);color:#fff;border-radius:var(--radius);
+    padding:22px;margin-bottom:18px;box-shadow:var(--shadow-lg);border:1px solid rgba(217,184,115,.16);
+    position:relative;overflow:hidden;}
+  .pipeline::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(217,184,115,.07),transparent);
+    animation:sheen 6s ease-in-out infinite;pointer-events:none;}
+  @keyframes sheen{0%,60%{left:-60%;}100%{left:130%;}}
+  .pl-title{font-size:19px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+  .pl-title::before{content:"";width:16px;height:2px;background:var(--gold-soft);border-radius:1px;}
+  .pl-sub{font-size:13px;color:rgba(255,255,255,.62);margin:6px 0 14px;line-height:1.55;}
+  .pipeline textarea{width:100%;min-height:120px;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:15px;font-size:16px;
+    background:rgba(255,255,255,.08);color:#fff;outline:none;resize:vertical;line-height:1.6;transition:border-color .15s;}
+  .pipeline textarea:focus{border-color:var(--gold-soft);}
+  .pipeline textarea::placeholder{color:rgba(255,255,255,.4);}
+  .pl-run{width:100%;margin-top:14px;padding:0;min-height:58px;border-radius:16px;
+    background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);
+    font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:9px;
+    box-shadow:0 10px 26px rgba(0,0,0,.28), inset 0 1.5px 0 rgba(255,255,255,.6);
+    border:1px solid var(--gold-soft);transition:transform .18s var(--spring);}
+  .pl-run:active{transform:scale(.98);}
+  .pl-run:disabled{opacity:.6;}
+  .pl-run .spinner{border-color:rgba(30,25,18,.3);border-top-color:var(--ink);}
+  #pipeProgress{margin-top:14px;}
+  .pl-step{display:flex;align-items:center;gap:11px;font-size:13.5px;color:rgba(255,255,255,.85);padding:8px 2px;}
+  .pl-step .st{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:0 0 auto;
+    background:rgba(255,255,255,.13);font-weight:700;border:1px solid rgba(255,255,255,.1);transition:.25s var(--spring);}
+  .pl-step.done .st{background:var(--gold-soft);color:var(--ink);border-color:var(--gold-soft);transform:scale(1.08);}
+  .pl-step.run .st{background:#fff;color:var(--ink);animation:pulse 1.4s ease-in-out infinite;}
+
+  /* 運作流程圖 */
+  .flow-row{display:flex;align-items:flex-start;justify-content:center;gap:6px;padding:4px 0;}
+  .flow-row.bot{margin-top:6px;padding-bottom:8px;position:relative;}
+  .flow-row.bot::before{content:"";position:absolute;top:-4px;left:22%;right:22%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(168,120,46,.35),transparent);}
+  .flow-node{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;
+    width:86px;max-width:29%;text-align:center;transition:transform .18s var(--spring);}
+  .flow-node:active{transform:scale(.9);}
+  .flow-ic{width:50px;height:50px;border-radius:15px;display:grid;place-items:center;font-size:24px;
+    box-shadow:var(--shadow), inset 0 0 0 1px rgba(30,25,18,.06), inset 0 1.5px 0 rgba(255,255,255,.5);}
+  .flow-name{font-size:11.5px;font-weight:700;color:var(--ink-soft);line-height:1.2;}
+  .flow-arrow{flex:0 0 auto;align-self:center;color:var(--gold);font-size:15px;margin-top:-16px;opacity:.6;width:14px;text-align:center;}
+
+  /* 範例詞 */
+  .preset-wrap{display:flex;flex-wrap:wrap;gap:9px;padding:0 2px 12px;}
+  .preset-chip{flex:0 0 auto;font-size:13px;font-weight:600;padding:10px 14px;border-radius:22px;min-height:44px;
+    background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);white-space:normal;text-align:left;
+    line-height:1.35;max-width:100%;box-shadow:var(--shadow);
+    transition:transform .18s var(--spring),border-color .15s;}
+  .preset-chip:active{background:var(--paper);transform:scale(.94);border-color:var(--gold-soft);}
+  .ps-emo{font-size:17px;}
+
+  /* 目標平台切換 */
+  .plat-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 2px 14px;}
+  .plat-lbl{font-size:12px;font-weight:800;color:var(--ink-faint);margin-right:4px;width:100%;letter-spacing:1px;}
+  .plat-chip{font-size:14px;font-weight:700;padding:11px 18px;border-radius:22px;min-height:46px;
+    background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:var(--shadow);
+    transition:transform .18s var(--spring),box-shadow .2s,background .2s,color .2s;}
+  .plat-chip:active{transform:scale(.94);}
+  .plat-chip.on{background:var(--ink);color:#fff;border-color:var(--gold);box-shadow:var(--shadow-gold);}
+  .pl-plat{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 2px 2px;}
+  .pl-plat .plat-lbl{color:rgba(255,255,255,.55);}
+  .pl-plat .plat-chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.14);box-shadow:none;}
+  .pl-plat .plat-chip.on{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);border-color:var(--gold-soft);}
+
+  /* 歷史按鈕 */
+  .hi-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+  .hi-btn{font-size:13px;font-weight:700;padding:10px 15px;border-radius:12px;border:1px solid var(--line);
+    background:var(--paper);color:var(--ink-soft);min-height:42px;}
+  .hi-btn.del{color:#A8442E;border-color:rgba(168,68,46,.22);background:rgba(168,68,46,.06);}
+  .hi-out.full{-webkit-line-clamp:unset;display:block;white-space:pre-wrap;}
+
+  /* 統整成品文章 */
+  .final-card{border:1.5px solid var(--gold);box-shadow:var(--shadow-lg), var(--shadow-gold);}
+  .final-head{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;font-size:14px;font-weight:800;
+    letter-spacing:.5px;border-bottom:1px solid rgba(217,184,115,.25);}
+
+  /* 成品庫 */
+  .results-entry .le-ic{background:rgba(46,111,176,.14);color:#2E6FB0;}
+  .res-item{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .res-top{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+  .res-plat{font-size:11.5px;font-weight:800;letter-spacing:.5px;color:#fff;background:#2E6FB0;
+    padding:4px 11px;border-radius:20px;}
+  .res-time{font-size:12px;color:var(--ink-faint);}
+  .res-goal{font-size:13.5px;font-weight:700;color:var(--ink-soft);margin-bottom:8px;}
+  .res-out{font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-word;
+    -webkit-line-clamp:5;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;}
+  .res-out.full{-webkit-line-clamp:unset;display:block;}
+
+  /* 部門產出卡片化 */
+  .seg-deck{padding:13px;display:flex;flex-direction:column;gap:11px;}
+  .seg-card{position:relative;border-radius:16px;padding:16px 46px 16px 16px;
+    background:
+      radial-gradient(110% 80% at 92% -12%, rgba(217,184,115,.14), transparent 55%),
+      linear-gradient(168deg,#FFFDF8,#F7F0DF);
+    border:1px solid rgba(168,120,46,.24);
+    box-shadow:0 1px 2px rgba(30,25,18,.04), 0 12px 26px rgba(30,25,18,.08);
+    animation:deal .5s var(--spring) backwards;}
+  .seg-card:nth-child(even){animation-delay:.06s;}
+  .seg-body{font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;}
+  .seg-num{position:absolute;top:8px;right:12px;font-size:22px;font-weight:800;opacity:.1;font-style:italic;}
+  .seg-copy{position:absolute;right:8px;bottom:8px;font-size:14px;padding:8px 10px;border-radius:10px;
+    background:rgba(30,25,18,.06);transition:transform .18s var(--spring);}
+  .seg-copy:active{transform:scale(.88);}
+
+  /* 平台分塊顯示 */
+  .plat-blocks{padding:12px;display:flex;flex-direction:column;gap:11px;}
+  .plat-block{border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden;}
+  .pb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:10px 13px;background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;font-size:13px;font-weight:800;}
+  .pb-name{letter-spacing:.5px;}
+  .pb-copy{font-size:12px;font-weight:700;color:var(--ink);background:#fff;padding:6px 12px;border-radius:9px;transition:transform .1s;}
+  .pb-copy:active{transform:scale(.93);}
+  .pb-body{padding:13px;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+  .pb-body.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+  .pb-body.clamp.full{display:block;-webkit-line-clamp:unset;}
+  .pb-more{display:block;width:100%;padding:9px;font-size:12.5px;font-weight:700;color:var(--ink-soft);
+    background:var(--paper-2);border-top:1px solid var(--line);}
+  .block-more{margin:0 13px 13px;}
+
+  /* 資料收集部 */
+  .pl-run.dark{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border-color:rgba(217,184,115,.3);
+    box-shadow:0 10px 26px rgba(30,25,18,.3), inset 0 1.5px 0 rgba(255,255,255,.12);}
+  .pl-run.dark .spinner{border-color:rgba(255,255,255,.35);border-top-color:#fff;}
+  .collect-set{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .cfg-row{display:flex;align-items:center;gap:11px;margin-top:13px;}
+  .cfg-lbl{font-size:13px;font-weight:700;color:var(--ink-soft);flex:0 0 64px;}
+  .cfg-row select,.cfg-row input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 12px;font-size:15px;background:var(--paper);color:var(--ink);outline:none;min-height:46px;}
+  .coll-item{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:15px;margin-bottom:11px;box-shadow:var(--shadow);}
+  .coll-item.used{opacity:.72;}
+  .coll-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .coll-time{font-size:11.5px;color:var(--ink-faint);}
+  .coll-used{font-size:10.5px;font-weight:700;color:#6B4E9E;background:rgba(107,78,158,.12);padding:2px 8px;border-radius:12px;}
+  .coll-topic{font-size:15.5px;font-weight:800;line-height:1.4;}
+  .coll-angle{font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+
+  /* 素材庫入口 */
+  .lib-entry{display:flex;align-items:center;gap:15px;background:var(--paper-2);border:1px solid var(--line);
+    border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow);min-height:80px;
+    transition:transform .18s var(--spring);}
+  .lib-entry:active{transform:scale(.98);}
+  .le-ic{width:52px;height:52px;border-radius:16px;background:rgba(199,144,43,.14);color:#C7902B;
+    display:grid;place-items:center;font-size:24px;flex:0 0 auto;}
+  .le-meta{flex:1;min-width:0;}
+  .le-name{font-size:17.5px;font-weight:800;}
+  .le-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .lib-upload{display:inline-flex;margin:6px 2px 16px;min-height:var(--tap);}
+
+  /* 素材庫清單 */
+  .lib-item{display:flex;align-items:center;gap:13px;background:var(--paper-2);border:1px solid var(--line);
+    border-radius:var(--radius-sm);padding:15px;margin-bottom:11px;box-shadow:var(--shadow);}
+  .lib-item .li-ic{font-size:23px;flex:0 0 auto;}
+  .lib-item .li-meta{flex:1;min-width:0;}
+  .lib-item .li-name{font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .li-row{margin-top:6px;}
+  .li-dept{font-size:12.5px;font-weight:600;color:var(--ink-soft);background:var(--paper);
+    border:1px solid var(--line);border-radius:10px;padding:7px 9px;outline:none;max-width:160px;}
+  .li-class{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-faint);font-weight:600;}
+  .lib-item .li-size{font-size:12px;color:var(--ink-faint);margin-top:2px;}
+  .lib-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink-soft);
+    padding:11px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);flex:0 0 auto;min-height:44px;}
+  .lib-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .lib-del{color:var(--ink-faint);font-size:20px;padding:8px 8px;flex:0 0 auto;}
+
+  /* pipeline 步驟挑選 */
+  #pipeSteps{margin:6px 0 10px;}
+  .ps-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid rgba(255,255,255,.1);}
+  .ps-tagn{font-size:13.5px;font-weight:700;color:#fff;flex:0 0 100px;display:flex;align-items:center;gap:7px;}
+  .ps-row select{flex:1;min-width:0;background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:12px;
+    padding:13px 12px;font-size:14px;outline:none;-webkit-appearance:none;min-height:48px;}
+  .ps-row select option{color:#1E1A14;}
+  #libPickBar{font-size:13px;color:rgba(255,255,255,.72);margin:8px 2px 2px;line-height:1.5;}
+
+  /* 指定素材列 */
+  .wslib{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 2px 12px;font-size:13px;color:var(--ink-soft);}
+  .wslib .ttl{font-weight:700;color:var(--ink-faint);}
+  .wslib .f{display:inline-flex;align-items:center;gap:5px;background:rgba(31,138,114,.1);
+    border:1px solid rgba(31,138,114,.3);color:#1F8A72;border-radius:16px;padding:7px 12px;font-weight:600;}
+
+  /* ========== 教學卡片工坊（精裝卡面） ========== */
+  .cards-entry .le-ic{background:rgba(138,90,46,.14);color:var(--c-cards);}
+  .card-deck{display:flex;flex-direction:column;gap:16px;margin-top:6px;}
+  .tcard{perspective:1400px;min-height:200px;animation:deal .55s var(--spring) backwards;}
+  .card-deck .tcard:nth-child(odd){animation-delay:.04s;}
+  .card-deck .tcard:nth-child(even){animation-delay:.1s;}
+  @keyframes deal{from{opacity:0;transform:translateY(22px) rotate(.6deg);}to{opacity:1;transform:none;}}
+  .tcard.flat{perspective:none;min-height:0;}
+  .tcard.flat .tcard-face{padding:22px 20px 56px;}
+  .tcard-inner{position:relative;width:100%;min-height:200px;
+    transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.35,.5,1);cursor:pointer;}
+  .tcard.flip .tcard-inner{transform:rotateY(180deg);}
+  .tcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    border-radius:22px;padding:22px 20px 56px;display:flex;flex-direction:column;gap:9px;
+    box-shadow:0 2px 4px rgba(30,25,18,.05), 0 20px 44px rgba(30,25,18,.12);}
+  .tcard-front{
+    background:
+      radial-gradient(120% 90% at 88% -10%, rgba(217,184,115,.22), transparent 55%),
+      linear-gradient(168deg,#FFFDF8,#F6EFDD);
+    border:1px solid rgba(168,120,46,.28);
+  }
+  .tcard-front::before,.tcard-back::before{
+    content:"";position:absolute;inset:7px;border-radius:16px;pointer-events:none;
+    border:1px solid rgba(168,120,46,.3);
+  }
+  .tcard-back{
+    background:
+      radial-gradient(120% 90% at 12% -10%, rgba(217,184,115,.16), transparent 55%),
+      linear-gradient(168deg,#332816,#1C1810);
+    color:#FBF6EA;border:1px solid rgba(217,184,115,.5);transform:rotateY(180deg);
+    box-shadow:0 2px 4px rgba(30,25,18,.1), 0 22px 48px rgba(30,25,18,.28), var(--shadow-gold);
+  }
+  .tcard-back::before{border-color:rgba(217,184,115,.32);}
+  .tcard-tag{font-size:10.5px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
+    display:flex;align-items:center;gap:7px;}
+  .tcard-tag::after{content:"";flex:1;height:1px;max-width:44px;
+    background:linear-gradient(90deg,currentColor,transparent);opacity:.5;}
+  .tcard-front .tcard-tag{color:var(--gold);}
+  .tcard-back .tcard-tag{color:var(--gold-soft);}
+  .tcard-q{font-size:17.5px;font-weight:800;line-height:1.5;letter-spacing:.2px;}
+  .tcard-a{font-size:15px;line-height:1.75;white-space:pre-wrap;}
+  .tcard-num{position:absolute;top:14px;right:18px;font-size:34px;font-weight:800;opacity:.1;
+    font-variant-numeric:tabular-nums;letter-spacing:1px;font-style:italic;}
+  .tcard-hint{position:absolute;left:20px;bottom:16px;font-size:11.5px;color:var(--ink-faint);
+    display:flex;align-items:center;gap:5px;}
+  .tcard-back .tcard-hint{color:rgba(251,246,234,.5);}
+  .tcard-copy{position:absolute;right:14px;bottom:12px;font-size:12px;font-weight:700;
+    padding:9px 15px;border-radius:11px;min-height:40px;letter-spacing:.3px;
+    box-shadow:0 4px 12px rgba(30,25,18,.18), inset 0 1px 0 rgba(255,255,255,.25);
+    transition:transform .18s var(--spring);}
+  .tcard-copy:active{transform:scale(.92);}
+  .tcard-front .tcard-copy{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;
+    border:1px solid rgba(217,184,115,.4);}
+  .tcard-back .tcard-copy{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);
+    border:1px solid var(--gold-soft);}
+  .deck-item{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:15px;margin-bottom:11px;box-shadow:var(--shadow);}
+  .deck-title{font-size:15.5px;font-weight:800;}
+  .deck-sub{font-size:12.5px;color:var(--ink-faint);margin-top:2px;}
+  .cards-cfg{display:flex;gap:9px;margin-top:12px;}
+  .cards-cfg select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 12px;font-size:15px;background:var(--paper);color:var(--ink);outline:none;min-height:46px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="topbar" id="topbar">
+    <div class="brand-tag">AI 集團 · GROUP</div>
+    <div class="row" style="margin-top:4px;">
+      <button class="hdr-toggle" onclick="toggleMenu()" aria-label="選單" style="order:-1;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
+      </button>
+      <span class="mini-title" id="miniTitle">AI 內容集團</span>
+      <input id="titleInput" class="title-edit" value="AI 內容集團" maxlength="20" spellcheck="false">
+      <button class="hdr-toggle" onclick="toggleHeader()" id="hdrToggle" aria-label="收合標題">
+        <svg class="chev-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+      </button>
+      <button class="gear" onclick="openView('settings')" aria-label="設定">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+    <div class="status-line">
+      <span class="dot" id="keyDot"></span>
+      <span id="keyStatus">尚未連接 AI — 請到設定填入 OpenAI 金鑰</span>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section id="view-home" class="view active">
+    <div class="pipeline">
+      <div class="pl-title">🚀 一鍵跑完整套（多平台）</div>
+      <div class="pl-sub">三個部門輪流接力：內容創作 → 點評實戰 → 邀約陪跑，最後自動統整成一篇可直接發布的成品文章。主題可留空。</div>
+      <textarea id="pipeInput" placeholder="（可留空）今天主題，例如：母親節檔期 / 新品上市 / 客戶見證"></textarea>
+      <div id="pipeSteps"></div>
+      <div class="pl-plat" id="pipePlatBar"></div>
+      <div id="libPickBar"></div>
+      <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 一鍵跑完整套（全自動）</button>
+      <div id="pipeProgress"></div>
+    </div>
+    <div id="pipeResults"></div>
+
+    <div class="lib-entry cards-entry" onclick="openCards()">
+      <div class="le-ic">🎴</div>
+      <div class="le-meta">
+        <div class="le-name">教學卡片工坊</div>
+        <div class="le-sub" id="cardsSummary">貼上教材，AI 變成互動問答卡，可直接複製使用</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="lib-entry results-entry" onclick="openResults()">
+      <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📦</div>
+      <div class="le-meta">
+        <div class="le-name">成品庫</div>
+        <div class="le-sub" id="resSummary">一鍵流程的成品都會永久收存在這裡</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="lib-entry" onclick="openCollector()">
+      <div class="le-ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</div>
+      <div class="le-meta">
+        <div class="le-name">資料收集部</div>
+        <div class="le-sub" id="collSummary">每日收集相關話題並存檔，可手動／定時／自動</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="lib-entry" onclick="openLibrary()">
+      <div class="le-ic">📁</div>
+      <div class="le-meta">
+        <div class="le-name">素材庫</div>
+        <div class="le-sub" id="libSummary">留存常用檔案，指定後各部門自動使用</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="chain-wrap">
+      <div class="section-label">運作流程（點任一站可進入）</div>
+      <div id="chainBox"></div>
+    </div>
+    <div class="section-label">三大部門（可單獨執行）</div>
+    <div id="deptList"></div>
+    <div class="home-build" id="homeBuild"></div>
+  </section>
+
+  <!-- CARDS 教學卡片工坊 -->
+  <section id="view-cards" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🎴 教學卡片工坊</h2><p>教材 → 互動問答卡 → 一鍵複製</p></div>
+    </div>
+    <div class="note">貼上教材文字或上傳文件（PDF／Word／txt／圖片），AI 會抽出重點做成教學卡。三種格式：同頁卡（問答一起看）、翻轉卡（翻面看答案）、填空卡（挖空考記憶）。每張都能複製，也可複製整副卡當講義；卡組會存在你的瀏覽器。</div>
+
+    <div class="input-card">
+      <textarea id="cardsInput" placeholder="貼上教材內容…（也可只上傳檔案）"></textarea>
+      <div class="files" id="cardsFileList"></div>
+      <div class="cards-cfg">
+        <select id="cardsCount">
+          <option value="6">6 張卡</option>
+          <option value="10" selected>10 張卡</option>
+        </select>
+        <select id="cardsMode">
+          <option value="together" selected>同頁卡（問題＋答案在同一張）</option>
+          <option value="flip">翻轉卡（先看問題，翻面看答案）</option>
+          <option value="cloze">填空卡（挖空句子，翻面看解答）</option>
+        </select>
+      </div>
+      <div class="input-actions">
+        <label class="attach">📎 加教材檔
+          <input type="file" id="cardsFileInput" multiple accept=".txt,.md,.csv,.json,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" class="hidden" onchange="handleCardsFiles(event)">
+        </label>
+        <button class="run-btn" id="cardsBtn" style="background:var(--c-cards)" onclick="generateCards()">產生卡片 ▸</button>
+      </div>
+    </div>
+
+    <div id="deckZone"></div>
+
+    <div class="section-label" id="deckLabel" style="display:none;">已保存的卡組</div>
+    <div id="deckList"></div>
+  </section>
+
+  <!-- RESULTS 成品庫 -->
+  <section id="view-results" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>📦 成品庫</h2><p>一鍵流程的成品永久保存於此</p></div>
+    </div>
+    <div id="resList"></div>
+  </section>
+
+  <!-- COLLECTOR 資料收集部 -->
+  <section id="view-collector" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🛰️ 資料收集部</h2><p>收集相關話題並存檔，串接到內容流程</p></div>
+    </div>
+    <div class="note">收集會用 AI 依你的「公司背景」（行業與定位）產出此刻適合發文的相關話題與切入角度並存檔。自動／定時收集只會在你打開這個 App 時執行（網頁版無法在關閉後背景執行）。</div>
+
+    <div class="collect-set">
+      <label class="switch-row"><input type="checkbox" id="collAutoSet" onchange="saveCollectorCfg()"><span>自動收集（打開 App 時依頻率自動執行）</span></label>
+      <div class="cfg-row">
+        <span class="cfg-lbl">頻率</span>
+        <select id="collFreqSet" onchange="saveCollectorCfg()">
+          <option value="daily">每日一次</option>
+          <option value="open">每次開啟 App</option>
+        </select>
+      </div>
+      <div class="cfg-row">
+        <span class="cfg-lbl">主題方向</span>
+        <input type="text" id="collHintSet" placeholder="可留空，例如：母親節、夏季新品、某客群痛點" oninput="saveCollectorCfg()">
+      </div>
+    </div>
+
+    <button class="pl-run dark" id="collectBtn" onclick="collectNow()">🛰️ 立即收集話題</button>
+    <div class="section-label" style="margin-top:18px;">已收集的話題（存檔）</div>
+    <div id="collectList"></div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="view-library" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>📁 素材庫</h2><p>檔案留存一次，之後勾選即可使用</p></div>
+    </div>
+    <div class="note">檔案存在你自己的瀏覽器。上傳後 AI 會自動做兩件事：①分類到所屬部門（可手動改）②把內容整理成精煉的「備用資料」。之後「一鍵運轉」與各部門執行時，會自動帶入整理版，不必每次重新上傳。圖片會自動壓縮保存。</div>
+    <label class="attach lib-upload">＋ 上傳檔案到素材庫
+      <input type="file" id="libInput" multiple accept=".txt,.md,.csv,.json,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" class="hidden" onchange="handleLibUpload(event)">
+    </label>
+    <div id="libList"></div>
+  </section>
+
+  <!-- DEPARTMENT -->
+  <section id="view-dept" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-ic" id="wsIc"></div>
+      <div class="ws-title">
+        <h2 id="wsName"></h2>
+        <p id="wsTag"></p>
+      </div>
+    </div>
+
+    <div class="role-box">
+      <div class="role-head" onclick="toggleRole()">
+        <span class="lbl">🎯 AI 定位設定（可調整）</span>
+        <span id="roleChev">＋</span>
+      </div>
+      <div class="role-body" id="roleBody">
+        <textarea id="roleText" placeholder="描述這個部門的 AI 角色、任務、語氣與限制…"></textarea>
+        <button class="save-role" onclick="saveRole()">儲存定位</button>
+      </div>
+    </div>
+
+    <div id="handoffBanner"></div>
+
+    <div class="preset-wrap" id="presetWrap"></div>
+
+    <div class="plat-bar" id="platBar"></div>
+
+    <div id="wsLibBar"></div>
+
+    <div class="input-card">
+      <textarea id="taskInput" placeholder="交辦這個部門要做的事…例如：依素材寫一支 TikTok 開場破冰腳本"></textarea>
+      <div class="files" id="fileList"></div>
+      <div class="input-actions">
+        <label class="attach">📎 加檔案
+          <input type="file" id="fileInput" multiple accept=".txt,.md,.csv,.json,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" class="hidden" onchange="handleFiles(event)">
+        </label>
+        <button class="run-btn" id="runBtn" onclick="runTask()">執行 ▸</button>
+      </div>
+    </div>
+
+    <div id="outputZone"></div>
+
+    <div class="section-label" id="histLabel" style="display:none;">本部門紀錄</div>
+    <div id="deptHistory"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>設定</h2><p>接上 AI 就能獨立運轉</p></div>
+    </div>
+
+    <div class="note">
+      🔑 金鑰只存在你自己的瀏覽器（localStorage），不會上傳到任何伺服器。放上 GitHub Pages 後即可獨立運作。<br>
+      ⚠️ 因金鑰寫在前端，請勿把含金鑰的網址公開分享給他人。
+    </div>
+
+    <div class="field">
+      <label>🌿 會員版設定（GAS 後端，比照回覆靈感系統）</label>
+      <input type="text" id="gasUrlSet" placeholder="https://script.google.com/macros/s/AKfycbx7EHpSHR65XPn4ROOfaqYbOmWQ7al-5Gkouz1d6Kunyed8GU7P6nI-sXS_V_K8rQQI/exec" spellcheck="false">
+      <div style="height:9px"></div>
+      <input type="text" id="liffIdSet" placeholder="2008578880-YB0IXDbA" spellcheck="false">
+      <div class="hint">填了 GAS 網址後：AI 改由後端代呼叫（金鑰鎖在 GAS 指令碼屬性，前端不需填金鑰）、依 LINE 身分驗證會員（👑尊爵永久／💎尊爵限時／🥇黃金扣次，成功才扣次）。留空則走上方個人金鑰直連模式。</div>
+    </div>
+
+    <div class="field">
+      <label>OpenAI API 金鑰（個人直連模式用）</label>
+      <div class="key-row">
+        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" spellcheck="false">
+        <button class="toggle-key" onclick="toggleKey()" id="toggleKeyBtn">顯示</button>
+      </div>
+      <div class="hint">前往 platform.openai.com → API keys 取得。</div>
+    </div>
+
+    <div class="field">
+      <label>使用模型</label>
+      <select id="modelSel">
+        <option value="gpt-4o-mini">⚡ 快速（gpt-4o-mini · 快速）</option>
+        <option value="gpt-5-mini">🧠 智慧（gpt-5-mini · 聰明）</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>公司名稱（顯示在最上方標題）</label>
+      <input type="text" id="titleSet" maxlength="20">
+    </div>
+
+    <div class="field">
+      <label>公司背景 · 共用設定（決定你的行業與語氣）</label>
+      <div class="ind-pick" id="indPick"></div>
+      <textarea id="contextSet" placeholder="填你的行業、定位、客群、語氣、禁忌…所有部門都會依這段產出"></textarea>
+      <button class="derive-btn" id="deriveBtn" onclick="deriveBrand()">🪄 依素材自動產生品牌設定（AI 草擬）</button>
+      <div class="hint">換行業就改這裡即可，不用改程式。按上方按鈕可讓 AI 依「素材庫」裡勾選的素材，幫你草擬一份品牌設定。</div>
+    </div>
+
+    <div class="field">
+      <label>上傳檔案後自動分析</label>
+      <label class="switch-row"><input type="checkbox" id="autoSet"><span>開啟後，上傳文件或圖片會立即用該部門定位分析，不必再按「執行」</span></label>
+    </div>
+
+    <div class="save-bar">
+      <button class="save-main" onclick="saveSettings()">儲存設定</button>
+      <button class="danger" onclick="resetAll()">回復出廠預設（清空所有資料）</button>
+    </div>
+    <div class="build-tag" id="buildTag">版本載入中…</div>
+  </section>
+
+</div>
+
+<div class="drawer-mask" id="drawerMask" onclick="toggleMenu(false)"></div>
+<aside class="drawer" id="drawer">
+  <div class="dr-head">選單</div>
+  <div id="drawerList"></div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 預設資料 ============ */
+const DEFAULTS = {
+  schema:9,
+  build:"2026.07.12-flow14-member",
+  title:"AI 內容集團",
+  context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
+  apiKey:"",
+  gasUrl:"",
+  liffId:"",
+  model:"gpt-4o-mini",
+  autoAnalyze:true,
+  departments:[
+    { id:"icebreak", name:"破冰部", emoji:"🧊", accent:"#C7902B", varName:"--c-collect",
+      tagline:"先破冰 · 停下滑動建立共鳴",
+      role:"你是『破冰部』，負責每則內容的『先破冰』。依【公司背景】的行業與定位、以及【附加素材】，產出能讓目標客群停下滑動、覺得『這在說我』的開場：用生活情境、一句同理的話、提問或小故事拉近距離、建立信任。先不講賣點、不推銷、不誇大。依目標平台給最適合的開頭鉤子。繁體台灣用語。",
+      presets:["用一個生活情境破冰，引發目標客群共鳴","用一句同理的話開場","用提問破冰，讓人很想回答","把這個主題改成停下滑動的開場鉤子"] },
+    { id:"core", name:"重點部", emoji:"📣", accent:"#1F8A72", varName:"--c-integrate",
+      tagline:"再講事情 · 把重點講到有感",
+      role:"你是『重點部』，負責破冰之後的『講事情』。依【公司背景】與【附加素材】，把這次要傳達的重點／價值／賣點講清楚、講到對方有感，用具體例子、對比或故事讓人好懂、有畫面。不誇大、不違規。依目標平台調整深淺與長短。繁體台灣用語。",
+      presets:["把這次的重點／賣點講清楚講到有感","用具體例子或對比說明價值","把素材整理成好懂的重點","用一個小故事帶出核心訊息"] },
+    { id:"invite", name:"互動邀約部", emoji:"🤝", accent:"#2E6FB0", varName:"--c-develop",
+      tagline:"留言互動＋自然邀約收尾",
+      role:"你是『互動邀約部』，負責收尾與關係。先給可搭配的真誠『留言互動』話術（用心感受對方內容＋吸引你的點＋你的相關經驗；含對新客／老客／流失客／轉介紹／夥伴的真誠用語，要具體），再把內容自然收尾成低門檻的邀約或行動呼籲。依【公司背景】的行業調整，不施壓、不推銷感、符合該行業規範。繁體台灣用語。",
+      presets:["寫可搭配的真誠留言（IG／Threads）","把內容自然收尾成 Line 邀約／行動呼籲","三種柔性回應：沒時間／沒興趣／再考慮","寫給新客／老客的真誠用語"] }
+  ],
+  tasks:[],  // {id, deptId, deptName, accent, input, output, time, fromDept}
+  library:[],// {id, name, kind, content, url, active, size, deptId}
+  collections:[], // {id, time, topic, angle, used}
+  collector:{ auto:false, freq:"daily", lastRun:0, topicHint:"" },
+  decks:[]   // {id, time, title, mode, cards:[{q,a}]}
+};
+
+/* ============ 狀態 ============ */
+let state = load();
+let current = null;
+let pendingFiles = [];
+let cardsFiles = [];       // 教學卡片工坊的附件
+let handoffFrom = null;
+let running = false;
+const PLATFORMS=[
+  {k:"all",      label:"全平台",   tip:"請分別為 TikTok、Instagram、Threads、YouTube、Facebook、Line 六個平台各產出一個版本，每個版本最前面用【平台名稱】標明，彼此用一行「— — —」分隔，並依該平台調性調整（短影音腳本／圖文限動／串文／影片腳本／臉書貼文／Line 訊息）。"},
+  {k:"tiktok",   label:"TikTok",   tip:"請輸出 TikTok 短影音腳本：前 3 秒要有強鉤子、口語節奏快、附口白與字幕、結尾一句行動呼籲，再給 3–5 個主題標籤。"},
+  {k:"instagram",label:"Instagram",tip:"請輸出 Instagram 內容：圖文貼文文案（可分頁）＋一則限動文案，視覺優先、精簡有共鳴，附 5–8 個相關主題標籤。"},
+  {k:"threads",  label:"Threads",  tip:"請輸出 Threads 短文：像聊天、口語、引發討論或共鳴，可拆成 2–3 則串文。"},
+  {k:"youtube",  label:"YouTube",  tip:"請輸出 YouTube 影片腳本／大綱：開場 15 秒留人、分章節、口白順、結尾導訂閱與下一支。"},
+  {k:"facebook", label:"Facebook", tip:"請輸出 Facebook 貼文：可較長、說故事、段落分明、引發留言與分享，結尾一個互動提問或行動呼籲。"},
+  {k:"line",     label:"Line",     tip:"請輸出 Line 訊息：像一對一傳給朋友，親切、簡短、可直接複製傳送，不像廣告。"}
+];
+let currentPlatform="all";
+function platTip(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.tip:""; }
+function platLabel(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.label:"全平台"; }
+function renderPlatBar(){
+  const bar=document.getElementById("platBar"); if(!bar) return;
+  bar.innerHTML='<span class="plat-lbl">目標平台</span>'+PLATFORMS.map(p=>
+    `<button class="plat-chip ${p.k===currentPlatform?'on':''}" onclick="selectPlatform('${p.k}')">${p.label}</button>`).join("");
+}
+function selectPlatform(k){ currentPlatform=k; renderPlatBar(); }
+const MAX_FILE_CHARS = 12000;
+const MAX_TOTAL_CHARS = 36000;
+const MAX_CHAIN_CHARS = 2500;
+
+function load(){
+  const DEF = structuredClone(DEFAULTS);
+  try{
+    const raw = localStorage.getItem("ai_company_v1");
+    if(raw){ const s = JSON.parse(raw);
+      const merged = {...DEF, ...s};
+      merged.library = Array.isArray(s.library)? s.library : [];
+      merged.collections = Array.isArray(s.collections)? s.collections : [];
+      merged.collector = {...DEF.collector, ...(s.collector||{})};
+      merged.decks = Array.isArray(s.decks)? s.decks : [];
+      merged.gasUrl = s.gasUrl||"";
+      merged.liffId = s.liffId||"";
+      if(merged.model!=="gpt-4o-mini" && merged.model!=="gpt-5-mini"){
+        merged.model = (/gpt-4o$|4\.1(?!-)|gpt-5/.test(merged.model||""))? "gpt-5-mini" : "gpt-4o-mini";
+      }
+      const defDepts = structuredClone(DEFAULTS.departments);
+      const sameStructure = (s.schema===DEFAULTS.schema)
+        && Array.isArray(s.departments) && s.departments.length===defDepts.length
+        && defDepts.every(d=> s.departments.some(x=>x.id===d.id));
+      if(sameStructure){
+        merged.departments = defDepts.map(bd=>{
+          const u = s.departments.find(x=>x.id===bd.id) || {};
+          return {...bd, ...u, presets: u.presets || bd.presets || []};
+        });
+      }else{
+        merged.departments = defDepts;
+        merged.context = DEFAULTS.context;
+        merged.schema = DEFAULTS.schema;
+      }
+      return merged;
+    }
+  }catch(e){}
+  return DEF;
+}
+function save(){ try{ localStorage.setItem("ai_company_v1", JSON.stringify(state)); }catch(e){ toast("儲存失敗：瀏覽器空間不足"); } }
+
+/* ============ 工具 ============ */
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove("show"),1900);
+}
+function dept(id){ return state.departments.find(d=>d.id===id); }
+function esc(s){ return (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function timeStr(t){ const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; }
+
+/* ============ 視圖切換 ============ */
+function openView(v){
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.getElementById("view-"+v).classList.add("active");
+  window.scrollTo(0,0);
+  if(v==="home") renderHome();
+  if(v==="settings") fillSettings();
+}
+
+/* ============ Home ============ */
+function renderHome(){
+  const box=document.getElementById("chainBox");
+  const node=(onclk,bg,color,emoji,name)=>`<div class="flow-node" onclick="${onclk}">
+       <div class="flow-ic" style="background:${bg};color:${color}">${emoji}</div>
+       <div class="flow-name">${esc(name)}</div>
+     </div>`;
+  const arrow='<div class="flow-arrow">→</div>';
+  const topRow = state.departments.map(d=>
+    node(`openDept('${d.id}')`, hexA(d.accent,.14), d.accent, d.emoji, d.name)
+  ).join(arrow);
+  const botRow = node("openCollector()","rgba(107,78,158,.14)","#6B4E9E","🛰️","資料收集")
+    + arrow
+    + node("openResults()","rgba(46,111,176,.14)","#2E6FB0","📦","成品庫");
+  box.innerHTML=`<div class="flow-row top">${topRow}</div>
+    <div class="flow-row bot">${botRow}</div>`;
+  const list=document.getElementById("deptList");
+  list.innerHTML = state.departments.map(d=>{
+    const cnt = state.tasks.filter(t=>t.deptId===d.id).length;
+    return `<div class="dept-card" onclick="openDept('${d.id}')">
+      <div class="bar" style="background:${d.accent}"></div>
+      <div class="dept-ic" style="background:${hexA(d.accent,.13)};color:${d.accent}">${d.emoji}</div>
+      <div class="dept-meta">
+        <div class="dept-name">${esc(d.name)}</div>
+        <div class="dept-tag">${esc(d.tagline)}</div>
+      </div>
+      <span class="dept-count ${cnt?'':'zero'}">${cnt} 筆</span>
+      <span class="chev">›</span>
+    </div>`;
+  }).join("");
+  renderPipeSteps();
+  updateLibSummary();
+  updateResSummary();
+  updateCollSummary();
+  updateCardsSummary();
+  updateKeyStatus();
+  const hb=document.getElementById("homeBuild");
+  if(hb) hb.textContent="版本 "+(DEFAULTS.build||"-")+" · 通用模板（依資料整理，適合各行業）";
+}
+function renderPipeSteps(){
+  const box=document.getElementById("pipeSteps"); if(!box) return;
+  box.innerHTML=state.departments.map((d,i)=>{
+    const opts=`<option value="-1">✨ 依「${esc(d.name)}」專長自動發揮</option>`
+      +(d.presets||[]).map((p,j)=>`<option value="${j}">${esc(p)}</option>`).join("");
+    return `<div class="ps-row">
+      <span class="ps-tagn"><span class="ps-emo">${d.emoji}</span>${esc(d.name)}</span>
+      <select id="pstep-${i}">${opts}</select>
+    </div>`;
+  }).join("");
+  const pb=document.getElementById("pipePlatBar");
+  if(pb){ pb.innerHTML='<span class="plat-lbl">目標平台</span>'+PLATFORMS.map(p=>
+    `<button class="plat-chip ${p.k===pipePlatform?'on':''}" onclick="selectPipePlatform('${p.k}')">${p.label}</button>`).join(""); }
+  const lp=document.getElementById("libPickBar");
+  const act=state.library.filter(x=>x.active);
+  lp.innerHTML = act.length? `📎 已指定素材：${act.map(x=>esc(x.name)).join("、")}（會自動帶入各部門）`
+    : `📎 尚未指定素材，可到下方「素材庫」勾選常用檔案。`;
+}
+let pipePlatform="all";
+function selectPipePlatform(k){ pipePlatform=k; renderPipeSteps(); }
+function getIdByName(name){ const d=state.departments.find(x=>x.name===name); return d?d.id:""; }
+function hexA(hex,a){ const n=hex.replace("#",""); const r=parseInt(n.slice(0,2),16),g=parseInt(n.slice(2,4),16),b=parseInt(n.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
+
+/* ============ 教學卡片工坊 ============ */
+function openCards(){ renderDecks(); openView("cards"); }
+function updateCardsSummary(){
+  const el=document.getElementById("cardsSummary"); if(!el) return;
+  const n=state.decks.length;
+  el.textContent = n? `已保存 ${n} 副卡組，點進來複習或複製` : "貼上教材，AI 變成互動問答卡，可直接複製使用";
+}
+async function handleCardsFiles(e){
+  const files=[...e.target.files]; e.target.value="";
+  for(const f of files){
+    const p=await parseFile(f);
+    if(p.isImage && p.url){ p.url=await compressImage(p.url); }
+    cardsFiles.push(p);
+  }
+  renderCardsFiles();
+}
+function renderCardsFiles(){
+  document.getElementById("cardsFileList").innerHTML=cardsFiles.map((f,i)=>
+    `<span class="file-chip">${libIcon(f.kind)} ${esc(f.name)}<span class="rm" onclick="rmCardsFile(${i})">×</span></span>`).join("");
+}
+function rmCardsFile(i){ cardsFiles.splice(i,1); renderCardsFiles(); }
+// 解析卡片 JSON：正常解析失敗時，用逐張搶救（即使回覆被截斷也能撈回完整的卡）
+function parseCardsJSON(r){
+  const s=cleanJSON(r);
+  try{ const o=JSON.parse(s); if(o&&Array.isArray(o.cards)) return o; }catch(e){}
+  const cards=[]; const re=/\{\s*"q"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"a"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g;
+  let m; while((m=re.exec(s))){ try{ cards.push({q:JSON.parse('"'+m[1]+'"'), a:JSON.parse('"'+m[2]+'"')}); }catch(e){} }
+  const t=s.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  return { title: t? (()=>{try{return JSON.parse('"'+t[1]+'"');}catch(e){return "教學卡組";}})() : "教學卡組", cards };
+}
+const CARD_MODES={
+  together:"同頁卡：q 是一個好問題，a 是清楚完整的答案（問答會顯示在同一張卡上）。",
+  flip:"翻轉卡：q 是一個好問題（正面），a 是清楚完整的答案（背面）。",
+  cloze:"填空卡：q 是把關鍵詞挖空的句子（用「____」表示，正面），a 是完整句子並標出關鍵詞（背面）。"
+};
+async function generateCards(){
+  if(running) return;
+  if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
+  if(!canRun()) return;
+  const txt=document.getElementById("cardsInput").value.trim();
+  const imgFiles=cardsFiles.filter(f=>f.isImage);
+  const fileTexts=cardsFiles.filter(f=>!f.isImage)
+    .map(f=>`---「${f.name}」---\n${(f.content||"").slice(0,MAX_FILE_CHARS)}`).join("\n\n");
+  if(!txt && !fileTexts && imgFiles.length===0){ toast("請貼上教材或上傳檔案"); return; }
+  running=true;
+  const btn=document.getElementById("cardsBtn");
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>製卡中';
+  const n=parseInt(document.getElementById("cardsCount").value,10)||10;
+  const mode=document.getElementById("cardsMode").value;
+  const sys=`你是教學設計師。把使用者的教材整理成教學卡片。卡片類型：${CARD_MODES[mode]}\n【硬性規定】cards 陣列長度必須「剛好 ${n} 張」，不可少張、不可多張。若教材太少，就把觀念拆細或延伸例題補滿 ${n} 張。\n每張卡精簡：q 不超過 40 字，a 不超過 90 字。由淺入深排序。\n【語言鐵則】不論教材原文是簡體、英文或其他語言，所有輸出一律轉成繁體中文（台灣用語）。\n只回 JSON：{"title":"卡組名稱（8字內）","cards":[{"q":"...","a":"..."}]}，不要 markdown、不要其他文字。`;
+  let userText=(txt?("教材內容：\n"+txt+"\n\n"):"")+(fileTexts?("【附加教材檔】\n"+fileTexts.slice(0,MAX_TOTAL_CHARS)):"");
+  if(imgFiles.length && !userText) userText="教材在附圖中，請先讀懂圖片內容（含文字與圖表）再製卡。";
+  else if(imgFiles.length) userText+="\n\n另附教材圖片，請一併讀懂內容（含文字與圖表）納入製卡。";
+  const user = imgFiles.length
+    ? [{type:"text",text:userText}, ...imgFiles.slice(0,4).map(f=>({type:"image_url",image_url:{url:f.url}}))]
+    : userText;
+  try{
+    const budget=1400+n*300; // 依張數放大回覆額度，避免 JSON 被截斷只剩幾張
+    const r=await callOpenAI(sys,user,budget,true);
+    let obj=parseCardsJSON(r);
+    let cards=(obj.cards||[]).filter(c=>c.q&&c.a).slice(0,n);
+    // 張數不足：自動補齊一輪
+    if(cards.length<n){
+      const need=n-cards.length;
+      const sys2=sys+`\n【補卡】已有 ${cards.length} 張（主題：${cards.map(c=>c.q).join("；").slice(0,600)}）。請再產出「剛好 ${need} 張」不重複的新卡，只回 {"cards":[...]}。`;
+      try{
+        const r2=await callOpenAI(sys2,user,900+need*300);
+        const obj2=parseCardsJSON(r2);
+        cards=[...cards, ...(obj2.cards||[]).filter(c=>c.q&&c.a)].slice(0,n);
+      }catch(e){}
+    }
+    if(cards.length===0) throw new Error("沒有產出卡片，請換教材再試");
+    const deck={ id:Date.now(), time:Date.now(), title:obj.title||"教學卡組", mode, cards };
+    state.decks.unshift(deck); state.decks=state.decks.slice(0,60); save();
+    renderDeck(deck); renderDecks(); updateCardsSummary();
+    document.getElementById("cardsInput").value=""; cardsFiles=[]; renderCardsFiles();
+    toast(cards.length>=n?`已產生 ${cards.length} 張卡並保存`:`教材量有限，本次產出 ${cards.length}/${n} 張並已保存`);
+    document.getElementById("deckZone").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){ toast("製卡失敗："+err.message); }
+  finally{ running=false; btn.disabled=false; btn.innerHTML="產生卡片 ▸"; }
+}
+const MODE_TAG={together:"同頁",flip:"翻轉",cloze:"填空",qa:"翻轉",point:"翻轉"};
+function cardHTML(deck,c,i){
+  const num=String(i+1).padStart(2,"0");
+  if(deck.mode==="together"){
+    return `<div class="tcard flat">
+      <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
+        <span class="tcard-num">${num}</span>
+        <span class="tcard-tag">同頁 · 問答</span>
+        <div class="tcard-q">${esc(c.q)}</div>
+        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">👉 ${esc(c.a)}</div>
+        <button class="tcard-copy" onclick="event.stopPropagation();copyCard(${deck.id},${i})">📋 複製</button>
+      </div>
+    </div>`;
+  }
+  const frontTag=deck.mode==="cloze"?"填空 · 正面":"翻轉 · 正面";
+  const hint=deck.mode==="cloze"?"👆 點卡片翻面看解答":"👆 點卡片翻面看答案";
+  return `<div class="tcard" onclick="this.classList.toggle('flip')">
+    <div class="tcard-inner">
+      <div class="tcard-face tcard-front">
+        <span class="tcard-num">${num}</span>
+        <span class="tcard-tag">${frontTag}</span>
+        <div class="tcard-q">${esc(c.q)}</div>
+        <span class="tcard-hint">${hint}</span>
+        <button class="tcard-copy" onclick="event.stopPropagation();copyCard(${deck.id},${i})">📋 複製</button>
+      </div>
+      <div class="tcard-face tcard-back">
+        <span class="tcard-num">${num}</span>
+        <span class="tcard-tag">${deck.mode==="cloze"?"解答":"答案"} · 背面</span>
+        <div class="tcard-a">${esc(c.a)}</div>
+        <span class="tcard-hint">👆 點卡片翻回正面</span>
+        <button class="tcard-copy" onclick="event.stopPropagation();copyCard(${deck.id},${i})">📋 複製</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderDeck(deck){
+  const zone=document.getElementById("deckZone");
+  zone.innerHTML=`<div class="output-card">
+    <div class="oc-head">🎴 ${esc(deck.title)}<span class="saved-tag">共 ${deck.cards.length} 張 · 已保存</span></div>
+    <div class="card-deck" style="padding:14px;">
+      ${deck.cards.map((c,i)=>cardHTML(deck,c,i)).join("")}
+    </div>
+    <div class="oc-actions">
+      <button class="mini" onclick="copyDeck(${deck.id})">📋 複製整副卡（文字版）</button>
+    </div>
+  </div>`;
+}
+function deckById(id){ return state.decks.find(d=>d.id===id); }
+function copyCard(deckId,i){
+  const d=deckById(deckId); if(!d) return;
+  const c=d.cards[i];
+  navigator.clipboard.writeText(`Q${i+1}：${c.q}\nA：${c.a}`).then(()=>toast("已複製這張卡"));
+}
+function copyDeck(id){
+  const d=deckById(id); if(!d) return;
+  const txt=`【${d.title}】\n\n`+d.cards.map((c,i)=>`${i+1}. ${c.q}\n👉 ${c.a}`).join("\n\n");
+  navigator.clipboard.writeText(txt).then(()=>toast("已複製整副卡，可直接貼講義或貼文"));
+}
+function renderDecks(){
+  const lbl=document.getElementById("deckLabel"), box=document.getElementById("deckList");
+  if(state.decks.length===0){ lbl.style.display="none"; box.innerHTML=""; return; }
+  lbl.style.display="block";
+  box.innerHTML=state.decks.map(d=>`<div class="deck-item">
+    <div class="deck-title">🎴 ${esc(d.title)}</div>
+    <div class="deck-sub">${timeStr(d.time)} · ${MODE_TAG[d.mode]||""}卡 × ${d.cards.length} 張</div>
+    <div class="hi-actions">
+      <button class="hi-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
+      <button class="hi-btn" onclick="copyDeck(${d.id})">📋 複製</button>
+      <button class="hi-btn del" onclick="deleteDeck(${d.id})">刪除</button>
+    </div>
+  </div>`).join("");
+}
+function openDeck(id){
+  const d=deckById(id); if(!d) return;
+  renderDeck(d);
+  document.getElementById("deckZone").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function deleteDeck(id){
+  if(!confirm("刪除這副卡組？")) return;
+  state.decks=state.decks.filter(d=>d.id!==id); save(); renderDecks(); updateCardsSummary();
+  const zone=document.getElementById("deckZone");
+  if(zone.querySelector(".oc-head") && zone.innerHTML.includes(String(id))) zone.innerHTML="";
+  toast("已刪除");
+}
+
+/* ============ 部門工作區 ============ */
+function openDept(id){
+  current=id; pendingFiles=[]; handoffFrom=null;
+  const d=dept(id);
+  document.getElementById("wsIc").textContent=d.emoji;
+  document.getElementById("wsIc").style.background=hexA(d.accent,.13);
+  document.getElementById("wsIc").style.color=d.accent;
+  document.getElementById("wsName").textContent=d.name;
+  document.getElementById("wsTag").textContent=d.tagline;
+  document.getElementById("roleText").value=d.role;
+  document.getElementById("roleBody").classList.remove("open");
+  document.getElementById("roleChev").textContent="＋";
+  document.getElementById("taskInput").value="";
+  document.getElementById("fileList").innerHTML="";
+  document.getElementById("outputZone").innerHTML="";
+  document.getElementById("handoffBanner").innerHTML="";
+  const rb=document.getElementById("runBtn");
+  rb.style.background=d.accent;
+  const pw=document.getElementById("presetWrap");
+  pw.innerHTML=(d.presets||[]).map(p=>`<button class="preset-chip" onclick="usePreset(this)">${esc(p)}</button>`).join("");
+  currentPlatform="all"; renderPlatBar();
+  renderWsLib();
+  renderHistory();
+  openView("dept");
+}
+function renderWsLib(){
+  const bar=document.getElementById("wsLibBar");
+  const act=state.library.filter(x=>{
+    if(!x.active) return false;
+    const valid = x.deptId && state.departments.some(d=>d.id===x.deptId);
+    return !valid || x.deptId===current;
+  });
+  if(act.length===0){ bar.innerHTML=""; return; }
+  bar.innerHTML=`<div class="wslib"><span class="ttl">本部門素材：</span>`+
+    act.map(x=>`<span class="f">${libIcon(x.kind)} ${esc(x.name)}</span>`).join("")+
+    `<span class="ttl" style="cursor:pointer;text-decoration:underline" onclick="openLibrary()">管理</span></div>`;
+}
+function usePreset(btn){
+  document.getElementById("taskInput").value=btn.textContent;
+  document.getElementById("taskInput").focus();
+}
+function toggleRole(){
+  const b=document.getElementById("roleBody");
+  b.classList.toggle("open");
+  document.getElementById("roleChev").textContent=b.classList.contains("open")?"－":"＋";
+}
+function saveRole(){
+  const d=dept(current); d.role=document.getElementById("roleText").value.trim(); save(); toast("已更新定位");
+}
+function renderHistory(){
+  const items=state.tasks.filter(t=>t.deptId===current).slice().reverse();
+  const lbl=document.getElementById("histLabel");
+  const box=document.getElementById("deptHistory");
+  if(items.length===0){ lbl.style.display="none"; box.innerHTML=""; return; }
+  lbl.style.display="block";
+  box.innerHTML=items.map(t=>`<div class="hist-item" data-id="${t.id}">
+    <div class="hi-top">${t.fromDept?`<span class="tag">↩ 來自 ${esc(t.fromDept)}</span>`:""}<span>${timeStr(t.time)}</span></div>
+    <div class="hi-in">📝 ${esc(t.input)}</div>
+    <div class="hi-out" id="hiout-${t.id}">${esc(t.output)}</div>
+    <div class="hi-actions">
+      <button class="hi-btn" onclick="toggleExpand(${t.id},this)">展開</button>
+      <button class="hi-btn" onclick="reuseTask(${t.id})">沿用</button>
+      <button class="hi-btn" onclick="copyTaskOut(${t.id})">複製</button>
+      <button class="hi-btn del" onclick="deleteTask(${t.id})">刪除</button>
+    </div>
+  </div>`).join("");
+}
+function toggleExpand(id,btn){
+  const el=document.getElementById("hiout-"+id);
+  const open=el.classList.toggle("full"); btn.textContent=open?"收合":"展開";
+}
+function reuseTask(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  document.getElementById("taskInput").value=t.input==="(附件處理)"?"":t.input;
+  document.getElementById("taskInput").scrollIntoView({behavior:"smooth",block:"center"});
+  document.getElementById("taskInput").focus();
+  toast("已帶回輸入框，可修改後再執行");
+}
+function copyTaskOut(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  navigator.clipboard.writeText(t.output).then(()=>toast("已複製"));
+}
+function deleteTask(id){
+  if(!confirm("確定刪除這筆紀錄？")) return;
+  state.tasks=state.tasks.filter(x=>x.id!==id); save(); renderHistory();
+  toast("已刪除");
+}
+
+/* ============ 檔案 ============ */
+async function handleFiles(e){
+  const files=[...e.target.files];
+  e.target.value="";
+  if(files.length===0) return;
+  for(const f of files){
+    const isImg=f.type.startsWith("image/");
+    const isPdf=f.type==="application/pdf"||/\.pdf$/i.test(f.name);
+    const isDocx=f.type.includes("wordprocessingml")||/\.docx$/i.test(f.name);
+    if(isImg){
+      const url=await readAs(f,"dataURL");
+      pendingFiles.push({name:f.name,isImage:true,url});
+      renderFiles();
+    }else if(isPdf){
+      const idx=pendingFiles.push({name:f.name,isImage:false,isPdf:true,content:"",loading:true})-1;
+      renderFiles();
+      try{
+        const buf=await readAs(f,"arrayBuffer");
+        const text=await extractPdf(buf);
+        pendingFiles[idx].content=text||"（此 PDF 沒有可擷取的文字，可能是掃描圖檔；若要分析圖檔請改用『圖片』上傳並選 gpt-4o 模型）";
+      }catch(err){
+        pendingFiles[idx].content="（PDF 解析失敗："+err.message+"）";
+      }
+      pendingFiles[idx].loading=false;
+      renderFiles();
+    }else if(isDocx){
+      const idx=pendingFiles.push({name:f.name,isImage:false,isDoc:true,content:"",loading:true})-1;
+      renderFiles();
+      try{
+        const buf=await readAs(f,"arrayBuffer");
+        const text=await extractDocx(buf);
+        pendingFiles[idx].content=text||"（這份 Word 文件沒有可擷取的文字）";
+      }catch(err){
+        pendingFiles[idx].content="（Word 解析失敗："+err.message+"）";
+      }
+      pendingFiles[idx].loading=false;
+      renderFiles();
+    }else if(/\.docx?$/i.test(f.name)){
+      pendingFiles.push({name:f.name,isImage:false,isDoc:true,content:"（舊版 .doc 無法直接讀取，請在 Word 另存為 .docx 後再上傳）"});
+      renderFiles(); toast("舊版 .doc 請先另存成 .docx");
+    }else{
+      const text=await readAs(f,"text");
+      pendingFiles.push({name:f.name,isImage:false,content:text});
+      renderFiles();
+    }
+  }
+  maybeAutoRun();
+}
+function readAs(file,kind){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result);
+    r.onerror=()=>rej(new Error("讀取失敗"));
+    if(kind==="dataURL") r.readAsDataURL(file);
+    else if(kind==="arrayBuffer") r.readAsArrayBuffer(file);
+    else r.readAsText(file);
+  });
+}
+async function extractPdf(buf){
+  if(!window.pdfjsLib) throw new Error("PDF 元件未載入，請檢查網路後重整");
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let out="";
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const c=await page.getTextContent();
+    out+=c.items.map(it=>it.str).join(" ")+"\n\n";
+  }
+  return out.trim();
+}
+async function extractDocx(buf){
+  if(!window.mammoth) throw new Error("Word 元件未載入，請檢查網路後重整");
+  const r=await mammoth.extractRawText({arrayBuffer:buf});
+  return (r.value||"").trim();
+}
+function maybeAutoRun(){
+  if(!state.autoAnalyze) return;
+  if(running) return;
+  if(pendingFiles.length===0) return;
+  if(pendingFiles.some(f=>f.loading)) return;
+  if(!aiReady()){ toast("已上傳，請先到設定填入金鑰再分析"); return; }
+  runTask();
+}
+function renderFiles(){
+  document.getElementById("fileList").innerHTML=pendingFiles.map((f,i)=>{
+    const ic=f.isImage?"🖼":(f.isPdf?"📕":(f.isDoc?"📘":"📄"));
+    const status=f.loading?' <span class="mini-spin"></span>':"";
+    return `<span class="file-chip">${ic} ${esc(f.name)}${status}<span class="rm" onclick="rmFile(${i})">×</span></span>`;
+  }).join("");
+}
+function rmFile(i){ pendingFiles.splice(i,1); renderFiles(); }
+
+/* ============ 共用解析 ============ */
+async function parseFile(f){
+  const isImg=f.type.startsWith("image/");
+  const isPdf=f.type==="application/pdf"||/\.pdf$/i.test(f.name);
+  const isDocx=f.type.includes("wordprocessingml")||/\.docx$/i.test(f.name);
+  if(isImg){
+    const url=await readAs(f,"dataURL");
+    return {name:f.name,isImage:true,kind:"image",url,size:url.length};
+  }
+  if(isPdf){
+    let text="";
+    try{ text=await extractPdf(await readAs(f,"arrayBuffer"))||"（此 PDF 無可擷取文字，可能是掃描檔）"; }
+    catch(err){ text="（PDF 解析失敗："+err.message+"）"; }
+    return {name:f.name,isImage:false,kind:"pdf",content:text,size:text.length};
+  }
+  if(isDocx){
+    let text="";
+    try{ text=await extractDocx(await readAs(f,"arrayBuffer"))||"（這份 Word 沒有可擷取文字）"; }
+    catch(err){ text="（Word 解析失敗："+err.message+"）"; }
+    return {name:f.name,isImage:false,kind:"doc",content:text,size:text.length};
+  }
+  if(/\.docx?$/i.test(f.name)){
+    return {name:f.name,isImage:false,kind:"doc",content:"（舊版 .doc 無法讀取，請另存為 .docx）",size:0};
+  }
+  const text=await readAs(f,"text");
+  return {name:f.name,isImage:false,kind:"text",content:text,size:text.length};
+}
+
+/* ============ 成品庫 ============ */
+function openResults(){ renderResults(); openView("results"); }
+function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
+function updateResSummary(){
+  const el=document.getElementById("resSummary"); if(!el) return;
+  const n=finalTasks().length;
+  el.textContent = n===0 ? "一鍵流程的成品都會永久收存在這裡" : `已收存 ${n} 篇成品（永久保存）`;
+}
+function renderResults(){
+  const box=document.getElementById("resList");
+  const items=finalTasks();
+  if(items.length===0){
+    box.innerHTML='<div class="chain-empty">還沒有成品。到首頁按「一鍵跑完整套」，完成的成品就會自動收存在這裡，關掉手機也不會不見。</div>';
+    updateResSummary(); return;
+  }
+  box.innerHTML=items.map(t=>{
+    const body=richBody(t.output);
+    return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
+      <div class="res-top">
+        <span class="res-plat">${esc(t.platform||"成品")}</span>
+        <span class="res-time">${timeStr(t.time)}</span>
+      </div>
+      <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
+      ${body}
+      <div class="hi-actions">
+        <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
+        <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
+      </div>
+    </div>`;
+  }).join("");
+  updateResSummary();
+}
+function copyResultWhole(btn){
+  const card=btn.closest(".res-item");
+  const parts=[...card.querySelectorAll(".pb-body, .res-out, .seg-body")].map(b=>b.textContent);
+  navigator.clipboard.writeText(parts.join("\n\n")).then(()=>toast("已複製整篇，可直接貼文"));
+}
+function toggleResExpand(id,btn){
+  const el=document.getElementById("resout-"+id);
+  const open=el.classList.toggle("full"); btn.textContent=open?"收合":"展開全文";
+}
+function copyResult(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  navigator.clipboard.writeText(t.output).then(()=>toast("已複製，可直接貼文"));
+}
+function deleteResult(id){
+  if(!confirm("刪除這篇成品？")) return;
+  state.tasks=state.tasks.filter(x=>x.id!==id); save(); renderResults(); renderHome();
+  toast("已刪除");
+}
+
+/* ============ 資料收集部 ============ */
+function openCollector(){ fillCollectorCfg(); renderCollector(); openView("collector"); }
+function fillCollectorCfg(){
+  document.getElementById("collAutoSet").checked=!!state.collector.auto;
+  document.getElementById("collFreqSet").value=state.collector.freq||"daily";
+  document.getElementById("collHintSet").value=state.collector.topicHint||"";
+}
+function saveCollectorCfg(){
+  state.collector.auto=document.getElementById("collAutoSet").checked;
+  state.collector.freq=document.getElementById("collFreqSet").value;
+  state.collector.topicHint=document.getElementById("collHintSet").value.trim();
+  save(); updateCollSummary();
+}
+function updateCollSummary(){
+  const el=document.getElementById("collSummary"); if(!el) return;
+  const n=state.collections.length;
+  el.textContent = (state.collector.auto?"自動收集中 · ":"")+(n?`已存 ${n} 則話題`:"每日收集話題，可手動／定時／自動");
+}
+function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
+async function collectNow(){ await collectTopics(false); }
+async function collectTopics(silent){
+  if(running){ if(!silent) toast("有任務進行中，請稍候"); return; }
+  if(!aiReady()){ if(!silent){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); } return; }
+  running=true;
+  const btn=document.getElementById("collectBtn");
+  if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 收集中…'; }
+  const sys=`你是內容選題編輯。依下方【公司背景】的行業與定位，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的相關話題。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度），不要任何其他文字、不要 markdown。\n\n【公司背景】\n${(state.context||"").slice(0,800)}`;
+  const hint=state.collector.topicHint?("主題方向："+state.collector.topicHint+"。"):"";
+  try{
+    const r=await callOpenAI(sys, hint+"請給 6 個話題的 JSON 陣列。", 900);
+    let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
+    if(!Array.isArray(arr)||arr.length===0) throw new Error("回傳格式無法解析，請再試一次");
+    const batch=arr.slice(0,8).map(o=>({ id:Date.now()+Math.random(), time:Date.now(),
+      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(), used:false }))
+      .filter(o=>o.topic);
+    state.collections=[...batch, ...state.collections].slice(0,120);
+    state.collector.lastRun=Date.now();
+    save(); renderCollector(); updateCollSummary();
+    if(!silent) toast(`已收集 ${batch.length} 則話題並存檔`);
+  }catch(err){ if(!silent) toast("收集失敗："+err.message); }
+  finally{
+    running=false;
+    if(btn){ btn.disabled=false; btn.innerHTML="🛰️ 立即收集話題"; }
+  }
+}
+function renderCollector(){
+  const box=document.getElementById("collectList"); if(!box) return;
+  if(state.collections.length===0){
+    box.innerHTML='<div class="chain-empty">還沒有收集任何話題。按上方「立即收集話題」，AI 會幫你找出此刻適合發文的相關話題並存檔。</div>';
+    updateCollSummary(); return;
+  }
+  box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-topic">${esc(c.topic)}</div>
+    ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
+    <div class="hi-actions">
+      <button class="hi-btn" onclick="useTopic('${c.id}')">▶ 用此主題跑流程</button>
+      <button class="hi-btn" onclick="topicToLibrary('${c.id}')">📁 存入素材庫</button>
+      <button class="hi-btn del" onclick="deleteTopic('${c.id}')">刪除</button>
+    </div>
+  </div>`).join("");
+  updateCollSummary();
+}
+function findTopic(id){ return state.collections.find(c=>String(c.id)===String(id)); }
+function useTopic(id){
+  const c=findTopic(id); if(!c) return;
+  c.used=true; save();
+  document.getElementById("pipeInput").value = c.topic + (c.angle?("（切入："+c.angle+"）"):"");
+  openView("home");
+  setTimeout(()=>{ const p=document.querySelector(".pipeline"); if(p) p.scrollIntoView({behavior:"smooth",block:"start"}); document.getElementById("pipeInput").focus(); },120);
+  toast("已帶入一鍵流程的主題");
+}
+function topicToLibrary(id){
+  const c=findTopic(id); if(!c) return;
+  state.library.push({ id:Date.now()+Math.random(), name:"話題："+(c.topic.slice(0,18)), kind:"text",
+    content:`話題：${c.topic}\n切入角度：${c.angle}`, url:"", size:(c.topic+c.angle).length, active:true, deptId:"" });
+  c.used=true; save(); renderCollector();
+  toast("已存入素材庫");
+}
+function deleteTopic(id){
+  state.collections=state.collections.filter(c=>String(c.id)!==String(id)); save(); renderCollector();
+}
+function checkAutoCollect(){
+  const c=state.collector; if(!c.auto||!aiReady()||running) return;
+  let due=false;
+  if(c.freq==="open"){ due=(Date.now()-(c.lastRun||0))>30*60*1000; }
+  else { due = new Date().toDateString()!==new Date(c.lastRun||0).toDateString(); }
+  if(due) collectTopics(true);
+}
+
+/* ============ 素材庫 ============ */
+function openLibrary(){ renderLibrary(); openView("library"); }
+async function handleLibUpload(e){
+  const files=[...e.target.files]; e.target.value="";
+  if(files.length===0) return;
+  for(const f of files){
+    const p=await parseFile(f);
+    let url=p.url||"";
+    if(p.isImage && url){ url=await compressImage(url); }
+    const item={ id:Date.now()+Math.random(), name:p.name, kind:p.kind,
+      content:p.content||"", digest:"", url, size:(p.isImage?url.length:(p.size||0)),
+      active:true, deptId:"", classifying:aiReady() };
+    state.library.push(item);
+    save(); renderLibrary();
+    if(aiReady()){
+      item.deptId = await classifyMaterial(item);
+      item.digest = await organizeMaterial(item);   // AI 整理成備用資料
+      item.classifying=false; save(); renderLibrary();
+    }
+  }
+  toast(aiReady()?"已存入素材庫：AI 整理完成，之後自動當備用資料使用":"已存入素材庫（填入金鑰後可 AI 整理）");
+}
+function compressImage(dataURL, maxDim, quality){
+  maxDim=maxDim||1280; quality=quality||0.82;
+  return new Promise((res)=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width, h=img.height;
+      if(w>maxDim||h>maxDim){ const r=Math.min(maxDim/w,maxDim/h); w=Math.round(w*r); h=Math.round(h*r); }
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      try{ res(c.toDataURL("image/jpeg",quality)); }catch(e){ res(dataURL); }
+    };
+    img.onerror=()=>res(dataURL);
+    img.src=dataURL;
+  });
+}
+async function classifyMaterial(item){
+  if(!aiReady()) return "";
+  const list=state.departments.map(d=>`${d.id}：${d.name} — ${d.tagline}。適合放：${d.id==="icebreak"?"生活情境、共鳴故事、客群痛點、開場靈感":d.id==="core"?"產品資料、成分規格、數據、見證、賣點說明":"客戶名單情境、邀約話術、互動留言範例、活動資訊"}`).join("\n");
+  const sys=`你是素材分類助理。判斷素材「最主要的用途」屬於哪個部門：\n${list}\n\n判斷原則：看素材會被拿來做什麼，而不是表面主題。若真的橫跨多部門、無法明確歸類，回 none（代表通用）。\n只回一個字串：部門 id 或 none，不要任何其他文字。`;
+  let user;
+  if(item.kind==="image" && item.url){
+    user=[{type:"text",text:"這張圖片素材最適合哪個部門？只回 id。"},{type:"image_url",image_url:{url:item.url}}];
+  }else{
+    user=`素材名稱：${item.name}\n內容片段：\n${(item.content||"").slice(0,1200)}\n\n只回最適合的部門 id。`;
+  }
+  try{
+    const r=await callOpenAI(sys,user,20);
+    const ans=(r||"").toLowerCase();
+    const hit=state.departments.find(d=>ans.includes(d.id));
+    return hit?hit.id:"";
+  }catch(e){ return ""; }
+}
+// 上傳後 AI 整理：把素材濃縮成結構化「備用資料」，之後各部門直接引用整理版
+async function organizeMaterial(item){
+  if(!aiReady()) return "";
+  const sys="你是資料整理助理。把使用者的素材整理成一份精煉的『備用資料』，之後 AI 產文會直接引用它。格式：\n【素材重點】3–6 條關鍵重點\n【可用數據／事實】有就列，沒有寫「無」\n【可引用的句子／故事】1–3 句\n【適合用途】一句話\n用繁體台灣用語（原文若是簡體或英文也一律轉成繁體中文），總長 800 字內，只輸出整理結果。";
+  let user;
+  if(item.kind==="image" && item.url){
+    user=[{type:"text",text:"請讀懂這張圖片（含文字與圖表），整理成備用資料。"},{type:"image_url",image_url:{url:item.url}}];
+  }else{
+    const c=(item.content||"").slice(0,MAX_FILE_CHARS);
+    if(!c.trim()) return "";
+    user=`素材名稱：${item.name}\n內容：\n${c}`;
+  }
+  try{ return (await callOpenAI(sys,user,1100)).trim(); }catch(e){ return ""; }
+}
+function libIcon(k){ return k==="image"?"🖼":(k==="pdf"?"📕":(k==="doc"?"📘":"📄")); }
+function fmtSize(n){ return n>1024?(n/1024).toFixed(0)+"K 字元":n+" 字元"; }
+function deptNameOf(id){ const d=state.departments.find(x=>x.id===id); return d?d.name:""; }
+function renderLibrary(){
+  const box=document.getElementById("libList");
+  if(state.library.length===0){
+    box.innerHTML='<div class="chain-empty">素材庫還是空的。上傳你的產品資料、見證、圖片，AI 會自動分類到所屬部門，之後就能重複指定使用。</div>';
+  }else{
+    box.innerHTML=state.library.map(x=>{
+      const opts=`<option value="">通用（全部部門）</option>`+state.departments.map(d=>
+        `<option value="${d.id}" ${x.deptId===d.id?'selected':''}>${esc(d.name)}</option>`).join("");
+      const deptSel = x.classifying
+        ? `<span class="li-class"><span class="mini-spin"></span> AI 整理中…</span>`
+        : `<select class="li-dept" onchange="assignLibDept('${x.id}',this.value)">${opts}</select>
+           ${x.digest?'<span class="li-class" style="color:var(--accent)">✓ 已整理</span>'
+                     :`<button class="hi-btn" style="min-height:34px;padding:6px 10px;" onclick="reorganizeLib('${x.id}')">🪄 AI 整理</button>`}`;
+      return `<div class="lib-item">
+        <span class="li-ic">${libIcon(x.kind)}</span>
+        <div class="li-meta">
+          <div class="li-name">${esc(x.name)}</div>
+          <div class="li-row">${deptSel}</div>
+        </div>
+        <button class="lib-toggle ${x.active?'on':''}" onclick="toggleLibActive('${x.id}')">${x.active?'✓ 指定':'指定'}</button>
+        <button class="lib-del" onclick="deleteLib('${x.id}')">🗑</button>
+      </div>`;
+    }).join("");
+  }
+  updateLibSummary();
+}
+async function reorganizeLib(id){
+  const x=state.library.find(o=>String(o.id)===String(id)); if(!x) return;
+  if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); return; }
+  x.classifying=true; renderLibrary();
+  x.digest=await organizeMaterial(x);
+  x.classifying=false; save(); renderLibrary();
+  toast(x.digest?"AI 整理完成，之後會用整理版當備用資料":"整理失敗，請再試一次");
+}
+function assignLibDept(id,v){ const x=state.library.find(o=>String(o.id)===String(id)); if(x){ x.deptId=v; save(); } }
+function toggleLibActive(id){
+  const x=state.library.find(v=>String(v.id)===String(id)); if(!x) return;
+  x.active=!x.active; save(); renderLibrary();
+}
+function deleteLib(id){
+  if(!confirm("從素材庫刪除這個檔案？")) return;
+  state.library=state.library.filter(v=>String(v.id)!==String(id)); save(); renderLibrary();
+}
+function updateLibSummary(){
+  const el=document.getElementById("libSummary"); if(!el) return;
+  const n=state.library.length, a=state.library.filter(x=>x.active).length;
+  el.textContent = n===0 ? "留存常用檔案，AI 自動分類到部門" : `共 ${n} 個檔案，已指定 ${a} 個使用中`;
+}
+function activeAttachments(deptId){
+  return state.library.filter(x=>{
+    if(!x.active) return false;
+    const valid = x.deptId && state.departments.some(d=>d.id===x.deptId);
+    return !deptId || !valid || x.deptId===deptId;
+  }).map(x=>({ name:x.name+(x.digest?"（AI 整理版）":"（庫）"), isImage:x.kind==="image",
+    content:x.digest||x.content, url:x.url }));
+}
+
+/* ============ 組裝送出內容（含素材庫） ============ */
+function buildUserContent(baseText, extraFiles, opts){
+  opts=opts||{};
+  const totalChars=opts.totalChars||MAX_TOTAL_CHARS, perChars=opts.fileChars||MAX_FILE_CHARS;
+  const all=[...activeAttachments(opts.deptId), ...(extraFiles||[])];
+  const texts=all.filter(f=>!f.isImage), imgs=all.filter(f=>f.isImage);
+  let body=baseText, trimmed=false, budget=totalChars, parts=[];
+  for(const f of texts){
+    let c=f.content||"";
+    if(c.length>perChars){ c=c.slice(0,perChars); trimmed=true; }
+    if(c.length>budget){ c=c.slice(0,Math.max(0,budget)); trimmed=true; }
+    budget-=c.length;
+    parts.push(`---「${f.name}」---\n${c}`);
+    if(budget<=0) break;
+  }
+  if(parts.length) body+="\n\n【附加素材】\n"+parts.join("\n\n");
+  const content = imgs.length
+    ? [{type:"text",text:body}, ...imgs.map(f=>({type:"image_url",image_url:{url:f.url}}))]
+    : body;
+  return {content, trimmed};
+}
+
+/* ============ 交辦串聯 ============ */
+function handoff(fromDeptName, output, toId){
+  openDept(toId);
+  handoffFrom={deptName:fromDeptName, output};
+  document.getElementById("handoffBanner").innerHTML=
+    `<div class="handoff-banner">↩ <div>已接收 <b>${esc(fromDeptName)}</b> 的產出作為素材，下方直接輸入你要這個部門做什麼。
+    <span class="x" onclick="clearHandoff()">×</span></div></div>`;
+  document.getElementById("taskInput").focus();
+}
+function clearHandoff(){ handoffFrom=null; document.getElementById("handoffBanner").innerHTML=""; }
+
+/* ============ 執行 AI ============ */
+async function runTask(){
+  if(running) return;
+  if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
+  if(!canRun()) return;
+  const input=document.getElementById("taskInput").value.trim();
+  if(!input && pendingFiles.length===0){ toast("請輸入要交辦的內容"); return; }
+  if(pendingFiles.some(f=>f.loading)){ toast("檔案還在解析中，請稍候"); return; }
+
+  running=true;
+  const d=dept(current);
+  const btn=document.getElementById("runBtn");
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>分析中';
+
+  const sys = `你是「${state.title}」的部門 AI 助理。\n\n【公司共用背景】\n${state.context}\n\n【你的部門定位】\n${d.role}\n\n【本次目標平台：${platLabel(currentPlatform)}】${platTip(currentPlatform)}\n\n【語言鐵則】不論素材原文是簡體、英文或其他語言，最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`;
+
+  let textPart = input || "請依你的部門定位，仔細閱讀下方附件內容，直接完成分析並產出可立即使用的成果。";
+  if(handoffFrom){ textPart = `【${handoffFrom.deptName} 交辦的素材】\n${clip(handoffFrom.output,MAX_CHAIN_CHARS)}\n\n【本次任務】\n${textPart}`; }
+  const built=buildUserContent(textPart, pendingFiles, {deptId:current});
+  if(built.trimmed) toast("素材過長，已自動截取重點送出");
+  const userContent=built.content;
+
+  try{
+    const out=await callOpenAI(sys,userContent,currentPlatform==="all"?3200:1800,true);
+    const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
+      input:input||"(附件處理)", output:out, time:Date.now(),
+      fromDept:handoffFrom?handoffFrom.deptName:null };
+    state.tasks.push(task); save();
+    renderOutput(out, d);
+    renderHistory();
+    clearHandoff();
+    pendingFiles=[]; renderFiles();
+  }catch(err){
+    renderError(err.message);
+  }finally{
+    running=false;
+    btn.disabled=false; btn.innerHTML="執行 ▸";
+  }
+}
+
+function clip(s,n){ s=s||""; return s.length>n? s.slice(0,n)+"…（已截取）" : s; }
+
+/* ============ 會員驗證（LINE LIFF ＋ GAS，比照回覆靈感系統） ============ */
+const member={ ready:false, lineId:"guest", lineName:"訪客", level:"", remain:"", expire:"", msg:"" };
+function usingBackend(){ return !!state.gasUrl; }
+function aiReady(){ return usingBackend() || !!state.apiKey; }
+async function initMember(forceLogin){
+  if(!usingBackend()) return;
+  try{
+    if(state.liffId && window.liff){
+      await liff.init({ liffId: state.liffId });
+      if(!liff.isLoggedIn()){ liff.login(); return; }
+      const p=await liff.getProfile();
+      member.lineId=p.userId; member.lineName=p.displayName||"";
+    }
+    const r=await gasPost({ action:"getPermission" });
+    if(r && r.success && r.permission){
+      const pm=r.permission;
+      member.ready=true; member.level=pm.level; member.remain=pm.remainCount;
+      member.expire=pm.expireDate; member.msg=pm.msg;
+      if(!pm.allow) toast("次數已用完，請聯繫管理員儲值");
+    }else{
+      member.msg=(r&&r.errMsg)||"會員驗證失敗";
+      toast("會員驗證失敗，請檢查 GAS 網址");
+    }
+  }catch(e){ member.msg="LIFF 初始化失敗："+e.message; toast(member.msg); }
+  updateKeyStatus();
+}
+async function gasPost(params){
+  const body=new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
+  const res=await fetch(state.gasUrl,{ method:"POST", body });
+  return await res.json();
+}
+function memberBadge(){
+  if(!member.ready) return "";
+  if(member.level==="尊爵") return `👑 ${member.msg||"尊爵會員"}`;
+  return `🥇 黃金會員 · 剩 ${member.remain} 次`;
+}
+function canRun(){
+  if(!usingBackend()) return true;
+  if(member.ready && member.level==="黃金" && Number(member.remain)<=0){
+    toast("次數已用完，請聯繫管理員儲值"); return false;
+  }
+  return true;
+}
+function buildSys(d){ return `你是「${state.title}」的部門 AI 助理。\n\n【公司共用背景】\n${state.context}\n\n【你的部門定位】\n${d.role}\n\n【語言鐵則】不論素材原文是簡體、英文或其他語言，最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
+async function callOpenAI(sys,userContent,maxTokens,charge){
+  // 會員版：走 GAS 後端（金鑰在後端、成功才扣次）
+  if(usingBackend()){
+    let lastErr;
+    for(let attempt=0;attempt<4;attempt++){
+      let r;
+      try{
+        r=await gasPost({ action:"generate", sys,
+          user: typeof userContent==="string"? JSON.stringify([{type:"text",text:userContent}]) : JSON.stringify(userContent),
+          maxTok:String(maxTokens||1800), model:state.model, charge: charge?"1":"0" });
+      }catch(e){ throw new Error("後端連線失敗："+e.message); }
+      if(r && r.success){
+        if(r.remain!==undefined && r.remain!==null && r.remain!==""){ member.remain=r.remain; updateKeyStatus(); }
+        return (r.content||"").trim();
+      }
+      const m=(r&&r.errMsg)||"後端回應異常";
+      if(r && r.errorType==="no_permission"){ member.remain=0; updateKeyStatus(); throw new Error(m); }
+      if(/rate limit/i.test(m)){
+        lastErr=m; const wait=Math.min(1800*(attempt+1),12000);
+        toast(`AI 流量滿了，${(wait/1000).toFixed(1)} 秒後自動重試…`);
+        await new Promise(x=>setTimeout(x,wait)); continue;
+      }
+      throw new Error(m);
+    }
+    throw new Error("AI 流量限制重試多次仍失敗，請稍等 1 分鐘再執行。"+(lastErr||""));
+  }
+  // 個人直連模式
+  let lastErr;
+  for(let attempt=0;attempt<4;attempt++){
+    const isG5=/^gpt-5/.test(state.model);
+    const body={ model:state.model,
+      messages:[ {role:"system",content:sys}, {role:"user",content:userContent} ] };
+    if(isG5){ body.max_completion_tokens=Math.round((maxTokens||1800)*1.8)+600; } // gpt-5 推理會先吃額度，放大避免空回覆
+    else{ body.max_tokens=maxTokens||1800; body.temperature=0.75; }
+    const res=await fetch("https://api.openai.com/v1/chat/completions",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json","Authorization":"Bearer "+state.apiKey },
+      body:JSON.stringify(body)
+    });
+    if(res.ok){
+      const data=await res.json();
+      return (data.choices?.[0]?.message?.content||"").trim();
+    }
+    let m="HTTP "+res.status;
+    try{ const er=await res.json(); m=er.error?.message||m; }catch(e){}
+    // 模型不吃 max_tokens：自動換 max_completion_tokens 重送一次
+    if(/max_tokens.*not supported|max_completion_tokens/i.test(m) && body.max_tokens){
+      delete body.max_tokens; delete body.temperature;
+      body.max_completion_tokens=maxTokens||1800;
+      const res2=await fetch("https://api.openai.com/v1/chat/completions",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json","Authorization":"Bearer "+state.apiKey },
+        body:JSON.stringify(body)
+      });
+      if(res2.ok){ const d2=await res2.json(); return (d2.choices?.[0]?.message?.content||"").trim(); }
+      try{ const e2=await res2.json(); m=e2.error?.message||m; }catch(e){}
+    }
+    // 429 / Rate limit：自動等待後重試（最多 3 次）
+    if(res.status===429 || /rate limit/i.test(m)){
+      lastErr=m;
+      let wait=1800*(attempt+1);
+      const ms=m.match(/try again in\s+([\d.]+)\s*m?s/i);
+      if(ms){ wait=Math.ceil(parseFloat(ms[1]))+(/[\d.]+\s*ms/i.test(m)?600:0); if(/([\d.]+)\s*s(?!.*ms)/i.test(m)) wait=parseFloat(ms[1])*1000+600; }
+      wait=Math.min(Math.max(wait,800),15000);
+      toast(`AI 流量滿了，${(wait/1000).toFixed(1)} 秒後自動重試…`);
+      await new Promise(r=>setTimeout(r,wait));
+      continue;
+    }
+    throw new Error(m);
+  }
+  throw new Error("AI 流量限制（TPM）重試多次仍失敗：請稍等 1 分鐘再執行，或減少勾選的素材量。原始訊息："+lastErr);
+}
+
+/* ============ 一鍵跑完整套網路經營 ============ */
+async function runAllDepartments(){
+  if(running) return;
+  if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
+  if(!canRun()) return;
+  const goal=document.getElementById("pipeInput").value.trim();
+  const order=state.departments;
+  const stepTasks=order.map((d,i)=>{
+    const sel=document.getElementById("pstep-"+i);
+    const v=sel?sel.value:"0";
+    if(v==="-1") return "";
+    const idx=parseInt(v,10)||0;
+    return (d.presets&&d.presets[idx])?d.presets[idx]:"";
+  });
+  if(!goal && stepTasks.every(t=>!t)){ toast("請輸入共同主題，或為部門挑選建議任務"); return; }
+
+  running=true;
+  const btn=document.getElementById("pipeBtn");
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>運轉中…';
+  const prog=document.getElementById("pipeProgress");
+  const results=document.getElementById("pipeResults");
+  results.innerHTML="";
+  prog.innerHTML=order.map((d,i)=>`<div class="pl-step" id="plstep-${i}"><span class="st">${i+1}</span>${esc(d.name)}</div>`).join("")
+    +`<div class="pl-step" id="plstep-final"><span class="st">📄</span>統整成品文章</div>`;
+
+  let prev="", prevName="", anyTrim=false;
+  const collected=[];
+  try{
+    for(let i=0;i<order.length;i++){
+      const d=order[i];
+      document.getElementById("plstep-"+i).classList.add("run");
+      let base="";
+      if(goal) base+=`【本次共同目標】\n${goal}\n\n`;
+      if(prev) base+=`【${prevName} 交辦給你的素材】\n${clip(prev,MAX_CHAIN_CHARS)}\n\n`;
+      base+= stepTasks[i]
+        ? `【你的任務】\n${stepTasks[i]}\n\n請完成並產出可直接使用的成果。`
+        : `請以「${d.name}」的角色，完成你負責的部分，產出可直接使用的成果。`;
+      base+=`\n\n【目標平台：${platLabel(pipePlatform)}】${platTip(pipePlatform)}`;
+      const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
+      if(built.trimmed) anyTrim=true;
+      const out=await callOpenAI(buildSys(d), built.content, pipePlatform==="all"?2600:1800);
+      collected.push({name:d.name, out});
+
+      state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
+        input:`[一鍵運轉] ${stepTasks[i]||goal}`, output:out, time:Date.now(),
+        fromDept: i>0?prevName:null });
+      // 部門產出直接存入各部門紀錄，首頁只展示最終成品卡
+      const step=document.getElementById("plstep-"+i);
+      step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
+      prev=out; prevName=d.name;
+      await new Promise(r=>setTimeout(r,1200)); // 步驟間緩衝，避免撞到每分鐘流量上限
+    }
+
+    const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
+    const editorSys=`你是「${state.title}」的社群主編與貼文優化師。請把以下 ${order.length} 個部門（${order.map(d=>d.name).join("、")}）的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n【鐵則：固定順序】每篇成品都要照這個結構：①先破冰（停下滑動、引發共鳴的開場）→ ②再講事情（重點／價值講到有感）→ ③最後邀約（搭配真誠留言互動＋低門檻邀約）。破冰一定放最前面。\n【目標平台：${platLabel(pipePlatform)}】${platTip(pipePlatform)}\n【優化要求】\n- 每篇都要可直接貼、不需我再改：開頭就是破冰鉤子、易讀分段（適量換行與表情符號）、自然的行動呼籲、平台合適的主題標籤。\n- 若為全平台，請依平台分段，每段最前面用【平台名稱】標示，彼此之間用一行「— — —」分隔，方便我分平台複製。\n- 保留貼合【公司背景】的行業定位與語氣；不誇大、不違規、符合該行業規範。\n- 只輸出成品本身，不要出現部門名稱、過程說明或開場白。`;
+    let comp=`【本次主題】\n${goal||"（依下方素材判斷）"}\n\n`;
+    collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
+    comp+="請統整並優化成可直接發布的最終成品貼文。";
+    const finalOut=await callOpenAI(editorSys, comp, pipePlatform==="all"?3200:2600,true);
+    state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#1E1A14",
+      input:`[成品] ${goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
+      fromDept:"三部門", platform:platLabel(pipePlatform) });
+    results.insertAdjacentHTML("afterbegin", finalCard(finalOut));
+    fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
+
+    save(); renderHome();
+    if(anyTrim) toast("素材過長已自動截取；成品已存入成品庫，各部門產出已存入部門"); else toast("成品已存入成品庫，各部門產出已存入部門");
+    results.scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){
+    results.insertAdjacentHTML("beforeend",
+      `<div class="output-card"><div class="oc-head">⚠️ 運轉中斷</div><div class="output-body" style="color:#A8442E">${esc(err.message)}</div></div>`);
+  }finally{
+    running=false;
+    btn.disabled=false; btn.innerHTML="▶ 一鍵跑完整套（全自動）";
+  }
+}
+function splitPlatforms(text){
+  text=text||"";
+  const re=/【([^】\n]{1,20})】/g; const marks=[]; let m;
+  while((m=re.exec(text))){ marks.push({label:m[1], start:m.index, cstart:re.lastIndex}); }
+  if(marks.length<2) return null;
+  const blocks=[];
+  for(let i=0;i<marks.length;i++){
+    const end=i+1<marks.length?marks[i+1].start:text.length;
+    let body=text.slice(marks[i].cstart,end).replace(/^[\s—–\-]+/,"").replace(/[\s—–\-]+$/,"").trim();
+    if(body) blocks.push({label:marks[i].label, body});
+  }
+  return blocks.length>=2?blocks:null;
+}
+// 把一段產出切成卡片段落（部門產出一律卡片化顯示）
+function segmentize(text){
+  const parts=(text||"").split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
+  const segs=[];
+  for(const p of parts){
+    if(segs.length && (p.length<36 || segs[segs.length-1].length<36)) segs[segs.length-1]+="\n\n"+p;
+    else segs.push(p);
+  }
+  return segs.length?segs:[(text||"").trim()];
+}
+function richBody(out){
+  const blocks=splitPlatforms(out);
+  if(blocks){
+    return `<div class="plat-blocks">`+blocks.map(b=>`
+      <div class="plat-block">
+        <div class="pb-head"><span class="pb-name">${esc(b.label)}</span>
+          <button class="pb-copy" onclick="copyBlock(this)">📋 複製</button></div>
+        <div class="pb-body clamp">${esc(b.body)}</div>
+        <button class="pb-more" onclick="toggleBlockBody(this)">展開</button>
+      </div>`).join("")+`</div>`;
+  }
+  const segs=segmentize(out);
+  return `<div class="seg-deck">`+segs.map((s,i)=>`
+    <div class="seg-card">
+      <span class="seg-num">${String(i+1).padStart(2,"0")}</span>
+      <div class="seg-body">${esc(s)}</div>
+      <button class="seg-copy" onclick="copySeg(this)">📋</button>
+    </div>`).join("")+`</div>`;
+}
+function copySeg(btn){
+  const txt=btn.closest(".seg-card").querySelector(".seg-body").textContent;
+  navigator.clipboard.writeText(txt).then(()=>toast("已複製這張卡"));
+}
+function copyBlock(btn){
+  const txt=btn.closest(".plat-block").querySelector(".pb-body").textContent;
+  navigator.clipboard.writeText(txt).then(()=>toast("已複製這個平台，可直接貼文"));
+}
+function toggleBlockBody(btn){
+  const body=btn.closest(".plat-block").querySelector(".pb-body");
+  const open=body.classList.toggle("full"); btn.textContent=open?"收合":"展開";
+}
+function copyWhole(btn){
+  const card=btn.closest(".output-card");
+  const parts=[...card.querySelectorAll(".pb-body, .output-body, .seg-body")].map(b=>b.textContent);
+  navigator.clipboard.writeText(parts.join("\n\n")).then(()=>toast("已複製整篇，可直接貼文"));
+}
+function resultCard(d,out){
+  return `<div class="output-card">
+    <div class="oc-head"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${d.emoji} ${esc(d.name)}<span class="saved-tag">已存入此部門</span></div>
+    ${richBody(out)}
+    <div class="oc-actions"><button class="mini" onclick="copyWhole(this)">📋 複製全部</button></div>
+  </div>`;
+}
+function copyText(btn){
+  const txt=btn.closest(".output-card").querySelector(".output-body").textContent;
+  navigator.clipboard.writeText(txt).then(()=>toast("已複製，可直接貼文"));
+}
+function toggleClamp(btn){
+  const body=btn.closest(".output-card").querySelector(".output-body");
+  const open=body.classList.toggle("full");
+  btn.textContent=open?"收合":"展開全文";
+}
+function finalCard(out){
+  return `<div class="output-card final-card">
+    <div class="oc-head final-head">📄 成品 · 可直接貼文（已存入成品庫）</div>
+    ${richBody(out)}
+    <div class="oc-actions">
+      <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
+      <button class="mini" onclick="openResults()">📦 前往成品庫</button>
+    </div>
+  </div>`;
+}
+
+function renderOutput(out, d){
+  const others=state.departments.filter(x=>x.id!==d.id);
+  document.getElementById("outputZone").innerHTML=
+   `<div class="output-card">
+     <div class="oc-head"><span class="pin" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${esc(d.name)} 產出<span class="saved-tag">已存入「${esc(d.name)}」紀錄</span></div>
+     <div id="lastOutWrap">${richBody(out)}</div>
+     <div class="oc-actions">
+       <button class="mini" onclick="copyWhole(this)">📋 複製</button>
+       <div class="handoff-title">交辦給下一個部門 ▸</div>
+       ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
+     </div>
+   </div>`;
+  window._lastOut=out;
+  document.getElementById("outputZone").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function renderError(msg){
+  document.getElementById("outputZone").innerHTML=
+   `<div class="output-card"><div class="oc-head">⚠️ 執行失敗</div>
+   <div class="output-body" style="color:#A8442E">${esc(msg)}<br><br>請檢查：金鑰是否正確、帳戶是否有額度、模型名稱是否可用。</div></div>`;
+}
+function getLastOut(){ return window._lastOut||""; }
+function copyOut(){ navigator.clipboard.writeText(getLastOut()).then(()=>toast("已複製")); }
+
+/* ============ 設定 ============ */
+function fillSettings(){
+  document.getElementById("apiKey").value=state.apiKey;
+  document.getElementById("gasUrlSet").value=state.gasUrl||"";
+  document.getElementById("liffIdSet").value=state.liffId||"";
+  document.getElementById("modelSel").value=state.model;
+  document.getElementById("autoSet").checked=!!state.autoAnalyze;
+  document.getElementById("titleSet").value=state.title;
+  document.getElementById("contextSet").value=state.context;
+  renderIndPick();
+  const bt=document.getElementById("buildTag"); if(bt) bt.textContent="版本 "+(DEFAULTS.build||"-")+"　通用模板 · 依資料整理";
+}
+function toggleKey(){
+  const i=document.getElementById("apiKey"); const b=document.getElementById("toggleKeyBtn");
+  if(i.type==="password"){ i.type="text"; b.textContent="隱藏"; } else { i.type="password"; b.textContent="顯示"; }
+}
+const INDUSTRY_TEMPLATES={
+  "保健":"【行業／領域】保健／健康食品\n【品牌／個人定位】讓每個家庭都有一個懂健康的人\n【目標客群】注重保養、家中有長輩或小孩的人\n【語氣風格】溫暖像家人、真誠利他\n【常見賣點／重點】成分、見證、生活保養觀念\n【禁忌／法規】不得宣稱療效、根治、醫療效能，不叫人停藥、不誇大",
+  "餐飲":"【行業／領域】餐飲／餐廳小吃\n【品牌／個人定位】用一道菜留住一個回頭客\n【目標客群】附近上班族、家庭聚餐、想找好吃的人\n【語氣風格】親切、有溫度、會讓人肚子餓\n【常見賣點／重點】招牌菜、食材新鮮、用餐情境、優惠\n【禁忌／法規】不誇大食材功效、不造假評價",
+  "美業":"【行業／領域】美業／美容美髮美甲\n【品牌／個人定位】讓你變美也變有自信\n【目標客群】注重外表、想被好好照顧的客人\n【語氣風格】溫柔細緻、專業又貼心\n【常見賣點／重點】技術、前後對比、放鬆體驗、預約\n【禁忌／法規】不誇大療效、醫美需符合醫療廣告規範",
+  "房仲":"【行業／領域】房仲／不動產\n【品牌／個人定位】把買房這件大事變安心\n【目標客群】首購族、換屋族、投資置產的人\n【語氣風格】專業可靠、不推銷感、像朋友幫忙\n【常見賣點／重點】物件亮點、生活機能、購屋知識、看屋邀約\n【禁忌／法規】不誇大保證增值、資訊揭露要誠實",
+  "教育":"【行業／領域】教育／補教／課程\n【品牌／個人定位】讓學習變得有成就感\n【目標客群】家長、想進修的學生或成人\n【語氣風格】鼓勵、清楚、值得信賴\n【常見賣點／重點】教學成果、學員回饋、學習方法、體驗課\n【禁忌／法規】不誇大保證成績、不造假見證",
+  "寵物":"【行業／領域】寵物／寵物用品服務\n【品牌／個人定位】把毛孩當家人一樣照顧\n【目標客群】養貓養狗、把寵物當家人的飼主\n【語氣風格】溫暖、可愛、療癒\n【常見賣點／重點】產品安心、毛孩日常、照護知識、回購\n【禁忌／法規】不誇大療效、保健品不宣稱醫療效果",
+  "電商":"【行業／領域】電商／網路販售\n【品牌／個人定位】用對的東西解決你的小困擾\n【目標客群】愛網購、想找好物的人\n【語氣風格】生活化、實用、有說服力\n【常見賣點／重點】使用情境、痛點解法、評價、限時優惠\n【禁忌／法規】不誇大不實、符合消保與廣告規範"
+};
+const IND_RULE="\n內容鐵則（固定）：先破冰 → 再講事情 → 最後邀約。";
+function renderIndPick(){
+  const box=document.getElementById("indPick"); if(!box) return;
+  box.innerHTML='<span class="plat-lbl">行業快選（一鍵套版）</span>'+
+    Object.keys(INDUSTRY_TEMPLATES).map(k=>`<button class="ind-chip" onclick="pickIndustry('${k}')">${k}</button>`).join("")+
+    `<button class="ind-chip" onclick="document.getElementById('contextSet').focus()">自訂</button>`;
+}
+function pickIndustry(k){
+  const tpl=INDUSTRY_TEMPLATES[k]; if(!tpl) return;
+  document.getElementById("contextSet").value=tpl+IND_RULE;
+  toast(`已套用「${k}」範本，可微調後按儲存`);
+}
+async function deriveBrand(){
+  if(running){ toast("有任務進行中，請稍候"); return; }
+  if(!aiReady()){ toast("請先填入金鑰或 GAS 網址"); return; }
+  const mats=activeAttachments();
+  const texts=mats.filter(f=>!f.isImage).map(f=>f.content||"").join("\n").slice(0,6000);
+  const imgs=mats.filter(f=>f.isImage).slice(0,2);
+  if(!texts && imgs.length===0){ toast("請先到素材庫上傳並勾選一些素材"); return; }
+  running=true;
+  const btn=document.getElementById("deriveBtn");
+  btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='<span class="spinner" style="border-color:rgba(30,25,18,.3);border-top-color:var(--ink)"></span> 草擬中…';
+  const sys="你是品牌策略顧問。根據使用者提供的素材，幫他草擬一份『品牌／行業設定』，純文字、可直接使用，依下列格式填寫：\n【行業／領域】\n【品牌／個人定位】（一句話）\n【目標客群】\n【語氣風格】\n【常見賣點／重點】\n【禁忌／法規】\n\n最後固定附上一行：『內容鐵則（固定）：先破冰 → 再講事情 → 最後邀約。』。用繁體台灣用語，只輸出設定本身。";
+  let user = texts? ("素材內容：\n"+texts) : "請依圖片素材判斷。";
+  let content = imgs.length ? [{type:"text",text:user}, ...imgs.map(f=>({type:"image_url",image_url:{url:f.url}}))] : user;
+  try{
+    const out=await callOpenAI(sys, content, 900);
+    document.getElementById("contextSet").value=out.trim();
+    toast("已草擬品牌設定，確認後按『儲存設定』");
+  }catch(e){ toast("草擬失敗："+e.message); }
+  finally{ running=false; btn.disabled=false; btn.innerHTML=old; }
+}
+function saveSettings(){
+  state.apiKey=document.getElementById("apiKey").value.trim();
+  const oldLiff=state.liffId;
+  state.gasUrl=document.getElementById("gasUrlSet").value.trim();
+  state.liffId=document.getElementById("liffIdSet").value.trim();
+  state.model=document.getElementById("modelSel").value;
+  state.autoAnalyze=document.getElementById("autoSet").checked;
+  state.title=document.getElementById("titleSet").value.trim()||"AI 集團";
+  state.context=document.getElementById("contextSet").value.trim();
+  save();
+  document.getElementById("titleInput").value=state.title;
+  document.getElementById("miniTitle").textContent=state.title;
+  toast("設定已儲存");
+  updateKeyStatus();
+  if(state.gasUrl){ initMember(oldLiff!==state.liffId); }
+  openView("home");
+}
+function resetAll(){
+  if(confirm("確定要清空所有部門設定、紀錄與金鑰，回復出廠預設？")){
+    localStorage.removeItem("ai_company_v1"); state=structuredClone(DEFAULTS);
+    document.getElementById("titleInput").value=state.title;
+    toast("已回復預設"); openView("home");
+  }
+}
+function updateKeyStatus(){
+  const on=aiReady();
+  document.getElementById("keyDot").classList.toggle("on",on);
+  const mode=state.model==="gpt-5-mini"?"🧠 智慧":"⚡ 快速";
+  let txt;
+  if(!on) txt="尚未連接 AI — 請到設定填入金鑰或 GAS 網址";
+  else if(usingBackend()) txt=`會員版 · ${mode}${member.ready? " · "+memberBadge() : " · 驗證中…"}`;
+  else txt=`個人直連 · ${mode}（${state.model}）`;
+  document.getElementById("keyStatus").textContent=txt;
+}
+
+/* ============ 標題即時編輯 ============ */
+document.getElementById("titleInput").addEventListener("change",e=>{
+  state.title=e.target.value.trim()||"AI 集團"; e.target.value=state.title; save();
+  document.getElementById("miniTitle").textContent=state.title;
+});
+document.getElementById("titleInput").addEventListener("keydown",e=>{ if(e.key==="Enter") e.target.blur(); });
+
+function toggleHeader(){
+  const tb=document.getElementById("topbar");
+  state.headerMin=tb.classList.toggle("min"); save();
+}
+
+/* ============ 漢堡選單 ============ */
+function toggleMenu(force){
+  const d=document.getElementById("drawer"), m=document.getElementById("drawerMask");
+  const on = force===undefined ? !d.classList.contains("on") : !!force;
+  d.classList.toggle("on",on); m.classList.toggle("on",on);
+  if(on) renderDrawer();
+}
+function goMenu(fn){ toggleMenu(false); setTimeout(fn,120); }
+function renderDrawer(){
+  const box=document.getElementById("drawerList");
+  const depts=state.departments.map(d=>{
+    const cnt=state.tasks.filter(t=>t.deptId===d.id).length;
+    return `<button class="dr-item" onclick="goMenu(()=>openDept('${d.id}'))">
+      <span class="ic" style="background:${hexA(d.accent,.14)};color:${d.accent}">${d.emoji}</span>${esc(d.name)}
+      <span class="cnt">${cnt} 筆</span></button>`;
+  }).join("");
+  box.innerHTML=`
+    <button class="dr-item" onclick="goMenu(()=>openView('home'))"><span class="ic" style="background:var(--gold-wash);color:var(--gold)">🏠</span>首頁</button>
+    <div class="dr-sep"></div>
+    ${depts}
+    <div class="dr-sep"></div>
+    <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學卡片工坊<span class="cnt">${state.decks.length} 副</span></button>
+    <button class="dr-item" onclick="goMenu(openResults)"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📦</span>成品庫<span class="cnt">${finalTasks().length} 篇</span></button>
+    <button class="dr-item" onclick="goMenu(openCollector)"><span class="ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</span>資料收集部<span class="cnt">${state.collections.length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(openLibrary)"><span class="ic" style="background:rgba(199,144,43,.14);color:#C7902B">📁</span>素材庫<span class="cnt">${state.library.length} 個</span></button>
+    <div class="dr-sep"></div>
+    <button class="dr-item" onclick="goMenu(()=>openView('settings'))"><span class="ic" style="background:var(--line);color:var(--ink-soft)">⚙️</span>設定</button>`;
+}
+
+/* ============ 啟動 ============ */
+document.getElementById("titleInput").value=state.title;
+document.getElementById("miniTitle").textContent=state.title;
+if(state.headerMin){ document.getElementById("topbar").classList.add("min"); }
+document.getElementById("buildTag").textContent="版本 "+(DEFAULTS.build||"-")+"　通用模板 · 依資料整理";
+renderHome();
+if(state.gasUrl) initMember();
+checkAutoCollect();
+setInterval(checkAutoCollect, 15*60*1000);
+</script>
+</body>
+</html>
