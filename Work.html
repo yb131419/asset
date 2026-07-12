@@ -371,6 +371,28 @@
   .home-build{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:22px;letter-spacing:.3px;opacity:.8;}
   .hidden{display:none!important;}
 
+  /* 一鍵運轉：實際進度條 + 執行備註（$10k 精品質感） */
+  #pipeBarWrap{margin-top:16px;}
+  .pbar-track{height:10px;border-radius:99px;background:rgba(255,255,255,.1);
+    overflow:hidden;box-shadow:inset 0 1px 4px rgba(0,0,0,.35), inset 0 0 0 1px rgba(217,184,115,.15);}
+  .pbar-fill{height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,#B98A3D,#F3E0AE,#D9B873,#F3E0AE,#B98A3D);
+    background-size:250% 100%;
+    box-shadow:0 0 14px rgba(217,184,115,.55), inset 0 1px 0 rgba(255,255,255,.4);
+    transition:width .6s var(--ease-out);
+    animation:pbarShine 3s linear infinite;}
+  @keyframes pbarShine{0%{background-position:0% 0;}100%{background-position:250% 0;}}
+  .pbar-meta{display:flex;justify-content:space-between;margin-top:8px;
+    font-size:12px;font-weight:800;letter-spacing:.3px;color:rgba(255,255,255,.8);
+    font-variant-numeric:tabular-nums;}
+  .pbar-meta #pbarPct{color:var(--gold-soft);}
+  .pipe-remark{margin-top:11px;padding:12px 15px;border-radius:14px;font-size:13px;line-height:1.55;
+    background:rgba(255,255,255,.07);border:1px solid rgba(217,184,115,.28);color:rgba(255,255,255,.92);
+    display:flex;align-items:flex-start;gap:10px;animation:rise .35s var(--ease-out) both;}
+  .pipe-remark .rk-ic{font-size:16px;flex:0 0 auto;line-height:1.4;}
+  .pipe-remark .rk-txt{flex:1;min-width:0;}
+  .pipe-remark .rk-sub{display:block;font-size:11.5px;color:rgba(255,255,255,.55);margin-top:2px;}
+
   /* 斷點續跑列 */
   .resume-note{margin-top:12px;padding:13px 15px;border-radius:14px;font-size:13px;line-height:1.6;
     background:rgba(255,255,255,.1);border:1px solid var(--gold-soft);color:#fff;}
@@ -432,17 +454,21 @@
   .ps-emo{font-size:17px;}
 
   /* 目標平台切換 */
-  .plat-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 2px 14px;}
-  .plat-lbl{font-size:12px;font-weight:800;color:var(--ink-faint);margin-right:4px;width:100%;letter-spacing:1px;}
-  .plat-chip{font-size:14px;font-weight:700;padding:11px 18px;border-radius:22px;min-height:46px;
+  .plat-bar, .pl-plat{margin:0 2px 14px;}
+  .plat-lbl{font-size:11.5px;font-weight:800;color:var(--ink-faint);letter-spacing:1.5px;margin:0 2px 8px;}
+  .pl-plat .plat-lbl{color:rgba(255,255,255,.5);margin-top:2px;}
+  .plat-scroll{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none;
+    scroll-snap-type:x proximity;}
+  .plat-scroll::-webkit-scrollbar{display:none;}
+  .plat-chip{flex:0 0 auto;scroll-snap-align:start;font-size:13.5px;font-weight:700;padding:10px 16px;
+    border-radius:20px;min-height:42px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
     background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:var(--shadow);
     transition:transform .18s var(--spring),box-shadow .2s,background .2s,color .2s;}
+  .plat-chip .pc-ic{font-size:14px;line-height:1;}
   .plat-chip:active{transform:scale(.94);}
-  .plat-chip.on{background:var(--ink);color:#fff;border-color:var(--gold);box-shadow:var(--shadow-gold);}
-  .pl-plat{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 2px 2px;}
-  .pl-plat .plat-lbl{color:rgba(255,255,255,.55);}
-  .pl-plat .plat-chip{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.14);box-shadow:none;}
-  .pl-plat .plat-chip.on{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);border-color:var(--gold-soft);}
+  .plat-chip.on{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border-color:var(--gold);box-shadow:var(--shadow-gold);}
+  .pl-plat .plat-chip{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.14);box-shadow:none;}
+  .pl-plat .plat-chip.on{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);border-color:var(--gold-soft);box-shadow:0 6px 16px rgba(0,0,0,.25);}
 
   /* 歷史按鈕 */
   .hi-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
@@ -485,6 +511,8 @@
     color:var(--gold);display:flex;align-items:center;gap:7px;margin-bottom:8px;}
   .seg-tag::after{content:"";flex:1;height:1px;max-width:44px;
     background:linear-gradient(90deg,currentColor,transparent);opacity:.5;}
+  .seg-title{font-size:16.5px;font-weight:800;line-height:1.4;color:var(--ink);
+    margin-bottom:9px;padding-bottom:9px;border-bottom:1px dashed rgba(168,120,46,.28);}
   .seg-body{font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);}
   .seg-num{position:absolute;top:14px;right:18px;font-size:34px;font-weight:800;opacity:.1;
     font-style:italic;letter-spacing:1px;font-variant-numeric:tabular-nums;}
@@ -687,6 +715,11 @@
       <div id="libPickBar"></div>
       <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 一鍵跑完整套（全自動）</button>
       <div id="pipeResumeBar" style="display:none"></div>
+      <div id="pipeBarWrap" style="display:none">
+        <div class="pbar-track"><div class="pbar-fill" id="pbarFill"></div></div>
+        <div class="pbar-meta"><span id="pbarStep">步驟 0/0</span><span id="pbarPct">0%</span></div>
+      </div>
+      <div id="pipeRemark" class="pipe-remark" style="display:none"></div>
       <div id="pipeProgress"></div>
     </div>
     <div id="pipeResults"></div>
@@ -946,7 +979,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow21-fixes",
+  build:"2026.07.14-flow22-progress",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -984,21 +1017,21 @@ let cardsFiles = [];       // 教學卡片工坊的附件
 let handoffFrom = null;
 let running = false;
 const PLATFORMS=[
-  {k:"all",      label:"全平台",   tip:"請分別為 TikTok、Instagram、Threads、YouTube、Facebook、Line 六個平台各產出一個版本，每個版本「第一行必須單獨只有【平台名稱】」（一段只含一個平台，絕不合併），彼此用一行「— — —」分隔，並依該平台調性調整（短影音腳本／圖文限動／串文／影片腳本／臉書貼文／Line 訊息）。"},
-  {k:"tiktok",   label:"TikTok",   tip:"請輸出 TikTok 短影音腳本：前 3 秒要有強鉤子、口語節奏快、附口白與字幕、結尾一句行動呼籲，再給 3–5 個主題標籤。"},
-  {k:"instagram",label:"Instagram",tip:"請輸出 Instagram 內容：圖文貼文文案（可分頁）＋一則限動文案，視覺優先、精簡有共鳴，附 5–8 個相關主題標籤。"},
-  {k:"threads",  label:"Threads",  tip:"請輸出 Threads 短文：像聊天、口語、引發討論或共鳴，可拆成 2–3 則串文。"},
-  {k:"youtube",  label:"YouTube",  tip:"請輸出 YouTube 影片腳本／大綱：開場 15 秒留人、分章節、口白順、結尾導訂閱與下一支。"},
-  {k:"facebook", label:"Facebook", tip:"請輸出 Facebook 貼文：可較長、說故事、段落分明、引發留言與分享，結尾一個互動提問或行動呼籲。"},
-  {k:"line",     label:"Line",     tip:"請輸出 Line 訊息：像一對一傳給朋友，親切、簡短、可直接複製傳送，不像廣告。"}
+  {k:"all",      label:"全平台",   ic:"🌐", tip:"請分別為 TikTok、Instagram、Threads、YouTube、Facebook、Line 六個平台各產出一個版本，每個版本「第一行必須單獨只有【平台名稱】」（一段只含一個平台，絕不合併），彼此用一行「— — —」分隔，並依該平台調性調整（短影音腳本／圖文限動／串文／影片腳本／臉書貼文／Line 訊息）。"},
+  {k:"tiktok",   label:"TikTok",   ic:"🎵", tip:"請輸出 TikTok 短影音腳本：前 3 秒要有強鉤子、口語節奏快、附口白與字幕、結尾一句行動呼籲，再給 3–5 個主題標籤。"},
+  {k:"instagram",label:"Instagram",ic:"📸", tip:"請輸出 Instagram 內容：圖文貼文文案（可分頁）＋一則限動文案，視覺優先、精簡有共鳴，附 5–8 個相關主題標籤。"},
+  {k:"threads",  label:"Threads",  ic:"🧵", tip:"請輸出 Threads 短文：像聊天、口語、引發討論或共鳴，可拆成 2–3 則串文。"},
+  {k:"youtube",  label:"YouTube",  ic:"▶️", tip:"請輸出 YouTube 影片腳本／大綱：開場 15 秒留人、分章節、口白順、結尾導訂閱與下一支。"},
+  {k:"facebook", label:"Facebook", ic:"📘", tip:"請輸出 Facebook 貼文：可較長、說故事、段落分明、引發留言與分享，結尾一個互動提問或行動呼籲。"},
+  {k:"line",     label:"Line",     ic:"💬", tip:"請輸出 Line 訊息：像一對一傳給朋友，親切、簡短、可直接複製傳送，不像廣告。"}
 ];
 let currentPlatform="all";
 function platTip(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.tip:""; }
 function platLabel(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.label:"全平台"; }
 function renderPlatBar(){
   const bar=document.getElementById("platBar"); if(!bar) return;
-  bar.innerHTML='<span class="plat-lbl">目標平台</span>'+PLATFORMS.map(p=>
-    `<button class="plat-chip ${p.k===currentPlatform?'on':''}" onclick="selectPlatform('${p.k}')">${p.label}</button>`).join("");
+  bar.innerHTML='<div class="plat-lbl">🎯 目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
+    `<button class="plat-chip ${p.k===currentPlatform?'on':''}" onclick="selectPlatform('${p.k}')"><span class="pc-ic">${p.ic}</span>${esc(p.label)}</button>`).join("")+'</div>';
 }
 function selectPlatform(k){ currentPlatform=k; renderPlatBar(); }
 const MAX_FILE_CHARS = 12000;
@@ -1111,8 +1144,8 @@ function renderPipeSteps(){
     </div>`;
   }).join("");
   const pb=document.getElementById("pipePlatBar");
-  if(pb){ pb.innerHTML='<span class="plat-lbl">目標平台</span>'+PLATFORMS.map(p=>
-    `<button class="plat-chip ${p.k===pipePlatform?'on':''}" onclick="selectPipePlatform('${p.k}')">${p.label}</button>`).join(""); }
+  if(pb){ pb.innerHTML='<div class="plat-lbl">🎯 目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
+    `<button class="plat-chip ${p.k===pipePlatform?'on':''}" onclick="selectPipePlatform('${p.k}')"><span class="pc-ic">${p.ic}</span>${esc(p.label)}</button>`).join("")+'</div>'; }
   const lp=document.getElementById("libPickBar");
   const act=state.library.filter(x=>x.active);
   lp.innerHTML = act.length? `📎 已指定素材：${act.map(x=>esc(x.name)).join("、")}（會自動帶入各部門）`
@@ -1990,6 +2023,24 @@ async function callOpenAI(sys,userContent,maxTokens,charge){
 }
 
 /* ============ 一鍵跑完整套網路經營 ============ */
+// 進度條與執行備註（$10k 精品質感：讓每一步都可視化、有依據）
+function setPipeBar(done,total){
+  const wrap=document.getElementById("pipeBarWrap"); if(!wrap) return;
+  wrap.style.display="block";
+  const pct=total>0?Math.round((done/total)*100):0;
+  document.getElementById("pbarFill").style.width=pct+"%";
+  document.getElementById("pbarPct").textContent=pct+"%";
+  document.getElementById("pbarStep").textContent=`步驟 ${done}/${total}`;
+}
+function hidePipeBar(){
+  const wrap=document.getElementById("pipeBarWrap"); if(wrap) wrap.style.display="none";
+  const rm=document.getElementById("pipeRemark"); if(rm) rm.style.display="none";
+}
+function setPipeRemark(ic,txt,sub){
+  const box=document.getElementById("pipeRemark"); if(!box) return;
+  box.style.display="flex";
+  box.innerHTML=`<span class="rk-ic">${ic}</span><span class="rk-txt">${esc(txt)}${sub?`<span class="rk-sub">${esc(sub)}</span>`:""}</span>`;
+}
 async function runAllDepartments(resume){
   if(running) return;
   if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
@@ -2021,8 +2072,13 @@ async function runAllDepartments(resume){
   const prog=document.getElementById("pipeProgress");
   const results=document.getElementById("pipeResults");
   if(!resume) results.innerHTML="";
+  const TOTAL=order.length+1;
   prog.innerHTML=order.map((d,i)=>`<div class="pl-step" id="plstep-${i}"><span class="st">${i+1}</span>${esc(d.name)}</div>`).join("")
     +`<div class="pl-step" id="plstep-final"><span class="st">📄</span>統整成品文章</div>`;
+  setPipeBar(run.step, TOTAL);
+  setPipeRemark(resume?"⏩":"🚀",
+    resume?`從第 ${run.step+1} 步接續執行…`:"開始運轉，各部門將依序產出內容",
+    run.goal?`主題：${run.goal}`:"依部門專長自動發揮");
   // 標記已完成步驟
   for(let i=0;i<run.step && i<order.length;i++){
     const st=document.getElementById("plstep-"+i); if(st){ st.classList.add("done"); st.querySelector(".st").textContent="✓"; }
@@ -2032,6 +2088,8 @@ async function runAllDepartments(resume){
     for(let i=run.step;i<order.length;i++){
       const d=order[i];
       document.getElementById("plstep-"+i).classList.add("run");
+      setPipeRemark("✍️", `正在生成「${d.name}」的內容…`,
+        run.stepTasks[i] ? `任務：${run.stepTasks[i]}` : "依部門專長自動發揮");
       let base="";
       if(run.goal) base+=`【本次共同目標】\n${run.goal}\n\n`;
       if(run.prev) base+=`【${run.prevName} 交辦給你的素材】\n${clip(run.prev,MAX_CHAIN_CHARS)}\n\n`;
@@ -2052,10 +2110,14 @@ async function runAllDepartments(resume){
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
       run.prev=out; run.prevName=d.name; run.step=i+1;
       state.pipeRun=run; save();   // ← 每步存檔，關掉也能續跑
+      setPipeBar(run.step, TOTAL);
+      setPipeRemark("✅", `「${d.name}」已完成`, `已完成 ${run.step}/${TOTAL} 步`);
       await new Promise(r=>setTimeout(r,1200));
     }
 
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
+    setPipeRemark("🧵", "正在統整所有部門產出，優化成可直接發布的成品…",
+      `目標平台：${platLabel(run.plat)}`);
     const editorSys=`你是「${state.title}」的社群主編與貼文優化師。請把以下 ${order.length} 個部門（${order.map(d=>d.name).join("、")}）的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n【鐵則：固定順序】每篇成品都要照這個結構：①先破冰（停下滑動、引發共鳴的開場）→ ②再講事情（重點／價值講到有感）→ ③最後邀約（搭配真誠留言互動＋低門檻邀約）。破冰一定放最前面。\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}\n【優化要求】\n- 每篇都要可直接貼、不需我再改：開頭就是破冰鉤子、易讀分段（適量換行與表情符號）、自然的行動呼籲、平台合適的主題標籤。\n- 若為全平台，六個平台各自獨立成段：每段「第一行必須單獨只有【平台名稱】」（例如【TikTok】），一段只能有一個平台、絕不可把兩個平台寫在同一段，段與段之間用一行「— — —」分隔，方便我分平台複製。\n- 保留貼合【公司背景】的行業定位與語氣；不誇大、不違規、符合該行業規範。\n- 只輸出成品本身，不要出現部門名稱、過程說明或開場白。`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
@@ -2066,6 +2128,8 @@ async function runAllDepartments(resume){
       fromDept:"三部門", platform:platLabel(run.plat) });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
+    setPipeBar(TOTAL, TOTAL);
+    setPipeRemark("🎉", "全部完成！成品已存入成品庫", "各部門產出也已分別存入部門紀錄");
 
     const anyTrim=run.anyTrim;
     state.pipeRun=null;   // 完成，清除進度
@@ -2075,6 +2139,7 @@ async function runAllDepartments(resume){
   }catch(err){
     // 保留進度，之後可續跑
     save();
+    setPipeRemark("⚠️", "執行中斷，進度已保存", err.message);
     results.insertAdjacentHTML("beforeend",
       `<div class="output-card"><div class="oc-head">⚠️ 運轉中斷（進度已保存，可按「繼續完成」接著跑）</div><div class="output-body" style="color:#A8442E">${esc(err.message)}</div></div>`);
     renderResumeBar();
@@ -2097,7 +2162,7 @@ function renderResumeBar(){
 }
 function discardPipeRun(){
   if(!confirm("放棄這個未完成的流程？已完成的部門產出仍會保留在各部門。")) return;
-  state.pipeRun=null; save(); renderResumeBar(); toast("已放棄未完成流程");
+  state.pipeRun=null; save(); renderResumeBar(); hidePipeBar(); toast("已放棄未完成流程");
 }
 
 const PLAT_NAMES=[
@@ -2140,6 +2205,14 @@ function segmentize(text){
   }
   return segs.length?segs:[(text||"").trim()];
 }
+// 從段落抽出一個簡短標題，讓每張卡都像教學卡片一樣有標題可看
+function deriveSegTitle(seg, idx){
+  let first=(seg.split("\n")[0]||"").trim();
+  first=first.replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"$1：").trim();
+  if(!first) return "重點內容 "+(idx+1);
+  if(first.length>22) first=first.slice(0,20)+"…";
+  return first;
+}
 function richBody(out){
   const blocks=splitPlatforms(out);
   if(blocks){
@@ -2156,6 +2229,7 @@ function richBody(out){
     <div class="seg-card">
       <span class="seg-num">${String(i+1).padStart(2,"0")}</span>
       <span class="seg-tag">部門產出 · 第 ${i+1} 段</span>
+      <div class="seg-title">${esc(deriveSegTitle(s,i))}</div>
       <div class="seg-body">${esc(s)}</div>
       <button class="seg-copy" onclick="copySeg(this)">📋 複製</button>
     </div>`).join("")+`</div>`;
