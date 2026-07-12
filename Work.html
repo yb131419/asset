@@ -485,7 +485,7 @@
     color:var(--gold);display:flex;align-items:center;gap:7px;margin-bottom:8px;}
   .seg-tag::after{content:"";flex:1;height:1px;max-width:44px;
     background:linear-gradient(90deg,currentColor,transparent);opacity:.5;}
-  .seg-body{font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;}
+  .seg-body{font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--ink);}
   .seg-num{position:absolute;top:14px;right:18px;font-size:34px;font-weight:800;opacity:.1;
     font-style:italic;letter-spacing:1px;font-variant-numeric:tabular-nums;}
   .seg-copy{position:absolute;right:14px;bottom:12px;font-size:12px;font-weight:700;
@@ -495,7 +495,7 @@
     box-shadow:0 4px 12px rgba(30,25,18,.18), inset 0 1px 0 rgba(255,255,255,.25);
     transition:transform .18s var(--spring);}
   .seg-copy:active{transform:scale(.92);}
-  /* 平台分塊也套精裝卡面 */
+  /* 平台分塊：套用與教學卡片工坊相同的精裝卡面（深棕燙金） */
   .plat-blocks{padding:14px;display:flex;flex-direction:column;gap:16px;}
   .plat-block{position:relative;border:1px solid rgba(217,184,115,.5);border-radius:22px;overflow:hidden;
     background:
@@ -507,27 +507,18 @@
   .plat-block::before{content:"";position:absolute;inset:7px;border-radius:16px;pointer-events:none;
     border:1px solid rgba(217,184,115,.32);z-index:1;}
   .pb-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;
-    padding:16px 18px 6px;background:transparent;color:var(--gold-soft);}
-  .pb-name{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
-    display:flex;align-items:center;gap:7px;}
-  .pb-name::after{content:"";width:36px;height:1px;background:linear-gradient(90deg,currentColor,transparent);opacity:.5;}
+    padding:16px 18px 10px;}
+  .pb-name{position:relative;z-index:2;font-size:12.5px;font-weight:800;letter-spacing:.4px;
+    color:var(--ink);background:linear-gradient(165deg,#FBF6EA,#fff);
+    padding:5px 13px;border-radius:20px;border:1px solid var(--gold-soft);
+    display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 8px rgba(30,25,18,.2);}
   .pb-copy{position:relative;z-index:2;font-size:12px;font-weight:700;color:var(--ink);
     background:linear-gradient(165deg,#FBF6EA,#fff);padding:8px 14px;border-radius:11px;
     border:1px solid var(--gold-soft);min-height:38px;
     box-shadow:0 4px 12px rgba(30,25,18,.25);transition:transform .18s var(--spring);}
   .pb-copy:active{transform:scale(.92);}
-  .pb-body{position:relative;z-index:2;padding:8px 18px 14px;font-size:15px;line-height:1.75;
-    white-space:pre-wrap;word-break:break-word;}
-
-  /* 平台分塊顯示 */
-  .plat-blocks{padding:12px;display:flex;flex-direction:column;gap:11px;}
-  .plat-block{border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden;}
-  .pb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;
-    padding:10px 13px;background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;font-size:13px;font-weight:800;}
-  .pb-name{letter-spacing:.5px;}
-  .pb-copy{font-size:12px;font-weight:700;color:var(--ink);background:#fff;padding:6px 12px;border-radius:9px;transition:transform .1s;}
-  .pb-copy:active{transform:scale(.93);}
-  .pb-body{padding:13px;font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+  .pb-body{position:relative;z-index:2;padding:6px 18px 14px;font-size:15px;line-height:1.75;
+    white-space:pre-wrap;word-break:break-word;color:#FBF6EA;}
   .pb-body.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
   .pb-body.clamp.full{display:block;-webkit-line-clamp:unset;}
   .pb-more{position:relative;z-index:2;display:block;width:100%;padding:11px;font-size:12.5px;font-weight:700;
@@ -955,7 +946,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.13-flow20-loginfix",
+  build:"2026.07.14-flow21-fixes",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1870,7 +1861,7 @@ async function initMember(forceLogin){
       const p=await liff.getProfile();
       member.lineId=p.userId; member.lineName=p.displayName||""; member.pic=p.pictureUrl||"";
     }
-    const r=await gasPost({ action:"getPermission" });
+    const r=await gasPost({ action:"getPermission" }, 20000);
     if(r && r.success && r.permission){
       const pm=r.permission;
       member.ready=true; member.level=pm.level; member.remain=pm.remainCount;
@@ -1894,10 +1885,19 @@ async function initMember(forceLogin){
     setTimeout(()=>runAllDepartments(true), 800);
   }
 }
-async function gasPost(params){
+async function gasPost(params, timeoutMs){
   const body=new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
-  const res=await fetch(GAS_URL,{ method:"POST", body });
-  return await res.json();
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(), timeoutMs||55000);
+  try{
+    const res=await fetch(GAS_URL,{ method:"POST", body, signal:ctrl.signal });
+    return await res.json();
+  }catch(e){
+    if(e && e.name==="AbortError") throw new Error("後端逾時未回應（超過 "+Math.round((timeoutMs||55000)/1000)+" 秒），請稍後重試");
+    throw e;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 function memberBadge(){
   if(!member.ready) return "";
@@ -1921,8 +1921,12 @@ async function callOpenAI(sys,userContent,maxTokens,charge){
       try{
         r=await gasPost({ action:"generate", sys,
           user: typeof userContent==="string"? JSON.stringify([{type:"text",text:userContent}]) : JSON.stringify(userContent),
-          maxTok:String(maxTokens||1800), model:state.model, charge: charge?"1":"0" });
-      }catch(e){ throw new Error("後端連線失敗："+e.message); }
+          maxTok:String(maxTokens||1800), model:state.model, charge: charge?"1":"0" }, 55000);
+      }catch(e){
+        lastErr="後端連線失敗："+e.message;
+        if(attempt<2){ toast(`連線逾時，重試中…（${attempt+1}/3）`); await new Promise(x=>setTimeout(x,1500)); continue; }
+        throw new Error(lastErr);
+      }
       if(r && r.success){
         if(r.remain!==undefined && r.remain!==null && r.remain!==""){ member.remain=r.remain; updateKeyStatus(); renderMemberCenter(); }
         return (r.content||"").trim();
