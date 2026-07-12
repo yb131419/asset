@@ -955,7 +955,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.13-flow19-resume",
+  build:"2026.07.13-flow19b-resume",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2086,51 +2086,35 @@ function discardPipeRun(){
   state.pipeRun=null; save(); renderResumeBar(); toast("已放棄未完成流程");
 }
 
+const PLAT_NAMES=[
+  {re:/tiktok|抖音/i, label:"TikTok"},
+  {re:/instagram|(^|[^a-z])ig([^a-z]|$)/i, label:"Instagram"},
+  {re:/threads|脆/i, label:"Threads"},
+  {re:/youtube|(^|[^a-z])yt([^a-z]|$)/i, label:"YouTube"},
+  {re:/facebook|(^|[^a-z])fb([^a-z]|$)|臉書/i, label:"Facebook"},
+  {re:/line/i, label:"Line"}
+];
+function platNameOf(str){ const t=(str||"").trim(); for(const p of PLAT_NAMES){ if(p.re.test(t)) return p.label; } return null; }
 function splitPlatforms(text){
   text=text||"";
-  // 只認「平台名」的【標記】為區塊起點（內容裡其他【】不會誤切）
-  const re=/【([^】\n]{1,20})】/g; const marks=[]; let m;
-  while((m=re.exec(text))){
-    const nm=platNameOf(m[1]);
-    if(nm) marks.push({label:nm, start:m.index, cstart:re.lastIndex});
-  }
-  let blocks=[];
-  if(marks.length>=2){
-    for(let i=0;i<marks.length;i++){
-      const end=i+1<marks.length?marks[i+1].start:text.length;
-      let body=text.slice(marks[i].cstart,end);
-      blocks.push({label:marks[i].label, body});
+  // 逐行掃描：一行若「只有一個平台名」（可含【】或分隔線），就當作新平台區塊的標題
+  const lines=text.split("\n");
+  const blocks=[]; let cur=null;
+  const isDivider=(ln)=>/^[\s—–\-]{2,}$/.test(ln.trim());
+  for(let raw of lines){
+    const line=raw.trim();
+    // 抽出這一行去掉裝飾後的純文字，判斷是不是「平台名標題行」
+    const bare=line.replace(/[【】\[\]（）()：:｜|#*_.,。、\s—–\-]/g,"");
+    const nm = bare.length>0 && bare.length<=12 ? platNameOf(bare) : null;
+    if(nm){
+      cur={label:nm, body:""}; blocks.push(cur);
+      continue;
     }
-  }else{
-    blocks=[{label:"", body:text}];
+    if(isDivider(line)){ continue; }       // 分隔線略過
+    if(cur){ cur.body += (cur.body?"\n":"") + raw; }
   }
-  // 二次切分：區塊內若還有「— — —」分隔線＋平台名開頭（漏掉【】的情況，例如 IG 黏在 TikTok 後面）
-  const out=[];
-  for(const b of blocks){
-    const parts=b.body.split(/\n[\s]*[—–\-]{2,}[\s—–\-]*\n/);
-    let curLabel=b.label;
-    for(let seg of parts){
-      seg=seg.replace(/^[\s—–\-]+/,"").replace(/[\s—–\-]+$/,"").trim();
-      if(!seg) continue;
-      const firstLine=seg.split("\n")[0].replace(/[【】\[\]（）()：:\s]/g,"");
-      const nm=firstLine.length<=14 ? platNameOf(firstLine) : null;
-      if(nm && out.length){
-        // 開頭就是平台名：去掉那一行當標籤
-        seg=seg.split("\n").slice(1).join("\n").trim()||seg;
-        out.push({label:nm, body:seg});
-      }else if(nm && !out.length && !curLabel){
-        seg=seg.split("\n").slice(1).join("\n").trim()||seg;
-        out.push({label:nm, body:seg});
-      }else if(curLabel){
-        out.push({label:curLabel, body:seg}); curLabel=null;
-      }else if(out.length){
-        // 無標籤的殘段併回上一塊
-        out[out.length-1].body+="\n\n"+seg;
-      }
-    }
-  }
-  const named=out.filter(b=>b.label&&b.body);
-  return named.length>=2?named:null;
+  const named=blocks.map(b=>({label:b.label, body:(b.body||"").trim()})).filter(b=>b.body);
+  return named.length>=2 ? named : null;
 }
 // 把一段產出切成卡片段落（部門產出一律卡片化顯示）
 function segmentize(text){
