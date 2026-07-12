@@ -457,11 +457,9 @@
   .plat-bar, .pl-plat{margin:0 2px 14px;}
   .plat-lbl{font-size:11.5px;font-weight:800;color:var(--ink-faint);letter-spacing:1.5px;margin:0 2px 8px;}
   .pl-plat .plat-lbl{color:rgba(255,255,255,.5);margin-top:2px;}
-  .plat-scroll{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:none;
-    scroll-snap-type:x proximity;}
-  .plat-scroll::-webkit-scrollbar{display:none;}
-  .plat-chip{flex:0 0 auto;scroll-snap-align:start;font-size:13.5px;font-weight:700;padding:10px 16px;
-    border-radius:20px;min-height:42px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  .plat-scroll{display:flex;flex-wrap:wrap;gap:8px;padding:2px 2px 4px;}
+  .plat-chip{flex:1 1 auto;font-size:13px;font-weight:700;padding:9px 10px;
+    border-radius:14px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;
     background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:var(--shadow);
     transition:transform .18s var(--spring),box-shadow .2s,background .2s,color .2s;}
   .plat-chip .pc-ic{font-size:14px;line-height:1;}
@@ -2225,17 +2223,19 @@ function richBody(out){
       </div>`).join("")+`</div>`;
   }
   const segs=segmentize(out);
-  return `<div class="seg-deck">`+segs.map((s,i)=>`
-    <div class="seg-card">
-      <span class="seg-num">${String(i+1).padStart(2,"0")}</span>
-      <span class="seg-tag">部門產出 · 第 ${i+1} 段</span>
-      <div class="seg-title">${esc(deriveSegTitle(s,i))}</div>
-      <div class="seg-body">${esc(s)}</div>
-      <button class="seg-copy" onclick="copySeg(this)">📋 複製</button>
+  return `<div class="card-deck seg-deck">`+segs.map((s,i)=>`
+    <div class="tcard flat">
+      <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
+        <span class="tcard-num">${String(i+1).padStart(2,"0")}</span>
+        <span class="tcard-tag">部門產出 · 第 ${i+1} 段</span>
+        <div class="tcard-q">${esc(deriveSegTitle(s,i))}</div>
+        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(s)}</div>
+        <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
+      </div>
     </div>`).join("")+`</div>`;
 }
 function copySeg(btn){
-  const txt=btn.closest(".seg-card").querySelector(".seg-body").textContent;
+  const txt=btn.closest(".tcard").querySelector(".tcard-a").textContent;
   navigator.clipboard.writeText(txt).then(()=>toast("已複製這張卡"));
 }
 function copyBlock(btn){
