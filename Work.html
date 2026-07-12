@@ -371,6 +371,14 @@
   .home-build{text-align:center;font-size:11px;color:var(--ink-faint);margin-top:22px;letter-spacing:.3px;opacity:.8;}
   .hidden{display:none!important;}
 
+  /* 斷點續跑列 */
+  .resume-note{margin-top:12px;padding:13px 15px;border-radius:14px;font-size:13px;line-height:1.6;
+    background:rgba(255,255,255,.1);border:1px solid var(--gold-soft);color:#fff;}
+  .resume-btn{display:inline-block;margin:9px 8px 0 0;padding:9px 16px;border-radius:11px;font-size:13.5px;font-weight:800;
+    background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);border:1px solid var(--gold-soft);min-height:42px;}
+  .resume-x{padding:9px 14px;border-radius:11px;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);min-height:42px;}
+
   /* 一鍵運轉 */
   .pipeline{background:linear-gradient(168deg,#2E2415 0%,#1E1A14 78%);color:#fff;border-radius:var(--radius);
     padding:22px;margin-bottom:18px;box-shadow:var(--shadow-lg);border:1px solid rgba(217,184,115,.16);
@@ -687,6 +695,7 @@
       <div class="pl-plat" id="pipePlatBar"></div>
       <div id="libPickBar"></div>
       <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 一鍵跑完整套（全自動）</button>
+      <div id="pipeResumeBar" style="display:none"></div>
       <div id="pipeProgress"></div>
     </div>
     <div id="pipeResults"></div>
@@ -946,7 +955,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.13-flow18-platfix",
+  build:"2026.07.13-flow19-resume",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -972,7 +981,8 @@ const DEFAULTS = {
   library:[],// {id, name, kind, content, url, active, size, deptId}
   collections:[], // {id, time, topic, angle, used}
   collector:{ auto:false, freq:"daily", lastRun:0, topicHint:"" },
-  decks:[]   // {id, time, title, mode, cards:[{q,a}]}
+  decks:[],
+  pipeRun:null   // 未完成的一鍵流程進度（可斷點續跑）   // {id, time, title, mode, cards:[{q,a}]}
 };
 
 /* ============ 狀態 ============ */
@@ -1014,6 +1024,7 @@ function load(){
       merged.collections = Array.isArray(s.collections)? s.collections : [];
       merged.collector = {...DEF.collector, ...(s.collector||{})};
       merged.decks = Array.isArray(s.decks)? s.decks : [];
+      merged.pipeRun = s.pipeRun||null;
       merged.gasUrl = s.gasUrl||"";
       merged.liffId = s.liffId||"";
       if(merged.model!=="gpt-4o-mini" && merged.model!=="gpt-5-mini"){
@@ -1089,6 +1100,7 @@ function renderHome(){
     </div>`;
   }).join("");
   renderPipeSteps();
+  renderResumeBar();
   updateLibSummary();
   updateResSummary();
   updateCollSummary();
@@ -1866,6 +1878,11 @@ async function initMember(forceLogin){
   }catch(e){ member.msg="LIFF 初始化失敗："+e.message; toast(member.msg); }
   updateKeyStatus();
   renderMemberCenter();
+  // 驗證完成後，若有上次未跑完的流程，自動接續完成
+  if(member.ready && state.pipeRun && !state.pipeRun.done && !running){
+    toast("偵測到未完成的流程，自動接續完成…");
+    setTimeout(()=>runAllDepartments(true), 800);
+  }
 }
 async function gasPost(params){
   const body=new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
@@ -1959,90 +1976,116 @@ async function callOpenAI(sys,userContent,maxTokens,charge){
 }
 
 /* ============ 一鍵跑完整套網路經營 ============ */
-async function runAllDepartments(){
+async function runAllDepartments(resume){
   if(running) return;
   if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
   if(!canRun()) return;
-  const goal=document.getElementById("pipeInput").value.trim();
   const order=state.departments;
-  const stepTasks=order.map((d,i)=>{
-    const sel=document.getElementById("pstep-"+i);
-    const v=sel?sel.value:"0";
-    if(v==="-1") return "";
-    const idx=parseInt(v,10)||0;
-    return (d.presets&&d.presets[idx])?d.presets[idx]:"";
-  });
-  if(!goal && stepTasks.every(t=>!t)){ toast("請輸入共同主題，或為部門挑選建議任務"); return; }
+
+  // 建立或接續進度
+  let run=state.pipeRun;
+  if(!resume || !run){
+    const goal=document.getElementById("pipeInput").value.trim();
+    const stepTasks=order.map((d,i)=>{
+      const sel=document.getElementById("pstep-"+i);
+      const v=sel?sel.value:"0";
+      if(v==="-1") return "";
+      const idx=parseInt(v,10)||0;
+      return (d.presets&&d.presets[idx])?d.presets[idx]:"";
+    });
+    if(!goal && stepTasks.every(t=>!t)){ toast("請輸入共同主題，或為部門挑選建議任務"); return; }
+    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false };
+    state.pipeRun=run; save();
+  }else{
+    pipePlatform=run.plat||"all";
+    if(!document.getElementById("pipeInput").value) document.getElementById("pipeInput").value=run.goal||"";
+  }
 
   running=true;
   const btn=document.getElementById("pipeBtn");
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>運轉中…';
   const prog=document.getElementById("pipeProgress");
   const results=document.getElementById("pipeResults");
-  results.innerHTML="";
+  if(!resume) results.innerHTML="";
   prog.innerHTML=order.map((d,i)=>`<div class="pl-step" id="plstep-${i}"><span class="st">${i+1}</span>${esc(d.name)}</div>`).join("")
     +`<div class="pl-step" id="plstep-final"><span class="st">📄</span>統整成品文章</div>`;
+  // 標記已完成步驟
+  for(let i=0;i<run.step && i<order.length;i++){
+    const st=document.getElementById("plstep-"+i); if(st){ st.classList.add("done"); st.querySelector(".st").textContent="✓"; }
+  }
 
-  let prev="", prevName="", anyTrim=false;
-  const collected=[];
   try{
-    for(let i=0;i<order.length;i++){
+    for(let i=run.step;i<order.length;i++){
       const d=order[i];
       document.getElementById("plstep-"+i).classList.add("run");
       let base="";
-      if(goal) base+=`【本次共同目標】\n${goal}\n\n`;
-      if(prev) base+=`【${prevName} 交辦給你的素材】\n${clip(prev,MAX_CHAIN_CHARS)}\n\n`;
-      base+= stepTasks[i]
-        ? `【你的任務】\n${stepTasks[i]}\n\n請完成並產出可直接使用的成果。`
+      if(run.goal) base+=`【本次共同目標】\n${run.goal}\n\n`;
+      if(run.prev) base+=`【${run.prevName} 交辦給你的素材】\n${clip(run.prev,MAX_CHAIN_CHARS)}\n\n`;
+      base+= run.stepTasks[i]
+        ? `【你的任務】\n${run.stepTasks[i]}\n\n請完成並產出可直接使用的成果。`
         : `請以「${d.name}」的角色，完成你負責的部分，產出可直接使用的成果。`;
-      base+=`\n\n【目標平台：${platLabel(pipePlatform)}】${platTip(pipePlatform)}`;
+      base+=`\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}`;
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
-      if(built.trimmed) anyTrim=true;
-      const out=await callOpenAI(buildSys(d), built.content, pipePlatform==="all"?2600:1800);
-      collected.push({name:d.name, out});
+      if(built.trimmed) run.anyTrim=true;
+      const out=await callOpenAI(buildSys(d), built.content, run.plat==="all"?2600:1800);
+      run.collected.push({name:d.name, out});
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
-        input:`[一鍵運轉] ${stepTasks[i]||goal}`, output:out, time:Date.now(),
-        fromDept: i>0?prevName:null });
-      // 部門產出直接存入各部門紀錄，首頁只展示最終成品卡
+        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(),
+        fromDept: i>0?run.prevName:null });
+
       const step=document.getElementById("plstep-"+i);
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
-      prev=out; prevName=d.name;
-      await new Promise(r=>setTimeout(r,1200)); // 步驟間緩衝，避免撞到每分鐘流量上限
+      run.prev=out; run.prevName=d.name; run.step=i+1;
+      state.pipeRun=run; save();   // ← 每步存檔，關掉也能續跑
+      await new Promise(r=>setTimeout(r,1200));
     }
 
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
-    const editorSys=`你是「${state.title}」的社群主編與貼文優化師。請把以下 ${order.length} 個部門（${order.map(d=>d.name).join("、")}）的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n【鐵則：固定順序】每篇成品都要照這個結構：①先破冰（停下滑動、引發共鳴的開場）→ ②再講事情（重點／價值講到有感）→ ③最後邀約（搭配真誠留言互動＋低門檻邀約）。破冰一定放最前面。\n【目標平台：${platLabel(pipePlatform)}】${platTip(pipePlatform)}\n【優化要求】\n- 每篇都要可直接貼、不需我再改：開頭就是破冰鉤子、易讀分段（適量換行與表情符號）、自然的行動呼籲、平台合適的主題標籤。\n- 若為全平台，六個平台各自獨立成段：每段「第一行必須單獨只有【平台名稱】」（例如【TikTok】），一段只能有一個平台、絕不可把兩個平台寫在同一段，段與段之間用一行「— — —」分隔，方便我分平台複製。\n- 保留貼合【公司背景】的行業定位與語氣；不誇大、不違規、符合該行業規範。\n- 只輸出成品本身，不要出現部門名稱、過程說明或開場白。`;
-    let comp=`【本次主題】\n${goal||"（依下方素材判斷）"}\n\n`;
-    collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
+    const editorSys=`你是「${state.title}」的社群主編與貼文優化師。請把以下 ${order.length} 個部門（${order.map(d=>d.name).join("、")}）的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n【鐵則：固定順序】每篇成品都要照這個結構：①先破冰（停下滑動、引發共鳴的開場）→ ②再講事情（重點／價值講到有感）→ ③最後邀約（搭配真誠留言互動＋低門檻邀約）。破冰一定放最前面。\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}\n【優化要求】\n- 每篇都要可直接貼、不需我再改：開頭就是破冰鉤子、易讀分段（適量換行與表情符號）、自然的行動呼籲、平台合適的主題標籤。\n- 若為全平台，六個平台各自獨立成段：每段「第一行必須單獨只有【平台名稱】」（例如【TikTok】），一段只能有一個平台、絕不可把兩個平台寫在同一段，段與段之間用一行「— — —」分隔，方便我分平台複製。\n- 保留貼合【公司背景】的行業定位與語氣；不誇大、不違規、符合該行業規範。\n- 只輸出成品本身，不要出現部門名稱、過程說明或開場白。`;
+    let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
+    run.collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
-    const finalOut=await callOpenAI(editorSys, comp, pipePlatform==="all"?3200:2600,true);
+    const finalOut=await callOpenAI(editorSys, comp, run.plat==="all"?3200:2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#1E1A14",
-      input:`[成品] ${goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
-      fromDept:"三部門", platform:platLabel(pipePlatform) });
+      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
+      fromDept:"三部門", platform:platLabel(run.plat) });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
 
+    const anyTrim=run.anyTrim;
+    state.pipeRun=null;   // 完成，清除進度
     save(); renderHome();
     if(anyTrim) toast("素材過長已自動截取；成品已存入成品庫，各部門產出已存入部門"); else toast("成品已存入成品庫，各部門產出已存入部門");
     results.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){
+    // 保留進度，之後可續跑
+    save();
     results.insertAdjacentHTML("beforeend",
-      `<div class="output-card"><div class="oc-head">⚠️ 運轉中斷</div><div class="output-body" style="color:#A8442E">${esc(err.message)}</div></div>`);
+      `<div class="output-card"><div class="oc-head">⚠️ 運轉中斷（進度已保存，可按「繼續完成」接著跑）</div><div class="output-body" style="color:#A8442E">${esc(err.message)}</div></div>`);
+    renderResumeBar();
   }finally{
     running=false;
     btn.disabled=false; btn.innerHTML="▶ 一鍵跑完整套（全自動）";
   }
 }
-const PLAT_NAMES=[
-  {re:/tiktok|抖音/i, label:"TikTok"},
-  {re:/instagram|(^|[^a-z])ig([^a-z]|$)/i, label:"Instagram"},
-  {re:/threads|脆/i, label:"Threads"},
-  {re:/youtube|(^|[^a-z])yt([^a-z]|$)/i, label:"YouTube"},
-  {re:/facebook|(^|[^a-z])fb([^a-z]|$)|臉書/i, label:"Facebook"},
-  {re:/line/i, label:"Line"}
-];
-function platNameOf(str){ const t=(str||"").trim(); for(const p of PLAT_NAMES){ if(p.re.test(t)) return p.label; } return null; }
+// 有未完成進度時顯示「繼續完成」列
+function renderResumeBar(){
+  const bar=document.getElementById("pipeResumeBar"); if(!bar) return;
+  const r=state.pipeRun;
+  if(r && !r.done){
+    const total=state.departments.length+1;
+    bar.innerHTML=`<div class="resume-note">⏸️ 有一個未完成的流程（已完成 ${r.step}/${total} 步）。上次可能中途關閉或中斷。
+      <button class="resume-btn" onclick="runAllDepartments(true)">▶ 繼續完成</button>
+      <button class="resume-x" onclick="discardPipeRun()">✕ 放棄</button></div>`;
+    bar.style.display="block";
+  }else{ bar.innerHTML=""; bar.style.display="none"; }
+}
+function discardPipeRun(){
+  if(!confirm("放棄這個未完成的流程？已完成的部門產出仍會保留在各部門。")) return;
+  state.pipeRun=null; save(); renderResumeBar(); toast("已放棄未完成流程");
+}
+
 function splitPlatforms(text){
   text=text||"";
   // 只認「平台名」的【標記】為區塊起點（內容裡其他【】不會誤切）
