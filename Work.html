@@ -628,8 +628,21 @@
   .ps-row select option{color:#1E1A14;}
   #libPickBar{font-size:13px;color:rgba(255,255,255,.72);margin:8px 2px 2px;line-height:1.5;}
 
-  /* 指定素材列 */
-  .wslib{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 2px 12px;font-size:13px;color:var(--ink-soft);}
+  /* 指定素材列（可摺疊） */
+  .wslib-wrap{margin:0 2px 14px;}
+  .wslib-toggle{width:100%;display:flex;align-items:center;gap:8px;padding:11px 14px;
+    border-radius:13px;font-size:13px;font-weight:700;color:var(--ink-soft);
+    background:var(--paper-2);border:1.5px solid var(--line);box-shadow:var(--shadow);
+    transition:transform .18s var(--spring),background .2s,color .2s,border-color .2s;}
+  .wslib-toggle b{color:var(--gold);font-weight:800;}
+  .wslib-toggle:active{transform:scale(.98);}
+  .wslib-toggle.open{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border-color:rgba(217,184,115,.4);}
+  .wslib-toggle.open b{color:var(--gold-soft);}
+  .wslib-wrap.dark .wslib-toggle{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.16);box-shadow:none;}
+  .wslib-wrap.dark .wslib-toggle b{color:var(--gold-soft);}
+  .wslib-wrap.dark .wslib-toggle.open{background:linear-gradient(165deg,#FFF6DD,#FFFDF6);color:#8A5A0E;}
+  .wslib-wrap.dark .wslib-toggle.open b{color:#8A5A0E;}
+  .wslib{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:9px 2px 0;font-size:13px;color:var(--ink-soft);}
   .wslib .ttl{font-weight:700;color:var(--ink-faint);}
   .wslib .f{display:inline-flex;align-items:center;gap:5px;background:rgba(31,138,114,.1);
     border:1px solid rgba(31,138,114,.3);color:#1F8A72;border-radius:16px;padding:7px 12px;font-weight:600;}
@@ -689,16 +702,20 @@
     border:1px solid rgba(217,184,115,.4);}
   .tcard-back .tcard-copy{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);
     border:1px solid var(--gold-soft);}
-  .deck-item{position:relative;border-radius:20px;padding:16px 17px 15px;margin-bottom:14px;
+  .deck-item{position:relative;border-radius:20px;padding:16px 17px 15px;margin-bottom:14px;overflow:hidden;
     background:
       radial-gradient(120% 90% at 92% -14%, rgba(217,184,115,.2), transparent 55%),
       linear-gradient(168deg,#FFFDF8,#F6EFDD);
     border:1px solid rgba(168,120,46,.28);
     box-shadow:0 2px 4px rgba(30,25,18,.05), 0 14px 30px rgba(30,25,18,.1);
     animation:deal .45s var(--spring) backwards;transition:transform .18s var(--spring);}
-  .deck-item::before{content:"";position:absolute;inset:6px;border-radius:14px;pointer-events:none;
+  .deck-item::before{content:"";position:absolute;inset:6px;left:14px;border-radius:14px;pointer-events:none;
     border:1px solid rgba(168,120,46,.25);}
+  .deck-item::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--deck-accent,var(--gold));}
   .deck-item:active{transform:scale(.99);}
+  .deck-item .deck-new{position:absolute;top:0;right:0;font-size:9.5px;font-weight:800;letter-spacing:.5px;
+    color:#fff;background:linear-gradient(165deg,var(--accent),#166b53);padding:5px 12px 5px 16px;
+    border-radius:0 0 0 14px;box-shadow:0 3px 8px rgba(31,138,114,.35);z-index:2;}
   .deck-top{position:relative;z-index:1;display:flex;align-items:center;gap:12px;}
   .deck-ic{width:44px;height:44px;border-radius:13px;flex:0 0 auto;display:grid;place-items:center;font-size:20px;
     background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;
@@ -708,7 +725,12 @@
   .deck-sub{font-size:11.5px;color:var(--ink-faint);margin-top:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
   .deck-tag{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;letter-spacing:.3px;
     background:var(--gold-wash);color:var(--gold);}
-  .deck-actions{position:relative;z-index:1;display:flex;gap:8px;margin-top:13px;}
+  .deck-preview{position:relative;z-index:1;font-size:12.5px;color:var(--ink-soft);line-height:1.5;
+    margin:11px 0 0;padding:9px 12px;border-radius:11px;background:rgba(168,120,46,.07);
+    border:1px dashed rgba(168,120,46,.25);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .deck-preview b{color:var(--gold);font-weight:800;margin-right:5px;}
+  .deck-actions{position:relative;z-index:1;display:flex;gap:8px;margin-top:12px;padding-top:12px;
+    border-top:1px solid rgba(168,120,46,.16);}
   .deck-btn{flex:1;font-size:12.5px;font-weight:800;padding:0;min-height:42px;border-radius:12px;
     display:flex;align-items:center;justify-content:center;gap:5px;
     background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border:1px solid rgba(217,184,115,.35);
@@ -1021,7 +1043,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow26-fold-decks",
+  build:"2026.07.14-flow27-deckspremium",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1190,8 +1212,16 @@ function renderPipeSteps(){
     `<button class="plat-chip ${p.k===pipePlatform?'on':''}" onclick="selectPipePlatform('${p.k}')"><span class="pc-ic">${p.ic}</span>${esc(p.label)}</button>`).join("")+'</div>'; }
   const lp=document.getElementById("libPickBar");
   const act=state.library.filter(x=>x.active);
-  lp.innerHTML = act.length? `📎 已指定素材：${act.map(x=>esc(x.name)).join("、")}（會自動帶入各部門）`
-    : `📎 尚未指定素材，可到下方「素材庫」勾選常用檔案。`;
+  if(act.length===0){
+    lp.innerHTML=`📎 尚未指定素材，可到下方「素材庫」勾選常用檔案。`;
+  }else{
+    lp.innerHTML=`<div class="wslib-wrap dark">
+      <button class="wslib-toggle" onclick="toggleWsLib(this)">
+        <span class="fold-ic">📎</span>已指定素材　<b>${act.length}</b> 個<span class="fold-chev">▾</span>
+      </button>
+      <div class="wslib" hidden>${act.map(x=>`<span class="f">${esc(x.name)}</span>`).join("")}</div>
+    </div>`;
+  }
 }
 let pipePlatform="all";
 function selectPipePlatform(k){ pipePlatform=k; renderPipeSteps(); }
@@ -1338,11 +1368,17 @@ function copyDeck(id){
   navigator.clipboard.writeText(txt).then(()=>toast("已複製整副卡，可直接貼講義或貼文"));
 }
 const MODE_ICON={together:"📝",flip:"🔁",cloze:"✏️"};
+const MODE_ACCENT={together:"#A8782E",flip:"#2E6FB0",cloze:"#1F8A72"};
 function renderDecks(){
   const lbl=document.getElementById("deckLabel"), box=document.getElementById("deckList");
   if(state.decks.length===0){ lbl.style.display="none"; box.innerHTML=""; return; }
   lbl.style.display="block";
-  box.innerHTML=state.decks.map((d,i)=>`<div class="deck-item" style="animation-delay:${(i*.04).toFixed(2)}s">
+  const now=Date.now();
+  box.innerHTML=state.decks.map((d,i)=>{
+    const isNew=(now-d.time)<24*60*60*1000;
+    const preview=(d.cards[0]&&d.cards[0].q)||"";
+    return `<div class="deck-item" style="animation-delay:${(i*.04).toFixed(2)}s;--deck-accent:${MODE_ACCENT[d.mode]||"var(--gold)"}">
+    ${isNew?'<span class="deck-new">NEW</span>':""}
     <div class="deck-top">
       <div class="deck-ic">${MODE_ICON[d.mode]||"🎴"}</div>
       <div class="deck-meta">
@@ -1355,12 +1391,14 @@ function renderDecks(){
         </div>
       </div>
     </div>
+    ${preview?`<div class="deck-preview"><b>Q1</b>${esc(preview)}</div>`:""}
     <div class="deck-actions">
       <button class="deck-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
       <button class="deck-btn ghost" onclick="copyDeck(${d.id})">📋 複製</button>
       <button class="deck-btn danger" onclick="deleteDeck(${d.id})">🗑</button>
     </div>
-  </div>`).join("");
+  </div>`;
+  }).join("");
 }
 function openDeck(id){
   const d=deckById(id); if(!d) return;
@@ -1408,9 +1446,21 @@ function renderWsLib(){
     return !valid || x.deptId===current;
   });
   if(act.length===0){ bar.innerHTML=""; return; }
-  bar.innerHTML=`<div class="wslib"><span class="ttl">本部門素材：</span>`+
+  bar.innerHTML=`<div class="wslib-wrap">
+    <button class="wslib-toggle" onclick="toggleWsLib(this)">
+      <span class="fold-ic">📎</span>本部門已指定素材　<b>${act.length}</b> 個<span class="fold-chev">▾</span>
+    </button>
+    <div class="wslib" hidden>`+
     act.map(x=>`<span class="f">${libIcon(x.kind)} ${esc(x.name)}</span>`).join("")+
-    `<span class="ttl" style="cursor:pointer;text-decoration:underline" onclick="openLibrary()">管理</span></div>`;
+    `<span class="ttl" style="cursor:pointer;text-decoration:underline" onclick="openLibrary()">管理</span></div>
+  </div>`;
+}
+function toggleWsLib(btn){
+  const wrap=btn.parentElement;
+  const body=wrap.querySelector(".wslib");
+  const isHidden=body.hasAttribute("hidden");
+  if(isHidden){ body.removeAttribute("hidden"); btn.classList.add("open"); }
+  else{ body.setAttribute("hidden",""); btn.classList.remove("open"); }
 }
 function usePreset(btn){
   document.getElementById("taskInput").value=btn.textContent;
