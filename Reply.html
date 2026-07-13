@@ -384,6 +384,19 @@ textarea::placeholder{color:var(--ink3)}
 .model-tag{flex:none;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;background:var(--green);color:#fff}
 .model-tag.blue{background:#3B6FA8}
 
+.field-hint{
+  font-size:12px;color:var(--ink3);line-height:1.6;
+  margin:-4px 0 10px;padding-left:1px;
+}
+.field-live{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin-top:6px;font-size:11.5px;color:var(--ink3);
+}
+.field-live .fl-tip{color:var(--ink3);transition:color .2s}
+.field-live .fl-tip.warn{color:var(--amber)}
+.field-live .fl-tip.ok{color:var(--green)}
+.field-live .fl-count{flex:none;white-space:nowrap}
+
 /* ── Template selector ── */
 .tpl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tpl-card{
@@ -1029,38 +1042,38 @@ const TPL = {
   regular: {
     name:'常規式點評', icon:'🌟', desc:'讚美他是什麼樣的人',
     fields:[
-      {k:'q1',label:'你要給誰點評？',ph:'例如：我的夥伴小芳、我老公…',ta:false,req:true},
-      {k:'q2',label:'他是一個什麼樣的人？用一個詞形容',ph:'例如：可靠、溫暖、拚命三郎…',ta:false,req:true},
-      {k:'q3',label:'為什麼說他是這樣的人？用一件具體的事說明',ph:'要有時間、地點、人物、事件\n\n例如：上個月我發燒到 39 度，她半夜還跑來我家送藥…',ta:true,req:true,badge:'越具體越動人'},
-      {k:'q4',label:'過程中你的情緒感受、心態變化',ph:'例如：從覺得麻煩別人很不好意思，到心裡暖暖的…',ta:false,req:false,badge:'選填'}
+      {k:'q1',label:'你要給誰點評？',hint:'寫下對方的稱呼或名字就好，例如「我的夥伴小芳」。',ph:'例如：我的夥伴小芳、我老公…',ta:false,req:true},
+      {k:'q2',label:'他是一個什麼樣的人？用一個詞形容',hint:'選一個最能代表他的特質，之後 AI 會圍繞這個詞來寫。',ph:'例如：可靠、溫暖、拚命三郎…',ta:false,req:true},
+      {k:'q3',label:'為什麼說他是這樣的人？用一件具體的事說明',hint:'這是整段文字的靈魂。請寫出「什麼時候、在哪裡、發生了什麼」，越具體 AI 越能寫出畫面感，避免只寫「他人很好」這種空泛描述。',ph:'要有時間、地點、人物、事件\n\n例如：上個月我發燒到 39 度，她半夜還跑來我家送藥…',ta:true,req:true,badge:'越具體越動人',minLen:20,tipShort:'再多寫一點細節，例如時間、地點或當下的對話，會更有畫面感喔'},
+      {k:'q4',label:'過程中你的情緒感受、心態變化',hint:'選填。如果當下有情緒起伏（例如從驚訝到感動），寫出來會讓文字更真實。',ph:'例如：從覺得麻煩別人很不好意思，到心裡暖暖的…',ta:false,req:false,badge:'選填'}
     ]
   },
   greet: {
     name:'寒暄式點評', icon:'🍵', desc:'想念與感謝的問候',
     fields:[
-      {k:'q1',label:'你想向誰寒暄點評？',ph:'例如：好久不見的老同學、以前帶我的主管…',ta:false,req:true},
-      {k:'q2',label:'為什麼想向他表達？',ph:'例如：最近常想起他、看到某個東西想到他…',ta:false,req:true},
-      {k:'q3',label:'過去發生什麼事讓你感動、感受到他對你的好？',ph:'例如：剛出社會什麼都不懂，是他一步步帶著我…',ta:false,req:true},
-      {k:'q4',label:'具體場景（細節）是什麼？',ph:'要有時間、地點、人物、事件\n\n例如：2019 年冬天我第一次提案失敗，他在會議室外拍拍我的肩說…',ta:true,req:true,badge:'越具體越動人'},
-      {k:'q5',label:'整個過程你的感受有什麼變化？',ph:'例如：從緊張慌張，到整個人被安定下來…',ta:false,req:true}
+      {k:'q1',label:'你想向誰寒暄點評？',hint:'寫下對方的稱呼或名字，例如「好久不見的老同學」。',ph:'例如：好久不見的老同學、以前帶我的主管…',ta:false,req:true},
+      {k:'q2',label:'為什麼想向他表達？',hint:'簡單說明此刻想聯絡他的原因，例如最近想起他、看到某樣東西聯想到他。',ph:'例如：最近常想起他、看到某個東西想到他…',ta:false,req:true},
+      {k:'q3',label:'過去發生什麼事讓你感動、感受到他對你的好？',hint:'用一句話說出那份好，之後第 4 題再補細節。',ph:'例如：剛出社會什麼都不懂，是他一步步帶著我…',ta:false,req:true},
+      {k:'q4',label:'具體場景（細節）是什麼？',hint:'把上一題的事情說得更細：時間、地點、當時的對話或動作，這段決定文字有沒有畫面感。',ph:'要有時間、地點、人物、事件\n\n例如：2019 年冬天我第一次提案失敗，他在會議室外拍拍我的肩說…',ta:true,req:true,badge:'越具體越動人',minLen:20,tipShort:'試著補上時間、地點，或他當時說的一句話，會更打動人'},
+      {k:'q5',label:'整個過程你的感受有什麼變化？',hint:'從當時的心情，寫到現在回想起來的感覺，這個轉折會讓收件人更有共鳴。',ph:'例如：從緊張慌張，到整個人被安定下來…',ta:false,req:true}
     ]
   },
   hard: {
     name:'點評辛苦', icon:'💪', desc:'看見他的辛苦不容易',
     fields:[
-      {k:'q1',label:'你要給誰點評？',ph:'例如：我媽、我老公、我同事…',ta:false,req:true},
-      {k:'q2',label:'什麼事情讓你感覺到他的辛苦和不容易？',ph:'例如：一個人扛家裡所有事、每天最早到最晚走…',ta:false,req:true},
-      {k:'q3',label:'用一件具體的事情說明',ph:'要有時間、地點、人物、事件\n\n例如：上週三晚上快十一點，他還在廚房幫我準備隔天便當…',ta:true,req:true,badge:'越具體越動人'},
-      {k:'q4',label:'過程中你的情緒感受、心態變化',ph:'例如：又心疼又愧疚，不知道怎麼開口…',ta:false,req:false,badge:'選填'}
+      {k:'q1',label:'你要給誰點評？',hint:'寫下對方的稱呼或名字就好，例如「我媽」。',ph:'例如：我媽、我老公、我同事…',ta:false,req:true},
+      {k:'q2',label:'什麼事情讓你感覺到他的辛苦和不容易？',hint:'用一句話概括，之後第 3 題再補具體細節。',ph:'例如：一個人扛家裡所有事、每天最早到最晚走…',ta:false,req:true},
+      {k:'q3',label:'用一件具體的事情說明',hint:'這是整段文字的靈魂。請寫出「什麼時候、在哪裡、發生了什麼」，讓對方感覺到你是真的有看見，不是隨口說說。',ph:'要有時間、地點、人物、事件\n\n例如：上週三晚上快十一點，他還在廚房幫我準備隔天便當…',ta:true,req:true,badge:'越具體越動人',minLen:20,tipShort:'再多寫一點細節，例如時間、當下的畫面，會更讓人有感'},
+      {k:'q4',label:'過程中你的情緒感受、心態變化',hint:'選填。心疼、愧疚、說不出口的彆扭都可以，情緒越真實越動人。',ph:'例如：又心疼又愧疚，不知道怎麼開口…',ta:false,req:false,badge:'選填'}
     ]
   },
   sorry: {
     name:'道歉式點評', icon:'🕊️', desc:'放下身段修復關係',
     fields:[
-      {k:'q1',label:'你要向誰道歉？想用什麼方式開頭？',ph:'例如：老婆，有件事放在我心裡很久了，妳願意聽我說嗎…',ta:false,req:true},
-      {k:'q2',label:'誠懇道歉：因為什麼事道歉？',ph:'例如：上次為了小孩的事對妳大小聲…',ta:false,req:true},
-      {k:'q3',label:'講出曾經傷害或為難對方的經歷（場景＋細節）',ph:'要有時間、地點、人物、事件\n\n例如：那天晚上妳只是想跟我討論，我卻摔門走掉，留妳一個人在客廳…',ta:true,req:true,badge:'誠實面對'},
-      {k:'q4',label:'說出自己錯在哪裡',ph:'例如：我錯在把工作情緒帶回家，沒有先聽妳說完…',ta:false,req:true}
+      {k:'q1',label:'你要向誰道歉？想用什麼方式開頭？',hint:'寫下對方的稱呼，以及你想怎麼開口（例如想先請對方給你一個說話的機會）。',ph:'例如：老婆，有件事放在我心裡很久了，妳願意聽我說嗎…',ta:false,req:true},
+      {k:'q2',label:'誠懇道歉：因為什麼事道歉？',hint:'用一句話直接說出你要道歉的事情，不用長篇解釋。',ph:'例如：上次為了小孩的事對妳大小聲…',ta:false,req:true},
+      {k:'q3',label:'講出曾經傷害或為難對方的經歷（場景＋細節）',hint:'誠實面對這段經歷。寫出時間、地點、你做了什麼或說了什麼，不要淡化或找藉口，這段越誠實道歉越有力量。',ph:'要有時間、地點、人物、事件\n\n例如：那天晚上妳只是想跟我討論，我卻摔門走掉，留妳一個人在客廳…',ta:true,req:true,badge:'誠實面對',minLen:20,tipShort:'再具體一點描述當時的場景，誠實面對會讓道歉更有說服力'},
+      {k:'q4',label:'說出自己錯在哪裡',hint:'明確承認自己的問題所在，不要加「但是」幫自己找理由。',ph:'例如：我錯在把工作情緒帶回家，沒有先聽妳說完…',ta:false,req:true}
     ]
   }
 };
@@ -1085,18 +1098,58 @@ function renderApprSteps(key){
   TPL[key].fields.forEach((f, i) => {
     const step = document.createElement('div');
     step.className = 'step';
+
     const head = document.createElement('div');
     head.className = 'step-head';
     head.innerHTML = `<div class="step-num amber">${i+2}</div><span class="step-label">${f.label}</span>` +
       (f.badge ? `<span class="step-badge amber">${f.badge}</span>` : '');
+
     const body = document.createElement('div');
     body.className = 'step-body';
+
+    if(f.hint){
+      const hintEl = document.createElement('div');
+      hintEl.className = 'field-hint';
+      hintEl.textContent = f.hint;
+      body.appendChild(hintEl);
+    }
+
     const inp = document.createElement(f.ta ? 'textarea' : 'input');
     inp.className = 'field-input' + (f.ta ? ' field-ta' : '');
     if(!f.ta) inp.type = 'text';
     inp.placeholder = f.ph;
     inp.id = 'fld_' + f.k;
     body.appendChild(inp);
+
+    // 有品質門檻的欄位（minLen）才顯示即時字數／品質提示
+    if(f.minLen){
+      const live = document.createElement('div');
+      live.className = 'field-live';
+      const tip = document.createElement('span');
+      tip.className = 'fl-tip';
+      tip.textContent = '至少寫 ' + f.minLen + ' 字，越具體越好';
+      const count = document.createElement('span');
+      count.className = 'fl-count';
+      count.textContent = '0 字';
+      live.append(tip, count);
+      body.appendChild(live);
+
+      inp.addEventListener('input', () => {
+        const len = inp.value.trim().length;
+        count.textContent = len + ' 字';
+        if(len === 0){
+          tip.textContent = '至少寫 ' + f.minLen + ' 字，越具體越好';
+          tip.className = 'fl-tip';
+        } else if(len < f.minLen){
+          tip.textContent = f.tipShort || ('再多寫一點，至少 ' + f.minLen + ' 字會更好');
+          tip.className = 'fl-tip warn';
+        } else {
+          tip.textContent = '很好，細節夠具體了';
+          tip.className = 'fl-tip ok';
+        }
+      });
+    }
+
     step.append(head, body);
     box.appendChild(step);
   });
