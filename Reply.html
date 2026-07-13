@@ -40,16 +40,17 @@ html,body{
   display:flex;align-items:center;gap:8px;
   box-shadow:var(--shadow);z-index:100;
 }
-.topnav-brand{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.topnav-brand{flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden}
 .topnav-icon{
   width:32px;height:32px;border-radius:9px;background:var(--green);
   display:grid;place-items:center;flex:none;
 }
 .topnav-icon svg{width:17px;height:17px;fill:#fff}
 .topnav-title{
-  font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;
-  color:var(--ink);white-space:nowrap;
+  font-family:'Noto Serif TC',serif;font-size:16px;font-weight:700;
+  color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+@media(max-width:380px){ .topnav-title{display:none} .topnav-icon{display:none} }
 .pill{
   font-size:10.5px;color:var(--ink3);white-space:nowrap;
   padding:4px 10px;border-radius:99px;
@@ -397,6 +398,97 @@ textarea::placeholder{color:var(--ink3)}
 .tpl-card.on .tpl-name{color:var(--amber)}
 .tpl-desc{font-size:11px;color:var(--ink3);line-height:1.5}
 
+/* ── Hamburger / Drawer ── */
+.hamburger-btn{
+  flex:none;width:38px;height:38px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--ink2);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  transition:background .15s;
+}
+.hamburger-btn:active{background:var(--border)}
+.hamburger-btn span{width:16px;height:2px;background:var(--ink2);border-radius:2px}
+
+.drawer-overlay{
+  position:fixed;inset:0;z-index:300;display:none;
+  background:rgba(26,25,22,.5);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.drawer-overlay.show{display:block;animation:fadeIn .2s ease both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.drawer{
+  position:fixed;top:0;left:0;bottom:0;z-index:301;
+  width:78%;max-width:300px;
+  background:var(--surface);
+  box-shadow:4px 0 24px rgba(0,0,0,.18);
+  transform:translateX(-100%);
+  transition:transform .28s var(--ease);
+  display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top,0);
+}
+.drawer.show{transform:translateX(0)}
+.drawer-head{
+  padding:20px 18px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.drawer-head .topnav-icon{width:36px;height:36px}
+.drawer-head-title{font-family:'Noto Serif TC',serif;font-size:17px;font-weight:700;color:var(--ink)}
+.drawer-head-sub{font-size:11px;color:var(--ink3);margin-top:1px}
+.drawer-nav{flex:1;overflow-y:auto;padding:10px}
+.drawer-item{
+  width:100%;display:flex;align-items:center;gap:12px;
+  padding:13px 12px;border:none;border-radius:var(--r-sm);
+  background:transparent;color:var(--ink2);cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:14.5px;font-weight:500;
+  text-align:left;transition:background .15s;
+}
+.drawer-item:active{background:var(--surface2)}
+.drawer-item.on{background:var(--green-bg);color:var(--green)}
+.drawer-item .di-icon{font-size:19px;flex:none;width:24px;text-align:center}
+.drawer-sep{height:1px;background:var(--border);margin:8px 4px}
+.drawer-foot{padding:14px 18px calc(14px + var(--safe-b));border-top:1px solid var(--border)}
+.drawer-guide-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--ink2);font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:background .15s;
+}
+.drawer-guide-btn:active{background:var(--border)}
+
+/* ── Onboarding Guide ── */
+.guide-overlay{
+  position:fixed;inset:0;z-index:400;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:rgba(26,25,22,.72);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.guide-overlay.show{display:flex;animation:fadeIn .25s ease both}
+.guide-card{
+  width:100%;max-width:360px;background:var(--surface);
+  border-radius:20px;padding:26px 22px 22px;
+  box-shadow:var(--shadow-md);text-align:center;
+}
+.guide-icon{font-size:40px;margin-bottom:14px}
+.guide-title{font-family:'Noto Serif TC',serif;font-size:19px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.guide-desc{font-size:13.5px;color:var(--ink2);line-height:1.75;margin-bottom:20px;min-height:66px}
+.guide-dots{display:flex;justify-content:center;gap:6px;margin-bottom:18px}
+.guide-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .2s}
+.guide-dot.on{width:18px;border-radius:3px;background:var(--amber)}
+.guide-actions{display:flex;gap:10px}
+.guide-skip{
+  flex:none;padding:13px 16px;border-radius:var(--r-sm);
+  background:transparent;border:none;color:var(--ink3);
+  font-family:'Inter',sans-serif;font-size:13.5px;cursor:pointer;
+}
+.guide-next{
+  flex:1;padding:13px;border-radius:var(--r-sm);border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Inter',sans-serif;font-size:14.5px;font-weight:600;
+  cursor:pointer;transition:opacity .15s;
+}
+.guide-next:active{opacity:.85}
+
 /* ── Saved page ── */
 .card-acts{display:flex;gap:6px;flex:none}
 .saved-empty{
@@ -428,6 +520,7 @@ textarea::placeholder{color:var(--ink3)}
 
   <!-- Top Nav -->
   <nav class="topnav">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="選單"><span></span><span></span><span></span></button>
     <div class="topnav-brand">
       <div class="topnav-icon">
         <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
@@ -572,13 +665,13 @@ textarea::placeholder{color:var(--ink3)}
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar">
-    <button class="tabitem on" data-page="reply">
-      <span class="tabitem-icon">💬</span>
-      <span class="tabitem-label">回覆建議</span>
-    </button>
     <button class="tabitem amber" data-page="appreciate">
       <span class="tabitem-icon">❤️</span>
       <span class="tabitem-label">點評激活</span>
+    </button>
+    <button class="tabitem on" data-page="reply">
+      <span class="tabitem-icon">💬</span>
+      <span class="tabitem-label">回覆建議</span>
     </button>
     <button class="tabitem" data-page="saved">
       <span class="tabitem-icon">🔖</span>
@@ -587,6 +680,45 @@ textarea::placeholder{color:var(--ink3)}
   </nav>
 
 </div><!-- /app -->
+
+<!-- 側邊漢堡選單 -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="topnav-icon">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    </div>
+    <div>
+      <div class="drawer-head-title">回覆靈感</div>
+      <div class="drawer-head-sub">AI CHAT REPLY</div>
+    </div>
+  </div>
+  <div class="drawer-nav">
+    <button class="drawer-item" data-page="appreciate"><span class="di-icon">❤️</span>點評激活</button>
+    <button class="drawer-item" data-page="reply"><span class="di-icon">💬</span>回覆建議</button>
+    <button class="drawer-item" data-page="saved"><span class="di-icon">🔖</span>已儲存</button>
+    <div class="drawer-sep"></div>
+    <button class="drawer-item" id="drawerMember"><span class="di-icon">👤</span>會員中心</button>
+    <button class="drawer-item" id="drawerGuideItem"><span class="di-icon">🧭</span>使用導引</button>
+  </div>
+  <div class="drawer-foot">
+    <button class="drawer-guide-btn" id="drawerGuideBtn">🧭 再看一次導引</button>
+  </div>
+</div>
+
+<!-- 使用導引 -->
+<div class="guide-overlay" id="guideOverlay">
+  <div class="guide-card">
+    <div class="guide-icon" id="guideIcon">👋</div>
+    <div class="guide-title" id="guideTitle">歡迎使用回覆靈感</div>
+    <div class="guide-desc" id="guideDesc">貼上對話截圖或文字，AI 幫你想好幾種回法，點一下就能複製傳出去。</div>
+    <div class="guide-dots" id="guideDots"></div>
+    <div class="guide-actions">
+      <button class="guide-skip" id="guideSkip">跳過</button>
+      <button class="guide-next" id="guideNext">下一步</button>
+    </div>
+  </div>
+</div>
 
 <!-- 會員中心 Sheet -->
 <div class="overlay" id="overlay">
@@ -746,15 +878,26 @@ $('modelOpts').querySelectorAll('.model-opt').forEach(o => {
 });
 setModel(curModel());
 
-/* ══ 頁面切換 ══ */
-document.querySelectorAll('.tabitem').forEach(t => {
-  t.onclick = () => {
-    document.querySelectorAll('.tabitem').forEach(x => x.classList.toggle('on', x === t));
-    document.querySelectorAll('.page').forEach(p => p.classList.toggle('show', p.id === 'page-' + t.dataset.page));
-    if(t.dataset.page === 'saved') renderSaved();
-    $('scroll').scrollTo(0, 0);
-  };
-});
+/* ══ 頁面切換（Tab Bar 與 Drawer 共用）══ */
+function switchPage(page){
+  document.querySelectorAll('.tabitem').forEach(x => x.classList.toggle('on', x.dataset.page === page));
+  document.querySelectorAll('.drawer-item[data-page]').forEach(x => x.classList.toggle('on', x.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('show', p.id === 'page-' + page));
+  if(page === 'saved') renderSaved();
+  $('scroll').scrollTo(0, 0);
+  closeDrawer();
+}
+document.querySelectorAll('.tabitem').forEach(t => { t.onclick = () => switchPage(t.dataset.page); });
+document.querySelectorAll('.drawer-item[data-page]').forEach(t => { t.onclick = () => switchPage(t.dataset.page); });
+
+/* ══ 漢堡選單 Drawer ══ */
+function openDrawer(){ $('drawer').classList.add('show'); $('drawerOverlay').classList.add('show'); }
+function closeDrawer(){ $('drawer').classList.remove('show'); $('drawerOverlay').classList.remove('show'); }
+$('hamburgerBtn').onclick = openDrawer;
+$('drawerOverlay').onclick = closeDrawer;
+$('drawerMember').onclick = () => { closeDrawer(); openSettings(); };
+$('drawerGuideItem').onclick = () => { closeDrawer(); startGuide(); };
+$('drawerGuideBtn').onclick = () => { closeDrawer(); startGuide(); };
 $('goBtn').onclick   = () => generateReply(false);
 $('apprBtn').onclick = () => generateAppr(false);
 
@@ -1023,7 +1166,43 @@ function renderAppr(parsed){
   card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-/* ══ 已儲存（localStorage）══ */
+/* ══ 使用導引 ══ */
+const K_GUIDE_SEEN = 'rai_guide_seen';
+const GUIDE_STEPS = [
+  { icon:'👋', title:'歡迎使用回覆靈感', desc:'貼上對話截圖或文字，AI 幫你想好幾種回法，點一下就能複製傳出去。' },
+  { icon:'💬', title:'回覆建議', desc:'上傳截圖或貼文字，選好語氣和對方身分，AI 會給你 3 個風格不同的回覆，一鍵複製或收藏。' },
+  { icon:'❤️', title:'點評激活', desc:'想寫感謝、寒暄、或道歉的話卻不知道怎麼說？選一種模板，跟著問題填，AI 幫你把心意寫成真誠的文字。' },
+  { icon:'🔖', title:'已儲存', desc:'覺得不錯的回覆或點評文字，按「☆ 儲存」就會留在這裡，隨時回來複製使用。' },
+  { icon:'☰', title:'左上角選單', desc:'點左上角的選單，可以快速切換功能、查看會員次數，或再看一次這個導引。' }
+];
+let guideIdx = 0;
+
+function renderGuideStep(){
+  const s = GUIDE_STEPS[guideIdx];
+  $('guideIcon').textContent = s.icon;
+  $('guideTitle').textContent = s.title;
+  $('guideDesc').textContent = s.desc;
+  $('guideDots').innerHTML = GUIDE_STEPS.map((_, i) => `<span class="guide-dot${i===guideIdx?' on':''}"></span>`).join('');
+  $('guideNext').textContent = guideIdx === GUIDE_STEPS.length - 1 ? '開始使用' : '下一步';
+}
+function startGuide(){
+  guideIdx = 0;
+  renderGuideStep();
+  $('guideOverlay').classList.add('show');
+}
+function endGuide(){
+  $('guideOverlay').classList.remove('show');
+  localStorage.setItem(K_GUIDE_SEEN, '1');
+}
+$('guideNext').onclick = () => {
+  if(guideIdx < GUIDE_STEPS.length - 1){ guideIdx++; renderGuideStep(); }
+  else endGuide();
+};
+$('guideSkip').onclick = endGuide;
+
+function maybeStartGuideForNewUser(){
+  if(!localStorage.getItem(K_GUIDE_SEEN)) startGuide();
+}
 const K_SAVED = 'rai_saved';
 function loadSaved(){
   try{ return JSON.parse(localStorage.getItem(K_SAVED)) || []; }
@@ -1113,6 +1292,8 @@ $('clearSaved').onclick = () => {
 
 /* ══ 啟動 ══ */
 initLiff();
+maybeStartGuideForNewUser();
+document.querySelectorAll('.drawer-item[data-page="reply"]').forEach(x => x.classList.add('on'));
 
 })();
 </script>
