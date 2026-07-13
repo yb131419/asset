@@ -34,12 +34,14 @@ html,body{
 
 /* ── TOP NAV ── */
 .topnav{
-  flex:none;height:var(--nav-h);padding:0 14px;
-  padding-top:env(safe-area-inset-top,0);
+  flex:none;padding:8px 14px;
+  padding-top:calc(8px + env(safe-area-inset-top,0));
   background:var(--surface);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;
+  display:flex;flex-direction:column;gap:8px;
   box-shadow:var(--shadow);z-index:100;
 }
+.topnav-row1{display:flex;align-items:center;gap:8px}
+.topnav-row2{display:flex;align-items:center;gap:8px}
 .topnav-brand{flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden}
 .topnav-icon{
   width:32px;height:32px;border-radius:9px;background:var(--green);
@@ -50,13 +52,13 @@ html,body{
   font-family:'Noto Serif TC',serif;font-size:16px;font-weight:700;
   color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-@media(max-width:380px){ .topnav-title{display:none} .topnav-icon{display:none} }
 .pill{
-  font-size:10.5px;color:var(--ink3);white-space:nowrap;
-  padding:4px 10px;border-radius:99px;
+  flex:1;font-size:12px;color:var(--ink3);white-space:nowrap;
+  padding:8px 10px;border-radius:10px;text-align:center;
   background:var(--surface2);border:1px solid var(--border);
   cursor:pointer;transition:background .15s;
   font-family:'Inter',sans-serif;
+  overflow:hidden;text-overflow:ellipsis;
 }
 .pill:active{background:var(--border)}
 .pill b{color:var(--green);font-weight:600}
@@ -520,23 +522,27 @@ textarea::placeholder{color:var(--ink3)}
 
   <!-- Top Nav -->
   <nav class="topnav">
-    <button class="hamburger-btn" id="hamburgerBtn" aria-label="選單"><span></span><span></span><span></span></button>
-    <div class="topnav-brand">
-      <div class="topnav-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    <div class="topnav-row1">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="選單"><span></span><span></span><span></span></button>
+      <div class="topnav-brand">
+        <div class="topnav-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        </div>
+        <span class="topnav-title">回覆靈感</span>
       </div>
-      <span class="topnav-title">回覆靈感</span>
+      <button class="settings-btn" id="settingsBtn">⚙</button>
     </div>
-    <button class="pill" id="memberPill"><b id="memberPillText">登入中…</b></button>
-    <button class="pill" id="modelPill">模型 <b id="modelPillName">4o mini</b></button>
-    <button class="settings-btn" id="settingsBtn">⚙</button>
+    <div class="topnav-row2">
+      <button class="pill" id="memberPill"><b id="memberPillText">登入中…</b></button>
+      <button class="pill" id="modelPill">模型 <b id="modelPillName">4o mini</b></button>
+    </div>
   </nav>
 
   <!-- Scrollable content -->
   <div class="scroll" id="scroll">
 
     <!-- ══ PAGE: 回覆建議 ══ -->
-    <div class="page show" id="page-reply">
+    <div class="page" id="page-reply">
       <div class="page-head">
         <div class="page-head-title">回覆建議</div>
         <div class="page-head-desc">貼入截圖或文字，AI 根據語氣和關係給出 3 個自然回覆。</div>
@@ -621,7 +627,7 @@ textarea::placeholder{color:var(--ink3)}
     </div>
 
     <!-- ══ PAGE: 點評激活 ══ -->
-    <div class="page" id="page-appreciate">
+    <div class="page show" id="page-appreciate">
       <div class="page-head">
         <div class="page-head-title">點評激活</div>
         <div class="page-head-desc">選一種點評方式，跟著問題填，AI 幫你寫出真誠有畫面的文字。</div>
@@ -666,11 +672,11 @@ textarea::placeholder{color:var(--ink3)}
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar">
-    <button class="tabitem amber" data-page="appreciate">
+    <button class="tabitem amber on" data-page="appreciate">
       <span class="tabitem-icon">❤️</span>
       <span class="tabitem-label">點評激活</span>
     </button>
-    <button class="tabitem on" data-page="reply">
+    <button class="tabitem" data-page="reply">
       <span class="tabitem-icon">💬</span>
       <span class="tabitem-label">回覆建議</span>
     </button>
@@ -1171,9 +1177,9 @@ function renderAppr(parsed){
 /* ══ 使用導引 ══ */
 const K_GUIDE_SEEN = 'rai_guide_seen';
 const GUIDE_STEPS = [
-  { icon:'👋', title:'歡迎使用回覆靈感', desc:'貼上對話截圖或文字，AI 幫你想好幾種回法，點一下就能複製傳出去。' },
-  { icon:'💬', title:'回覆建議', desc:'上傳截圖或貼文字，選好語氣和對方身分，AI 會給你 3 個風格不同的回覆，一鍵複製或收藏。' },
+  { icon:'👋', title:'歡迎使用回覆靈感', desc:'不知道怎麼開口的話，AI 幫你想；想寫真誠的點評文字，也幫你寫。' },
   { icon:'❤️', title:'點評激活', desc:'想寫感謝、寒暄、或道歉的話卻不知道怎麼說？選一種模板，跟著問題填，AI 幫你把心意寫成真誠的文字。' },
+  { icon:'💬', title:'回覆建議', desc:'上傳截圖或貼文字，選好語氣和對方身分，AI 會給你 3 個風格不同的回覆，一鍵複製或收藏。' },
   { icon:'🔖', title:'已儲存', desc:'覺得不錯的回覆或點評文字，按「☆ 儲存」就會留在這裡，隨時回來複製使用。' },
   { icon:'☰', title:'左上角選單', desc:'點左上角的選單，可以快速切換功能、查看會員次數，或再看一次這個導引。' }
 ];
@@ -1295,7 +1301,7 @@ $('clearSaved').onclick = () => {
 /* ══ 啟動 ══ */
 initLiff();
 maybeStartGuideForNewUser();
-document.querySelectorAll('.drawer-item[data-page="reply"]').forEach(x => x.classList.add('on'));
+document.querySelectorAll('.drawer-item[data-page="appreciate"]').forEach(x => x.classList.add('on'));
 
 })();
 </script>
