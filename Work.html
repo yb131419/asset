@@ -508,6 +508,7 @@
   .fold-ic{font-size:16px;flex:0 0 auto;}
   .fold-chev{margin-left:auto;font-size:13px;opacity:.6;flex:0 0 auto;}
   .fold-body{padding-top:10px;}
+  .fold-body[hidden]{display:none !important;}
 
   /* 平台卡內：每個重點獨立成小卡，不再沒頭沒尾 */
   .pb-seg{position:relative;z-index:2;background:rgba(0,0,0,.16);border-radius:14px;
@@ -643,6 +644,7 @@
   .wslib-wrap.dark .wslib-toggle.open{background:linear-gradient(165deg,#FFF6DD,#FFFDF6);color:#8A5A0E;}
   .wslib-wrap.dark .wslib-toggle.open b{color:#8A5A0E;}
   .wslib{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:9px 2px 0;font-size:13px;color:var(--ink-soft);}
+  .wslib[hidden]{display:none !important;}
   .wslib .ttl{font-weight:700;color:var(--ink-faint);}
   .wslib .f{display:inline-flex;align-items:center;gap:5px;background:rgba(31,138,114,.1);
     border:1px solid rgba(31,138,114,.3);color:#1F8A72;border-radius:16px;padding:7px 12px;font-weight:600;}
@@ -736,7 +738,7 @@
     background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border:1px solid rgba(217,184,115,.35);
     box-shadow:0 4px 10px rgba(30,25,18,.2);transition:transform .18s var(--spring);}
   .deck-btn.ghost{background:var(--paper-2);color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none;}
-  .deck-btn.danger{background:rgba(168,68,46,.08);color:#A8442E;border-color:rgba(168,68,46,.22);box-shadow:none;}
+  .deck-btn.deck-danger{background:rgba(168,68,46,.08);color:#A8442E;border-color:rgba(168,68,46,.22);box-shadow:none;}
   .deck-btn:active{transform:scale(.93);}
   .cards-cfg{display:flex;gap:9px;margin-top:12px;}
   .cards-cfg select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;
@@ -1043,7 +1045,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow28-histfold",
+  build:"2026.07.14-flow29-foldfix",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1395,7 +1397,7 @@ function renderDecks(){
     <div class="deck-actions">
       <button class="deck-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
       <button class="deck-btn ghost" onclick="copyDeck(${d.id})">📋 複製</button>
-      <button class="deck-btn danger" onclick="deleteDeck(${d.id})">🗑 刪除</button>
+      <button class="deck-btn deck-danger" onclick="deleteDeck(${d.id})">🗑 刪除</button>
     </div>
   </div>`;
   }).join("");
