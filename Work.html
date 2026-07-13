@@ -731,8 +731,8 @@
   .deck-preview b{color:var(--gold);font-weight:800;margin-right:5px;}
   .deck-actions{position:relative;z-index:1;display:flex;gap:8px;margin-top:12px;padding-top:12px;
     border-top:1px solid rgba(168,120,46,.16);}
-  .deck-btn{flex:1;font-size:12.5px;font-weight:800;padding:0;min-height:42px;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;gap:5px;
+  .deck-btn{flex:1;font-size:12px;font-weight:800;padding:0 4px;min-height:42px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;overflow:hidden;
     background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border:1px solid rgba(217,184,115,.35);
     box-shadow:0 4px 10px rgba(30,25,18,.2);transition:transform .18s var(--spring);}
   .deck-btn.ghost{background:var(--paper-2);color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none;}
@@ -1043,7 +1043,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow27-deckspremium",
+  build:"2026.07.14-flow28-histfold",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1395,7 +1395,7 @@ function renderDecks(){
     <div class="deck-actions">
       <button class="deck-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
       <button class="deck-btn ghost" onclick="copyDeck(${d.id})">📋 複製</button>
-      <button class="deck-btn danger" onclick="deleteDeck(${d.id})">🗑</button>
+      <button class="deck-btn danger" onclick="deleteDeck(${d.id})">🗑 刪除</button>
     </div>
   </div>`;
   }).join("");
@@ -1480,14 +1480,13 @@ function renderHistory(){
   const box=document.getElementById("deptHistory");
   if(items.length===0){ lbl.style.display="none"; box.innerHTML=""; return; }
   lbl.style.display="block";
-  box.innerHTML=items.map(t=>`<div class="hist-item" data-id="${t.id}">
+  box.innerHTML=items.map(t=>`<div class="hist-item output-card" data-id="${t.id}">
     <div class="hi-top">${t.fromDept?`<span class="tag">↩ 來自 ${esc(t.fromDept)}</span>`:""}<span>${timeStr(t.time)}</span></div>
     <div class="hi-in">📝 ${esc(t.input)}</div>
-    <div class="hi-out" id="hiout-${t.id}">${esc(t.output)}</div>
+    ${richBody(t.output)}
     <div class="hi-actions">
-      <button class="hi-btn" onclick="toggleExpand(${t.id},this)">展開</button>
       <button class="hi-btn" onclick="reuseTask(${t.id})">沿用</button>
-      <button class="hi-btn" onclick="copyTaskOut(${t.id})">複製</button>
+      <button class="hi-btn" onclick="copyWhole(this)">複製</button>
       <button class="hi-btn del" onclick="deleteTask(${t.id})">刪除</button>
     </div>
   </div>`).join("");
