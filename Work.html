@@ -457,16 +457,19 @@
   .plat-bar, .pl-plat{margin:0 2px 14px;}
   .plat-lbl{font-size:11.5px;font-weight:800;color:var(--ink-faint);letter-spacing:1.5px;margin:0 2px 8px;}
   .pl-plat .plat-lbl{color:rgba(255,255,255,.5);margin-top:2px;}
-  .plat-scroll{display:flex;flex-wrap:wrap;gap:8px;padding:2px 2px 4px;}
-  .plat-chip{flex:1 1 auto;font-size:13px;font-weight:700;padding:9px 10px;
-    border-radius:14px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;
+  .plat-scroll{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:2px 2px 4px;}
+  .plat-chip:first-child{grid-column:1 / -1;}
+  .plat-chip{font-size:13.5px;font-weight:700;padding:11px 10px;
+    border-radius:15px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;
     background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);box-shadow:var(--shadow);
-    transition:transform .18s var(--spring),box-shadow .2s,background .2s,color .2s;}
-  .plat-chip .pc-ic{font-size:14px;line-height:1;}
-  .plat-chip:active{transform:scale(.94);}
-  .plat-chip.on{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border-color:var(--gold);box-shadow:var(--shadow-gold);}
-  .pl-plat .plat-chip{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.14);box-shadow:none;}
-  .pl-plat .plat-chip.on{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);border-color:var(--gold-soft);box-shadow:0 6px 16px rgba(0,0,0,.25);}
+    transition:transform .18s var(--spring),box-shadow .2s,background .2s,color .2s,border-color .2s;}
+  .plat-chip .pc-ic{font-size:15px;line-height:1;}
+  .plat-chip:active{transform:scale(.95);}
+  .plat-chip.on{background:linear-gradient(165deg,#FFF6DD,#FFFDF6);color:#8A5A0E;border-color:var(--gold);
+    box-shadow:0 6px 18px rgba(217,184,115,.4), inset 0 1px 0 rgba(255,255,255,.8);}
+  .pl-plat .plat-chip{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9);border-color:rgba(255,255,255,.16);box-shadow:none;}
+  .pl-plat .plat-chip.on{background:linear-gradient(165deg,#FFF6DD,#FFFDF6);color:#8A5A0E;border-color:var(--gold-soft);
+    box-shadow:0 6px 18px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.8);}
 
   /* 歷史按鈕 */
   .hi-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
@@ -920,7 +923,7 @@
       <div class="mc-row"><span>到期時間</span><b id="mcRowExpire">—</b></div>
       <div class="mc-row"><span>剩餘次數</span><b id="mcRowRemain">—</b></div>
     </div>
-    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。</div>
+    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。<br>📦 資料保存規則：👑💎尊爵會員的部門紀錄、素材庫、卡組會永久保留；🥇黃金會員每次重新開啟都會清空重新開始，不保留先前資料。</div>
 
     <div class="mc-sec">AI 模型（點選即切換）</div>
     <div id="mcModels" style="margin-bottom:20px;">
@@ -977,7 +980,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow22-progress",
+  build:"2026.07.14-flow25-platgrid",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1878,6 +1881,21 @@ const LIFF_ID="2008578880-YB0IXDbA";
 const member={ ready:false, lineId:"guest", lineName:"訪客", pic:"", level:"", remain:"", expire:"", msg:"", lastUse:"" };
 function usingBackend(){ return true; }
 function aiReady(){ return true; }
+const SESSION_FLAG="aiz_session_active";
+// 黃金會員（次數制）：每次重新開啟／驗證都視為新的一次，不保留上次資料，乾淨重來
+// 尊爵會員（永久／限時）：保留上次的部門紀錄、素材庫、卡組、成品
+function applySessionPolicy(){
+  if(sessionStorage.getItem(SESSION_FLAG)==="1") return false;
+  sessionStorage.setItem(SESSION_FLAG,"1");
+  if(member.level==="黃金"){
+    state.tasks=[]; state.library=[]; state.decks=[]; state.collections=[];
+    state.pipeRun=null; state.collector={ auto:false, freq:"daily", lastRun:0, topicHint:"" };
+    save();
+    toast("🥇 黃金會員：本次重新開始，不保留先前資料");
+    return true;
+  }
+  return false;
+}
 async function initMember(forceLogin){
   if(!usingBackend()) return;
   updateKeyStatus();
@@ -1898,6 +1916,8 @@ async function initMember(forceLogin){
       member.ready=true; member.level=pm.level; member.remain=pm.remainCount;
       member.expire=pm.expireDate; member.msg=pm.msg; member.lastUse=pm.lastUseTime||"";
       if(!pm.allow) toast("次數已用完，請聯繫管理員儲值");
+      const wiped=applySessionPolicy();   // 黃金會員：每次重新驗證都乾淨重來；尊爵會員：保留上次資料
+      if(wiped && document.getElementById("view-home").classList.contains("active")) renderHome();
     }else{
       member.ready=false;
       member.msg=(r&&r.errMsg)||"會員驗證失敗";
