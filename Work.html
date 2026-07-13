@@ -496,6 +496,27 @@
     -webkit-line-clamp:5;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;}
   .res-out.full{-webkit-line-clamp:unset;display:block;}
 
+  /* 摺疊外框：一鍵跑完的資料預設收合，避免內容一多雜亂 */
+  .fold-wrap{padding:6px;}
+  .fold-toggle{width:100%;display:flex;align-items:center;gap:9px;padding:14px 16px;
+    border-radius:16px;font-size:14.5px;font-weight:800;color:var(--ink);
+    background:linear-gradient(165deg,#FFF6DD,#FFFDF6);border:1.5px solid var(--gold-soft);
+    box-shadow:0 4px 14px rgba(217,184,115,.25);transition:transform .18s var(--spring),box-shadow .2s;}
+  .fold-toggle:active{transform:scale(.98);}
+  .fold-toggle.open{background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border-color:rgba(217,184,115,.4);
+    box-shadow:0 6px 18px rgba(30,25,18,.25);}
+  .fold-ic{font-size:16px;flex:0 0 auto;}
+  .fold-chev{margin-left:auto;font-size:13px;opacity:.6;flex:0 0 auto;}
+  .fold-body{padding-top:10px;}
+
+  /* 平台卡內：每個重點獨立成小卡，不再沒頭沒尾 */
+  .pb-seg{position:relative;z-index:2;background:rgba(0,0,0,.16);border-radius:14px;
+    padding:12px 14px;margin:0 18px 10px;border:1px solid rgba(217,184,115,.22);}
+  .pb-seg:last-child{margin-bottom:16px;}
+  .pb-seg-title{font-size:13.5px;font-weight:800;color:var(--gold-soft);margin-bottom:6px;
+    padding-bottom:6px;border-bottom:1px dashed rgba(217,184,115,.25);}
+  .pb-seg-body{font-size:14.5px;line-height:1.7;color:#FBF6EA;white-space:pre-wrap;word-break:break-word;}
+
   /* 部門產出卡片化（同教學卡片工坊精裝卡面） */
   .seg-deck{padding:14px;display:flex;flex-direction:column;gap:16px;}
   .seg-card{position:relative;border-radius:22px;padding:22px 20px 56px;
@@ -546,10 +567,7 @@
     border:1px solid var(--gold-soft);min-height:38px;
     box-shadow:0 4px 12px rgba(30,25,18,.25);transition:transform .18s var(--spring);}
   .pb-copy:active{transform:scale(.92);}
-  .pb-body{position:relative;z-index:2;padding:6px 18px 14px;font-size:15px;line-height:1.75;
-    white-space:pre-wrap;word-break:break-word;color:#FBF6EA;}
-  .pb-body.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
-  .pb-body.clamp.full{display:block;-webkit-line-clamp:unset;}
+  .pb-body{position:relative;z-index:2;padding-top:6px;}
   .pb-more{position:relative;z-index:2;display:block;width:100%;padding:11px;font-size:12.5px;font-weight:700;
     color:var(--gold-soft);background:rgba(255,255,255,.05);border-top:1px solid rgba(217,184,115,.2);}
   .block-more{margin:0 13px 13px;}
@@ -671,10 +689,33 @@
     border:1px solid rgba(217,184,115,.4);}
   .tcard-back .tcard-copy{background:linear-gradient(165deg,#FBF6EA,#fff);color:var(--ink);
     border:1px solid var(--gold-soft);}
-  .deck-item{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius-sm);
-    padding:15px;margin-bottom:11px;box-shadow:var(--shadow);}
-  .deck-title{font-size:15.5px;font-weight:800;}
-  .deck-sub{font-size:12.5px;color:var(--ink-faint);margin-top:2px;}
+  .deck-item{position:relative;border-radius:20px;padding:16px 17px 15px;margin-bottom:14px;
+    background:
+      radial-gradient(120% 90% at 92% -14%, rgba(217,184,115,.2), transparent 55%),
+      linear-gradient(168deg,#FFFDF8,#F6EFDD);
+    border:1px solid rgba(168,120,46,.28);
+    box-shadow:0 2px 4px rgba(30,25,18,.05), 0 14px 30px rgba(30,25,18,.1);
+    animation:deal .45s var(--spring) backwards;transition:transform .18s var(--spring);}
+  .deck-item::before{content:"";position:absolute;inset:6px;border-radius:14px;pointer-events:none;
+    border:1px solid rgba(168,120,46,.25);}
+  .deck-item:active{transform:scale(.99);}
+  .deck-top{position:relative;z-index:1;display:flex;align-items:center;gap:12px;}
+  .deck-ic{width:44px;height:44px;border-radius:13px;flex:0 0 auto;display:grid;place-items:center;font-size:20px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;
+    box-shadow:0 5px 12px rgba(30,25,18,.28), inset 0 1px 0 rgba(255,255,255,.12);}
+  .deck-meta{flex:1;min-width:0;}
+  .deck-title{font-size:16px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .deck-sub{font-size:11.5px;color:var(--ink-faint);margin-top:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .deck-tag{font-size:10px;font-weight:800;padding:3px 9px;border-radius:8px;letter-spacing:.3px;
+    background:var(--gold-wash);color:var(--gold);}
+  .deck-actions{position:relative;z-index:1;display:flex;gap:8px;margin-top:13px;}
+  .deck-btn{flex:1;font-size:12.5px;font-weight:800;padding:0;min-height:42px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    background:linear-gradient(165deg,#2E2415,var(--ink));color:#fff;border:1px solid rgba(217,184,115,.35);
+    box-shadow:0 4px 10px rgba(30,25,18,.2);transition:transform .18s var(--spring);}
+  .deck-btn.ghost{background:var(--paper-2);color:var(--ink-soft);border:1.5px solid var(--line);box-shadow:none;}
+  .deck-btn.danger{background:rgba(168,68,46,.08);color:#A8442E;border-color:rgba(168,68,46,.22);box-shadow:none;}
+  .deck-btn:active{transform:scale(.93);}
   .cards-cfg{display:flex;gap:9px;margin-top:12px;}
   .cards-cfg select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;
     padding:11px 12px;font-size:15px;background:var(--paper);color:var(--ink);outline:none;min-height:46px;}
@@ -980,7 +1021,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow25-platgrid",
+  build:"2026.07.14-flow26-fold-decks",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1296,17 +1337,28 @@ function copyDeck(id){
   const txt=`【${d.title}】\n\n`+d.cards.map((c,i)=>`${i+1}. ${c.q}\n👉 ${c.a}`).join("\n\n");
   navigator.clipboard.writeText(txt).then(()=>toast("已複製整副卡，可直接貼講義或貼文"));
 }
+const MODE_ICON={together:"📝",flip:"🔁",cloze:"✏️"};
 function renderDecks(){
   const lbl=document.getElementById("deckLabel"), box=document.getElementById("deckList");
   if(state.decks.length===0){ lbl.style.display="none"; box.innerHTML=""; return; }
   lbl.style.display="block";
-  box.innerHTML=state.decks.map(d=>`<div class="deck-item">
-    <div class="deck-title">🎴 ${esc(d.title)}</div>
-    <div class="deck-sub">${timeStr(d.time)} · ${MODE_TAG[d.mode]||""}卡 × ${d.cards.length} 張</div>
-    <div class="hi-actions">
-      <button class="hi-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
-      <button class="hi-btn" onclick="copyDeck(${d.id})">📋 複製</button>
-      <button class="hi-btn del" onclick="deleteDeck(${d.id})">刪除</button>
+  box.innerHTML=state.decks.map((d,i)=>`<div class="deck-item" style="animation-delay:${(i*.04).toFixed(2)}s">
+    <div class="deck-top">
+      <div class="deck-ic">${MODE_ICON[d.mode]||"🎴"}</div>
+      <div class="deck-meta">
+        <div class="deck-title">${esc(d.title)}</div>
+        <div class="deck-sub">
+          <span class="deck-tag">${MODE_TAG[d.mode]||"卡片"}</span>
+          <span>${d.cards.length} 張</span>
+          <span>·</span>
+          <span>${timeStr(d.time)}</span>
+        </div>
+      </div>
+    </div>
+    <div class="deck-actions">
+      <button class="deck-btn" onclick="openDeck(${d.id})">▶ 打開複習</button>
+      <button class="deck-btn ghost" onclick="copyDeck(${d.id})">📋 複製</button>
+      <button class="deck-btn danger" onclick="deleteDeck(${d.id})">🗑</button>
     </div>
   </div>`).join("");
 }
@@ -1564,7 +1616,7 @@ function renderResults(){
 }
 function copyResultWhole(btn){
   const card=btn.closest(".res-item");
-  const parts=[...card.querySelectorAll(".pb-body, .res-out, .seg-body")].map(b=>b.textContent);
+  const parts=[...card.querySelectorAll(".pb-seg-body, .tcard-a, .res-out")].map(b=>b.textContent);
   navigator.clipboard.writeText(parts.join("\n\n")).then(()=>toast("已複製整篇，可直接貼文"));
 }
 function toggleResExpand(id,btn){
@@ -2231,19 +2283,50 @@ function deriveSegTitle(seg, idx){
   if(first.length>22) first=first.slice(0,20)+"…";
   return first;
 }
+// 摺疊外框：預設收合，資料一多也不會亂；點擊展開查看
+function foldWrap(innerHtml, count, noun){
+  return `<div class="fold-wrap">
+    <button class="fold-toggle" data-count="${count}" data-noun="${esc(noun)}" onclick="toggleFold(this)">
+      <span class="fold-ic">📂</span>展開查看　${count} ${esc(noun)}<span class="fold-chev">▾</span>
+    </button>
+    <div class="fold-body" hidden>${innerHtml}</div>
+  </div>`;
+}
+function toggleFold(btn){
+  const wrap=btn.parentElement;
+  const body=wrap.querySelector(".fold-body");
+  const isHidden=body.hasAttribute("hidden");
+  if(isHidden){
+    body.removeAttribute("hidden");
+    btn.classList.add("open");
+    btn.innerHTML=`<span class="fold-ic">📁</span>收合內容<span class="fold-chev">▴</span>`;
+  }else{
+    body.setAttribute("hidden","");
+    btn.classList.remove("open");
+    btn.innerHTML=`<span class="fold-ic">📂</span>展開查看　${btn.dataset.count} ${esc(btn.dataset.noun)}<span class="fold-chev">▾</span>`;
+  }
+}
 function richBody(out){
   const blocks=splitPlatforms(out);
   if(blocks){
-    return `<div class="plat-blocks">`+blocks.map(b=>`
+    const inner=`<div class="plat-blocks">`+blocks.map(b=>{
+      const pieces=segmentize(b.body);
+      const mini=pieces.map((p,i)=>`
+        <div class="pb-seg">
+          <div class="pb-seg-title">${esc(deriveSegTitle(p,i))}</div>
+          <div class="pb-seg-body">${esc(p)}</div>
+        </div>`).join("");
+      return `
       <div class="plat-block">
         <div class="pb-head"><span class="pb-name">${esc(b.label)}</span>
           <button class="pb-copy" onclick="copyBlock(this)">📋 複製</button></div>
-        <div class="pb-body clamp">${esc(b.body)}</div>
-        <button class="pb-more" onclick="toggleBlockBody(this)">展開</button>
-      </div>`).join("")+`</div>`;
+        <div class="pb-body">${mini}</div>
+      </div>`;
+    }).join("")+`</div>`;
+    return foldWrap(inner, blocks.length, "個平台");
   }
   const segs=segmentize(out);
-  return `<div class="card-deck seg-deck">`+segs.map((s,i)=>`
+  const inner=`<div class="card-deck seg-deck">`+segs.map((s,i)=>`
     <div class="tcard flat">
       <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
         <span class="tcard-num">${String(i+1).padStart(2,"0")}</span>
@@ -2253,22 +2336,20 @@ function richBody(out){
         <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
       </div>
     </div>`).join("")+`</div>`;
+  return foldWrap(inner, segs.length, "張卡片");
 }
 function copySeg(btn){
   const txt=btn.closest(".tcard").querySelector(".tcard-a").textContent;
   navigator.clipboard.writeText(txt).then(()=>toast("已複製這張卡"));
 }
 function copyBlock(btn){
-  const txt=btn.closest(".plat-block").querySelector(".pb-body").textContent;
+  const block=btn.closest(".plat-block");
+  const txt=[...block.querySelectorAll(".pb-seg-body")].map(el=>el.textContent).join("\n\n");
   navigator.clipboard.writeText(txt).then(()=>toast("已複製這個平台，可直接貼文"));
-}
-function toggleBlockBody(btn){
-  const body=btn.closest(".plat-block").querySelector(".pb-body");
-  const open=body.classList.toggle("full"); btn.textContent=open?"收合":"展開";
 }
 function copyWhole(btn){
   const card=btn.closest(".output-card");
-  const parts=[...card.querySelectorAll(".pb-body, .output-body, .seg-body")].map(b=>b.textContent);
+  const parts=[...card.querySelectorAll(".pb-seg-body, .tcard-a, .output-body")].map(b=>b.textContent);
   navigator.clipboard.writeText(parts.join("\n\n")).then(()=>toast("已複製整篇，可直接貼文"));
 }
 function resultCard(d,out){
