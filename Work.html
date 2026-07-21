@@ -97,26 +97,41 @@
   .chev-ic{transition:transform .2s;}
   .topbar.min .chev-ic{transform:rotate(180deg);}
   .topbar.min{padding:8px 16px;border-radius:0 0 18px 18px;}
-  .topbar.min .brand-tag,.topbar.min .status-line,.topbar.min .title-edit{display:none;}
+  .topbar.min .brand-tag,.topbar.min .hero-member,.topbar.min .title-edit{display:none;}
   .topbar.min .row{margin-top:0!important;justify-content:flex-end;gap:8px;}
   .topbar.min .mini-title{display:block;}
   .mini-title{display:none;flex:1;font-size:15px;font-weight:800;color:#fff;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .status-line{
-    margin-top:13px;font-size:12.5px;color:rgba(255,255,255,.68);
-    display:flex;align-items:center;gap:10px;
-    background:rgba(255,255,255,.06);padding:10px 13px;border-radius:13px;
-    border:1px solid rgba(255,255,255,.07);
+  .hero-member{
+    margin-top:16px;padding:20px 16px 17px;border-radius:22px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;overflow:hidden;
+    background:radial-gradient(120% 160% at 50% -30%, rgba(217,184,115,.22), transparent 62%), rgba(255,255,255,.045);
+    border:1px solid rgba(217,184,115,.22);
+    transition:transform .18s var(--spring),background .2s;
   }
-  .status-text{flex:1;min-width:0;}
-  .status-name{font-size:13.5px;font-weight:800;color:#fff;line-height:1.35;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .status-sub{font-size:12px;color:rgba(255,255,255,.68);line-height:1.35;margin-top:1px;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .status-sub.warn{color:#F0B37E;}
-  .dot{width:8px;height:8px;border-radius:50%;background:#E0613B;flex:0 0 auto;margin-top:2px;}
-  .dot.on{background:#4ED9A0;box-shadow:0 0 0 3px rgba(78,217,160,.2);animation:pulse 2.6s ease-in-out infinite;}
+  .hero-member:active{transform:scale(.98);}
+  .hero-member::before{
+    content:"";position:absolute;top:0;left:-70%;width:45%;height:100%;
+    background:linear-gradient(100deg,transparent,rgba(217,184,115,.08),transparent);
+    animation:sheen 7s ease-in-out infinite;pointer-events:none;
+  }
+  .hero-avatar-ring{position:relative;width:68px;height:68px;margin-bottom:11px;
+    border-radius:50%;padding:3px;
+    background:conic-gradient(from 0deg,var(--gold-soft),#FFF6DD,var(--gold),var(--gold-soft));
+    box-shadow:0 10px 26px rgba(0,0,0,.35), 0 0 0 4px rgba(217,184,115,.1);
+  }
+  .hero-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;
+    background:linear-gradient(165deg,#3a2f1c,#1E1A14);border:2px solid #1E1A14;}
+  .hero-dot{position:absolute;right:1px;bottom:1px;width:16px;height:16px;border-radius:50%;
+    background:#E0613B;border:3px solid #1E1A14;z-index:2;}
+  .hero-dot.on{background:#4ED9A0;animation:pulse 2.6s ease-in-out infinite;}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(78,217,160,.2);}50%{box-shadow:0 0 0 6px rgba(78,217,160,.08);}}
+  .hero-name{position:relative;z-index:1;font-size:17px;font-weight:800;color:#fff;letter-spacing:.4px;}
+  .hero-badge{position:relative;z-index:1;margin-top:8px;font-size:12.5px;font-weight:700;
+    color:var(--gold-soft);padding:6px 16px;border-radius:20px;
+    background:rgba(217,184,115,.13);border:1px solid rgba(217,184,115,.28);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+  .hero-badge.warn{color:#F7C199;background:rgba(240,179,126,.14);border-color:rgba(240,179,126,.32);}
 
   /* ---------- Views + 進場動效 ---------- */
   .view{display:none;padding:20px 18px 48px;}
@@ -770,12 +785,13 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
-    <div class="status-line" onclick="openMemberCenter()" style="cursor:pointer;">
-      <span class="dot" id="keyDot"></span>
-      <div class="status-text">
-        <div class="status-name" id="keyName">🌿 尚未登入</div>
-        <div class="status-sub" id="keyStatus">LINE 會員驗證中…</div>
+    <div class="hero-member" onclick="openMemberCenter()">
+      <div class="hero-avatar-ring">
+        <img class="hero-avatar" id="heroAvatar" alt="" onerror="this.style.display='none'">
+        <span class="hero-dot" id="heroDot"></span>
       </div>
+      <div class="hero-name" id="heroName">🌿 尚未登入</div>
+      <div class="hero-badge" id="heroBadge">LINE 會員驗證中…</div>
     </div>
   </header>
 
@@ -1041,7 +1057,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.15-flow34-dedupe",
+  build:"2026.07.15-flow35-heroavatar",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2524,24 +2540,28 @@ function resetAll(){
   }
 }
 function updateKeyStatus(){
-  document.getElementById("keyDot").classList.toggle("on",member.ready && member.level!=="");
+  const dotEl=document.getElementById("heroDot");
+  const avEl=document.getElementById("heroAvatar");
+  const nameEl=document.getElementById("heroName");
+  const badgeEl=document.getElementById("heroBadge");
+  if(!dotEl||!nameEl||!badgeEl) return;
+  dotEl.classList.toggle("on", member.ready && member.level!=="");
+  if(member.pic){ avEl.src=member.pic; avEl.style.display="block"; } else { avEl.removeAttribute("src"); avEl.style.display="none"; }
   const mode=state.model==="gpt-5-mini"?"🧠 智慧":"⚡ 快速";
-  const nameEl=document.getElementById("keyName");
-  const subEl=document.getElementById("keyStatus");
-  let isErr=false, sub;
+  let isErr=false, badge;
   if(member.ready && (member.level==="尊爵"||member.level==="黃金")){
     nameEl.textContent = member.lineName || "會員";
-    sub=`${mode} · ${memberBadge()}`;
+    badge=`${mode} · ${memberBadge()}`;
   }else if(member.msg && member.msg.indexOf("登入失敗")===0){
-    nameEl.textContent="🌿 尚未登入"; sub="⚠️ "+member.msg; isErr=true;
+    nameEl.textContent="🌿 尚未登入"; badge="⚠️ "+member.msg; isErr=true;
   }else if(member.msg && (member.msg.indexOf("會員驗證失敗")===0 || member.msg.indexOf("權限校驗異常")===0)){
     nameEl.textContent = member.lineName || "🌿 尚未登入";
-    sub="⚠️ "+member.msg+"，請重新整理頁面再試"; isErr=true;
+    badge="⚠️ "+member.msg+"，請重新整理頁面再試"; isErr=true;
   }else{
-    nameEl.textContent="🌿 尚未登入"; sub="LINE 會員驗證中…";
+    nameEl.textContent="🌿 尚未登入"; badge="LINE 會員驗證中…";
   }
-  subEl.textContent=sub;
-  subEl.classList.toggle("warn",isErr);
+  badgeEl.textContent=badge;
+  badgeEl.classList.toggle("warn",isErr);
 }
 
 /* ============ 標題即時編輯 ============ */
