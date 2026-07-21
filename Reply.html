@@ -54,6 +54,7 @@ html,body{
   opacity:.55;
 }
 .topnav-row1{display:flex;align-items:center;gap:10px}
+.topnav-row2{margin-top:9px}
 .topnav-brand{flex:1;min-width:0;display:flex;align-items:center;gap:10px;overflow:hidden}
 .topnav-icon{
   width:34px;height:34px;border-radius:10px;flex:none;
@@ -68,17 +69,26 @@ html,body{
   color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .topnav-member{
-  flex:none;font-size:12px;color:var(--ink3);white-space:nowrap;
-  padding:7px 13px;border-radius:99px;text-align:center;
+  width:100%;white-space:nowrap;
+  padding:10px 14px;border-radius:12px;
   background:linear-gradient(180deg,#FCFAF4,var(--surface2));
   border:1px solid var(--border2);
   cursor:pointer;transition:border-color .15s,box-shadow .15s;
-  font-family:'Inter',sans-serif;font-weight:500;
+  font-family:'Inter',sans-serif;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
 }
 .topnav-member:active{border-color:var(--gold)}
-.topnav-member.gold b{color:var(--amber-dk)}
-.topnav-member b{color:var(--green);font-weight:700}
+.topnav-member .tm-name{
+  font-size:13.5px;font-weight:600;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  line-height:1.3;flex:1;min-width:0;text-align:left;
+}
+.topnav-member .tm-status{
+  font-size:12px;color:var(--green);font-weight:700;line-height:1.3;
+  flex:none;white-space:nowrap;
+}
+.topnav-member.gold .tm-status{color:var(--amber-dk)}
 
 .settings-btn{
   flex:none;width:38px;height:38px;border-radius:var(--r-sm);
@@ -554,8 +564,13 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
         </div>
         <span class="topnav-title">回覆靈感</span>
       </div>
-      <button class="topnav-member" id="memberPill"><b id="memberPillText">登入中…</b></button>
       <button class="settings-btn" id="settingsBtn">⚙</button>
+    </div>
+    <div class="topnav-row2">
+      <button class="topnav-member" id="memberPill">
+        <span class="tm-name" id="memberPillName">登入中…</span>
+        <span class="tm-status" id="memberPillText"></span>
+      </button>
     </div>
   </nav>
 
@@ -797,16 +812,19 @@ async function initLiff(){
     if(!LIFF_ID || LIFF_ID.indexOf('請填入') === 0){
       // 開發模式：沒填 LIFF ID 時以「未登入」身分測試
       profile = { userId:'未登入', displayName:'測試模式', pictureUrl:'' };
-      $('memberPillText').textContent = '測試模式';
+      $('memberPillName').textContent = '測試模式';
+      $('memberPillText').textContent = '點擊查看';
       await refreshPermission();
       return;
     }
     await liff.init({ liffId: LIFF_ID });
     if(!liff.isLoggedIn()){ liff.login(); return; }
     profile = await liff.getProfile();
+    $('memberPillName').textContent = profile.displayName || '會員';
     await refreshPermission();
   }catch(e){
-    $('memberPillText').textContent = '登入失敗';
+    $('memberPillName').textContent = '登入失敗';
+    $('memberPillText').textContent = '點擊重試';
     showErr('LINE 登入失敗：' + (e.message || e) + '，請重新開啟頁面。');
   }
 }
@@ -839,6 +857,7 @@ function updateMemberUI(){
   const pill = $('memberPill');
   const isGold = member.level === '黃金';
   pill.classList.toggle('gold', isGold);
+  $('memberPillName').textContent = profile.displayName || '會員';
   $('memberPillText').textContent = isGold
     ? ('黃金 · 剩 ' + member.remainCount + ' 次')
     : '尊爵 · 無限';
