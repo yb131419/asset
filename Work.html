@@ -997,6 +997,9 @@
       <div class="mc-row"><span>到期時間</span><b id="mcRowExpire">—</b></div>
       <div class="mc-row"><span>剩餘次數</span><b id="mcRowRemain">—</b></div>
     </div>
+    <div id="mcRetryWrap" style="display:none;margin-bottom:6px;">
+      <button class="deck-btn" style="width:100%;" onclick="initMember()">🔄 重新驗證會員資格</button>
+    </div>
     <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。<br>📦 所有會員（👑💎尊爵／🥇黃金）的部門紀錄、素材庫、卡組、成品都會永久保留在瀏覽器裡，重新開啟或重新驗證都不會清空。</div>
 
     <div class="mc-sec">AI 模型（點選即切換）</div>
@@ -1054,7 +1057,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.15-flow31-statusfix",
+  build:"2026.07.15-flow32-retry",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1994,6 +1997,7 @@ const member={ ready:false, lineId:"guest", lineName:"訪客", pic:"", level:"",
 function usingBackend(){ return true; }
 function aiReady(){ return true; }
 // 所有會員（黃金／尊爵）都保留上次的部門紀錄、素材庫、卡組、成品，跨分頁跨裝置驗證不會被清空
+function memberOK(){ return member.ready && (member.level==="黃金"||member.level==="尊爵"); }
 async function initMember(forceLogin){
   if(!usingBackend()) return;
   updateKeyStatus();
@@ -2008,12 +2012,21 @@ async function initMember(forceLogin){
       const p=await liff.getProfile();
       member.lineId=p.userId; member.lineName=p.displayName||""; member.pic=p.pictureUrl||"";
     }
-    const r=await gasPost({ action:"getPermission" }, 20000);
+    // 權限校驗偶爾因後端寫入撞到瞬時鎖定而失敗，屬於暫時性問題，這裡自動重試幾次再放棄
+    let r=null, lastErrMsg="";
+    for(let attempt=0; attempt<3; attempt++){
+      r=await gasPost({ action:"getPermission" }, 20000);
+      const badPermission = r && r.success && r.permission && !r.permission.allow && !r.permission.level;
+      if(r && r.success && r.permission && !badPermission) break;
+      lastErrMsg = (r && r.permission && r.permission.msg) || (r && r.errMsg) || "會員驗證失敗";
+      if(attempt<2){ await new Promise(x=>setTimeout(x,1200*(attempt+1))); }
+    }
     if(r && r.success && r.permission){
       const pm=r.permission;
       member.ready=true; member.level=pm.level; member.remain=pm.remainCount;
       member.expire=pm.expireDate; member.msg=pm.msg; member.lastUse=pm.lastUseTime||"";
-      if(!pm.allow) toast("次數已用完，請聯繫管理員儲值");
+      if(!pm.allow && pm.level) toast("次數已用完，請聯繫管理員儲值");
+      if(!pm.level) toast("⚠️ "+lastErrMsg+"，已重試 3 次仍失敗，請點狀態列重新驗證");
     }else{
       member.ready=false;
       member.msg=(r&&r.errMsg)||"會員驗證失敗";
@@ -2027,7 +2040,7 @@ async function initMember(forceLogin){
   updateKeyStatus();
   renderMemberCenter();
   // 驗證完成後，若有上次未跑完的流程，自動接續完成
-  if(member.ready && state.pipeRun && !state.pipeRun.done && !running){
+  if(memberOK() && state.pipeRun && !state.pipeRun.done && !running){
     toast("偵測到未完成的流程，自動接續完成…");
     setTimeout(()=>runAllDepartments(true), 800);
   }
@@ -2053,7 +2066,10 @@ function memberBadge(){
   return `⚠️ ${member.msg||"會員狀態異常，請重新整理"}`;
 }
 function canRun(){
-  if(!member.ready){ toast("會員驗證中，請稍候再試"); initMember(); return false; }
+  if(!memberOK()){
+    toast(member.ready?"會員驗證異常，正在重新驗證，請稍候再試":"會員驗證中，請稍候再試");
+    initMember(); return false;
+  }
   if(member.level==="黃金" && Number(member.remain)<=0){
     toast("次數已用完，請聯繫管理員儲值"); return false;
   }
@@ -2550,7 +2566,7 @@ function toggleHeader(){
 
 /* ============ 會員中心 ============ */
 function openMemberCenter(){
-  if(!member.ready) initMember();
+  if(!memberOK()){ initMember(); toast("正在重新驗證會員資格…"); }
   openView("settings");
 }
 function renderMemberCenter(){
@@ -2570,6 +2586,8 @@ function renderMemberCenter(){
   document.getElementById("mcRowExpire").textContent = member.ready && !isErr ? (member.expire||"—") : "—";
   document.getElementById("mcRowRemain").textContent = !member.ready ? "—"
     : isErr ? "—" : isGold ? `${member.remain} 次` : "無限次數";
+  const retryWrap=document.getElementById("mcRetryWrap");
+  if(retryWrap) retryWrap.style.display = isErr ? "block" : "none";
   document.querySelectorAll("#mcModels .mopt").forEach(o=>o.classList.toggle("on", o.dataset.model===state.model));
 }
 function mcPickModel(m){
