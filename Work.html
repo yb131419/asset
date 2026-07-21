@@ -1000,23 +1000,7 @@
     <div id="mcRetryWrap" style="display:none;margin-bottom:6px;">
       <button class="deck-btn" style="width:100%;" onclick="initMember()">🔄 重新驗證會員資格</button>
     </div>
-    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。<br>📦 所有會員（👑💎尊爵／🥇黃金）的部門紀錄、素材庫、卡組、成品都會永久保留在瀏覽器裡，重新開啟或重新驗證都不會清空。</div>
-
-    <div class="mc-sec">AI 模型（點選即切換）</div>
-    <div id="mcModels" style="margin-bottom:20px;">
-      <button class="mopt" data-model="gpt-4o-mini" onclick="mcPickModel('gpt-4o-mini')">
-        <span class="mradio"></span>
-        <span class="mopt-info"><span class="mopt-name">GPT-4o mini</span>
-        <div class="mopt-desc">速度快、成本低，日常內容產出首選</div></span>
-        <span class="mopt-tag">⚡ 快速</span>
-      </button>
-      <button class="mopt" data-model="gpt-5-mini" onclick="mcPickModel('gpt-5-mini')">
-        <span class="mradio"></span>
-        <span class="mopt-info"><span class="mopt-name">GPT-5 mini</span>
-        <div class="mopt-desc">理解力更好，適合複雜素材與細膩文案</div></span>
-        <span class="mopt-tag blue">🧠 智慧</span>
-      </button>
-    </div>
+    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。<br>📦 所有會員（👑💎尊爵／🥇黃金）的部門紀錄、素材庫、卡組、成品都會永久保留在瀏覽器裡，重新開啟或重新驗證都不會清空。<br>⚡ 目前固定使用快速模型，確保回應速度穩定。</div>
 
     <div class="field">
       <label>公司名稱（顯示在最上方標題）</label>
@@ -1057,7 +1041,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.15-flow32-retry",
+  build:"2026.07.15-flow33-fastonly",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1129,9 +1113,7 @@ function load(){
       merged.pipeRun = s.pipeRun||null;
       merged.gasUrl = s.gasUrl||"";
       merged.liffId = s.liffId||"";
-      if(merged.model!=="gpt-4o-mini" && merged.model!=="gpt-5-mini"){
-        merged.model = (/gpt-4o$|4\.1(?!-)|gpt-5/.test(merged.model||""))? "gpt-5-mini" : "gpt-4o-mini";
-      }
+      merged.model="gpt-4o-mini"; // 已取消 5.0（智慧模式）選項，固定使用快速模型
       const defDepts = structuredClone(DEFAULTS.departments);
       const sameStructure = (s.schema===DEFAULTS.schema)
         && Array.isArray(s.departments) && s.departments.length===defDepts.length
