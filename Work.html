@@ -104,11 +104,17 @@
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .status-line{
     margin-top:13px;font-size:12.5px;color:rgba(255,255,255,.68);
-    display:flex;align-items:center;gap:7px;
+    display:flex;align-items:center;gap:10px;
     background:rgba(255,255,255,.06);padding:10px 13px;border-radius:13px;
     border:1px solid rgba(255,255,255,.07);
   }
-  .dot{width:8px;height:8px;border-radius:50%;background:#E0613B;flex:0 0 auto;}
+  .status-text{flex:1;min-width:0;}
+  .status-name{font-size:13.5px;font-weight:800;color:#fff;line-height:1.35;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .status-sub{font-size:12px;color:rgba(255,255,255,.68);line-height:1.35;margin-top:1px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .status-sub.warn{color:#F0B37E;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#E0613B;flex:0 0 auto;margin-top:2px;}
   .dot.on{background:#4ED9A0;box-shadow:0 0 0 3px rgba(78,217,160,.2);animation:pulse 2.6s ease-in-out infinite;}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(78,217,160,.2);}50%{box-shadow:0 0 0 6px rgba(78,217,160,.08);}}
 
@@ -766,7 +772,10 @@
     </div>
     <div class="status-line" onclick="openMemberCenter()" style="cursor:pointer;">
       <span class="dot" id="keyDot"></span>
-      <span id="keyStatus">🌿 LINE 會員驗證中…</span>
+      <div class="status-text">
+        <div class="status-name" id="keyName">🌿 尚未登入</div>
+        <div class="status-sub" id="keyStatus">LINE 會員驗證中…</div>
+      </div>
     </div>
   </header>
 
@@ -1045,7 +1054,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.14-flow30-keepdata",
+  build:"2026.07.15-flow31-statusfix",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2038,9 +2047,10 @@ async function gasPost(params, timeoutMs){
   }
 }
 function memberBadge(){
-  if(!member.ready) return "";
+  if(!member.ready) return "驗證中…";
   if(member.level==="尊爵") return `👑 ${member.msg||"尊爵會員"}`;
-  return `🥇 黃金會員 · 剩 ${member.remain} 次`;
+  if(member.level==="黃金") return `🥇 黃金會員 · 剩 ${member.remain} 次`;
+  return `⚠️ ${member.msg||"會員狀態異常，請重新整理"}`;
 }
 function canRun(){
   if(!member.ready){ toast("會員驗證中，請稍候再試"); initMember(); return false; }
@@ -2506,14 +2516,24 @@ function resetAll(){
   }
 }
 function updateKeyStatus(){
-  document.getElementById("keyDot").classList.toggle("on",member.ready);
+  document.getElementById("keyDot").classList.toggle("on",member.ready && member.level!=="");
   const mode=state.model==="gpt-5-mini"?"🧠 智慧":"⚡ 快速";
-  let txt;
-  if(member.ready) txt=`${mode} · ${memberBadge()}`;
-  else if(member.msg && member.msg.indexOf("登入失敗")===0) txt="⚠️ "+member.msg;
-  else if(member.msg && member.msg.indexOf("會員驗證失敗")===0) txt="⚠️ "+member.msg;
-  else txt="🌿 LINE 會員驗證中…";
-  document.getElementById("keyStatus").textContent=txt;
+  const nameEl=document.getElementById("keyName");
+  const subEl=document.getElementById("keyStatus");
+  let isErr=false, sub;
+  if(member.ready && (member.level==="尊爵"||member.level==="黃金")){
+    nameEl.textContent = member.lineName || "會員";
+    sub=`${mode} · ${memberBadge()}`;
+  }else if(member.msg && member.msg.indexOf("登入失敗")===0){
+    nameEl.textContent="🌿 尚未登入"; sub="⚠️ "+member.msg; isErr=true;
+  }else if(member.msg && (member.msg.indexOf("會員驗證失敗")===0 || member.msg.indexOf("權限校驗異常")===0)){
+    nameEl.textContent = member.lineName || "🌿 尚未登入";
+    sub="⚠️ "+member.msg+"，請重新整理頁面再試"; isErr=true;
+  }else{
+    nameEl.textContent="🌿 尚未登入"; sub="LINE 會員驗證中…";
+  }
+  subEl.textContent=sub;
+  subEl.classList.toggle("warn",isErr);
 }
 
 /* ============ 標題即時編輯 ============ */
@@ -2536,14 +2556,20 @@ function openMemberCenter(){
 function renderMemberCenter(){
   if(!document.getElementById("mcName")) return;
   const isGold = member.level==="黃金";
+  const isVip = member.level==="尊爵";
+  const isErr = member.ready && !isGold && !isVip;
   document.getElementById("mcName").textContent = member.lineName || "尚未登入";
   const av=document.getElementById("mcAvatar");
   if(member.pic) av.src=member.pic; else av.removeAttribute("src");
-  document.getElementById("mcLevel").textContent = member.ready ? (member.msg||member.level) : "LINE 會員驗證中…";
-  document.getElementById("mcRemain").textContent = member.ready ? (isGold? `剩餘 ${member.remain} 次` : "♾️ 無限次數") : "—";
-  document.getElementById("mcRowLevel").textContent = member.ready ? (isGold? "🥇 黃金會員" : "👑 尊爵會員") : "—";
-  document.getElementById("mcRowExpire").textContent = member.ready ? (member.expire||"—") : "—";
-  document.getElementById("mcRowRemain").textContent = member.ready ? (isGold? `${member.remain} 次` : "無限次數") : "—";
+  document.getElementById("mcLevel").textContent = !member.ready ? "LINE 會員驗證中…"
+    : isErr ? (member.msg||"會員狀態異常，請重新整理頁面再試") : (member.msg||member.level);
+  document.getElementById("mcRemain").textContent = !member.ready ? "—"
+    : isErr ? "⚠️" : isGold ? `剩餘 ${member.remain} 次` : "♾️ 無限次數";
+  document.getElementById("mcRowLevel").textContent = !member.ready ? "—"
+    : isErr ? "⚠️ 狀態異常" : isGold ? "🥇 黃金會員" : "👑 尊爵會員";
+  document.getElementById("mcRowExpire").textContent = member.ready && !isErr ? (member.expire||"—") : "—";
+  document.getElementById("mcRowRemain").textContent = !member.ready ? "—"
+    : isErr ? "—" : isGold ? `${member.remain} 次` : "無限次數";
   document.querySelectorAll("#mcModels .mopt").forEach(o=>o.classList.toggle("on", o.dataset.model===state.model));
 }
 function mcPickModel(m){
