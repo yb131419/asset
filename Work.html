@@ -1041,7 +1041,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.15-flow33-fastonly",
+  build:"2026.07.15-flow34-dedupe",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1980,9 +1980,19 @@ function usingBackend(){ return true; }
 function aiReady(){ return true; }
 // 所有會員（黃金／尊爵）都保留上次的部門紀錄、素材庫、卡組、成品，跨分頁跨裝置驗證不會被清空
 function memberOK(){ return member.ready && (member.level==="黃金"||member.level==="尊爵"); }
+let _memberInitInFlight=false;
 async function initMember(forceLogin){
   if(!usingBackend()) return;
+  if(_memberInitInFlight) return;  // 避免同分頁內重複發起驗證請求（例如自動驗證與手動重試前後腳觸發）
+  _memberInitInFlight=true;
   updateKeyStatus();
+  try{
+    await _doInitMember();
+  }finally{
+    _memberInitInFlight=false;
+  }
+}
+async function _doInitMember(){
   try{
     if(!LIFF_ID || LIFF_ID.indexOf("請填入")===0){
       // 測試模式：沒填 LIFF ID 時以訪客身分測試（正式環境不會走到這）
