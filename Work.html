@@ -120,7 +120,10 @@
     background:conic-gradient(from 0deg,var(--gold-soft),#FFF6DD,var(--gold),var(--gold-soft));
     box-shadow:0 10px 26px rgba(0,0,0,.35), 0 0 0 4px rgba(217,184,115,.1);
   }
-  .hero-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;
+  .hero-avatar-ph{position:absolute;inset:3px;border-radius:50%;display:grid;place-items:center;
+    font-size:24px;color:rgba(255,255,255,.4);
+    background:radial-gradient(120% 120% at 50% 30%, #4a3d26, #201A11);}
+  .hero-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;position:relative;z-index:1;
     background:linear-gradient(165deg,#3a2f1c,#1E1A14);border:2px solid #1E1A14;}
   .hero-dot{position:absolute;right:1px;bottom:1px;width:16px;height:16px;border-radius:50%;
     background:#E0613B;border:3px solid #1E1A14;z-index:2;}
@@ -802,9 +805,14 @@
     display:grid;place-items:center;position:relative;
     background:conic-gradient(from 0deg,var(--gold-soft),#FFF6DD,var(--gold),var(--gold-soft));
     padding:3px;box-shadow:0 12px 30px rgba(0,0,0,.4);}
+  .gate-avatar-ring.pending{animation:gateSpin 2.4s linear infinite;}
+  @keyframes gateSpin{to{transform:rotate(360deg);}}
   .gate-avatar-ring::after{content:"";position:absolute;inset:6px;border-radius:50%;
     border:2px solid rgba(30,25,18,.5);pointer-events:none;}
-  .gate-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;
+  .gate-avatar-ph{position:absolute;inset:3px;border-radius:50%;display:grid;place-items:center;
+    font-size:38px;color:rgba(255,255,255,.4);
+    background:radial-gradient(120% 120% at 50% 30%, #4a3d26, #201A11);}
+  .gate-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;position:relative;z-index:1;
     background:linear-gradient(165deg,#3a2f1c,#1E1A14);}
   .gate-badge{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;
     color:var(--gold-soft);padding:8px 20px;border-radius:99px;margin-bottom:12px;
@@ -841,7 +849,8 @@
     <div class="gate-sub">AI CONTENT INTELLIGENCE SYSTEM</div>
 
     <div class="gate-avatar-ring" id="gateAvatarRing">
-      <img class="gate-avatar" id="gateAvatar" alt="" onerror="this.style.display='none'">
+      <div class="gate-avatar-ph" id="gateAvatarPh">👤</div>
+      <img class="gate-avatar" id="gateAvatar" alt="" style="display:none" onload="this.style.display='block';document.getElementById('gateAvatarPh').style.display='none';" onerror="this.style.display='none';document.getElementById('gateAvatarPh').style.display='grid';">
     </div>
 
     <div class="gate-badge" id="gateBadge">🌿 驗證中…</div>
@@ -882,7 +891,8 @@
     </div>
     <div class="hero-member" onclick="openMemberCenter()">
       <div class="hero-avatar-ring">
-        <img class="hero-avatar" id="heroAvatar" alt="" onerror="this.style.display='none'">
+        <div class="hero-avatar-ph" id="heroAvatarPh">👤</div>
+        <img class="hero-avatar" id="heroAvatar" alt="" onload="this.style.display='block';document.getElementById('heroAvatarPh').style.display='none';" onerror="this.style.display='none';document.getElementById('heroAvatarPh').style.display='grid';">
         <span class="hero-dot" id="heroDot"></span>
       </div>
       <div class="hero-name" id="heroName">🌿 尚未登入</div>
@@ -1152,7 +1162,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.16-flow37-drawerprofile",
+  build:"2026.07.16-flow39-avatarph",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2641,7 +2651,8 @@ function updateKeyStatus(){
   const badgeEl=document.getElementById("heroBadge");
   if(!dotEl||!nameEl||!badgeEl) return;
   dotEl.classList.toggle("on", member.ready && member.level!=="");
-  if(member.pic){ avEl.src=member.pic; avEl.style.display="block"; } else { avEl.removeAttribute("src"); avEl.style.display="none"; }
+  if(member.pic){ if(avEl.getAttribute("src")!==member.pic) avEl.src=member.pic; }
+  else{ avEl.removeAttribute("src"); avEl.style.display="none"; const ph=document.getElementById("heroAvatarPh"); if(ph) ph.style.display="grid"; }
   const mode=state.model==="gpt-5-mini"?"🧠 智慧":"⚡ 快速";
   let isErr=false, badge;
   if(member.ready && (member.level==="尊爵"||member.level==="黃金")){
@@ -2663,6 +2674,8 @@ function updateKeyStatus(){
 /* ============ 進場驗證頁（Gate） ============ */
 function renderGate(){
   const av=document.getElementById("gateAvatar");
+  const ring=document.getElementById("gateAvatarRing");
+  const ph=document.getElementById("gateAvatarPh");
   const badge=document.getElementById("gateBadge");
   const nameEl=document.getElementById("gateName");
   const expireEl=document.getElementById("gateExpire");
@@ -2670,7 +2683,12 @@ function renderGate(){
   const btnText=document.getElementById("gateBtnText");
   if(!av) return;
 
-  if(member.pic){ av.src=member.pic; av.style.display="block"; } else { av.removeAttribute("src"); av.style.display="none"; }
+  if(member.pic){
+    if(av.getAttribute("src")!==member.pic) av.src=member.pic; // 換圖才重設，避免一直閃爍
+  }else{
+    av.removeAttribute("src"); av.style.display="none"; ph.style.display="grid";
+  }
+  ring.classList.toggle("pending", !member.ready);
 
   if(memberOK()){
     const isVip=member.level==="尊爵";
