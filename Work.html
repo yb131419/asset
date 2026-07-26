@@ -893,13 +893,13 @@
   <!-- HOME -->
   <section id="view-home" class="view active">
     <div class="pipeline">
-      <div class="pl-title">🚀 一鍵跑完整套（多平台）</div>
-      <div class="pl-sub">三個部門輪流接力：內容創作 → 點評實戰 → 邀約陪跑，最後自動統整成一篇可直接發布的成品文章。主題可留空。</div>
-      <textarea id="pipeInput" placeholder="（可留空）今天主題，例如：母親節檔期 / 新品上市 / 客戶見證"></textarea>
+      <div class="pl-title">🚀 一鍵自動完成</div>
+      <div class="pl-sub">按一個鈕，AI 就會自己把整篇貼文寫好，不用你動手。想寫什麼可以先打字告訴它，或是留空讓它自己想。</div>
+      <textarea id="pipeInput" placeholder="想寫什麼主題呢？（可以不填）比如：母親節活動、新產品、客人的好評"></textarea>
       <div id="pipeSteps"></div>
       <div class="pl-plat" id="pipePlatBar"></div>
       <div id="libPickBar"></div>
-      <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 一鍵跑完整套（全自動）</button>
+      <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 開始自動幫我寫</button>
       <div id="pipeResumeBar" style="display:none"></div>
       <div id="pipeBarWrap" style="display:none">
         <div class="pbar-track"><div class="pbar-fill" id="pbarFill"></div></div>
@@ -947,10 +947,10 @@
     </div>
 
     <div class="chain-wrap">
-      <div class="section-label">運作流程（點任一站可進入）</div>
+      <div class="section-label">流程圖（點一下就能進去）</div>
       <div id="chainBox"></div>
     </div>
-    <div class="section-label">三大部門（可單獨執行）</div>
+    <div class="section-label">三個小幫手（也可以單獨用）</div>
     <div id="deptList"></div>
     <div class="home-build" id="homeBuild"></div>
   </section>
@@ -1072,7 +1072,7 @@
     <div id="wsLibBar"></div>
 
     <div class="input-card">
-      <textarea id="taskInput" placeholder="交辦這個部門要做的事…例如：依素材寫一支 TikTok 開場破冰腳本"></textarea>
+      <textarea id="taskInput" placeholder="想請它幫忙做什麼呢？比如：幫我寫一段 TikTok 的開場白"></textarea>
       <div class="files" id="fileList"></div>
       <div class="input-actions">
         <label class="attach">📎 加檔案
@@ -1152,7 +1152,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.16-flow36-gate",
+  build:"2026.07.16-flow37-drawerprofile",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -1162,17 +1162,17 @@ const DEFAULTS = {
   autoAnalyze:true,
   departments:[
     { id:"icebreak", name:"破冰部", emoji:"🧊", accent:"#C7902B", varName:"--c-collect",
-      tagline:"先破冰 · 停下滑動建立共鳴",
+      tagline:"先打招呼，讓人想停下來看",
       role:"你是『破冰部』，負責每則內容的『先破冰』。依【公司背景】的行業與定位、以及【附加素材】，產出能讓目標客群停下滑動、覺得『這在說我』的開場：用生活情境、一句同理的話、提問或小故事拉近距離、建立信任。先不講賣點、不推銷、不誇大。依目標平台給最適合的開頭鉤子。繁體台灣用語。",
-      presets:["用一個生活情境破冰，引發目標客群共鳴","用一句同理的話開場","用提問破冰，讓人很想回答","把這個主題改成停下滑動的開場鉤子"] },
+      presets:["用生活中的小故事開場","說一句貼心的話當開頭","問一個大家都想回答的問題","幫我把這個主題變成吸引人的開頭"] },
     { id:"core", name:"重點部", emoji:"📣", accent:"#1F8A72", varName:"--c-integrate",
-      tagline:"再講事情 · 把重點講到有感",
+      tagline:"把重點講清楚，讓人聽得懂",
       role:"你是『重點部』，負責破冰之後的『講事情』。依【公司背景】與【附加素材】，把這次要傳達的重點／價值／賣點講清楚、講到對方有感，用具體例子、對比或故事讓人好懂、有畫面。不誇大、不違規。依目標平台調整深淺與長短。繁體台灣用語。",
-      presets:["把這次的重點／賣點講清楚講到有感","用具體例子或對比說明價值","把素材整理成好懂的重點","用一個小故事帶出核心訊息"] },
+      presets:["把重點講清楚，讓人聽了會心動","用一個例子說明有多好","幫我把資料整理成簡單好懂的重點","用一個小故事帶出重點"] },
     { id:"invite", name:"互動邀約部", emoji:"🤝", accent:"#2E6FB0", varName:"--c-develop",
-      tagline:"留言互動＋自然邀約收尾",
+      tagline:"教你怎麼回覆，順便邀請對方",
       role:"你是『互動邀約部』，負責收尾與關係。先給可搭配的真誠『留言互動』話術（用心感受對方內容＋吸引你的點＋你的相關經驗；含對新客／老客／流失客／轉介紹／夥伴的真誠用語，要具體），再把內容自然收尾成低門檻的邀約或行動呼籲。依【公司背景】的行業調整，不施壓、不推銷感、符合該行業規範。繁體台灣用語。",
-      presets:["寫可搭配的真誠留言（IG／Threads）","把內容自然收尾成 Line 邀約／行動呼籲","三種柔性回應：沒時間／沒興趣／再考慮","寫給新客／老客的真誠用語"] }
+      presets:["幫我寫留言回覆的話術","幫我寫邀請對方的結尾","對方說沒空／沒興趣／再考慮，教我怎麼回","寫給新朋友或老朋友的真心話"] }
   ],
   tasks:[],  // {id, deptId, deptName, accent, input, output, time, fromDept}
   library:[],// {id, name, kind, content, url, active, size, deptId}
@@ -1307,7 +1307,7 @@ function renderHome(){
 function renderPipeSteps(){
   const box=document.getElementById("pipeSteps"); if(!box) return;
   box.innerHTML=state.departments.map((d,i)=>{
-    const opts=`<option value="-1">✨ 依「${esc(d.name)}」專長自動發揮</option>`
+    const opts=`<option value="-1">✨ 讓「${esc(d.name)}」自己決定怎麼寫</option>`
       +(d.presets||[]).map((p,j)=>`<option value="${j}">${esc(p)}</option>`).join("");
     return `<div class="ps-row">
       <span class="ps-tagn"><span class="ps-emo">${d.emoji}</span>${esc(d.name)}</span>
@@ -1750,7 +1750,7 @@ function renderResults(){
   const box=document.getElementById("resList");
   const items=finalTasks();
   if(items.length===0){
-    box.innerHTML='<div class="chain-empty">還沒有成品。到首頁按「一鍵跑完整套」，完成的成品就會自動收存在這裡，關掉手機也不會不見。</div>';
+    box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
     updateResSummary(); return;
   }
   box.innerHTML=items.map(t=>{
@@ -2379,7 +2379,7 @@ async function runAllDepartments(resume){
     renderResumeBar();
   }finally{
     running=false;
-    btn.disabled=false; btn.innerHTML="▶ 一鍵跑完整套（全自動）";
+    btn.disabled=false; btn.innerHTML="▶ 開始自動幫我寫";
   }
 }
 // 有未完成進度時顯示「繼續完成」列
