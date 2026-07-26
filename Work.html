@@ -764,9 +764,90 @@
   .cards-cfg{display:flex;gap:9px;margin-top:12px;}
   .cards-cfg select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;
     padding:11px 12px;font-size:15px;background:var(--paper);color:var(--ink);outline:none;min-height:46px;}
+  /* ========== 進場驗證頁（Gate） ========== */
+  .gate{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;
+    padding:28px 18px;overflow-y:auto;
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -6%, rgba(168,120,46,.14), transparent 62%),
+      linear-gradient(180deg,#1E1A14,#100D09);
+    transition:opacity .45s ease, visibility .45s ease;}
+  .gate.hide{opacity:0;visibility:hidden;pointer-events:none;}
+  .gate-card{width:100%;max-width:420px;margin:auto;padding:34px 26px 30px;border-radius:28px;
+    background:linear-gradient(180deg,#221C13,#17130D);
+    border:1px solid rgba(217,184,115,.4);
+    box-shadow:0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+    text-align:center;position:relative;overflow:hidden;animation:rise .6s var(--ease-out) both;}
+  .gate-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,transparent,var(--gold-soft),#FFF6DD,var(--gold-soft),transparent);}
+  .gate-rule{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;}
+  .gate-rule span:not(.gate-star){flex:0 0 46px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent);}
+  .gate-star{color:var(--gold-soft);font-size:13px;}
+  .gate-title{font-size:27px;font-weight:800;color:#FBF6EA;letter-spacing:1px;}
+  .gate-sub{font-size:10.5px;font-weight:700;letter-spacing:3px;color:rgba(217,184,115,.65);margin:5px 0 22px;}
+  .gate-avatar-ring{width:104px;height:104px;margin:0 auto 16px;border-radius:50%;
+    display:grid;place-items:center;position:relative;
+    background:conic-gradient(from 0deg,var(--gold-soft),#FFF6DD,var(--gold),var(--gold-soft));
+    padding:3px;box-shadow:0 12px 30px rgba(0,0,0,.4);}
+  .gate-avatar-ring::after{content:"";position:absolute;inset:6px;border-radius:50%;
+    border:2px solid rgba(30,25,18,.5);pointer-events:none;}
+  .gate-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;
+    background:linear-gradient(165deg,#3a2f1c,#1E1A14);}
+  .gate-badge{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;
+    color:var(--gold-soft);padding:8px 20px;border-radius:99px;margin-bottom:12px;
+    background:rgba(217,184,115,.12);border:1px solid rgba(217,184,115,.35);}
+  .gate-badge.err{color:#F7C199;background:rgba(240,179,126,.14);border-color:rgba(240,179,126,.35);}
+  .gate-name{font-size:23px;font-weight:800;color:#FBF6EA;letter-spacing:.5px;margin-bottom:6px;}
+  .gate-expire{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:22px;}
+  .gate-rules{text-align:left;border-radius:16px;padding:18px 18px 16px;margin-bottom:22px;
+    background:rgba(217,184,115,.06);border:1px solid rgba(217,184,115,.28);}
+  .gate-rules-head{font-size:14px;font-weight:800;color:var(--gold-soft);margin-bottom:12px;
+    display:flex;align-items:center;gap:8px;}
+  .gate-rule-item{display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.6;
+    color:rgba(255,255,255,.78);margin-bottom:10px;}
+  .gate-rule-item:last-child{margin-bottom:0;}
+  .gr-ic{flex:0 0 auto;font-size:15px;line-height:1.5;}
+  .gate-btn{width:100%;min-height:60px;border-radius:16px;border:none;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:linear-gradient(165deg,#F3E0AE,#D9B873,#B98A3D);color:#2E2415;
+    font-size:16.5px;font-weight:800;letter-spacing:.5px;
+    box-shadow:0 12px 28px rgba(168,120,46,.4), inset 0 1px 0 rgba(255,255,255,.5);
+    transition:transform .18s var(--spring),opacity .2s;}
+  .gate-btn:active{transform:scale(.98);}
+  .gate-btn:disabled{opacity:.55;cursor:not-allowed;}
+  .gate-btn-sub{font-size:10px;font-weight:700;letter-spacing:2.5px;opacity:.65;}
+
 </style>
 </head>
 <body>
+<!-- 進場驗證頁：質感登入頁，顯示會員身分後才進入系統 -->
+<div class="gate" id="gateScreen">
+  <div class="gate-card">
+    <div class="gate-rule"><span></span><span class="gate-star">✦</span><span></span></div>
+    <div class="gate-title">🌿 AI 智囊</div>
+    <div class="gate-sub">AI CONTENT INTELLIGENCE SYSTEM</div>
+
+    <div class="gate-avatar-ring" id="gateAvatarRing">
+      <img class="gate-avatar" id="gateAvatar" alt="" onerror="this.style.display='none'">
+    </div>
+
+    <div class="gate-badge" id="gateBadge">🌿 驗證中…</div>
+    <div class="gate-name" id="gateName">—</div>
+    <div class="gate-expire" id="gateExpire">請稍候</div>
+
+    <div class="gate-rules">
+      <div class="gate-rules-head">📜 登入前請詳閱</div>
+      <div class="gate-rule-item"><span class="gr-ic">⚡</span>每次「產出成品」才會扣次，資料整理、分類等輔助動作不扣次</div>
+      <div class="gate-rule-item"><span class="gr-ic">📦</span>部門紀錄、素材庫、卡組、成品都會永久保留在這台裝置</div>
+      <div class="gate-rule-item"><span class="gr-ic">🔄</span>流程執行到一半中斷，重新開啟會自動接續完成</div>
+    </div>
+
+    <button class="gate-btn" id="gateBtn" onclick="enterApp()" disabled>
+      <span id="gateBtnText">🔒 驗證中…</span>
+      <span class="gate-btn-sub">PREMIUM ACCESS</span>
+    </button>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- Header -->
@@ -1057,7 +1138,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.15-flow35-heroavatar",
+  build:"2026.07.16-flow36-gate",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2562,6 +2643,49 @@ function updateKeyStatus(){
   }
   badgeEl.textContent=badge;
   badgeEl.classList.toggle("warn",isErr);
+  renderGate();
+}
+
+/* ============ 進場驗證頁（Gate） ============ */
+function renderGate(){
+  const av=document.getElementById("gateAvatar");
+  const badge=document.getElementById("gateBadge");
+  const nameEl=document.getElementById("gateName");
+  const expireEl=document.getElementById("gateExpire");
+  const btn=document.getElementById("gateBtn");
+  const btnText=document.getElementById("gateBtnText");
+  if(!av) return;
+
+  if(member.pic){ av.src=member.pic; av.style.display="block"; } else { av.removeAttribute("src"); av.style.display="none"; }
+
+  if(memberOK()){
+    const isVip=member.level==="尊爵";
+    nameEl.textContent = member.lineName || "會員";
+    badge.textContent = isVip ? "🌟 尊爵用戶" : "🥇 黃金用戶";
+    badge.classList.remove("err");
+    expireEl.textContent = isVip ? `有效期限：${member.expire||"永久有效"}` : `剩餘次數：${member.remain} 次`;
+    btn.disabled=false;
+    btnText.textContent="🔓 進入 AI 智囊系統";
+  }else if(member.ready){
+    // 驗證回應了，但等級異常（如：權限校驗異常）
+    nameEl.textContent = member.lineName || "會員";
+    badge.textContent = "⚠️ 驗證異常";
+    badge.classList.add("err");
+    expireEl.textContent = member.msg || "請重新整理頁面再試";
+    btn.disabled=false;
+    btnText.textContent="🔄 重新驗證";
+  }else{
+    nameEl.textContent = "—";
+    badge.textContent = "🌿 驗證中…";
+    badge.classList.remove("err");
+    expireEl.textContent = "請稍候";
+    btn.disabled=true;
+    btnText.textContent="🔒 驗證中…";
+  }
+}
+function enterApp(){
+  if(!memberOK()){ initMember(); return; } // 異常狀態下按鈕當「重新驗證」用
+  document.getElementById("gateScreen").classList.add("hide");
 }
 
 /* ============ 標題即時編輯 ============ */
