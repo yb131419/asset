@@ -330,6 +330,20 @@
   .dr-item .cnt{margin-left:auto;font-size:11px;font-weight:700;color:var(--ink-faint);}
   .dr-sep{height:1px;background:var(--line);margin:10px 6px;}
 
+  .dr-profile{display:flex;align-items:center;gap:13px;width:100%;padding:14px 13px;border-radius:18px;
+    text-align:left;min-height:66px;background:linear-gradient(165deg,#2E2415,var(--ink));
+    border:1px solid rgba(217,184,115,.3);box-shadow:0 8px 20px rgba(30,25,18,.22);
+    transition:transform .18s var(--spring);}
+  .dr-profile:active{transform:scale(.97);}
+  .dr-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:0 0 auto;
+    border:2px solid var(--gold-soft);background:rgba(255,255,255,.08);}
+  .dr-avatar-ph{display:grid;place-items:center;font-size:20px;color:rgba(255,255,255,.5);}
+  .dr-profile-info{flex:1;min-width:0;}
+  .dr-profile-name{font-size:15px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dr-profile-tier{font-size:12px;font-weight:700;color:var(--gold-soft);margin-top:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .dr-profile .chev{color:var(--gold-soft);opacity:.7;}
+
   /* 會員中心 Sheet */
   .mc-overlay{position:fixed;inset:0;z-index:180;display:none;align-items:flex-end;justify-content:center;
     background:rgba(30,25,18,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
@@ -2747,8 +2761,20 @@ function renderDrawer(){
       <span class="ic" style="background:${hexA(d.accent,.14)};color:${d.accent}">${d.emoji}</span>${esc(d.name)}
       <span class="cnt">${cnt} 筆</span></button>`;
   }).join("");
+  const isVip=member.level==="尊爵";
+  const tierLabel = memberOK() ? (isVip?"🌟 尊爵用戶":`🥇 黃金・剩 ${member.remain} 次`) : "🌿 驗證中…";
+  const avatarHtml = member.pic
+    ? `<img class="dr-avatar" src="${member.pic}" alt="">`
+    : `<span class="dr-avatar dr-avatar-ph">👤</span>`;
   box.innerHTML=`
-    <button class="dr-item" onclick="goMenu(()=>openView('settings'))"><span class="ic" style="background:var(--gold-wash);color:var(--gold)">👤</span>會員中心 · 設定</button>
+    <button class="dr-profile" onclick="goMenu(()=>openView('settings'))">
+      ${avatarHtml}
+      <div class="dr-profile-info">
+        <div class="dr-profile-name">${esc(member.lineName||"尚未登入")}</div>
+        <div class="dr-profile-tier">${tierLabel}</div>
+      </div>
+      <span class="chev">›</span>
+    </button>
     <div class="dr-sep"></div>
     <button class="dr-item" onclick="goMenu(()=>openView('home'))"><span class="ic" style="background:var(--gold-wash);color:var(--gold)">🏠</span>首頁</button>
     <div class="dr-sep"></div>
