@@ -581,10 +581,167 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
 
 ::-webkit-scrollbar{display:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ══════════════════════════════════════════
+   登入驗證頁（Login Gate）— 深色金色高級風格
+══════════════════════════════════════════ */
+:root{
+  --gate-bg:#0B0F0D;
+  --gate-border:rgba(201,164,76,.28);
+  --gate-mint:#3FE0B0;
+}
+.gate{
+  position:fixed;inset:0;z-index:500;
+  background:
+    radial-gradient(700px 380px at 50% -120px, rgba(63,224,176,.10), transparent 65%),
+    var(--gate-bg);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:0 18px calc(28px + var(--safe-b));
+  transition:opacity .4s ease, visibility .4s ease;
+}
+.gate.hide{opacity:0;visibility:hidden;pointer-events:none}
+.gate-card{
+  width:100%;max-width:420px;margin-top:calc(30px + env(safe-area-inset-top,0));
+  background:linear-gradient(180deg,#151B15,#0E120E);
+  border:1px solid var(--gate-border);border-radius:22px;
+  padding:34px 26px 28px;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.05);
+  position:relative;overflow:hidden;
+}
+.gate-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--gold-lt),var(--gold),transparent);
+}
+.gate-divider{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  color:var(--gold);font-size:13px;margin-bottom:18px;
+}
+.gate-divider::before,.gate-divider::after{
+  content:'';width:56px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold));
+}
+.gate-divider::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.gate-brand{text-align:center;margin-bottom:22px}
+.gate-title{
+  font-family:'Noto Serif TC',serif;font-weight:700;font-size:26px;
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold) 60%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  letter-spacing:.03em;
+}
+.gate-sub{
+  margin-top:6px;font-size:10.5px;letter-spacing:.28em;color:rgba(228,220,190,.45);
+}
+.gate-avatar-wrap{display:flex;justify-content:center;margin-bottom:16px}
+.gate-avatar{
+  width:112px;height:112px;border-radius:50%;
+  border:3px solid var(--green);padding:4px;
+  display:grid;place-items:center;position:relative;
+}
+.gate-avatar::before{
+  content:'';position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid var(--gate-border);
+}
+.gate-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--gold-lt)}
+.gate-avatar .gate-avatar-fallback{
+  width:100%;height:100%;border-radius:50%;border:2px solid var(--gold-lt);
+  background:linear-gradient(150deg,#1D2A22,#0F1710);
+  display:grid;place-items:center;color:var(--gold-lt);
+  font-family:'Noto Serif TC',serif;font-size:38px;font-weight:700;
+}
+.gate-badge{display:flex;justify-content:center;margin-bottom:12px}
+.gate-badge span{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 18px;border-radius:99px;
+  background:rgba(63,224,176,.10);border:1px solid rgba(63,224,176,.35);
+  color:var(--gate-mint);font-size:13px;font-weight:600;
+}
+.gate-badge.gold span{
+  background:rgba(201,164,76,.12);border-color:rgba(201,164,76,.4);color:var(--gold-lt);
+}
+.gate-name{
+  text-align:center;font-size:21px;font-weight:700;color:var(--gate-mint);
+  margin-bottom:6px;letter-spacing:.02em;
+}
+.gate-expire{
+  text-align:center;font-size:12.5px;color:rgba(228,220,190,.55);
+  margin-bottom:22px;
+}
+.gate-notice{
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--gate-border);border-left:3px solid var(--gold);
+  border-radius:12px;padding:16px 16px 14px;margin-bottom:20px;
+}
+.gate-notice-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:14.5px;font-weight:700;color:var(--gold-lt);margin-bottom:12px;
+}
+.gate-notice ul{list-style:none}
+.gate-notice li{
+  display:flex;gap:9px;align-items:flex-start;
+  font-size:12.5px;color:rgba(228,220,190,.75);line-height:1.7;
+  margin-bottom:9px;
+}
+.gate-notice li:last-child{margin-bottom:0}
+.gate-notice li .gi{flex:none;font-size:14px;line-height:1.5}
+.gate-notice li b{color:#F0E6C8;font-weight:700}
+.gate-btn{
+  width:100%;padding:17px;border:none;border-radius:14px;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold) 55%,#8E6B26);
+  color:#221A08;font-family:'Inter',sans-serif;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  box-shadow:0 10px 28px -8px rgba(201,164,76,.5),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .15s,opacity .15s;
+}
+.gate-btn:active{transform:scale(.98)}
+.gate-btn:disabled{opacity:.5;cursor:not-allowed}
+.gate-btn-main{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.gate-btn-sub{font-size:10px;letter-spacing:.24em;font-weight:600;opacity:.7}
+.gate-loading{text-align:center;color:rgba(228,220,190,.5);font-size:13px;padding:20px 0}
 </style>
 </head>
 
 <body>
+
+<!-- 登入驗證頁 -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-divider">✦</div>
+    <div class="gate-brand">
+      <div class="gate-title">回覆靈感系統</div>
+      <div class="gate-sub">AI CHAT REPLY SYSTEM</div>
+    </div>
+
+    <div id="gateLoading" class="gate-loading">正在驗證會員資格…</div>
+
+    <div id="gateBody" style="display:none">
+      <div class="gate-avatar-wrap">
+        <div class="gate-avatar">
+          <img id="gateAvatarImg" style="display:none" alt="">
+          <div class="gate-avatar-fallback" id="gateAvatarFallback">彬</div>
+        </div>
+      </div>
+      <div class="gate-badge" id="gateBadge"><span id="gateBadgeText">尊爵用戶</span></div>
+      <div class="gate-name" id="gateName">—</div>
+      <div class="gate-expire" id="gateExpire">—</div>
+
+      <div class="gate-notice">
+        <div class="gate-notice-title">📜 登入前請詳閱</div>
+        <ul>
+          <li><span class="gi">🔑</span><span>黃金會員每次生成<b>扣 1 次使用次數</b>，尊爵會員<b>無限次不扣除</b></span></li>
+          <li><span class="gi">🔖</span><span>按「☆ 儲存」的內容<b>永久保存</b>在本機，可隨時回來複製</span></li>
+          <li><span class="gi">🔄</span><span>次數用完或會員到期，請<b>聯繫管理員儲值</b>升級</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <button class="gate-btn" id="gateEnterBtn" disabled>
+      <span class="gate-btn-main">🔓 登入回覆靈感系統</span>
+      <span class="gate-btn-sub">PREMIUM ACCESS</span>
+    </button>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- Top Nav -->
@@ -886,6 +1043,10 @@ async function refreshPermission(){
     }
   }catch(e){
     $('memberPillText').textContent = '離線';
+    $('gateLoading').textContent = '連線異常，請確認網路後重新開啟';
+    const btn = $('gateEnterBtn');
+    btn.querySelector('.gate-btn-main').textContent = '⚠ 略過驗證進入';
+    btn.disabled = false;
   }
 }
 function updateMemberUI(){
@@ -915,7 +1076,33 @@ function updateMemberUI(){
   const remainEl = $('memberRemain');
   remainEl.classList.toggle('gold', isGold);
   remainEl.textContent = isGold ? ('剩餘 ' + member.remainCount + ' 次') : '無限次數';
+
+  // 登入驗證頁同步更新
+  populateGate(name, isGold);
 }
+
+/* ══ 登入驗證頁（Gate）══ */
+function populateGate(name, isGold){
+  if(profile.pictureUrl){
+    $('gateAvatarImg').src = profile.pictureUrl;
+    $('gateAvatarImg').style.display = 'block';
+    $('gateAvatarFallback').style.display = 'none';
+  } else {
+    $('gateAvatarFallback').textContent = name.charAt(0) || '彬';
+  }
+  const badge = $('gateBadge');
+  badge.classList.toggle('gold', isGold);
+  $('gateBadgeText').textContent = isGold ? '⭐ 黃金會員' : '🌟 尊爵用戶';
+  $('gateName').textContent = name;
+  $('gateExpire').textContent = isGold
+    ? ('剩餘次數：' + member.remainCount + ' 次')
+    : ('有效期限：' + (member.expireDate || '永久有效'));
+
+  $('gateLoading').style.display = 'none';
+  $('gateBody').style.display = 'block';
+  $('gateEnterBtn').disabled = false;
+}
+$('gateEnterBtn').onclick = () => { $('gate').classList.add('hide'); };
 function applyRemain(d){
   // 生成成功後，後端回傳最新剩餘次數
   if(!member) return;
