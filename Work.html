@@ -805,8 +805,9 @@
     display:grid;place-items:center;position:relative;
     background:conic-gradient(from 0deg,var(--gold-soft),#FFF6DD,var(--gold),var(--gold-soft));
     padding:3px;box-shadow:0 12px 30px rgba(0,0,0,.4);}
-  .gate-avatar-ring.pending{animation:gateSpin 2.4s linear infinite;}
-  @keyframes gateSpin{to{transform:rotate(360deg);}}
+  .gate-dots{display:inline-block;width:1.2em;text-align:left;}
+  .gate-dots.show::after{content:"";animation:gateDots 1.3s steps(4,end) infinite;}
+  @keyframes gateDots{0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}100%{content:"";}}
   .gate-avatar-ring::after{content:"";position:absolute;inset:6px;border-radius:50%;
     border:2px solid rgba(30,25,18,.5);pointer-events:none;}
   .gate-avatar-ph{position:absolute;inset:3px;border-radius:50%;display:grid;place-items:center;
@@ -855,7 +856,7 @@
 
     <div class="gate-badge" id="gateBadge">🌿 驗證中…</div>
     <div class="gate-name" id="gateName">—</div>
-    <div class="gate-expire" id="gateExpire">請稍候</div>
+    <div class="gate-expire"><span id="gateExpireText">請稍候</span><span class="gate-dots" id="gateDots"></span></div>
 
     <div class="gate-rules">
       <div class="gate-rules-head">📜 登入前請詳閱</div>
@@ -1162,7 +1163,7 @@
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.07.16-flow39-avatarph",
+  build:"2026.07.16-flow41-textonly",
   title:"AI 智囊",
   context:"【行業／領域】（請填，例如：保健、餐飲、美業、房仲、教育、寵物、手作…）\n【品牌／個人定位】（你想被記得的一句話）\n【目標客群】（你最想打到的人）\n【語氣風格】（例如：溫暖像家人／專業俐落／幽默親切）\n【常用素材】到「素材庫」上傳產品資料、見證、文件，AI 會依這些素材產出。\n【禁忌／法規】（你這行不能說的話、要避免的字眼）\n\n內容鐵則（固定）：先破冰（停下滑動、引發共鳴）→ 再講事情（把重點／價值講清楚講到有感）→ 最後邀約（互動＋低門檻行動）。\n小提示：可到設定按「依素材自動產生品牌設定」，讓 AI 依你的素材幫你草擬以上內容。",
   apiKey:"",
@@ -2674,11 +2675,11 @@ function updateKeyStatus(){
 /* ============ 進場驗證頁（Gate） ============ */
 function renderGate(){
   const av=document.getElementById("gateAvatar");
-  const ring=document.getElementById("gateAvatarRing");
   const ph=document.getElementById("gateAvatarPh");
   const badge=document.getElementById("gateBadge");
   const nameEl=document.getElementById("gateName");
-  const expireEl=document.getElementById("gateExpire");
+  const expireEl=document.getElementById("gateExpireText");
+  const dotsEl=document.getElementById("gateDots");
   const btn=document.getElementById("gateBtn");
   const btnText=document.getElementById("gateBtnText");
   if(!av) return;
@@ -2688,7 +2689,7 @@ function renderGate(){
   }else{
     av.removeAttribute("src"); av.style.display="none"; ph.style.display="grid";
   }
-  ring.classList.toggle("pending", !member.ready);
+  dotsEl.classList.toggle("show", !member.ready);
 
   if(memberOK()){
     const isVip=member.level==="尊爵";
