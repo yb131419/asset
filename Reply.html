@@ -514,6 +514,13 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
 .drawer-item:active{background:var(--surface2)}
 .drawer-item.on{background:var(--green-bg);color:var(--green)}
 .drawer-item .di-icon{font-size:19px;flex:none;width:24px;text-align:center}
+.drawer-avatar{
+  width:24px;height:24px;border-radius:50%;flex:none;
+  background:linear-gradient(150deg,var(--green),var(--green-dk));
+  display:grid;place-items:center;color:var(--gold-lt);
+  font-size:11px;font-weight:700;object-fit:cover;
+  background-size:cover;background-position:center;
+}
 .drawer-sep{height:1px;background:var(--border);margin:8px 4px}
 .drawer-foot{padding:14px 18px calc(14px + var(--safe-b));border-top:1px solid var(--border)}
 .drawer-guide-btn{
@@ -697,7 +704,23 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
 .gate-btn:disabled{opacity:.5;cursor:not-allowed}
 .gate-btn-main{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
 .gate-btn-sub{font-size:10px;letter-spacing:.24em;font-weight:600;opacity:.7}
-.gate-loading{text-align:center;color:rgba(228,220,190,.5);font-size:13px;padding:20px 0}
+.gate-loading{text-align:center;color:rgba(228,220,190,.55);font-size:13px;padding:8px 0 24px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.gate-spinner{
+  width:38px;height:38px;border-radius:50%;
+  border:3px solid rgba(201,164,76,.18);
+  border-top-color:var(--gold);
+  animation:gateSpin .9s linear infinite;
+}
+@keyframes gateSpin{to{transform:rotate(360deg)}}
+.gate-loading-text{display:flex;align-items:center;gap:2px}
+.gate-loading-dots span{
+  display:inline-block;opacity:0;
+  animation:gateDot 1.4s ease-in-out infinite;
+}
+.gate-loading-dots span:nth-child(1){animation-delay:0s}
+.gate-loading-dots span:nth-child(2){animation-delay:.2s}
+.gate-loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes gateDot{0%,60%,100%{opacity:0}30%{opacity:1}}
 </style>
 </head>
 
@@ -712,7 +735,10 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
       <div class="gate-sub">AI CHAT REPLY SYSTEM</div>
     </div>
 
-    <div id="gateLoading" class="gate-loading">正在驗證會員資格…</div>
+    <div id="gateLoading" class="gate-loading">
+      <div class="gate-spinner"></div>
+      <div class="gate-loading-text">正在驗證會員資格<span class="gate-loading-dots"><span>.</span><span>.</span><span>.</span></span></div>
+    </div>
 
     <div id="gateBody" style="display:none">
       <div class="gate-avatar-wrap">
@@ -930,7 +956,7 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
     </div>
   </div>
   <div class="drawer-nav">
-    <button class="drawer-item" id="drawerMember"><span class="di-icon">👤</span>會員中心</button>
+    <button class="drawer-item" id="drawerMember"><span class="drawer-avatar" id="drawerAvatar">彬</span>會員中心</button>
     <div class="drawer-sep"></div>
     <button class="drawer-item" data-page="appreciate"><span class="di-icon">❤️</span>點評激活</button>
     <button class="drawer-item" data-page="reply"><span class="di-icon">💬</span>回覆建議</button>
@@ -1043,7 +1069,7 @@ async function refreshPermission(){
     }
   }catch(e){
     $('memberPillText').textContent = '離線';
-    $('gateLoading').textContent = '連線異常，請確認網路後重新開啟';
+    $('gateLoading').innerHTML = '<div style="font-size:22px">⚠️</div><div>連線異常，請確認網路後重新開啟</div>';
     const btn = $('gateEnterBtn');
     btn.querySelector('.gate-btn-main').textContent = '⚠ 略過驗證進入';
     btn.disabled = false;
@@ -1057,14 +1083,19 @@ function updateMemberUI(){
   const name = profile.displayName || '會員';
   $('memberPillName').textContent = name;
   const dot = $('memberDot');
+  const drawerAv = $('drawerAvatar');
   if(profile.pictureUrl){
     dot.style.backgroundImage = `url(${profile.pictureUrl})`;
     dot.style.backgroundSize = 'cover';
     dot.style.backgroundPosition = 'center';
     dot.textContent = '';
+    drawerAv.style.backgroundImage = `url(${profile.pictureUrl})`;
+    drawerAv.textContent = '';
   } else {
     dot.style.backgroundImage = '';
     dot.textContent = name.charAt(0) || '★';
+    drawerAv.style.backgroundImage = '';
+    drawerAv.textContent = name.charAt(0) || '★';
   }
   $('memberPillText').textContent = isGold
     ? ('黃金 · 剩 ' + member.remainCount + ' 次')
