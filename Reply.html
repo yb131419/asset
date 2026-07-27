@@ -238,6 +238,7 @@ textarea::placeholder{color:var(--ink3);line-height:1.8}
 }
 .field-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(168,114,10,.10)}
 .field-input::placeholder{color:var(--ink3);line-height:1.6}
+.field-short{resize:none;min-height:64px;line-height:1.6;overflow:hidden}
 .field-ta{resize:vertical;min-height:170px;line-height:1.85;padding:14px 16px}
 
 /* ── CHIPS ── */
@@ -1370,9 +1371,9 @@ function renderApprSteps(key){
       body.appendChild(hintEl);
     }
 
-    const inp = document.createElement(f.ta ? 'textarea' : 'input');
-    inp.className = 'field-input' + (f.ta ? ' field-ta' : '');
-    if(!f.ta) inp.type = 'text';
+    const inp = document.createElement('textarea');
+    inp.className = 'field-input' + (f.ta ? ' field-ta' : ' field-short');
+    inp.rows = f.ta ? 4 : 2;
     inp.placeholder = f.ph;
     inp.id = 'fld_' + f.k;
     body.appendChild(inp);
