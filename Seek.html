@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初心 — 靈魂的歸途</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Noto+Serif+TC:wght@200;300;400&family=Noto+Sans+TC:wght@200;300&display=swap');
+
+/* ─────────────────────────── TOKENS
+   Unified dark ground throughout — a temple at night, lit by one candle.
+   --paper/--ink keep their old names (so every existing rule below still
+   points at the right role) but now carry the new dark-theme values. */
+:root {
+  --paper: #0A0908;        /* void — base ground, everywhere */
+  --paper-dark: #14110D;   /* alternate panel, slightly warmer/lighter */
+  --ink: #EEE6D3;          /* parchment — primary text on the void */
+  --ink-soft: #C9BEA9;     /* secondary text */
+  --bronze: #D9A65A;       /* ember — the one warm accent */
+  --bronze-light: rgba(217,166,90,0.13);
+  --bronze-mid: rgba(217,166,90,0.4);
+  --ash: #A0937E;          /* dimmed labels */
+  --mist: #6E6355;         /* faintest decorative strokes */
+  --mist-soft: rgba(233,224,204,0.13);
+  --white: #0A0908;
+  --gold-1: #9C7A24;
+  --gold-2: #E8C878;
+  --gold-3: #F6E3AC;
+  --gold-4: #B8923C;
+  --serif-display: 'Cormorant Garamond', 'Noto Serif TC', serif;
+  --serif-body: 'Noto Serif TC', serif;
+  --sans: 'Noto Sans TC', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 18px; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Fine grain — film-stock texture, visible against the dark ground */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Cinematic vignette — the room is dark; only the centre is lit */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  z-index: 151;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%);
+}
+
+/* Candlelight — a soft warm glow that follows the reader through the dark,
+   the signature gesture of the whole page: you carry your own light. */
+#candle-glow {
+  position: fixed; inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: radial-gradient(circle 420px at var(--mx, 50%) var(--my, 30%),
+    rgba(217,166,90,0.10), rgba(217,166,90,0.03) 45%, transparent 70%);
+  transition: opacity 0.6s ease;
+}
+
+/* Gold foil — used sparingly, only where the design earns emphasis */
+.foil {
+  background: linear-gradient(115deg, var(--gold-1) 15%, var(--gold-3) 40%, var(--gold-2) 55%, var(--gold-4) 78%);
+  background-size: 220% 220%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: foil-shift 9s ease-in-out infinite;
+}
+@keyframes foil-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+/* Variant for dark grounds (timeline, finale) — lifted values so the shimmer still reads */
+/* ─────────────────────────── PROGRESS */
+#prog {
+  position: fixed; top: 0; left: 0; height: 1px;
+  width: 0%; background: var(--bronze);
+  z-index: 200; transition: width 0.15s linear;
+}
+
+/* ─────────────────────────── NAV */
+#top-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 190;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.75rem 3rem;
+  pointer-events: none;
+  transition: background 0.5s ease, backdrop-filter 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
+  border-bottom: 1px solid transparent;
+}
+#top-nav.scrolled {
+  background: rgba(10,9,8,0.72);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--mist-soft);
+}
+.nav-wordmark {
+  font-family: var(--serif-display);
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.45em;
+  color: var(--ink);
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.nav-right {
+  pointer-events: all;
+  display: flex; align-items: center; gap: 0.9rem;
+}
+.nav-guide-btn {
+  pointer-events: all;
+  position: relative;
+  overflow: hidden;
+  background: none;
+  border: 1px solid var(--bronze-mid);
+  color: var(--bronze);
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  padding: 0.55rem 1.4rem;
+  cursor: pointer;
+  transition: border-color 0.4s, color 0.4s;
+  text-transform: uppercase;
+}
+.nav-guide-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+}
+.nav-guide-btn:hover::before { transform: translateX(120%); }
+.nav-guide-btn:hover {
+  border-color: var(--bronze);
+  color: var(--paper);
+  background: linear-gradient(115deg, var(--gold-1), var(--gold-3), var(--gold-2));
+}
+
+/* ─────────────────────────── HERO */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 6rem 2rem 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* SVG line signature — drawn on load */
+#hero-line-svg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none;
+}
+.draw-path {
+  fill: none;
+  stroke: var(--mist);
+  stroke-width: 0.5;
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: draw-line 3.5s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;
+}
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+.hero-kana {
+  font-family: var(--serif-display);
+  font-size: 0.78rem;
+  font-weight: 300;
+  letter-spacing: 0.55em;
+  color: var(--ash);
+  text-transform: uppercase;
+  margin-bottom: 3.5rem;
+  opacity: 0;
+  animation: fade-up 1.2s ease 1s forwards;
+}
+.hero-h1 {
+  font-family: var(--serif-display);
+  font-size: clamp(4.5rem, 13vw, 11rem);
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 0.15em;
+  opacity: 0;
+  animation: fade-up 1.4s ease 1.2s forwards;
+}
+.hero-h1 em {
+  font-style: italic;
+  color: var(--bronze);
+}
+.hero-h1 em.foil { color: transparent; }
+
+/* Ensō — the one gesture we allow ourselves; drawn once, imperfect, then stilled */
+#enso-svg {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: min(78vw, 620px); height: min(78vw, 620px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.enso-path {
+  fill: none;
+  stroke: var(--gold-2);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+  opacity: 0.55;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  filter: drop-shadow(0 0 18px rgba(217,166,90,0.35));
+  animation: enso-draw 2.8s cubic-bezier(0.65,0,0.35,1) 0.6s forwards;
+}
+@keyframes enso-draw {
+  to { stroke-dashoffset: 0; }
+}
+.hero-note {
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 200;
+  letter-spacing: 0.12em;
+  color: var(--ash);
+  margin-top: 1.75rem;
+  opacity: 0;
+  animation: fade-up 1.2s ease 2.6s forwards;
+}
+.hero-rule {
+  width: 1px; height: 60px;
+  background: linear-gradient(to bottom, var(--bronze), transparent);
+  margin: 2.5rem auto;
+  opacity: 0;
+  animation: fade-in 1s ease 2s forwards;
+}
+.hero-sub {
+  font-family: var(--serif-display);
+  font-size: clamp(1.2rem, 2.8vw, 1.55rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ash);
+  line-height: 1.7;
+  max-width: 500px;
+  opacity: 0;
+  animation: fade-up 1.2s ease 2.2s forwards;
+}
+.hero-scroll {
+  position: absolute;
+  bottom: 2.5rem; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.6rem;
+  opacity: 0;
+  animation: fade-in 1s ease 3s forwards;
+}
+.hero-scroll span {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: var(--mist);
+  text-transform: uppercase;
+}
+.scroll-tick {
+  width: 1px; height: 36px;
+  background: linear-gradient(to bottom, var(--bronze-mid), transparent);
+  animation: tick-drop 2s ease-in-out 3.5s infinite;
+}
+@keyframes tick-drop {
+  0%,100% { opacity: 0.3; transform: scaleY(0.5); transform-origin: top; }
+  50% { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+
+/* ─────────────────────────── SECTIONS BASE */
+.scene {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8rem 2rem;
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.scene.in { opacity: 1; transform: translateY(0); }
+
+/* ─────────────────────────── DIVIDER BAND */
+.band {
+  width: 100%; padding: 3rem 0;
+  display: flex; align-items: center; justify-content: center; gap: 2rem;
+  background: var(--paper-dark);
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.band.in { opacity: 1; transform: translateY(0); }
+.band-rule {
+  flex: 1; max-width: 120px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--mist));
+  transform: scaleX(0);
+  transition: transform 1.1s cubic-bezier(0.22,1,0.36,1) 0.15s;
+}
+.band-rule:last-of-type { background: linear-gradient(90deg, var(--mist), transparent); }
+.band.in .band-rule { transform: scaleX(1); }
+.band-glyph {
+  font-family: var(--serif-display);
+  font-size: 0.82rem;
+  font-weight: 300;
+  letter-spacing: 0.5em;
+  color: var(--ash);
+  text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 0.9s ease 0.5s;
+}
+.band.in .band-glyph { opacity: 1; }
+
+/* ─────────────────────────── CHAPTER LAYOUT */
+.ch-wrap { max-width: 720px; width: 100%; }
+
+.ch-index {
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 200;
+  letter-spacing: 0.5em;
+  color: var(--mist);
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  display: flex; align-items: center; gap: 1.25rem;
+}
+.ch-index::before {
+  content: ''; display: block;
+  width: 24px; height: 1px; background: var(--mist);
+}
+
+.ch-h2 {
+  font-family: var(--serif-display);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 2.5rem;
+}
+.ch-h2 em { font-style: italic; color: var(--bronze); }
+
+.ch-body {
+  font-size: 1.2rem;
+  line-height: 2;
+  color: var(--ink-soft);
+  font-weight: 300;
+  max-width: 580px;
+  margin-bottom: 3rem;
+}
+.ch-body em { font-style: italic; }
+
+/* pull-quote */
+.pull {
+  border-top: 1px solid var(--bronze-mid);
+  border-bottom: 1px solid var(--bronze-mid);
+  padding: 2rem 0;
+  margin: 3rem 0;
+}
+.pull-q {
+  font-family: var(--serif-display);
+  font-size: clamp(1.5rem, 3.2vw, 2.15rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+.pull-attr {
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.35em;
+  color: var(--ash);
+  text-transform: uppercase;
+}
+
+/* reflection */
+.reflect {
+  background: var(--bronze-light);
+  border-left: 1.5px solid var(--bronze);
+  padding: 1.75rem 2rem;
+  margin: 2.5rem 0;
+}
+.reflect-eye {
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: var(--bronze);
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+}
+.reflect-q {
+  font-family: var(--serif-display);
+  font-size: 1.42rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* teaching */
+.teach {
+  display: grid;
+  grid-template-columns: 1px 1fr;
+  gap: 0 1.5rem;
+  margin-top: 2.5rem;
+}
+.teach-line { background: var(--mist); }
+.teach-inner {}
+.teach-head {
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: var(--ash);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+.teach-body {
+  font-size: 1.12rem;
+  line-height: 1.95;
+  color: var(--ink-soft);
+  font-weight: 300;
+}
+.teach-body strong { font-weight: 400; color: var(--ink); }
+
+/* ─────────────────────────── TIMELINE */
+#timeline-scene {
+  background: var(--paper-dark);
+}
+#timeline-scene .ch-index { color: rgba(233,224,204,0.55); }
+#timeline-scene .ch-index::before { background: rgba(233,224,204,0.3); }
+#timeline-scene .ch-h2 em { color: var(--bronze); }
+
+.tl { max-width: 640px; width: 100%; padding-top: 1rem; }
+.tl-bridge {
+  max-width: 620px;
+  font-size: 1.12rem;
+  line-height: 1.9;
+  color: var(--ink-soft);
+  font-weight: 300;
+  margin: 1.5rem 0 3rem;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: 80px 1px 1fr;
+  gap: 0 2rem;
+  padding: 1.6rem 0;
+  position: relative;
+}
+.tl-row:not(:last-child) .tl-spine { background: rgba(233,224,204,0.15); }
+.tl-year {
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  color: rgba(233,224,204,0.7);
+  text-align: right;
+  padding-top: 0.15rem;
+  line-height: 1.5;
+}
+.tl-spine { position: relative; }
+.tl-dot {
+  position: absolute;
+  top: 0.25rem; left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #C9A96E;
+}
+.tl-dot.teal { background: #4A7C6F; }
+.tl-content {}
+.tl-event {
+  font-family: var(--serif-display);
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: var(--ink);
+  margin-bottom: 0.2rem;
+  line-height: 1.4;
+}
+.tl-desc {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 200;
+  color: rgba(233,224,204,0.75);
+  line-height: 1.5;
+}
+
+/* ─────────────────────────── FINALE */
+#finale {
+  background: var(--paper-dark);
+  text-align: center;
+}
+.finale-quote-block {
+  max-width: 520px;
+  margin: 0 auto 3.5rem;
+  padding: 3rem 0;
+  border-top: 1px solid rgba(233,224,204,0.15);
+  border-bottom: 1px solid rgba(233,224,204,0.15);
+}
+.finale-q {
+  font-family: var(--serif-display);
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+.finale-attr {
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.45em;
+  color: rgba(233,224,204,0.65);
+  text-transform: uppercase;
+}
+.finale-sub {
+  font-family: var(--serif-display);
+  font-size: 1.2rem;
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(233,224,204,0.8);
+  max-width: 400px;
+  margin: 0 auto 3rem;
+  line-height: 1.8;
+}
+.breath-open {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center; gap: 1rem;
+  background: none;
+  border: 1px solid rgba(217,166,90,0.4);
+  color: #C9A96E;
+  font-family: var(--serif-display);
+  font-size: 1.05rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  padding: 1rem 2.5rem;
+  cursor: pointer;
+  transition: background 0.4s, color 0.4s, border-color 0.4s;
+}
+.breath-open::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(240,217,153,0.35) 50%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform 0.8s ease;
+}
+.breath-open:hover::before { transform: translateX(130%); }
+.breath-open:hover {
+  background: rgba(217,166,90,0.12);
+  color: #dfc280;
+  border-color: rgba(201,169,110,0.7);
+}
+.finale-footer {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: rgba(233,224,204,0.45);
+  text-transform: uppercase;
+  margin-top: 4rem;
+}
+
+/* ─────────────────────────── BREATH OVERLAY */
+#breath-overlay {
+  display: none; position: fixed; inset: 0;
+  background: var(--paper);
+  z-index: 400;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+}
+#breath-overlay.open { display: flex; }
+
+.b-label {
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.5em;
+  color: rgba(233,224,204,0.55);
+  text-transform: uppercase;
+  margin-bottom: 4rem;
+}
+.b-orb {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 1px solid rgba(217,166,90,0.4);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 3rem;
+  transition: transform 4s cubic-bezier(0.4,0,0.2,1);
+}
+.b-orb.grow { transform: scale(1.6); }
+.b-orb-inner {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(217,166,90,0.25), transparent);
+  transition: transform 4s cubic-bezier(0.4,0,0.2,1);
+}
+.b-orb.grow .b-orb-inner { transform: scale(1.5); }
+.b-word {
+  font-family: var(--serif-display);
+  font-size: 2.5rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+}
+.b-instr {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  color: rgba(233,224,204,0.7);
+  margin-bottom: 4rem;
+}
+.b-count {
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  color: rgba(217,166,90,0.5);
+  margin-bottom: 3rem;
+}
+.b-close {
+  background: none; border: none;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: rgba(233,224,204,0.45);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.b-close:hover { color: rgba(233,224,204,0.6); }
+
+/* ─────────────────────────── GUIDE OVERLAY */
+#guide-overlay {
+  display: none; position: fixed; inset: 0;
+  background: var(--paper);
+  z-index: 300;
+  overflow-y: auto;
+}
+#guide-overlay.open { display: block; }
+
+.go-inner {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 5rem 2rem;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.go-close {
+  position: fixed;
+  top: 2rem; right: 2.5rem;
+  background: none; border: none;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.35em;
+  color: var(--ash);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s;
+  z-index: 10;
+}
+.go-close:hover { color: var(--ink); }
+
+.go-back {
+  position: fixed;
+  top: 2rem; left: 2.5rem;
+  background: none; border: none;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  color: var(--ash);
+  cursor: pointer;
+  transition: color 0.3s;
+  z-index: 10;
+  visibility: hidden;
+}
+.go-back:hover { color: var(--bronze); }
+@media (max-width: 600px) {
+  .go-back, .go-close { top: 1.5rem; font-size: 0.68rem; }
+  .go-back { left: 1.5rem; }
+  .go-close { right: 1.5rem; }
+}
+
+/* Steps */
+.go-step {
+  display: none; width: 100%;
+  animation: go-enter 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+.go-step.active { display: block; }
+@keyframes go-enter {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.go-phase {
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 200;
+  letter-spacing: 0.5em;
+  color: var(--mist);
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.go-phase-dots {
+  display: flex; gap: 5px;
+}
+.go-phase-dot {
+  width: 18px; height: 1px;
+  background: var(--mist);
+  transition: background 0.3s, width 0.3s;
+}
+.go-phase-dot.done { background: var(--bronze); }
+.go-phase-dot.cur { background: var(--bronze); width: 32px; }
+
+.go-q {
+  font-family: var(--serif-display);
+  font-size: clamp(2rem, 5.2vw, 3.3rem);
+  font-weight: 300;
+  line-height: 1.3;
+  color: var(--ink);
+  margin-bottom: 3.5rem;
+}
+.go-q em { font-style: italic; color: var(--bronze); }
+
+.go-opts {
+  display: flex; flex-direction: column; gap: 1px;
+  border-top: 1px solid var(--mist-soft);
+}
+.go-opt {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--mist-soft);
+  cursor: pointer;
+  background: none; border-left: none; border-right: none; border-top: none;
+  width: 100%; text-align: left;
+  transition: padding-left 0.35s ease;
+}
+.go-opt::before {
+  content: '';
+  position: absolute; left: 0; top: 12%; bottom: 12%;
+  width: 2px;
+  background: linear-gradient(var(--gold-1), var(--gold-3), var(--gold-4));
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.4s ease;
+}
+.go-opt:hover { padding-left: 0.75rem; }
+.go-opt:hover::before { transform: scaleY(1); }
+.go-opt:hover .go-opt-arrow { opacity: 1; transform: translateX(0); }
+
+.go-opt-left {}
+.go-opt-title {
+  font-family: var(--serif-display);
+  font-size: 1.4rem;
+  font-weight: 300;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+.go-opt-sub {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 200;
+  color: var(--ash);
+  display: block;
+  letter-spacing: 0.05em;
+}
+.go-opt-arrow {
+  font-size: 0.8rem;
+  color: var(--bronze);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s, transform 0.3s;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+/* Result */
+.go-result { width: 100%; }
+.go-result-badge {
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 200;
+  letter-spacing: 0.5em;
+  color: var(--bronze);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.go-result-badge::before {
+  content: '';
+  display: block; width: 20px; height: 1px; background: var(--bronze);
+}
+.go-result-title {
+  font-family: var(--serif-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 1.75rem;
+}
+.go-result-mirror {
+  font-size: 1.12rem;
+  line-height: 1.95;
+  color: var(--ink-soft);
+  font-weight: 300;
+  margin-bottom: 2.5rem;
+  max-width: 520px;
+}
+.go-result-lesson {
+  background: var(--bronze-light);
+  border-left: 1.5px solid var(--bronze);
+  padding: 1.4rem 1.75rem;
+  margin-bottom: 2.5rem;
+}
+.go-result-lesson-eye {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 200;
+  letter-spacing: 0.4em;
+  color: var(--bronze);
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+}
+.go-result-lesson-text {
+  font-family: var(--serif-display);
+  font-size: 1.22rem;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1.65;
+}
+.go-cta {
+  display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+}
+.go-intro-desc {
+  font-size: 1.12rem;
+  line-height: 1.9;
+  color: var(--ink-soft);
+  font-weight: 300;
+  max-width: 480px;
+  margin-bottom: 3rem;
+}
+.go-goto, .go-start-btn {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  font-family: var(--serif-display);
+  font-size: 1.05rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  padding: 1rem 2.2rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.go-goto::before, .go-start-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(240,217,153,0.25) 50%, transparent 70%);
+  transform: translateX(-130%);
+  transition: transform 0.8s ease;
+}
+.go-goto:hover::before, .go-start-btn:hover::before { transform: translateX(130%); }
+.go-goto:hover, .go-start-btn:hover { background: var(--ink-soft); }
+.go-restart {
+  background: none; border: none;
+  font-family: var(--sans);
+  font-size: 0.76rem;
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  color: var(--ash);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.go-restart:hover { color: var(--ink); }
+
+/* ─────────────────────────── UTILITY */
+@media (max-width: 600px) {
+  #top-nav { padding: 1.5rem 1.5rem; }
+  .nav-right { gap: 0.5rem; }
+  .nav-guide-btn { padding: 0.55rem 0.9rem; font-size: 0.7rem; }
+  .scene { padding: 5rem 1.5rem; }
+  .ch-h2 { font-size: clamp(1.9rem,7vw,3.8rem); }
+  .go-inner { padding: 6rem 1.5rem 3rem; }
+  .tl-row { grid-template-columns: 55px 1px 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-path { animation: none; stroke-dashoffset: 0; }
+  .scene, .band { opacity:1; transform:none; transition:none; }
+  * { animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="candle-glow"></div>
+<div id="prog"></div>
+
+<!-- NAV -->
+<nav id="top-nav">
+  <span class="nav-wordmark">初心</span>
+  <div class="nav-right">
+    <button class="nav-guide-btn" id="nav-guide-btn">尋找初心</button>
+  </div>
+</nav>
+
+<!-- ══════════════ HERO -->
+<section id="hero">
+  <svg id="hero-line-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <path class="draw-path" d="M0,450 Q200,200 400,350 Q600,500 800,280 Q1000,80 1200,320 Q1350,450 1440,380"/>
+    <path class="draw-path" d="M0,600 Q300,700 600,550 Q900,400 1200,620 Q1350,700 1440,650" style="animation-delay:0.8s;opacity:0.4"/>
+  </svg>
+
+  <!-- 圓相 Ensō — 一筆而成,不求完美,象徵初心不分信仰、人人可見 -->
+  <svg id="enso-svg" viewBox="0 0 400 400" aria-hidden="true">
+    <path class="enso-path" d="M200,58 C296,58 342,132 336,204 C330,278 268,338 190,340 C112,342 60,286 62,212 C64,140 108,66 196,60" />
+  </svg>
+
+  <p class="hero-kana">The Way Back to Yourself</p>
+  <h1 class="hero-h1">初<em class="foil">心</em></h1>
+  <div class="hero-rule"></div>
+  <p class="hero-sub">你不是迷失了方向。<br>你只是忘記了——你曾經知道自己是誰。</p>
+  <p class="hero-note">無關信仰，無關背景——這是一場每個人遲早都會走上的旅程</p>
+
+  <div class="hero-scroll">
+    <span>向下展開</span>
+    <div class="scroll-tick"></div>
+  </div>
+</section>
+
+<!-- ══════════════ OPENING BAND -->
+<div class="band">
+  <div class="band-rule"></div>
+  <span class="band-glyph">悉達多 · 喬達摩的一生</span>
+  <div class="band-rule"></div>
+</div>
+
+<!-- ══════════════ TIMELINE -->
+<section id="timeline-scene" class="scene">
+  <div class="ch-wrap">
+    <div class="ch-index">生命地圖</div>
+    <h2 class="ch-h2">他也曾是<em>迷失的人</em></h2>
+    <p class="tl-bridge">兩千五百年前，有一個人和我們一樣，經歷過安逸、掙扎、恐懼與沉默。他找到的路，成了後來無數人的路——不論你信仰什麼，這段旅程說的，其實是每一個人。</p>
+    <div class="tl">
+      <div class="tl-row">
+        <div class="tl-year">約前 563<br>誕生</div>
+        <div class="tl-spine"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">王子降世，宮殿為他隔絕了一切苦難</div>
+          <div class="tl-desc">父王為他建造了一個完美的世界——美食、歌舞、妻兒，無所不有</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-year">29 歲<br>出走</div>
+        <div class="tl-spine"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">四門出遊，第一次看見老、病、死</div>
+          <div class="tl-desc">幻象破碎——他意識到自己活在謊言裡，於是連夜離開宮殿</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-year">29–35<br>苦行</div>
+        <div class="tl-spine"><div class="tl-dot teal"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">六年極端苦行，幾乎死亡</div>
+          <div class="tl-desc">以為折磨肉體能解放心靈，卻只得到一副即將崩潰的身體</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-year">35 歲<br>覺悟</div>
+        <div class="tl-spine"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">菩提樹下，徹夜面對內心最深的黑暗</div>
+          <div class="tl-desc">黎明時分，他不再逃避，也不再對抗——他只是清醒地看見了一切</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-year">35–80<br>弘法</div>
+        <div class="tl-spine"><div class="tl-dot teal"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">45 年，將道路分享給所有迷失的人</div>
+          <div class="tl-desc">因為他走過，所以他能引路。這也是你閱讀這頁的原因</div>
+        </div>
+      </div>
+      <div class="tl-row">
+        <div class="tl-year">80 歲<br>涅槃</div>
+        <div class="tl-spine"><div class="tl-dot"></div></div>
+        <div class="tl-content">
+          <div class="tl-event">「諸行無常，當精進不放逸」</div>
+          <div class="tl-desc">他以自己的死亡，完成最後一堂課：趁還有呼吸，清醒地活</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="band-rule"></div>
+  <span class="band-glyph">四道瓶頸 · 四種突破</span>
+  <div class="band-rule"></div>
+</div>
+
+<!-- ══════════════ S1 虛假安逸 -->
+<section id="s1" class="scene">
+  <div class="ch-wrap">
+    <div class="ch-index">第一道瓶頸 · 虛假的安逸</div>
+    <h2 class="ch-h2">你是否也住在<br><em>別人為你建的宮殿</em>裡？</h2>
+    <p class="ch-body">
+      淨飯王的初心，是保護兒子免受一切苦難。他成功了——悉達多二十九年從未看見老人、病人、死人。<br><br>
+      但那個宮殿，同時也成了一座鍍金的囚籠。<br><br>
+      我們每個人的生命裡，都有這樣一座宮殿。有時候是父母期待，有時候是社會標準，有時候是我們自己——為了避免痛苦而搭建的防護層。
+    </p>
+
+    <div class="pull">
+      <p class="pull-q">「幸福若建立在看不見真實之上，<br>它只是一場精心維持的幻象。」</p>
+      <span class="pull-attr">悉達多 29 歲，城門外的領悟</span>
+    </div>
+
+    <div class="reflect">
+      <div class="reflect-eye">此刻，給你的問題</div>
+      <p class="reflect-q">你的生活中，有哪些是你「選擇不去看」的部分？<br>是什麼讓你繼續選擇閉眼？</p>
+    </div>
+
+    <div class="teach">
+      <div class="teach-line"></div>
+      <div class="teach-inner">
+        <div class="teach-head">突破之道</div>
+        <p class="teach-body">
+          他沒有逃避，也沒有憤怒。他只是<strong>誠實地走出去，然後看見</strong>。<br><br>
+          初心的第一步，不是改變外在——而是停止對真實的迴避。生命渴望被誠實地活著，哪怕那個真實令人不舒服。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ S2 苦行 -->
+<section id="s2" class="scene" style="background:var(--paper-dark);">
+  <div class="ch-wrap">
+    <div class="ch-index">第二道瓶頸 · 錯誤的努力</div>
+    <h2 class="ch-h2">你有沒有用<em>折磨自己</em><br>換取一種成就感？</h2>
+    <p class="ch-body">
+      悉達多離開宮殿後，追隨了當時最嚴格的苦行傳統。他停止進食，在烈日下靜坐，忍受極寒與痛苦，幾乎死去。<br><br>
+      他以為越痛苦就越接近真理。六年後，他只得到了一副快要崩潰的身體。<br><br>
+      這種邏輯，在現代以不同的面貌出現：不休息才是努力，犧牲睡眠才是認真，不快樂才是在「認真生活」。
+    </p>
+
+    <div class="pull">
+      <p class="pull-q">「中道不是妥協——<br>它是清醒者才能走的路。」</p>
+      <span class="pull-attr">佛陀，接受乳粥之後的領悟</span>
+    </div>
+
+    <div class="reflect">
+      <div class="reflect-eye">此刻，給你的問題</div>
+      <p class="reflect-q">你是否曾用過度消耗自己，試圖「證明」某件事給別人——或給自己看？<br>那個需要被證明的是什麼？</p>
+    </div>
+
+    <div class="teach">
+      <div class="teach-line"></div>
+      <div class="teach-inner">
+        <div class="teach-head">突破之道</div>
+        <p class="teach-body">
+          他接受了牧羊女獻上的那碗乳粥，讓身體恢復。<strong>這不是軟弱，是智慧</strong>。<br><br>
+          中道意味著：既不逃進享樂，也不躲入苦難。初心需要一個清醒的你，不是一個精疲力竭的你。對自己的慈悲，是修行的起點，不是終點。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ S3 內在黑暗 -->
+<section id="s3" class="scene">
+  <div class="ch-wrap">
+    <div class="ch-index">第三道瓶頸 · 內在的黑暗</div>
+    <h2 class="ch-h2">當你一個人靜下來，<br><em>你最怕聽見什麼</em>？</h2>
+    <p class="ch-body">
+      菩提樹下那一夜，他面對的不是外在的敵人，而是自己內心最深處的一切：欲望的低語、恐懼的質問、過去所有失敗的回聲。<br><br>
+      魔羅——那個象徵一切內在懷疑與恐懼的意象——問他：「你有什麼資格成佛？」<br><br>
+      這個問題，我們每個人心裡都有一個版本——只是換了主詞。你有什麼資格成功？你有什麼資格快樂？你有什麼資格被愛？
+    </p>
+
+    <div class="pull">
+      <p class="pull-q">「他沒有與魔羅搏鬥。<br>他只是清醒地，見證它的存在。」</p>
+      <span class="pull-attr">菩提樹下，黎明之前</span>
+    </div>
+
+    <div class="reflect">
+      <div class="reflect-eye">此刻，給你的問題</div>
+      <p class="reflect-q">你內心那個一直在否定你的聲音，它最常說的是什麼？<br>你有多久沒有靜下來，真的聽一聽它——而不是逃開？</p>
+    </div>
+
+    <div class="teach">
+      <div class="teach-line"></div>
+      <div class="teach-inner">
+        <div class="teach-head">突破之道</div>
+        <p class="teach-body">
+          <strong>正念不是壓制念頭，而是清醒地見證它</strong>。不逃避，不抗拒，不認同——只是看著它升起，看著它消逝。<br><br>
+          初心藏在那個靜靜觀照的空間裡。在所有念頭之間的那一刻寂靜中，有一個你，從來沒有真正迷失過。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ S4 說法 -->
+<section id="s4" class="scene" style="background:var(--paper-dark);">
+  <div class="ch-wrap">
+    <div class="ch-index">第四道瓶頸 · 選擇沉默</div>
+    <h2 class="ch-h2">你有沒有一些話，<br><em>一直沒有說出口</em>？</h2>
+    <p class="ch-body">
+      成道後，佛陀的第一個念頭幾乎是保持沉默。他擔心真理太過幽深，沒有人能理解；他擔心說了也是枉然。<br><br>
+      但他觀察了身邊的人們——如同蓮花，有的還深埋泥中，有的已接近水面，有的已經探出水面——每個人準備好的時刻不同，但都值得被等待。<br><br>
+      於是他走出去，說話了。這一說，就是45年。
+    </p>
+
+    <div class="pull">
+      <p class="pull-q">「你走過的路，你的傷，你的領悟——<br>都不是只屬於你自己的。」</p>
+      <span class="pull-attr">鹿野苑，初轉法輪之前</span>
+    </div>
+
+    <div class="reflect">
+      <div class="reflect-eye">此刻，給你的問題</div>
+      <p class="reflect-q">你心裡有沒有什麼東西，<br>因為害怕被誤解、被評判，而從未說出口？<br>那個未說出口的，也許正是某人此刻需要聽見的。</p>
+    </div>
+
+    <div class="teach">
+      <div class="teach-line"></div>
+      <div class="teach-inner">
+        <div class="teach-head">突破之道</div>
+        <p class="teach-body">
+          初心不只是找到自己——它還包括<strong>願意讓自己被看見</strong>。<br><br>
+          你不需要等到「更完整」才說話。佛陀在剛成道、還坐在菩提樹下，就走向了世人。你現在的樣子，就已經足夠說出你需要說的。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="band-rule"></div>
+  <span class="band-glyph">回到最初</span>
+  <div class="band-rule"></div>
+</div>
+
+<!-- ══════════════ FINALE -->
+<section id="finale" class="scene">
+  <div class="ch-wrap" style="text-align:center;">
+    <div class="ch-index" style="justify-content:center;color:rgba(233,224,204,0.6);">涅槃 · 最後的話</div>
+    <div class="finale-quote-block">
+      <p class="finale-q">諸行無常，<br><span class="foil">當精進不放逸。</span></p>
+      <span class="finale-attr">佛陀 · 80 歲 · 最後的教導</span>
+    </div>
+    <p class="finale-sub">不是悲觀，而是一種邀請：<br>趁還有呼吸，清醒地活。</p>
+    <button class="breath-open" id="open-breath">◯ &nbsp; 此刻，讓我們一起呼吸</button>
+    <p class="finale-footer">初心不在遠方 · 它在你的下一次呼吸裡</p>
+  </div>
+</section>
+
+<!-- ══════════════ BREATH OVERLAY -->
+<div id="breath-overlay">
+  <p class="b-label">正念呼吸 · Mindful Breathing</p>
+  <div class="b-orb" id="b-orb"><div class="b-orb-inner"></div></div>
+  <p class="b-word" id="b-word">準備好了</p>
+  <p class="b-instr" id="b-instr">輕輕閉上眼睛，跟著節奏</p>
+  <p class="b-count" id="b-count">&nbsp;</p>
+  <button class="b-close" id="close-breath">輕觸此處 · 回到旅途</button>
+</div>
+
+<!-- ══════════════ GUIDE OVERLAY -->
+<div id="guide-overlay">
+  <button class="go-back" id="go-back">‹ 上一題</button>
+  <button class="go-close" id="go-close">關閉 ✕</button>
+  <div class="go-inner">
+
+    <!-- INTRO -->
+    <div class="go-step active" id="gq-intro">
+      <div class="go-phase">尋找初心</div>
+      <p class="go-q">回答 <em>3 個簡單的問題</em>，<br>找到此刻最需要的那一段旅程。</p>
+      <p class="go-intro-desc">沒有標準答案，只有最貼近你此刻感受的選項。選完之後，你會看見專屬於你的靈魂畫像，以及一段來自佛陀的回應。</p>
+      <div class="go-cta">
+        <button class="go-start-btn" id="go-start">開始 →</button>
+      </div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="go-step" id="gq1">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot cur"></div>
+          <div class="go-phase-dot"></div>
+          <div class="go-phase-dot"></div>
+        </div>
+        靈魂地圖 · 第 1 問 ／ 共 3 問
+      </div>
+      <p class="go-q">此刻，你感受到的<em>最深的重</em>是什麼？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-next="gq2a">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我有一切，卻感到空洞</span>
+            <span class="go-opt-sub">生活看起來很好，但我不知道自己在為什麼而活</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq2b">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我拼命努力，卻感到白費</span>
+            <span class="go-opt-sub">付出太多，卻離真正想要的越來越遠</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq2c">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我的內心有個聲音一直否定我</span>
+            <span class="go-opt-sub">恐懼、懷疑、覺得自己始終不夠好</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq2d">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我有些話，從未說出口</span>
+            <span class="go-opt-sub">有一個真實的自己，被我藏起來很久了</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2a -->
+    <div class="go-step" id="gq2a">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+          <div class="go-phase-dot"></div>
+        </div>
+        靈魂地圖 · 第 2 問 ／ 共 3 問
+      </div>
+      <p class="go-q">這份空洞，你覺得<em>它從何而來</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-next="gq3-comfort-a">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我的生活是別人替我安排的</span>
+            <span class="go-opt-sub">從未真正選擇過自己想要的</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq3-comfort-b">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我達到了目標，卻沒有感到滿足</span>
+            <span class="go-opt-sub">以為到達了就會快樂，卻發現那不是我要的</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2b -->
+    <div class="go-step" id="gq2b">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+          <div class="go-phase-dot"></div>
+        </div>
+        靈魂地圖 · 第 2 問 ／ 共 3 問
+      </div>
+      <p class="go-q">這份努力，<em>為了誰</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-next="gq3-effort-a">
+          <div class="go-opt-left">
+            <span class="go-opt-title">為了證明給別人看</span>
+            <span class="go-opt-sub">父母、伴侶、社會——他們的眼神一直在我背上</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq3-effort-b">
+          <div class="go-opt-left">
+            <span class="go-opt-title">為了彌補某種不足感</span>
+            <span class="go-opt-sub">好像只要更努力，就能填補內心的那個洞</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2c -->
+    <div class="go-step" id="gq2c">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+          <div class="go-phase-dot"></div>
+        </div>
+        靈魂地圖 · 第 2 問 ／ 共 3 問
+      </div>
+      <p class="go-q">那個<em>否定你的聲音</em>，最常說什麼？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-next="gq3-dark-a">
+          <div class="go-opt-left">
+            <span class="go-opt-title">「你不夠好，你不配」</span>
+            <span class="go-opt-sub">對自我價值的深度懷疑</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq3-dark-b">
+          <div class="go-opt-left">
+            <span class="go-opt-title">「你只是在假裝，遲早會被看穿」</span>
+            <span class="go-opt-sub">冒牌者症候群，恐懼真實的自己被人發現</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q2d -->
+    <div class="go-step" id="gq2d">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+          <div class="go-phase-dot"></div>
+        </div>
+        靈魂地圖 · 第 2 問 ／ 共 3 問
+      </div>
+      <p class="go-q">是什麼讓你選擇<em>繼續沉默</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-next="gq3-silent-a">
+          <div class="go-opt-left">
+            <span class="go-opt-title">害怕被誤解或被評判</span>
+            <span class="go-opt-sub">說出來可能會破壞關係或形象</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-next="gq3-silent-b">
+          <div class="go-opt-left">
+            <span class="go-opt-title">覺得等我更好了再說</span>
+            <span class="go-opt-sub">現在的自己還沒有資格發聲</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Q3 群組 —— 各對一個 result -->
+
+    <!-- comfort-a → 宮殿 -->
+    <div class="go-step" id="gq3-comfort-a">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">如果讓你說出一件<em>你一直在迴避</em>的事，它是？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-comfort" data-section="s1">
+          <div class="go-opt-left">
+            <span class="go-opt-title">一段不再適合我的關係或工作</span>
+            <span class="go-opt-sub">我知道它不對，但說出來太難了</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-comfort" data-section="s1">
+          <div class="go-opt-left">
+            <span class="go-opt-title">一個我一直壓抑的渴望或夢</span>
+            <span class="go-opt-sub">說出來怕被嘲笑，所以選擇繼續假裝不存在</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- comfort-b → 虛假圓滿 -->
+    <div class="go-step" id="gq3-comfort-b">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">你達到那個目標時，<em>少了什麼</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-meaning" data-section="s1">
+          <div class="go-opt-left">
+            <span class="go-opt-title">那個過程中的我，才是真實的</span>
+            <span class="go-opt-sub">目標達到後，那份活著的感覺反而消失了</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-meaning" data-section="s1">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我不知道接下來要往哪裡走</span>
+            <span class="go-opt-sub">達標之後，目的感突然消失了</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- effort-a → 為他人 -->
+    <div class="go-step" id="gq3-effort-a">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">如果只為自己而活，你最想<em>先放下</em>什麼？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-prove" data-section="s2">
+          <div class="go-opt-left">
+            <span class="go-opt-title">某個人的期待或評價</span>
+            <span class="go-opt-sub">他的眼神一直是我做決定的隱形標準</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-prove" data-section="s2">
+          <div class="go-opt-left">
+            <span class="go-opt-title">對「成功」的某個定義</span>
+            <span class="go-opt-sub">那個定義不是我的，但我一直活在它的陰影下</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- effort-b → 自我懲罰 -->
+    <div class="go-step" id="gq3-effort-b">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">如果你允許自己<em>暫時停下來</em>，你最怕什麼會發生？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-punish" data-section="s2">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我會被落下，或失去已有的一切</span>
+            <span class="go-opt-sub">停下來等於失敗，我不敢冒這個險</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-punish" data-section="s2">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我會面對那些我一直在逃開的感受</span>
+            <span class="go-opt-sub">忙碌讓我不用面對某些事，停下來太可怕了</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- dark-a → 自我否定 -->
+    <div class="go-step" id="gq3-dark-a">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">那個「不夠好」的感覺，<em>最早從哪裡來</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-dark" data-section="s3">
+          <div class="go-opt-left">
+            <span class="go-opt-title">某個人曾經讓我相信我不夠好</span>
+            <span class="go-opt-sub">他們的話，成了我腦海裡的聲音</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-dark" data-section="s3">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我從某次失敗之後就這樣覺得</span>
+            <span class="go-opt-sub">那件事過去很久了，但傷疤還在</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- dark-b → 冒牌者 -->
+    <div class="go-step" id="gq3-dark-b">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">如果別人「看穿」了你，<em>他們會看見什麼</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-impostor" data-section="s3">
+          <div class="go-opt-left">
+            <span class="go-opt-title">一個不確定自己的方向的人</span>
+            <span class="go-opt-sub">我的自信是表演出來的，不是真的</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-impostor" data-section="s3">
+          <div class="go-opt-left">
+            <span class="go-opt-title">一個害怕被遺棄的人</span>
+            <span class="go-opt-sub">我把真實的需求藏起來，怕讓人失望</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- silent-a → 恐懼評判 -->
+    <div class="go-step" id="gq3-silent-a">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">如果那個評判沒有發生，<em>你會說什麼</em>？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-voice" data-section="s4">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我會說「我不想繼續這樣活」</span>
+            <span class="go-opt-sub">有一個重要的改變，我需要說出口</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-voice" data-section="s4">
+          <div class="go-opt-left">
+            <span class="go-opt-title">我會分享某個對我很重要的想法</span>
+            <span class="go-opt-sub">我有一些真實的感受或觀點，從未敢說</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- silent-b → 等待資格 -->
+    <div class="go-step" id="gq3-silent-b">
+      <div class="go-phase">
+        <div class="go-phase-dots">
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot done"></div>
+          <div class="go-phase-dot cur"></div>
+        </div>
+        靈魂地圖 · 第 3 問 ／ 共 3 問
+      </div>
+      <p class="go-q">「更好的自己」需要<em>達到什麼</em>，你才會願意說？</p>
+      <div class="go-opts">
+        <button class="go-opt" data-result="r-worthy" data-section="s4">
+          <div class="go-opt-left">
+            <span class="go-opt-title">某個成就或身分</span>
+            <span class="go-opt-sub">等我成功了、有名了、有資格了再說</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+        <button class="go-opt" data-result="r-worthy" data-section="s4">
+          <div class="go-opt-left">
+            <span class="go-opt-title">等我「想清楚」了</span>
+            <span class="go-opt-sub">我不敢在還不確定的時候說出口</span>
+          </div>
+          <span class="go-opt-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ RESULTS ══ -->
+
+    <div class="go-step" id="r-comfort">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你住在一座<br>鍍金的囚籠裡</h3>
+      <p class="go-result-mirror">你的生活在外人眼中沒有問題——甚至令人羨慕。但你內心清楚，有些事情不對。你只是選擇不去看，因為看見了，就不得不改變。<br><br>悉達多也是這樣。他有一切，卻走出去了。那一步需要極大的誠實。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「初心的第一步，不是改變外在——而是停止對真實的迴避。你的生命渴望被誠實地活著。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s1">前往第一章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-meaning">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你達到了目標，<br>卻忘了自己是誰</h3>
+      <p class="go-result-mirror">你沒有失敗——你達到了所有人說你應該達到的事。但在那個過程中，那個「真正的你」消失了，換來的是一個空殼。<br><br>這不是你的錯。這是任何人在活在別人地圖上時都會發生的事。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「誠實地看見自己現在的處境，是回到初心的第一個勇敢的行動。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s1">前往第一章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-prove">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你在用一生<br>回應別人的眼光</h3>
+      <p class="go-result-mirror">你非常努力——但那份努力的根，不是你自己。它是長在別人的期待裡的。所以不管你達到多少，那份輕鬆感就是不來。<br><br>悉達多的苦行也是一種「證明自己」。六年後，他才明白：為了外在的眼光而修行，永遠走不到終點。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「中道意味著：為自己而活，不是為眼神而活。這是最難的功課，也是最解放的一刻。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s2">前往第二章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-punish">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你用忙碌<br>懲罰著自己</h3>
+      <p class="go-result-mirror">你停不下來，不只是因為有很多事情要做——而是因為停下來太危險。一旦停下，那些你一直在逃開的感受就會湧上來。<br><br>忙碌是最精緻的逃避形式。悉達多花了六年才學到這一課。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「對自己的慈悲，是修行的起點，不是終點。停下來，讓自己恢復，才是真正的勇氣。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s2">前往第二章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-dark">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你正在面對<br>內心最深的黑暗</h3>
+      <p class="go-result-mirror">有人在你生命中的某個時刻，讓你相信你不夠好。那句話成了你腦海裡的聲音，反覆播放。<br><br>佛陀在菩提樹下也面對了同樣的質問。他的答案不是反駁，而是靜靜地見證它——然後看著它消逝。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「那個否定你的聲音，不是你。它只是一個念頭。見證它，不跟隨它——你的初心就在那個空間裡。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s3">前往第三章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-impostor">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你害怕被人看見<br>那個真實的你</h3>
+      <p class="go-result-mirror">你展示給世界的，是一個你精心建構的版本。那個版本或許很成功，但它讓你精疲力竭——因為維持一個不是你的樣子，需要無盡的能量。<br><br>魔羅（象徵內在的懷疑之聲）問佛陀：「你有什麼資格？」佛陀的回應是：觸地，讓大地見證他本來的樣子。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「真實地活著，需要的不是更多的表演——而是一次放下的勇氣。你本來的樣子，已經足夠。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s3">前往第三章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-voice">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你有一個聲音<br>在等待被釋放</h3>
+      <p class="go-result-mirror">你一直知道有些話需要被說出來。你只是不確定說出來之後，世界還會不會接受你。<br><br>佛陀成道後也幾乎選擇沉默。但他想到：有些人正在等待你說的那些話。你的聲音，有人需要聽見。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「分享是另一種形式的覺醒。你說出來的那一刻，不只是在解放自己——也在解放某個正在等待的人。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s4">前往第四章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+    <div class="go-step" id="r-worthy">
+      <div class="go-result-badge">你的靈魂畫像</div>
+      <h3 class="go-result-title">你在等一個<br>永遠不會來的時機</h3>
+      <p class="go-result-mirror">「等我更好了再說」——但那個更好的版本，永遠在前方一步之外。你一直在等待一個不會自動到來的資格。<br><br>佛陀在剛成道、還坐在菩提樹下的那一刻，就走向了世人。他沒有等待。</p>
+      <div class="go-result-lesson">
+        <div class="go-result-lesson-eye">佛陀的回應</div>
+        <p class="go-result-lesson-text">「你現在的樣子，就已經足夠說出你需要說的。初心不是在未來等你——它在此刻，等待你開口。」</p>
+      </div>
+      <div class="go-cta">
+        <button class="go-goto" data-section="s4">前往第四章 →</button>
+        <button class="go-restart">重新探索</button>
+      </div>
+    </div>
+
+  </div><!-- /.go-inner -->
+</div><!-- /#guide-overlay -->
+
+<script>
+// ── PROGRESS + SCROLL REVEAL ──
+const prog = document.getElementById('prog');
+const scenes = document.querySelectorAll('.scene, .band');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.12 });
+scenes.forEach(s => io.observe(s));
+
+// ── CANDLELIGHT CURSOR ── you carry your own light through the dark
+const candle = document.getElementById('candle-glow');
+let candleRAF = null, cx = 50, cy = 30;
+window.addEventListener('pointermove', e => {
+  cx = (e.clientX / window.innerWidth) * 100;
+  cy = (e.clientY / window.innerHeight) * 100;
+  if (!candleRAF) {
+    candleRAF = requestAnimationFrame(() => {
+      candle.style.setProperty('--mx', cx + '%');
+      candle.style.setProperty('--my', cy + '%');
+      candleRAF = null;
+    });
+  }
+});
+window.addEventListener('pointerleave', () => { candle.style.opacity = '0'; });
+window.addEventListener('pointerenter', () => { candle.style.opacity = '1'; });
+
+
+const topNav = document.getElementById('top-nav');
+window.addEventListener('scroll', () => {
+  const t = window.scrollY, h = document.body.scrollHeight - window.innerHeight;
+  prog.style.width = (t / h * 100) + '%';
+  topNav.classList.toggle('scrolled', t > 60);
+});
+
+// ── GUIDE OVERLAY ──
+const guideOverlay = document.getElementById('guide-overlay');
+const goBackBtn = document.getElementById('go-back');
+let goHistory = [];
+
+const openGuide = () => { guideOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; goHistory = []; showGoStep('gq-intro'); };
+const closeGuide = () => { guideOverlay.classList.remove('open'); document.body.style.overflow = ''; };
+
+document.getElementById('nav-guide-btn').addEventListener('click', openGuide);
+document.getElementById('go-close').addEventListener('click', closeGuide);
+document.getElementById('go-start').addEventListener('click', () => showGoStep('gq1'));
+goBackBtn.addEventListener('click', () => {
+  const prev = goHistory.pop() || 'gq-intro';
+  showGoStep(prev, false);
+});
+
+function showGoStep(id, recordHistory = true) {
+  const current = guideOverlay.querySelector('.go-step.active');
+  if (recordHistory && current && current.id !== id) goHistory.push(current.id);
+  document.querySelectorAll('.go-step').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); guideOverlay.querySelector('.go-inner').scrollTop = 0; }
+  goBackBtn.style.visibility = (id === 'gq-intro') ? 'hidden' : 'visible';
+}
+
+guideOverlay.addEventListener('click', e => {
+  const opt = e.target.closest('.go-opt');
+  const goBtn = e.target.closest('.go-goto');
+  const restart = e.target.closest('.go-restart');
+
+  if (opt) {
+    const next = opt.dataset.next;
+    const result = opt.dataset.result;
+    if (next) showGoStep(next);
+    if (result) showGoStep(result);
+  }
+  if (goBtn) {
+    const sec = goBtn.dataset.section;
+    closeGuide();
+    setTimeout(() => {
+      const el = document.getElementById(sec);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 350);
+  }
+  if (restart) { goHistory = ['gq-intro']; showGoStep('gq1'); }
+});
+
+
+// ── BREATH OVERLAY ──
+const breathOverlay = document.getElementById('breath-overlay');
+const bOrb = document.getElementById('b-orb');
+const bWord = document.getElementById('b-word');
+const bInstr = document.getElementById('b-instr');
+const bCount = document.getElementById('b-count');
+let bTimer = null, bN = 0;
+
+document.getElementById('open-breath').addEventListener('click', () => {
+  breathOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  bN = 0; bCount.textContent = '';
+  startBreath();
+});
+document.getElementById('close-breath').addEventListener('click', () => {
+  breathOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+  clearTimeout(bTimer);
+  bOrb.classList.remove('grow');
+});
+
+function startBreath() {
+  bWord.textContent = '吸氣'; bInstr.textContent = '緩緩吸入，感受胸口升起';
+  bOrb.classList.remove('grow');
+  void bOrb.offsetWidth;
+  bOrb.classList.add('grow');
+
+  bTimer = setTimeout(() => {
+    bWord.textContent = '屏息'; bInstr.textContent = '輕輕地，停在這裡……';
+    bTimer = setTimeout(() => {
+      bWord.textContent = '呼氣'; bInstr.textContent = '慢慢呼出，放下所有緊繃';
+      bOrb.classList.remove('grow');
+      bTimer = setTimeout(() => {
+        bN++; bCount.textContent = `第 ${bN} 次呼吸圓滿`;
+        if (breathOverlay.classList.contains('open')) startBreath();
+      }, 6000);
+    }, 2000);
+  }, 4000);
+}
+</script>
+</body>
+</html>
