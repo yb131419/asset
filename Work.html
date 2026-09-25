@@ -439,8 +439,21 @@
   .resume-x{padding:9px 14px;border-radius:11px;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);
     background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);min-height:42px;}
 
-  /* 一鍵運轉 */
-  .pipeline{background:linear-gradient(168deg,#2E2415 0%,#1E1A14 78%);color:#fff;border-radius:var(--radius);
+  /* ===== 首頁三下拉 ===== */
+  .pipe-selects{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .pipe-sel-row{display:flex;align-items:center;gap:10px;}
+  .pipe-sel-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);flex:0 0 80px;letter-spacing:.3px;}
+  .pipe-sel-row select{
+    flex:1;background:rgba(255,255,255,.1);color:#fff;
+    border:1px solid rgba(255,255,255,.18);border-radius:12px;
+    padding:11px 12px;font-size:14px;outline:none;
+    -webkit-appearance:none;min-height:46px;font-family:inherit;
+    transition:border-color .15s,background .15s;cursor:pointer;
+  }
+  .pipe-sel-row select:focus{border-color:var(--gold-soft);background:rgba(255,255,255,.16);}
+  .pipe-sel-row select option{color:#1E1A14;background:#fff;}
+  .pipeline textarea{margin-top:4px;}
+background:linear-gradient(168deg,#2E2415 0%,#1E1A14 78%);color:#fff;border-radius:var(--radius);
     padding:22px;margin-bottom:18px;box-shadow:var(--shadow-lg);border:1px solid rgba(217,184,115,.16);
     position:relative;overflow:hidden;}
   .pipeline::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;
@@ -906,9 +919,55 @@
     <div class="pipeline">
       <div class="pl-title">🚀 一鍵自動完成</div>
       <div class="pl-sub">按一個鈕，AI 用故事寶典的比喻方式，自動完成破冰→重點→邀約的完整內容，可直接發布。</div>
-      <textarea id="pipeInput" placeholder="想寫什麼主題？（可以不填）例如：睡眠品質差、容易疲勞、腸胃不舒服、最近有客戶的好感受想分享"></textarea>
-      <div id="pipeSteps"></div>
-      <div class="pl-plat" id="pipePlatBar"></div>
+      <!-- 三個下拉 -->
+      <div class="pipe-selects">
+        <div class="pipe-sel-row">
+          <label class="pipe-sel-lbl">📌 健康主題</label>
+          <select id="pipeTopicSel" onchange="syncPipeInput()">
+            <option value="">✨ 讓 AI 自己選（或下方自由輸入）</option>
+            <option value="睡眠品質差，很難入睡或半夜容易醒">😴 睡眠品質差</option>
+            <option value="容易疲勞，下午就沒力，爬樓梯會喘">⚡ 疲勞體力不足</option>
+            <option value="腸胃不舒服，容易腹脹消化差">🍽️ 腸胃消化問題</option>
+            <option value="身體反覆發炎，老是有狀況">🔥 反覆發炎不適</option>
+            <option value="血液循環差，手腳容易冰冷，整個人沉重">🩸 血液循環差</option>
+            <option value="氣血不足，容易累，整個人沒精神">👮 氣血不足體虛</option>
+            <option value="體質寒濕，怕冷，容易反覆生病">🏠 體質寒濕虛弱</option>
+            <option value="身體酸麻脹痛，微循環不好">🚗 酸麻脹痛循環差</option>
+            <option value="分享客戶真實感受案例">💬 分享感受案例</option>
+            <option value="引流話術，帶人去找老師諮詢">🤝 引流邀約話術</option>
+          </select>
+        </div>
+        <div class="pipe-sel-row">
+          <label class="pipe-sel-lbl">📖 故事比喻</label>
+          <select id="pipeStorySel" onchange="syncPipeInput()">
+            <option value="">✨ 讓 AI 選最適合的故事</option>
+            <option value="使用鍋子故事（胃像鍋子需要火才能消化食物）">🍳 鍋子故事｜腸胃消化</option>
+            <option value="使用蒼蠅故事（炎症像蒼蠅，垃圾不清打不完）">🪰 蒼蠅故事｜反覆發炎</option>
+            <option value="使用水管故事（血管像水管，水髒了管子就堵）">🚰 水管故事｜血液循環</option>
+            <option value="使用魚缸故事（換乾淨的水，魚才會好起來）">🐟 魚缸故事｜整體調理</option>
+            <option value="使用農夫故事（農藥和肥料互補，藥物和保健品也互補）">🌾 農夫故事｜保健品角色</option>
+            <option value="使用警察故事（氣血就像薪水，沒薪水警察不工作）">👮 警察故事｜氣血體力</option>
+            <option value="使用房子故事（陰濕的房子容易發霉，體質寒濕也一樣）">🏠 房子故事｜體質寒濕</option>
+            <option value="使用堵車故事（交通堵了養分送不到，廢物清不出去）">🚗 堵車故事｜微循環</option>
+          </select>
+        </div>
+        <div class="pipe-sel-row">
+          <label class="pipe-sel-lbl">🎯 目標平台</label>
+          <select id="pipePlatSel" onchange="selectPipePlatform(this.value)">
+            <option value="all">🌐 全平台（六平台各一版）</option>
+            <option value="tiktok">🎵 TikTok</option>
+            <option value="instagram">📸 Instagram</option>
+            <option value="threads">🧵 Threads</option>
+            <option value="youtube">▶️ YouTube</option>
+            <option value="facebook">📘 Facebook</option>
+            <option value="line">💬 Line</option>
+          </select>
+        </div>
+      </div>
+      <!-- 自由輸入（選填補充） -->
+      <textarea id="pipeInput" placeholder="補充說明（選填）：例如「這週想強調客戶的真實感受」「加上邀約諮詢的結尾」"></textarea>
+      <div id="pipeSteps" style="display:none"></div>
+      <div id="pipePlatBar" style="display:none"></div>
       <div id="libPickBar"></div>
       <button class="pl-run" id="pipeBtn" onclick="runAllDepartments()">▶ 開始自動幫我寫</button>
       <div id="pipeResumeBar" style="display:none"></div>
@@ -1316,22 +1375,12 @@ function renderHome(){
   if(hb) hb.textContent="版本 "+(DEFAULTS.build||"-")+" · 保健引流專用版（整合大健康原理故事寶典）";
 }
 function renderPipeSteps(){
-  const box=document.getElementById("pipeSteps"); if(!box) return;
-  box.innerHTML=state.departments.map((d,i)=>{
-    const opts=`<option value="-1">✨ 讓「${esc(d.name)}」自己決定怎麼寫</option>`
-      +(d.presets||[]).map((p,j)=>`<option value="${j}">${esc(p)}</option>`).join("");
-    return `<div class="ps-row">
-      <span class="ps-tagn"><span class="ps-emo">${d.emoji}</span>${esc(d.name)}</span>
-      <select id="pstep-${i}">${opts}</select>
-    </div>`;
-  }).join("");
-  const pb=document.getElementById("pipePlatBar");
-  if(pb){ pb.innerHTML='<div class="plat-lbl">🎯 目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
-    `<button class="plat-chip ${p.k===pipePlatform?'on':''}" onclick="selectPipePlatform('${p.k}')"><span class="pc-ic">${p.ic}</span>${esc(p.label)}</button>`).join("")+'</div>'; }
+  // pipeSteps 和 pipePlatBar 已隱藏，改用首頁下拉；只更新素材庫顯示
   const lp=document.getElementById("libPickBar");
+  if(!lp) return;
   const act=state.library.filter(x=>x.active);
   if(act.length===0){
-    lp.innerHTML=`📎 尚未指定素材，可到下方「素材庫」勾選常用檔案。`;
+    lp.innerHTML=`<span style="font-size:12px;color:rgba(255,255,255,.55)">📎 尚未指定素材，可到下方「素材庫」勾選常用檔案。</span>`;
   }else{
     lp.innerHTML=`<div class="wslib-wrap dark">
       <button class="wslib-toggle" onclick="toggleWsLib(this)">
@@ -1342,7 +1391,24 @@ function renderPipeSteps(){
   }
 }
 let pipePlatform="all";
-function selectPipePlatform(k){ pipePlatform=k; renderPipeSteps(); }
+function syncPipeInput(){
+  // 把三個下拉的值組合成 pipeInput 的前綴提示
+  const topic = document.getElementById("pipeTopicSel")?.value || "";
+  const story = document.getElementById("pipeStorySel")?.value || "";
+  // 更新平台
+  const platSel = document.getElementById("pipePlatSel");
+  if(platSel) pipePlatform = platSel.value;
+  // 把主題和故事組合塞入隱藏的 pipeInput（如果使用者沒有自己填的話保持清空讓他補充）
+  window._pipeTopicVal = topic;
+  window._pipeStoryVal = story;
+}
+function selectPipePlatform(k){
+  pipePlatform=k;
+  // 同步下拉（從 renderPipeSteps 的按鈕點擊也可能觸發）
+  const sel=document.getElementById("pipePlatSel");
+  if(sel && sel.value!==k) sel.value=k;
+  renderPipeSteps();
+}
 function getIdByName(name){ const d=state.departments.find(x=>x.name===name); return d?d.id:""; }
 function hexA(hex,a){ const n=hex.replace("#",""); const r=parseInt(n.slice(0,2),16),g=parseInt(n.slice(2,4),16),b=parseInt(n.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
 
@@ -2295,15 +2361,19 @@ async function runAllDepartments(resume){
   // 建立或接續進度
   let run=state.pipeRun;
   if(!resume || !run){
-    const goal=document.getElementById("pipeInput").value.trim();
-    const stepTasks=order.map((d,i)=>{
-      const sel=document.getElementById("pstep-"+i);
-      const v=sel?sel.value:"0";
-      if(v==="-1") return "";
-      const idx=parseInt(v,10)||0;
-      return (d.presets&&d.presets[idx])?d.presets[idx]:"";
-    });
-    if(!goal && stepTasks.every(t=>!t)){ toast("請輸入共同主題，或為部門挑選建議任務"); return; }
+    const topicSel = (document.getElementById("pipeTopicSel")?.value || "").trim();
+    const storySel = (document.getElementById("pipeStorySel")?.value || "").trim();
+    const platSel  = document.getElementById("pipePlatSel")?.value || "all";
+    if(platSel) pipePlatform = platSel;
+    const freeText = document.getElementById("pipeInput").value.trim();
+    // 組合目標：主題 + 故事 + 自由輸入
+    const parts = [];
+    if(topicSel) parts.push("【主題】" + topicSel);
+    if(storySel) parts.push("【比喻方式】" + storySel);
+    if(freeText)  parts.push("【補充說明】" + freeText);
+    const goal = parts.join("\n") || "";
+    const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各部門依職責自行發揮
+    if(!goal){ toast("請選擇主題或在下方輸入你想寫的內容"); return; }
     run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false };
     state.pipeRun=run; save();
   }else{
