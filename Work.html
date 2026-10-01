@@ -10,47 +10,47 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
   :root{
-    /* ── 底色系統：純白底，健康綠調 ── */
-    --paper:#F6FAF7;
+    /* ── 底色：純白乾淨 ── */
+    --paper:#F8F9F8;
     --paper-2:#FFFFFF;
-    --ink:#141F16;
-    --ink-soft:#3D5442;
-    --ink-faint:#7A9882;
-    --line:rgba(20,31,22,.10);
-    --line-2:rgba(20,31,22,.04);
-    /* ── 品牌綠 ── */
-    --accent:#1A7A5E;
-    --accent-2:#24A87E;
-    --green-wash:rgba(26,122,94,.10);
-    /* ── 金色點綴（保留原系統功能色） ── */
-    --gold:#7A6020;
-    --gold-soft:#B89040;
-    --gold-wash:rgba(122,96,32,.10);
-    /* ── 陰影 ── */
-    --shadow:0 1px 2px rgba(20,31,22,.04), 0 8px 24px rgba(20,31,22,.07);
-    --shadow-lg:0 12px 40px rgba(20,31,22,.13);
-    --shadow-gold:0 8px 22px rgba(122,96,32,.22);
+    /* ── 文字：炭黑系 ── */
+    --ink:#1A1C1A;
+    --ink-soft:#4A4E4A;
+    --ink-faint:#8A908A;
+    --line:rgba(26,28,26,.09);
+    --line-2:rgba(26,28,26,.04);
+    /* ── 品牌：森林綠 ── */
+    --accent:#2E6B4A;
+    --accent-2:#3A8A5E;
+    --green-wash:rgba(46,107,74,.09);
+    --green-light:#EFF6F1;
+    /* ── 金色：完全移除，改用深綠點綴 ── */
+    --gold:#2E6B4A;
+    --gold-soft:#3A8A5E;
+    --gold-wash:rgba(46,107,74,.09);
+    /* ── 陰影：極淡，不搶眼 ── */
+    --shadow:0 1px 3px rgba(26,28,26,.05), 0 6px 20px rgba(26,28,26,.06);
+    --shadow-lg:0 10px 36px rgba(26,28,26,.10);
+    --shadow-gold:0 6px 20px rgba(46,107,74,.18);
     /* ── 尺寸 ── */
-    --radius:22px;
-    --radius-sm:14px;
+    --radius:20px;
+    --radius-sm:12px;
     --tap:52px;
     --spring:cubic-bezier(.34,1.56,.64,1);
     --ease-out:cubic-bezier(.22,.8,.36,1);
-    /* ── 部門色（健康主題重新配色） ── */
-    --c-post:#C7902B;
-    --c-integrate:#1A7A5E;
-    --c-collect:#2E6FB0;
-    --c-plan:#6B4E9E;
-    --c-develop:#2E6FB0;
-    --c-cards:#7A6020;
+    /* ── 部門色 ── */
+    --c-post:#B06030;
+    --c-integrate:#2E6B4A;
+    --c-collect:#2E5A8A;
+    --c-plan:#5A4A8A;
+    --c-develop:#2E5A8A;
+    --c-cards:#2E6B4A;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
-    background:
-      radial-gradient(ellipse 700px 400px at 50% -6%, rgba(26,122,94,.08), transparent 58%),
-      var(--paper);
+    background:#F8F9F8;
     color:var(--ink);
     line-height:1.62;
     font-size:16px;
@@ -64,43 +64,43 @@
   /* ---------- Header ---------- */
   .topbar{
     position:sticky;top:0;z-index:50;
-    background:linear-gradient(168deg,#0D3D2A 0%,#142E1E 78%);color:#fff;
+    background:linear-gradient(160deg,#1C3D2A 0%,#243D2E 100%);color:#fff;
     padding:20px 20px 21px;
-    border-radius:0 0 28px 28px;
-    box-shadow:0 10px 30px rgba(14,40,22,.28);
+    border-radius:0 0 24px 24px;
+    box-shadow:0 4px 20px rgba(26,28,26,.12);
   }
   .topbar::after{
     content:"";position:absolute;left:20px;right:20px;bottom:0;height:1px;
-    background:linear-gradient(90deg,transparent,rgba(100,210,140,.45) 18%,rgba(100,210,140,.45) 82%,transparent);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.12) 30%,rgba(255,255,255,.12) 70%,transparent);
   }
   .topbar .row{display:flex;align-items:center;gap:12px;position:relative;}
   .brand-tag{
-    font-size:11px;letter-spacing:4px;color:rgba(120,220,160,.8);
-    text-transform:uppercase;font-weight:700;
+    font-size:10px;letter-spacing:3.5px;color:rgba(255,255,255,.55);
+    text-transform:uppercase;font-weight:600;
     display:flex;align-items:center;gap:7px;
   }
-  .brand-tag::before{content:"";width:14px;height:1px;background:rgba(120,220,160,.7);display:inline-block;}
+  .brand-tag::before{content:"";width:14px;height:1px;background:rgba(255,255,255,.4);display:inline-block;}
   .title-edit{
-    flex:1;font-size:24px;font-weight:800;letter-spacing:.5px;
+    flex:1;font-size:22px;font-weight:700;letter-spacing:.3px;
     background:transparent;border:none;color:#fff;outline:none;
     border-bottom:1.5px dashed transparent;padding:3px 0;min-width:0;
   }
-  .title-edit:focus{border-bottom-color:rgba(120,220,160,.7);}
+  .title-edit:focus{border-bottom-color:rgba(255,255,255,.4);}
   .gear{
-    width:46px;height:46px;border-radius:14px;flex:0 0 auto;
-    background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff;
-    transition:background .15s,transform .1s,box-shadow .15s;
-    border:1px solid rgba(100,210,140,.22);
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+    background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff;
+    transition:background .15s,transform .1s;
+    border:1px solid rgba(255,255,255,.12);
   }
-  .gear svg,.hdr-toggle svg{width:22px;height:22px;display:block;}
-  .gear:active{background:rgba(100,210,140,.22);transform:scale(.93);box-shadow:0 0 0 3px rgba(26,122,94,.25);}
+  .gear svg,.hdr-toggle svg{width:21px;height:21px;display:block;}
+  .gear:active{background:rgba(255,255,255,.2);transform:scale(.93);}
   .hdr-toggle{
-    width:46px;height:46px;border-radius:14px;flex:0 0 auto;
-    background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff;
-    transition:background .15s,transform .1s,box-shadow .15s;
-    border:1px solid rgba(100,210,140,.22);
+    width:44px;height:44px;border-radius:12px;flex:0 0 auto;
+    background:rgba(255,255,255,.1);display:grid;place-items:center;color:#fff;
+    transition:background .15s,transform .1s;
+    border:1px solid rgba(255,255,255,.12);
   }
-  .hdr-toggle:active{background:rgba(100,210,140,.22);transform:scale(.93);box-shadow:0 0 0 3px rgba(26,122,94,.25);}
+  .hdr-toggle:active{background:rgba(255,255,255,.2);transform:scale(.93);}
   .chev-ic{transition:transform .2s;}
   .topbar.min .chev-ic{transform:rotate(180deg);}
   .topbar.min{padding:8px 16px;border-radius:0 0 18px 18px;}
@@ -869,6 +869,325 @@
   .gate-btn:disabled{opacity:.55;cursor:not-allowed;}
   .gate-btn-sub{font-size:10px;font-weight:700;letter-spacing:2.5px;opacity:.7;}
 
+
+  /* ========== V6 配色覆蓋 - 純白底炭黑森林綠 ========== */
+
+  /* Hero member 區塊 */
+  .hero-member{
+    margin-top:14px;padding:16px 14px 14px;border-radius:16px;text-align:center;
+    display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;overflow:hidden;
+    background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);
+    transition:transform .18s var(--spring);
+  }
+  .hero-member:active{transform:scale(.98);}
+  .hero-member::before{content:none !important;}
+  .hero-avatar-ring{
+    position:relative;width:56px;height:56px;margin-bottom:9px;
+    border-radius:50%;padding:2px;
+    background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.15));
+    box-shadow:0 4px 14px rgba(0,0,0,.18);
+  }
+  .hero-avatar-ph{
+    position:absolute;inset:2px;border-radius:50%;display:grid;place-items:center;
+    font-size:20px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);
+  }
+  .hero-avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;
+    position:relative;z-index:1;border:2px solid rgba(255,255,255,.2);}
+  .hero-dot{
+    position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;
+    background:#C05050;border:2px solid #1C3D2A;z-index:2;
+  }
+  .hero-dot.on{background:#5CC98A;}
+  .hero-name{font-size:15px;font-weight:700;color:#fff;letter-spacing:.2px;position:relative;z-index:1;}
+  .hero-badge{
+    margin-top:6px;font-size:11.5px;font-weight:600;
+    color:rgba(255,255,255,.72);padding:4px 12px;border-radius:20px;
+    background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
+    position:relative;z-index:1;
+  }
+  .hero-badge.warn{color:#FFCC88;background:rgba(255,140,60,.12);border-color:rgba(255,140,60,.2);}
+
+  /* 首頁 pipeline 卡片 */
+  .pipeline{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 4px 20px rgba(26,28,26,.10) !important;
+  }
+  .pipeline::before{content:none !important;}
+  .pl-title::before{background:rgba(255,255,255,.4) !important;}
+  .pl-sub{color:rgba(255,255,255,.55) !important;}
+
+  /* 下拉選單 */
+  .pipe-sel-row select{
+    background:rgba(255,255,255,.10) !important;
+    border:1px solid rgba(255,255,255,.14) !important;
+    color:#fff !important;
+  }
+  .pipe-sel-row select:focus{
+    border-color:rgba(255,255,255,.3) !important;
+    background:rgba(255,255,255,.15) !important;
+  }
+  .pipe-sel-lbl{color:rgba(255,255,255,.6) !important;}
+
+  /* 主要按鈕 */
+  .pl-run{
+    background:linear-gradient(160deg,#3A8A5E,#2E6B4A) !important;
+    border:1px solid rgba(255,255,255,.12) !important;
+    box-shadow:0 4px 16px rgba(46,107,74,.3) !important;
+  }
+  .pl-run:active{box-shadow:0 2px 8px rgba(46,107,74,.2) !important;}
+
+  /* 進度條 */
+  .pbar-fill{
+    background:linear-gradient(90deg,#2E6B4A,#5CC98A,#3A8A5E,#5CC98A,#2E6B4A) !important;
+    box-shadow:0 0 10px rgba(46,107,74,.4) !important;
+  }
+
+  /* 卡片 */
+  .dept-card,.output-card,.input-card,.hist-item,.lib-entry,.res-item,.coll-item,
+  .deck-item,.tcard-front,.seg-card{
+    background:#FFFFFF !important;
+    border-color:rgba(26,28,26,.08) !important;
+    box-shadow:0 1px 3px rgba(26,28,26,.04), 0 4px 16px rgba(26,28,26,.06) !important;
+  }
+
+  /* 部門 count badge */
+  .dept-count{
+    background:linear-gradient(160deg,#2E6B4A,#3A8A5E) !important;
+  }
+
+  /* section label */
+  .section-label{color:#4A4E4A !important;}
+  .section-label::before{background:var(--accent) !important;}
+
+  /* run btn in dept */
+  .run-btn{
+    box-shadow:0 4px 14px rgba(46,107,74,.25) !important;
+  }
+
+  /* tcard-back (flip card) */
+  .tcard-back{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+  }
+
+  /* plat-chip selected */
+  .plat-chip.on{
+    background:#EFF6F1 !important;color:#2E6B4A !important;
+    border-color:#2E6B4A !important;
+    box-shadow:0 2px 10px rgba(46,107,74,.15) !important;
+  }
+  .pl-plat .plat-chip.on{
+    background:#EFF6F1 !important;color:#2E6B4A !important;
+    border-color:rgba(92,201,138,.6) !important;
+  }
+
+  /* fold-toggle */
+  .fold-toggle{
+    background:#F4F8F5 !important;border:1.5px solid rgba(46,107,74,.2) !important;
+    color:var(--ink) !important;
+    box-shadow:0 2px 8px rgba(46,107,74,.08) !important;
+  }
+  .fold-toggle.open{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    color:#fff !important;border-color:rgba(255,255,255,.1) !important;
+  }
+
+  /* final-card */
+  .final-card{border:1.5px solid #2E6B4A !important;}
+  .final-head{background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;}
+
+  /* seg-copy & tcard-copy */
+  .seg-copy,.tcard-front .tcard-copy{
+    background:linear-gradient(160deg,#1C3D2A,#2E6B4A) !important;
+    border:1px solid rgba(255,255,255,.1) !important;
+  }
+  .tcard-back .tcard-copy{
+    background:#fff !important;color:var(--ink) !important;
+    border:1px solid rgba(46,107,74,.3) !important;
+  }
+
+  /* plat-block (output) */
+  .plat-block{
+    background:linear-gradient(160deg,#1C3D2A,#1A3226) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 4px 16px rgba(26,28,26,.12) !important;
+  }
+
+  /* pb-copy */
+  .pb-copy{background:#fff !important;color:var(--ink) !important;border:1px solid rgba(46,107,74,.25) !important;}
+
+  /* save-main */
+  .save-main{
+    background:linear-gradient(160deg,#2E6B4A,#3A8A5E) !important;
+    border:1px solid rgba(255,255,255,.12) !important;
+    box-shadow:0 4px 16px rgba(46,107,74,.28) !important;
+  }
+
+  /* mc-card & gate */
+  .mc-card{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+    box-shadow:0 4px 16px rgba(26,28,26,.10) !important;
+  }
+  .mc-avatar{border-color:rgba(92,201,138,.5) !important;}
+  .mc-remain{
+    background:#fff !important;color:var(--ink) !important;
+    border:1px solid rgba(46,107,74,.25) !important;
+  }
+
+  /* Gate screen */
+  .gate{
+    background:linear-gradient(180deg,#0E2418,#0A1810) !important;
+  }
+  .gate-card{
+    background:linear-gradient(180deg,#152A1E,#0E2018) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 16px 48px rgba(0,0,0,.5) !important;
+  }
+  .gate-card::before{
+    background:linear-gradient(90deg,transparent,rgba(92,201,138,.5),rgba(92,201,138,.5),transparent) !important;
+  }
+  .gate-rule span:not(.gate-star){
+    background:linear-gradient(90deg,transparent,rgba(92,201,138,.4),transparent) !important;
+  }
+  .gate-star{color:rgba(92,201,138,.8) !important;}
+  .gate-title{color:#F0F8F2 !important;}
+  .gate-sub{color:rgba(92,201,138,.55) !important;}
+  .gate-avatar-ring{
+    background:linear-gradient(135deg,rgba(92,201,138,.6),rgba(46,107,74,.4)) !important;
+  }
+  .gate-avatar-ph{background:rgba(255,255,255,.06) !important;}
+  .gate-badge{
+    color:rgba(92,201,138,.9) !important;
+    background:rgba(92,201,138,.10) !important;
+    border-color:rgba(92,201,138,.22) !important;
+  }
+  .gate-name{color:#F0F8F2 !important;}
+  .gate-rules{
+    background:rgba(92,201,138,.06) !important;
+    border-color:rgba(92,201,138,.15) !important;
+  }
+  .gate-rules-head{color:rgba(92,201,138,.85) !important;}
+  .gate-btn{
+    background:linear-gradient(160deg,#3A8A5E,#2E6B4A) !important;
+    color:#fff !important;
+    box-shadow:0 8px 24px rgba(46,107,74,.4) !important;
+  }
+
+  /* drawer */
+  .drawer{
+    background:#F8F9F8 !important;
+    border-right:1px solid rgba(26,28,26,.08) !important;
+    box-shadow:8px 0 32px rgba(26,28,26,.10) !important;
+  }
+  .dr-head{color:var(--accent) !important;}
+  .dr-head::after{background:linear-gradient(90deg,rgba(46,107,74,.25),transparent) !important;}
+  .dr-item:active{background:var(--green-wash) !important;}
+  .dr-profile{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 4px 14px rgba(26,28,26,.12) !important;
+  }
+  .dr-avatar{border-color:rgba(92,201,138,.5) !important;}
+  .dr-profile-tier{color:rgba(92,201,138,.8) !important;}
+  .dr-profile .chev{color:rgba(92,201,138,.6) !important;}
+
+  /* wslib dark mode */
+  .wslib-wrap.dark .wslib-toggle{
+    background:rgba(255,255,255,.10) !important;
+    color:rgba(255,255,255,.85) !important;
+    border-color:rgba(255,255,255,.12) !important;
+  }
+  .wslib-wrap.dark .wslib-toggle.open{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    color:#fff !important;
+  }
+
+  /* collector button */
+  .pl-run.dark{
+    background:linear-gradient(160deg,#1C3D2A,#243D2E) !important;
+    border:1px solid rgba(255,255,255,.10) !important;
+    box-shadow:0 4px 14px rgba(26,28,26,.12) !important;
+  }
+
+  /* settings field focus */
+  .field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--accent) !important;
+    box-shadow:0 0 0 3px rgba(46,107,74,.10) !important;
+  }
+  .input-card:focus-within{
+    box-shadow:var(--shadow), 0 0 0 3px rgba(46,107,74,.10) !important;
+  }
+
+  /* deck-btn */
+  .deck-btn{
+    background:linear-gradient(160deg,#1C3D2A,#2E6B4A) !important;
+    border:1px solid rgba(255,255,255,.1) !important;
+  }
+
+  /* lib-toggle on */
+  .lib-toggle.on{background:var(--accent) !important;border-color:var(--accent) !important;}
+
+  /* mopt on */
+  .mopt.on{border-color:var(--accent) !important;background:var(--green-wash) !important;}
+  .mradio::after{background:var(--accent) !important;}
+  .mopt.on .mradio{border-color:var(--accent) !important;}
+
+  /* role-body save */
+  .save-role{background:linear-gradient(160deg,#1C3D2A,#2E6B4A) !important;}
+
+  /* derive btn */
+  .derive-btn{
+    background:var(--green-wash) !important;
+    border-color:rgba(46,107,74,.2) !important;
+    color:var(--accent) !important;
+  }
+
+  /* coll-used tag */
+  .coll-used{color:#2E6B4A !important;background:rgba(46,107,74,.1) !important;}
+
+  /* saved-tag */
+  .saved-tag{color:#2E6B4A !important;background:rgba(46,107,74,.08) !important;border-color:rgba(46,107,74,.2) !important;}
+
+  /* ho-btn (hand-off) */
+  .ho-btn{box-shadow:0 3px 10px rgba(26,28,26,.12) !important;}
+
+  /* --- 主題分類卡片（新增） --- */
+  .cat-section{margin-bottom:1rem;}
+  .cat-header{
+    display:flex;align-items:center;gap:8px;
+    font-size:11px;font-weight:800;letter-spacing:2px;
+    color:var(--ink-faint);text-transform:uppercase;
+    margin:16px 0 8px 2px;
+  }
+  .cat-header::after{content:"";flex:1;height:1px;background:var(--line);}
+  .cat-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 2px;}
+  .cat-chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:13px;font-weight:600;
+    padding:9px 14px;border-radius:10px;
+    background:#fff;border:1.5px solid rgba(26,28,26,.08);
+    color:var(--ink-soft);cursor:pointer;
+    box-shadow:0 1px 3px rgba(26,28,26,.05);
+    transition:all .15s var(--spring);
+    white-space:nowrap;
+  }
+  .cat-chip:active,.cat-chip.selected{
+    background:var(--green-light);
+    border-color:var(--accent);
+    color:var(--accent);
+    box-shadow:0 2px 8px rgba(46,107,74,.15);
+    transform:scale(.97);
+  }
+  .cat-chip .chip-ic{font-size:15px;flex-shrink:0;}
+  .pipe-selects-new{margin-bottom:12px;}
+  .pipe-row-lbl{
+    font-size:11px;font-weight:700;color:rgba(255,255,255,.55);
+    letter-spacing:1px;margin:10px 0 6px;
+  }
+
 </style>
 </head>
 <body>
@@ -935,77 +1254,61 @@
   <section id="view-home" class="view active">
     <div class="pipeline">
       <div class="pl-title">🚀 一鍵自動完成</div>
-      <div class="pl-sub">選健康類主題，AI 用故事寶典比喻自動完成；選觀念類主題，AI 用《康園道》的對比反問金句風格產出，可直接發布。</div>
-      <!-- 三個下拉 -->
-      <div class="pipe-selects">
-        <div class="pipe-sel-row">
-          <label class="pipe-sel-lbl">📌 健康主題</label>
-          <select id="pipeTopicSel" onchange="syncPipeInput()">
-            <option value="">✨ 讓 AI 自己選（或下方自由輸入）</option>
-            <optgroup label="🌿 健康類">
-              <option value="睡眠品質差，很難入睡或半夜容易醒，白天精神差">😴 睡眠品質差</option>
-              <option value="容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神">⚡ 疲勞體力不足</option>
-              <option value="腸胃不舒服，容易腹脹消化差，喜歡喝冷飲">🍽️ 腸胃消化問題</option>
-              <option value="身體反覆發炎，老是有狀況，暫時好了又來">🔥 反覆發炎不適</option>
-              <option value="血液循環差，手腳容易冰冷，整個人感覺沉重">🩸 血液循環差</option>
-              <option value="氣血不足，容易累，走路就喘，整個人沒精神">👮 氣血不足體虛</option>
-              <option value="體質寒濕，怕冷，容易反覆生病，手腳冰">🏠 體質寒濕虛弱</option>
-              <option value="身體酸麻脹痛，微循環不好，腳容易腫">🚗 酸麻脹痛循環差</option>
-              <option value="分享客戶使用後的真實感受案例，用個人感受方式表達">💬 分享感受案例</option>
-              <option value="引流話術，帶有健康困擾的人去找老師諮詢">🤝 引流邀約話術</option>
-            </optgroup>
-            <optgroup label="💡 觀念類（康園道風格）">
-              <option value="用《康園道》財富篇的風格，寫一篇關於「收入結構」的觀念文章：很多人努力工作卻從來沒有想過自己的錢是怎麼賺出來的，今天的努力能不能累積，有沒有天花板">💰 收入結構與財富觀</option>
-              <option value="用《康園道》經營篇的風格，寫一篇關於「自律與自由」的觀念文章：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼">🎯 自律與自由</option>
-              <option value="用《康園道》市場篇的風格，寫一篇關於「人脈的本質」的觀念文章：很多人以為人脈是認識的人，其實人脈是關係的累積，認識一個人和真正建立關係是兩件完全不同的事">🤝 人脈的本質</option>
-              <option value="用《康園道》市場篇的風格，寫一篇關於「傾聽與提問」的觀念文章：真正厲害的人不是最會說的人，而是最知道什麼時候該聽、什麼時候該問、什麼時候才該回答">👂 傾聽與提問的力量</option>
-              <option value="用《康園道》理解篇的風格，寫一篇關於「知道 vs 理解」的觀念文章：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過、說得出來，卻從來沒有真正弄明白">🧠 知道 vs 真正理解</option>
-              <option value="用《康園道》的風格，寫一篇關於「選擇與習慣」的觀念文章：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇">🔄 選擇還是習慣？</option>
-              <option value="用《康園道》的風格，寫一篇關於「累積 vs 消耗」的觀念文章：很多人很努力，但努力的方式是消耗，不是累積，今天的努力有沒有讓明天的自己更強">📈 累積還是消耗？</option>
-              <option value="用《康園道》的風格，寫一篇關於「健康是最重要的資產」的觀念文章：很多人把健康當成理所當然，直到身體出問題才後悔，其實健康不是開銷，是投資">🌱 健康是最重要的資產</option>
-              <option value="用《康園道》的風格，寫一篇關於「改變的代價」的觀念文章：很多人想改變，卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大">💪 改變的代價</option>
-              <option value="用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品、制度、市場和數字之後，做出的明白選擇">✅ 為什麼選擇這份事業</option>
-            </optgroup>
-          </select>
+      <div class="pl-sub">點選主題 + 故事比喻 + 目標平台，按下開始，AI 自動完成全套內容。</div>
+      <!-- 主題分類選擇 -->
+      <div class="pipe-selects-new">
+        <div class="pipe-row-lbl">🌿 健康主題</div>
+        <div class="cat-chips" id="healthChips">
+          <div class="cat-chip" onclick="selectCatChip(this,'health','睡眠品質差，很難入睡或半夜容易醒，白天精神差')"><span class="chip-ic">😴</span>睡眠品質</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神')"><span class="chip-ic">⚡</span>疲勞體力</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','腸胃不舒服，容易腹脹消化差，喜歡喝冷飲')"><span class="chip-ic">🍽️</span>腸胃消化</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','身體反覆發炎，老是有狀況，暫時好了又來')"><span class="chip-ic">🔥</span>反覆發炎</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','血液循環差，手腳容易冰冷，整個人感覺沉重')"><span class="chip-ic">🩸</span>血液循環</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','氣血不足，容易累，走路就喘，整個人沒精神')"><span class="chip-ic">👮</span>氣血體力</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','體質寒濕，怕冷，容易反覆生病，手腳冰')"><span class="chip-ic">🏠</span>體質寒濕</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','身體酸麻脹痛，微循環不好，腳容易腫')"><span class="chip-ic">🚗</span>酸麻脹痛</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','分享客戶使用後的真實感受案例，用個人感受方式表達')"><span class="chip-ic">💬</span>感受案例</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'health','引流話術，帶有健康困擾的人去找老師諮詢')"><span class="chip-ic">🤝</span>引流邀約</div>
         </div>
-        <div class="pipe-sel-row">
-          <label class="pipe-sel-lbl">📖 故事比喻</label>
-          <select id="pipeStorySel" onchange="syncPipeInput()">
-            <optgroup label="🌿 健康比喻（健康類主題用）">
-              <option value="">✨ 讓 AI 選最適合的故事</option>
-              <option value="使用鍋子故事（胃像鍋子需要火才能消化食物）">🍳 鍋子故事｜腸胃消化</option>
-              <option value="使用蒼蠅故事（炎症像蒼蠅，垃圾不清打不完）">🪰 蒼蠅故事｜反覆發炎</option>
-              <option value="使用水管故事（血管像水管，水髒了管子就堵）">🚰 水管故事｜血液循環</option>
-              <option value="使用魚缸故事（換乾淨的水，魚才會好起來）">🐟 魚缸故事｜整體調理</option>
-              <option value="使用農夫故事（農藥和肥料互補，藥物和保健品也互補）">🌾 農夫故事｜保健品角色</option>
-              <option value="使用警察故事（氣血就像薪水，沒薪水警察不工作）">👮 警察故事｜氣血體力</option>
-              <option value="使用房子故事（陰濕的房子容易發霉，體質寒濕也一樣）">🏠 房子故事｜體質寒濕</option>
-              <option value="使用堵車故事（交通堵了養分送不到，廢物清不出去）">🚗 堵車故事｜微循環</option>
-            </optgroup>
-            <optgroup label="💡 觀念比喻（觀念類主題用）">
-              <option value="觀念類文章，不需要健康比喻，用《康園道》的方式：生活中的現象開場→對比→反問→金句收尾">📝 觀念文章（不用健康故事）</option>
-              <option value="使用「兩座山」比喻：阿里山 vs 喜馬拉雅山，同樣的目標，選擇不同的路，結果天差地別">⛰️ 兩座山比喻｜選擇與代價</option>
-              <option value="使用「種田」比喻：開墾→播種→灌溉→篩選→收穫，做市場做關係都一樣，急著收成的人反而什麼都種不出來">🌾 種田比喻｜人脈經營</option>
-              <option value="使用「表題 vs 底題」比喻：客戶說的問題和真正在意的問題是兩件事，要從表面問題找到背後真正的問題">🎯 表題底題比喻｜傾聽</option>
-              <option value="使用「八小時」比喻：同樣八小時，放在不同的位置產生不同的價值，時間不是問題，位置才是">⏰ 八小時比喻｜收入結構</option>
-            </optgroup>
-          </select>
+        <div class="pipe-row-lbl" style="margin-top:14px;">💡 觀念主題</div>
+        <div class="cat-chips" id="conceptChips">
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》財富篇的風格，寫一篇關於「收入結構」的觀念文章：很多人努力工作卻從來沒有想過自己的錢是怎麼賺出來的，今天的努力能不能累積，有沒有天花板')"><span class="chip-ic">💰</span>收入結構</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》經營篇的風格，寫一篇關於「自律與自由」的觀念文章：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼')"><span class="chip-ic">🎯</span>自律與自由</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》市場篇的風格，寫一篇關於「人脈的本質」的觀念文章：很多人以為人脈是認識的人，其實人脈是關係的累積，認識一個人和真正建立關係是兩件完全不同的事')"><span class="chip-ic">🤝</span>人脈本質</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》市場篇的風格，寫一篇關於「傾聽與提問」的觀念文章：真正厲害的人不是最會說的人，而是最知道什麼時候該聽、什麼時候該問、什麼時候才該回答')"><span class="chip-ic">👂</span>傾聽提問</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》理解篇的風格，寫一篇關於「知道和理解的差別」的觀念文章：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過、說得出來，卻從來沒有真正弄明白')"><span class="chip-ic">🧠</span>知道vs理解</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「選擇還是習慣」的觀念文章：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇')"><span class="chip-ic">🔄</span>選擇vs習慣</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「累積還是消耗」的觀念文章：很多人很努力，但努力的方式是消耗不是累積，今天的努力有沒有讓明天的自己更強')"><span class="chip-ic">📈</span>累積vs消耗</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「健康是最重要的資產」的觀念文章：很多人把健康當成理所當然，直到身體出問題才後悔，健康不是開銷，是投資')"><span class="chip-ic">🌱</span>健康是資產</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「改變的代價」的觀念文章：很多人想改變，卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')"><span class="chip-ic">💪</span>改變代價</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品、制度、市場和數字之後，做出的明白選擇')"><span class="chip-ic">✅</span>為何選擇</div>
         </div>
-        <div class="pipe-sel-row">
-          <label class="pipe-sel-lbl">🎯 目標平台</label>
-          <select id="pipePlatSel" onchange="selectPipePlatform(this.value)">
-            <option value="all">🌐 全平台（六平台各一版）</option>
-            <option value="tiktok">🎵 TikTok</option>
-            <option value="instagram">📸 Instagram</option>
-            <option value="threads">🧵 Threads</option>
-            <option value="youtube">▶️ YouTube</option>
-            <option value="facebook">📘 Facebook</option>
-            <option value="line">💬 Line</option>
-          </select>
+        <div class="pipe-row-lbl" style="margin-top:14px;">📖 故事比喻 <span style="font-weight:400;font-size:10px;opacity:.6">（可選填，AI 會自動選）</span></div>
+        <div class="cat-chips" id="storyChips">
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用鍋子故事（胃像鍋子需要火才能消化食物）')"><span class="chip-ic">🍳</span>鍋子</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用蒼蠅故事（炎症像蒼蠅，垃圾不清打不完）')"><span class="chip-ic">🪰</span>蒼蠅</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用水管故事（血管像水管，水髒了管子就堵）')"><span class="chip-ic">🚰</span>水管</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用魚缸故事（換乾淨的水，魚才會好起來）')"><span class="chip-ic">🐟</span>魚缸</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用警察故事（氣血就像薪水，沒薪水警察不工作）')"><span class="chip-ic">👮</span>警察</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用農夫故事（農藥和肥料互補，藥物和保健品也互補）')"><span class="chip-ic">🌾</span>農夫</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用房子故事（陰濕的房子容易發霉，體質寒濕也一樣）')"><span class="chip-ic">🏠</span>房子</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','使用堵車故事（交通堵了養分送不到，廢物清不出去）')"><span class="chip-ic">🚗</span>堵車</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','觀念文章，用兩座山比喻（同樣目標選不同的路）')"><span class="chip-ic">⛰️</span>兩座山</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'story','觀念文章，用種田比喻（開墾播種灌溉篩選收穫）')"><span class="chip-ic">🌾</span>種田</div>
+        </div>
+        <div class="pipe-row-lbl" style="margin-top:14px;">🎯 目標平台</div>
+        <div class="cat-chips" id="platChips">
+          <div class="cat-chip selected" onclick="selectCatChip(this,'plat','all')"><span class="chip-ic">🌐</span>全平台</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','tiktok')"><span class="chip-ic">🎵</span>TikTok</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','instagram')"><span class="chip-ic">📸</span>IG</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','threads')"><span class="chip-ic">🧵</span>Threads</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','youtube')"><span class="chip-ic">▶️</span>YouTube</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','facebook')"><span class="chip-ic">📘</span>Facebook</div>
+          <div class="cat-chip" onclick="selectCatChip(this,'plat','line')"><span class="chip-ic">💬</span>Line</div>
         </div>
       </div>
       <!-- 自由輸入（選填補充） -->
-      <textarea id="pipeInput" placeholder="補充說明（選填）：例如「這週想強調客戶的真實感受」「加上邀約諮詢的結尾」"></textarea>
+      <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
       <div id="pipeSteps" style="display:none"></div>
       <div id="pipePlatBar" style="display:none"></div>
       <div id="libPickBar"></div>
@@ -1259,10 +1562,46 @@
 <div class="toast" id="toast"></div>
 
 <script>
+
+/* ===== 分類晶片選擇 ===== */
+const _catState = { health:'', concept:'', story:'', plat:'all' };
+
+function selectCatChip(el, cat, val){
+  // 同類別先取消選取
+  const groupId = cat==='health'?'healthChips':cat==='concept'?'conceptChips':cat==='story'?'storyChips':'platChips';
+  document.querySelectorAll('#'+groupId+' .cat-chip').forEach(c=>c.classList.remove('selected'));
+  // 切換
+  if(_catState[cat]===val){
+    _catState[cat]='';
+  } else {
+    el.classList.add('selected');
+    _catState[cat]=val;
+  }
+  // 平台同步給 pipePlatform
+  if(cat==='plat') pipePlatform = _catState.plat||'all';
+}
+
+function buildPipeGoalFromChips(){
+  const parts=[];
+  if(_catState.health) parts.push('【健康主題】'+_catState.health);
+  if(_catState.concept) parts.push('【觀念主題】'+_catState.concept);
+  if(_catState.story) parts.push('【故事比喻】'+_catState.story);
+  const free = document.getElementById('pipeInput').value.trim();
+  if(free) parts.push('【補充說明】'+free);
+  return parts.join('\n');
+}
+
+// 資料收集也用 chips 的主題
+function getCollectorHint(){
+  if(_catState.health) return _catState.health.slice(0,30);
+  if(_catState.concept) return _catState.concept.slice(0,30);
+  return state.collector.topicHint||'';
+}
+
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  build:"2026.09.30-health-v5-style",
+  build:"2026.10.01-health-v6-chips",
   title:"健康智囊",
   context:"【行業／領域】保健產品推廣／健康諮詢引流\n【品牌／個人定位】幫助對健康有困擾、想讓生活更有品質的人，找到適合自己的方向\n【目標客群】40–65 歲，有慢性疲勞、睡眠困擾、體力下降的中年人；對健康有意識但還沒找到方向的人\n【合作老師】有產品銷售營業登記證，提供健康諮詢與調理服務；我的工作是引流，把有需求的人帶給老師\n【直銷公司】合法登記（台灣公平交易委員會）\n【語氣風格】溫暖真誠、像朋友說話、不說教不推銷、說真話、像一位有智慧的長輩在分享\n\n【寫作風格（必須嚴格遵守）】\n參考《康園道》系列文章的風格：\n① 短句為主，每句話獨立成行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先提出一個所有人都有的困惑或現象，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解、忙碌 vs 累積\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 或《》強調，例如：#真正的健康從來不是治病 ｜《從容》\n⑦ 用 👉 ✅ 🎯 🌀 📌 等符號分層，讓結構清晰\n⑧ 結尾一定有「金句收尾」——一句話濃縮整篇核心觀念\n⑨ 絕對不寫「購買」「成交」「加入」等推銷字眼，讓人感覺在分享，不是在賣\n\n【寫作節奏（照這個結構）】\n第一段：提出一個生活中的現象或問題，讓人對號入座（3–5行短句）\n第二段：大家常見的反應或做法（用 👉 或 🌀 列出，引發共鳴）\n第三段：「但是——」轉折，點出真正的問題所在\n第四段：用故事寶典的比喻解釋背後道理（鍋子/蒼蠅/水管/魚缸/農夫/警察/房子/堵車）\n第五段：給出真正的方向或觀念（合規，只說感受，不說療效）\n結尾：一句金句 ＋ 一個讓人思考的問題，引導私訊\n\n【說故事方式（大健康原理故事寶典）】\n用生活化比喻解釋健康道理：胃像鍋子需要火才能消化；炎症像蒼蠅垃圾不清打不完；血管像水管水髒就堵；氣血像警察薪水沒薪水不工作；魚缸的魚生病換乾淨的水才有用；體質寒濕像陰濕的房子容易發霉；身體堵塞像城市堵車養分送不進廢物清不出。讓人聽完說「原來如此！」\n\n【法規紅線（必須遵守）】\n✗ 不能說：治療、治癒、根治、降血糖、改善疾病、保證有效\n✗ 癌症、洗腎、精神科案例不能公開，只能私下一對一\n✓ 所有案例只說「個人感受」，結尾加：「以上是個人感受，每個人狀況不同」\n\n內容鐵則（固定）：先破冰（用故事比喻讓人停下來）→ 再講事情（解釋道理、分享感受案例）→ 最後邀約（引導私訊、低門檻行動）。",
   apiKey:"",
@@ -1933,7 +2272,7 @@ async function collectTopics(silent){
   const btn=document.getElementById("collectBtn");
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 收集中…'; }
   const sys=`你是保健內容選題編輯。依下方【背景設定】的族群與主題，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的保健話題。每個主題優先配合大健康原理故事寶典的比喻方式（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話比喻切入角度），不要任何其他文字、不要 markdown。絕對不能出現療效、治療、根治等違規字眼。\n\n【背景設定】\n${(state.context||"").slice(0,800)}`;
-  const hint=state.collector.topicHint?("主題方向："+state.collector.topicHint+"。"):"";
+  const hint=(getCollectorHint()||state.collector.topicHint)?("主題方向："+(getCollectorHint()||state.collector.topicHint)+"。"):"";
   try{
     const r=await callOpenAI(sys, hint+"請給 6 個話題的 JSON 陣列。", 900);
     let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
@@ -2401,19 +2740,11 @@ async function runAllDepartments(resume){
   // 建立或接續進度
   let run=state.pipeRun;
   if(!resume || !run){
-    const topicSel = (document.getElementById("pipeTopicSel")?.value || "").trim();
-    const storySel = (document.getElementById("pipeStorySel")?.value || "").trim();
-    const platSel  = document.getElementById("pipePlatSel")?.value || "all";
-    if(platSel) pipePlatform = platSel;
-    const freeText = document.getElementById("pipeInput").value.trim();
-    // 組合目標：主題 + 故事 + 自由輸入
-    const parts = [];
-    if(topicSel) parts.push("【主題】" + topicSel);
-    if(storySel) parts.push("【比喻方式】" + storySel);
-    if(freeText)  parts.push("【補充說明】" + freeText);
-    const goal = parts.join("\n") || "";
+    // 從晶片分類取得目標
+    pipePlatform = _catState.plat || 'all';
+    const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各部門依職責自行發揮
-    if(!goal){ toast("請選擇主題或在下方輸入你想寫的內容"); return; }
+    if(!goal){ toast("請先選擇健康或觀念主題，或在下方輸入說明"); return; }
     run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false };
     state.pipeRun=run; save();
   }else{
