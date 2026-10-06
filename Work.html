@@ -870,6 +870,75 @@
   .gate-btn-sub{font-size:10px;font-weight:700;letter-spacing:2.5px;opacity:.7;}
 
 
+
+  /* ===== 列表式主題選擇 UI ===== */
+  .topic-ui{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+
+  .topic-group{
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;overflow:hidden;
+  }
+
+  .topic-group-header{
+    display:flex;align-items:center;gap:10px;
+    padding:13px 14px;cursor:pointer;
+    transition:background .15s;
+    min-height:48px;
+  }
+  .topic-group-header:active{background:rgba(255,255,255,.08);}
+
+  .tg-icon{font-size:17px;flex-shrink:0;}
+  .tg-title{font-size:14px;font-weight:700;color:#fff;flex:1;}
+  .tg-selected{
+    font-size:11.5px;font-weight:600;
+    color:rgba(255,255,255,.55);
+    background:rgba(255,255,255,.10);
+    padding:3px 10px;border-radius:20px;
+    max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    flex-shrink:0;
+  }
+  .tg-selected.has-val{
+    color:#5CC98A;
+    background:rgba(92,201,138,.15);
+  }
+  .tg-arrow{
+    font-size:18px;color:rgba(255,255,255,.4);
+    flex-shrink:0;transition:transform .2s;font-weight:300;
+  }
+  .tg-arrow.open{transform:rotate(90deg);}
+
+  .topic-list{
+    display:none;
+    border-top:1px solid rgba(255,255,255,.08);
+    max-height:280px;overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  .topic-list.open{display:block;}
+
+  .topic-item{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    transition:background .12s;
+  }
+  .topic-item:last-child{border-bottom:none;}
+  .topic-item:active{background:rgba(255,255,255,.06);}
+  .topic-item.selected{background:rgba(92,201,138,.12);}
+
+  .ti-ic{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+  .ti-text{font-size:13.5px;color:rgba(255,255,255,.85);flex:1;line-height:1.4;}
+  .topic-item.selected .ti-text{color:#5CC98A;font-weight:600;}
+  .ti-check{
+    font-size:13px;color:transparent;flex-shrink:0;
+    width:18px;text-align:center;
+  }
+  .topic-item.selected .ti-check{color:#5CC98A;}
+
+  /* 平台列表稍微緊湊 */
+  .ti-plat{padding:10px 14px;}
+  .ti-plat .ti-text{font-size:13px;}
+
   /* ========== V6 配色覆蓋 - 純白底炭黑森林綠 ========== */
 
   /* Hero member 區塊 */
@@ -1256,56 +1325,125 @@
       <div class="pl-title">🚀 一鍵自動完成</div>
       <div class="pl-sub">點選主題 + 故事比喻 + 目標平台，按下開始，AI 自動完成全套內容。</div>
       <!-- 主題分類選擇 -->
-      <div class="pipe-selects-new">
-        <div class="pipe-row-lbl">🌿 健康主題</div>
-        <div class="cat-chips" id="healthChips">
-          <div class="cat-chip" onclick="selectCatChip(this,'health','睡眠品質差，很難入睡或半夜容易醒，白天精神差')"><span class="chip-ic">😴</span>睡眠品質</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神')"><span class="chip-ic">⚡</span>疲勞體力</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','腸胃不舒服，容易腹脹消化差，喜歡喝冷飲')"><span class="chip-ic">🍽️</span>腸胃消化</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','身體反覆發炎，老是有狀況，暫時好了又來')"><span class="chip-ic">🔥</span>反覆發炎</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','血液循環差，手腳容易冰冷，整個人感覺沉重')"><span class="chip-ic">🩸</span>血液循環</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','氣血不足，容易累，走路就喘，整個人沒精神')"><span class="chip-ic">👮</span>氣血體力</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','體質寒濕，怕冷，容易反覆生病，手腳冰')"><span class="chip-ic">🏠</span>體質寒濕</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','身體酸麻脹痛，微循環不好，腳容易腫')"><span class="chip-ic">🚗</span>酸麻脹痛</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','分享客戶使用後的真實感受案例，用個人感受方式表達')"><span class="chip-ic">💬</span>感受案例</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'health','引流話術，帶有健康困擾的人去找老師諮詢')"><span class="chip-ic">🤝</span>引流邀約</div>
+      <div class="topic-ui">
+
+        <!-- 健康主題列表 -->
+        <div class="topic-group">
+          <div class="topic-group-header" onclick="toggleGroup('healthGroup')">
+            <span class="tg-icon">🌿</span>
+            <span class="tg-title">健康主題</span>
+            <span class="tg-selected" id="healthSelected">未選擇</span>
+            <span class="tg-arrow" id="healthArrow">›</span>
+          </div>
+          <div class="topic-list" id="healthGroup">
+            <div class="topic-item" onclick="selectTopic(this,'health','睡眠品質差，很難入睡或半夜容易醒，白天精神差')">
+              <span class="ti-ic">😴</span><span class="ti-text">睡眠品質差</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神')">
+              <span class="ti-ic">⚡</span><span class="ti-text">疲勞體力不足</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','腸胃不舒服，容易腹脹消化差，喜歡喝冷飲')">
+              <span class="ti-ic">🍽️</span><span class="ti-text">腸胃消化問題</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','身體反覆發炎，老是有狀況，暫時好了又來')">
+              <span class="ti-ic">🔥</span><span class="ti-text">反覆發炎不適</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','血液循環差，手腳容易冰冷，整個人感覺沉重')">
+              <span class="ti-ic">🩸</span><span class="ti-text">血液循環差</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','氣血不足，容易累，走路就喘，整個人沒精神')">
+              <span class="ti-ic">👮</span><span class="ti-text">氣血不足體虛</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','體質寒濕，怕冷，容易反覆生病，手腳冰')">
+              <span class="ti-ic">🏠</span><span class="ti-text">體質寒濕虛弱</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','身體酸麻脹痛，微循環不好，腳容易腫')">
+              <span class="ti-ic">🚗</span><span class="ti-text">酸麻脹痛循環差</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','分享客戶使用後的真實感受案例，用個人感受方式表達')">
+              <span class="ti-ic">💬</span><span class="ti-text">分享感受案例</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'health','引流話術，帶有健康困擾的人去找老師諮詢')">
+              <span class="ti-ic">🤝</span><span class="ti-text">引流邀約話術</span><span class="ti-check">✓</span>
+            </div>
+          </div>
         </div>
-        <div class="pipe-row-lbl" style="margin-top:14px;">💡 觀念主題</div>
-        <div class="cat-chips" id="conceptChips">
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》財富篇的風格，寫一篇關於「收入結構」的觀念文章：很多人努力工作卻從來沒有想過自己的錢是怎麼賺出來的，今天的努力能不能累積，有沒有天花板')"><span class="chip-ic">💰</span>收入結構</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》經營篇的風格，寫一篇關於「自律與自由」的觀念文章：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼')"><span class="chip-ic">🎯</span>自律與自由</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》市場篇的風格，寫一篇關於「人脈的本質」的觀念文章：很多人以為人脈是認識的人，其實人脈是關係的累積，認識一個人和真正建立關係是兩件完全不同的事')"><span class="chip-ic">🤝</span>人脈本質</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》市場篇的風格，寫一篇關於「傾聽與提問」的觀念文章：真正厲害的人不是最會說的人，而是最知道什麼時候該聽、什麼時候該問、什麼時候才該回答')"><span class="chip-ic">👂</span>傾聽提問</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》理解篇的風格，寫一篇關於「知道和理解的差別」的觀念文章：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過、說得出來，卻從來沒有真正弄明白')"><span class="chip-ic">🧠</span>知道vs理解</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「選擇還是習慣」的觀念文章：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇')"><span class="chip-ic">🔄</span>選擇vs習慣</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「累積還是消耗」的觀念文章：很多人很努力，但努力的方式是消耗不是累積，今天的努力有沒有讓明天的自己更強')"><span class="chip-ic">📈</span>累積vs消耗</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「健康是最重要的資產」的觀念文章：很多人把健康當成理所當然，直到身體出問題才後悔，健康不是開銷，是投資')"><span class="chip-ic">🌱</span>健康是資產</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「改變的代價」的觀念文章：很多人想改變，卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')"><span class="chip-ic">💪</span>改變代價</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'concept','用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品、制度、市場和數字之後，做出的明白選擇')"><span class="chip-ic">✅</span>為何選擇</div>
+
+        <!-- 觀念主題列表 -->
+        <div class="topic-group">
+          <div class="topic-group-header" onclick="toggleGroup('conceptGroup')">
+            <span class="tg-icon">💡</span>
+            <span class="tg-title">觀念主題</span>
+            <span class="tg-selected" id="conceptSelected">未選擇</span>
+            <span class="tg-arrow" id="conceptArrow">›</span>
+          </div>
+          <div class="topic-list" id="conceptGroup">
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》財富篇的風格，寫一篇關於「收入結構」的觀念文章：很多人努力工作卻從來沒有想過自己的錢是怎麼賺出來的，今天的努力能不能累積，有沒有天花板')">
+              <span class="ti-ic">💰</span><span class="ti-text">收入結構與財富觀</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》經營篇的風格，寫一篇關於「自律與自由」的觀念文章：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼')">
+              <span class="ti-ic">🎯</span><span class="ti-text">自律與自由</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》市場篇的風格，寫一篇關於「人脈的本質」的觀念文章：很多人以為人脈是認識的人，其實人脈是關係的累積，認識一個人和真正建立關係是兩件完全不同的事')">
+              <span class="ti-ic">🤝</span><span class="ti-text">人脈的本質</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》市場篇的風格，寫一篇關於「傾聽與提問」的觀念文章：真正厲害的人不是最會說的人，而是最知道什麼時候該聽、什麼時候該問、什麼時候才該回答')">
+              <span class="ti-ic">👂</span><span class="ti-text">傾聽與提問的力量</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》理解篇的風格，寫一篇關於「知道和理解的差別」的觀念文章：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過說得出來，卻從來沒有真正弄明白')">
+              <span class="ti-ic">🧠</span><span class="ti-text">知道 vs 真正理解</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「選擇還是習慣」的觀念文章：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇')">
+              <span class="ti-ic">🔄</span><span class="ti-text">選擇還是習慣？</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「累積還是消耗」的觀念文章：很多人很努力，但努力的方式是消耗不是累積，今天的努力有沒有讓明天的自己更強')">
+              <span class="ti-ic">📈</span><span class="ti-text">累積還是消耗？</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「健康是最重要的資產」的觀念文章：很多人把健康當成理所當然，直到身體出問題才後悔，健康不是開銷是投資')">
+              <span class="ti-ic">🌱</span><span class="ti-text">健康是最重要的資產</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「改變的代價」的觀念文章：很多人想改變卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')">
+              <span class="ti-ic">💪</span><span class="ti-text">改變的代價</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品制度市場和數字之後做出的明白選擇')">
+              <span class="ti-ic">✅</span><span class="ti-text">為什麼選擇這份事業</span><span class="ti-check">✓</span>
+            </div>
+          </div>
         </div>
-        <div class="pipe-row-lbl" style="margin-top:14px;">📖 故事比喻 <span style="font-weight:400;font-size:10px;opacity:.6">（可選填，AI 會自動選）</span></div>
-        <div class="cat-chips" id="storyChips">
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用鍋子故事（胃像鍋子需要火才能消化食物）')"><span class="chip-ic">🍳</span>鍋子</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用蒼蠅故事（炎症像蒼蠅，垃圾不清打不完）')"><span class="chip-ic">🪰</span>蒼蠅</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用水管故事（血管像水管，水髒了管子就堵）')"><span class="chip-ic">🚰</span>水管</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用魚缸故事（換乾淨的水，魚才會好起來）')"><span class="chip-ic">🐟</span>魚缸</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用警察故事（氣血就像薪水，沒薪水警察不工作）')"><span class="chip-ic">👮</span>警察</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用農夫故事（農藥和肥料互補，藥物和保健品也互補）')"><span class="chip-ic">🌾</span>農夫</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用房子故事（陰濕的房子容易發霉，體質寒濕也一樣）')"><span class="chip-ic">🏠</span>房子</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','使用堵車故事（交通堵了養分送不到，廢物清不出去）')"><span class="chip-ic">🚗</span>堵車</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','觀念文章，用兩座山比喻（同樣目標選不同的路）')"><span class="chip-ic">⛰️</span>兩座山</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'story','觀念文章，用種田比喻（開墾播種灌溉篩選收穫）')"><span class="chip-ic">🌾</span>種田</div>
+
+        <!-- 目標平台 -->
+        <div class="topic-group">
+          <div class="topic-group-header" onclick="toggleGroup('platGroup')">
+            <span class="tg-icon">🎯</span>
+            <span class="tg-title">目標平台</span>
+            <span class="tg-selected" id="platSelected">🌐 全平台</span>
+            <span class="tg-arrow" id="platArrow">›</span>
+          </div>
+          <div class="topic-list" id="platGroup">
+            <div class="topic-item ti-plat selected" onclick="selectPlat(this,'all')">
+              <span class="ti-ic">🌐</span><span class="ti-text">全平台（六個平台各一版）</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'tiktok')">
+              <span class="ti-ic">🎵</span><span class="ti-text">TikTok</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'instagram')">
+              <span class="ti-ic">📸</span><span class="ti-text">Instagram</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'threads')">
+              <span class="ti-ic">🧵</span><span class="ti-text">Threads</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'youtube')">
+              <span class="ti-ic">▶️</span><span class="ti-text">YouTube</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'facebook')">
+              <span class="ti-ic">📘</span><span class="ti-text">Facebook</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item ti-plat" onclick="selectPlat(this,'line')">
+              <span class="ti-ic">💬</span><span class="ti-text">Line</span><span class="ti-check">✓</span>
+            </div>
+          </div>
         </div>
-        <div class="pipe-row-lbl" style="margin-top:14px;">🎯 目標平台</div>
-        <div class="cat-chips" id="platChips">
-          <div class="cat-chip selected" onclick="selectCatChip(this,'plat','all')"><span class="chip-ic">🌐</span>全平台</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','tiktok')"><span class="chip-ic">🎵</span>TikTok</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','instagram')"><span class="chip-ic">📸</span>IG</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','threads')"><span class="chip-ic">🧵</span>Threads</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','youtube')"><span class="chip-ic">▶️</span>YouTube</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','facebook')"><span class="chip-ic">📘</span>Facebook</div>
-          <div class="cat-chip" onclick="selectCatChip(this,'plat','line')"><span class="chip-ic">💬</span>Line</div>
-        </div>
+
       </div>
       <!-- 自由輸入（選填補充） -->
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
@@ -1563,38 +1701,78 @@
 
 <script>
 
-/* ===== 分類晶片選擇 ===== */
-const _catState = { health:'', concept:'', story:'', plat:'all' };
+/* ===== 列表式主題選擇 ===== */
+const _sel = { health:'', concept:'', story:'', plat:'all' };
+const _selLabel = { health:'未選擇', concept:'未選擇', plat:'🌐 全平台' };
 
-function selectCatChip(el, cat, val){
-  // 同類別先取消選取
-  const groupId = cat==='health'?'healthChips':cat==='concept'?'conceptChips':cat==='story'?'storyChips':'platChips';
-  document.querySelectorAll('#'+groupId+' .cat-chip').forEach(c=>c.classList.remove('selected'));
-  // 切換
-  if(_catState[cat]===val){
-    _catState[cat]='';
+function toggleGroup(id){
+  const list = document.getElementById(id);
+  const arrow = document.getElementById(id.replace('Group','Arrow'));
+  const isOpen = list.classList.toggle('open');
+  if(arrow) arrow.classList.toggle('open', isOpen);
+  // 關閉其他組
+  ['healthGroup','conceptGroup','platGroup'].forEach(g=>{
+    if(g!==id){
+      const el=document.getElementById(g);
+      const ar=document.getElementById(g.replace('Group','Arrow'));
+      if(el){el.classList.remove('open');}
+      if(ar){ar.classList.remove('open');}
+    }
+  });
+}
+
+function selectTopic(el, cat, val){
+  const groupId = cat==='health'?'healthGroup':'conceptGroup';
+  const selectedId = cat==='health'?'healthSelected':'conceptSelected';
+  // 取消同組其他選取
+  document.querySelectorAll('#'+groupId+' .topic-item').forEach(i=>i.classList.remove('selected'));
+  // 切換選取
+  if(_sel[cat]===val){
+    _sel[cat]='';
+    _selLabel[cat]='未選擇';
   } else {
     el.classList.add('selected');
-    _catState[cat]=val;
+    _sel[cat]=val;
+    _selLabel[cat]=el.querySelector('.ti-text').textContent;
   }
-  // 平台同步給 pipePlatform
-  if(cat==='plat') pipePlatform = _catState.plat||'all';
+  // 更新標頭顯示
+  const badge = document.getElementById(selectedId);
+  if(badge){
+    badge.textContent = _selLabel[cat];
+    badge.classList.toggle('has-val', !!_sel[cat]);
+  }
+  // 選完後自動收合
+  setTimeout(()=>toggleGroup(groupId),300);
 }
+
+function selectPlat(el, val){
+  document.querySelectorAll('#platGroup .topic-item').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  _sel.plat = val;
+  pipePlatform = val;
+  const label = el.querySelector('.ti-text').textContent;
+  const ic = el.querySelector('.ti-ic').textContent;
+  const badge = document.getElementById('platSelected');
+  if(badge){ badge.textContent = ic+' '+label; badge.classList.add('has-val'); }
+  setTimeout(()=>toggleGroup('platGroup'),300);
+}
+
+// 保留 selectCatChip 兼容舊代碼
+function selectCatChip(el, cat, val){ selectTopic(el, cat, val); }
 
 function buildPipeGoalFromChips(){
   const parts=[];
-  if(_catState.health) parts.push('【健康主題】'+_catState.health);
-  if(_catState.concept) parts.push('【觀念主題】'+_catState.concept);
-  if(_catState.story) parts.push('【故事比喻】'+_catState.story);
+  if(_sel.health) parts.push('【健康主題】'+_sel.health);
+  if(_sel.concept) parts.push('【觀念主題】'+_sel.concept);
+  if(_sel.story) parts.push('【故事比喻】'+_sel.story);
   const free = document.getElementById('pipeInput').value.trim();
   if(free) parts.push('【補充說明】'+free);
   return parts.join('\n');
 }
 
-// 資料收集也用 chips 的主題
 function getCollectorHint(){
-  if(_catState.health) return _catState.health.slice(0,30);
-  if(_catState.concept) return _catState.concept.slice(0,30);
+  if(_sel.health) return _sel.health.slice(0,30);
+  if(_sel.concept) return _sel.concept.slice(0,30);
   return state.collector.topicHint||'';
 }
 
