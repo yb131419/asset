@@ -871,6 +871,55 @@
 
 
 
+
+  /* ===== 資料收集部 分類列表 ===== */
+  .coll-topic-ui{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+
+  .coll-group{
+    background:#fff;border:1px solid rgba(26,28,26,.08);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 3px rgba(26,28,26,.04);
+  }
+  .coll-group-hd{
+    display:flex;align-items:center;gap:10px;
+    padding:13px 15px;cursor:pointer;min-height:50px;
+    transition:background .15s;
+  }
+  .coll-group-hd:active{background:rgba(46,107,74,.04);}
+  .cg-ic{font-size:18px;flex-shrink:0;}
+  .cg-title{font-size:14px;font-weight:700;color:var(--ink);flex:1;}
+  .cg-sel{
+    font-size:11.5px;font-weight:600;color:var(--ink-faint);
+    background:var(--paper);padding:3px 10px;border-radius:20px;
+    border:1px solid var(--line);
+    max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;
+  }
+  .cg-sel.has-val{color:#2E6B4A;background:rgba(46,107,74,.08);border-color:rgba(46,107,74,.2);}
+  .cg-arr{font-size:18px;color:var(--ink-faint);flex-shrink:0;transition:transform .2s;font-weight:300;}
+  .cg-arr.open{transform:rotate(90deg);}
+
+  .coll-list{
+    display:none;border-top:1px solid var(--line);
+    max-height:260px;overflow-y:auto;overscroll-behavior:contain;
+  }
+  .coll-list.open{display:block;}
+
+  .coll-item-sel{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 15px;cursor:pointer;
+    border-bottom:1px solid var(--line-2);
+    transition:background .12s;
+  }
+  .coll-item-sel:last-child{border-bottom:none;}
+  .coll-item-sel:active{background:rgba(46,107,74,.05);}
+  .coll-item-sel.selected{background:rgba(46,107,74,.07);}
+
+  .ci-ic{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
+  .ci-txt{font-size:13.5px;color:var(--ink-soft);flex:1;line-height:1.4;}
+  .coll-item-sel.selected .ci-txt{color:#2E6B4A;font-weight:600;}
+  .ci-ck{font-size:13px;color:transparent;flex-shrink:0;width:18px;text-align:center;}
+  .coll-item-sel.selected .ci-ck{color:#2E6B4A;}
+
   /* ===== 列表式主題選擇 UI ===== */
   .topic-ui{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
 
@@ -1555,22 +1604,65 @@
   <section id="view-collector" class="view">
     <div class="ws-head">
       <button class="back" onclick="openView('home')">‹</button>
-      <div class="ws-title"><h2>🛰️ 資料收集部</h2><p>收集相關話題並存檔，串接到內容流程</p></div>
+      <div class="ws-title"><h2>🛰️ 資料收集部</h2><p>選擇主題分類，AI 自動產出話題存檔</p></div>
     </div>
-    <div class="note">收集會用 AI 依你的「背景設定」（族群與健康主題），產出此刻適合發文的保健相關話題與故事比喻切入角度並存檔。自動／定時收集只會在你打開這個 App 時執行（網頁版無法在關閉後背景執行）。</div>
 
-    <div class="collect-set">
-      <label class="switch-row"><input type="checkbox" id="collAutoSet" onchange="saveCollectorCfg()"><span>自動收集（打開 App 時依頻率自動執行）</span></label>
+    <!-- 主題分類選擇 -->
+    <div class="coll-topic-ui">
+
+      <div class="coll-group">
+        <div class="coll-group-hd" onclick="toggleCollGroup('collHealthGroup')">
+          <span class="cg-ic">🌿</span>
+          <span class="cg-title">健康主題</span>
+          <span class="cg-sel" id="collHealthSel">未選擇</span>
+          <span class="cg-arr" id="collHealthArr">›</span>
+        </div>
+        <div class="coll-list" id="collHealthGroup">
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','睡眠品質差，很難入睡或半夜容易醒，白天精神差')"><span class="ci-ic">😴</span><span class="ci-txt">睡眠品質差</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神')"><span class="ci-ic">⚡</span><span class="ci-txt">疲勞體力不足</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','腸胃不舒服，容易腹脹消化差，喜歡喝冷飲')"><span class="ci-ic">🍽️</span><span class="ci-txt">腸胃消化問題</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','身體反覆發炎，老是有狀況，暫時好了又來')"><span class="ci-ic">🔥</span><span class="ci-txt">反覆發炎不適</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','血液循環差，手腳容易冰冷，整個人感覺沉重')"><span class="ci-ic">🩸</span><span class="ci-txt">血液循環差</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','氣血不足，容易累，走路就喘，整個人沒精神')"><span class="ci-ic">👮</span><span class="ci-txt">氣血不足體虛</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','體質寒濕，怕冷，容易反覆生病，手腳冰')"><span class="ci-ic">🏠</span><span class="ci-txt">體質寒濕虛弱</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','身體酸麻脹痛，微循環不好，腳容易腫')"><span class="ci-ic">🚗</span><span class="ci-txt">酸麻脹痛循環差</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','分享客戶使用後的真實感受案例，用個人感受方式表達')"><span class="ci-ic">💬</span><span class="ci-txt">感受案例分享</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'health','引流話術，帶有健康困擾的人去找老師諮詢')"><span class="ci-ic">🤝</span><span class="ci-txt">引流邀約話術</span><span class="ci-ck">✓</span></div>
+        </div>
+      </div>
+
+      <div class="coll-group">
+        <div class="coll-group-hd" onclick="toggleCollGroup('collConceptGroup')">
+          <span class="cg-ic">💡</span>
+          <span class="cg-title">觀念主題</span>
+          <span class="cg-sel" id="collConceptSel">未選擇</span>
+          <span class="cg-arr" id="collConceptArr">›</span>
+        </div>
+        <div class="coll-list" id="collConceptGroup">
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','收入結構與財富觀：很多人努力工作卻從來沒想過自己的錢是怎麼賺出來的，今天的努力能不能累積有沒有天花板')"><span class="ci-ic">💰</span><span class="ci-txt">收入結構與財富觀</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','自律與自由：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼')"><span class="ci-ic">🎯</span><span class="ci-txt">自律與自由</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','人脈的本質：人脈不是認識的人，而是關係的累積，認識一個人和真正建立關係是兩件完全不同的事')"><span class="ci-ic">🤝</span><span class="ci-txt">人脈的本質</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','傾聽與提問的力量：真正厲害的人不是最會說的人，而是最知道什麼時候該聽什麼時候該問什麼時候才該回答')"><span class="ci-ic">👂</span><span class="ci-txt">傾聽與提問的力量</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','知道和理解的差別：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過說得出來，卻從來沒有真正弄明白')"><span class="ci-ic">🧠</span><span class="ci-txt">知道 vs 真正理解</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','選擇還是習慣：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇')"><span class="ci-ic">🔄</span><span class="ci-txt">選擇還是習慣？</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','累積還是消耗：很多人很努力，但努力的方式是消耗不是累積，今天的努力有沒有讓明天的自己更強')"><span class="ci-ic">📈</span><span class="ci-txt">累積還是消耗？</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','健康是最重要的資產：很多人把健康當理所當然直到身體出問題才後悔，健康不是開銷是投資')"><span class="ci-ic">🌱</span><span class="ci-txt">健康是最重要的資產</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','改變的代價：很多人想改變卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')"><span class="ci-ic">💪</span><span class="ci-txt">改變的代價</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','為什麼選擇這份事業：不是因為別人說好，而是自己真正看懂了商品制度市場和數字之後做出的明白選擇')"><span class="ci-ic">✅</span><span class="ci-txt">為什麼選擇這份事業</span><span class="ci-ck">✓</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 自動設定 -->
+    <div class="collect-set" style="margin-top:4px;">
+      <label class="switch-row"><input type="checkbox" id="collAutoSet" onchange="saveCollectorCfg()"><span>自動收集（打開 App 時依頻率執行）</span></label>
       <div class="cfg-row">
         <span class="cfg-lbl">頻率</span>
         <select id="collFreqSet" onchange="saveCollectorCfg()">
           <option value="daily">每日一次</option>
           <option value="open">每次開啟 App</option>
         </select>
-      </div>
-      <div class="cfg-row">
-        <span class="cfg-lbl">主題方向</span>
-        <input type="text" id="collHintSet" placeholder="可留空，例如：睡眠困擾、疲勞體力、腸胃不舒服、某客群感受" oninput="saveCollectorCfg()">
       </div>
     </div>
 
@@ -2423,23 +2515,80 @@ function deleteResult(id){
   toast("已刪除");
 }
 
+
+/* ===== 資料收集部分類選擇 ===== */
+const _collSel = { health:'', concept:'' };
+const _collSelLabel = { health:'未選擇', concept:'未選擇' };
+
+function toggleCollGroup(id){
+  const list = document.getElementById(id);
+  const arrowId = id==='collHealthGroup'?'collHealthArr':'collConceptArr';
+  const arrow = document.getElementById(arrowId);
+  const isOpen = list.classList.toggle('open');
+  if(arrow) arrow.classList.toggle('open', isOpen);
+  // 關閉另一個
+  const otherId = id==='collHealthGroup'?'collConceptGroup':'collHealthGroup';
+  const otherArrowId = id==='collHealthGroup'?'collConceptArr':'collHealthArr';
+  const other = document.getElementById(otherId);
+  const otherArrow = document.getElementById(otherArrowId);
+  if(other){ other.classList.remove('open'); }
+  if(otherArrow){ otherArrow.classList.remove('open'); }
+}
+
+function selectCollTopic(el, cat, val){
+  const groupId = cat==='health'?'collHealthGroup':'collConceptGroup';
+  const selId   = cat==='health'?'collHealthSel':'collConceptSel';
+  // 取消同組其他
+  document.querySelectorAll('#'+groupId+' .coll-item-sel').forEach(i=>i.classList.remove('selected'));
+  // 切換
+  if(_collSel[cat]===val){
+    _collSel[cat]=''; _collSelLabel[cat]='未選擇';
+  } else {
+    el.classList.add('selected');
+    _collSel[cat]=val;
+    _collSelLabel[cat]=el.querySelector('.ci-txt').textContent;
+  }
+  const badge=document.getElementById(selId);
+  if(badge){ badge.textContent=_collSelLabel[cat]; badge.classList.toggle('has-val',!!_collSel[cat]); }
+  // 自動收合
+  setTimeout(()=>toggleCollGroup(groupId),280);
+}
+
+function getCollTopic(){
+  // 優先用選取的分類，沒有就用舊的 topicHint
+  if(_collSel.health) return _collSel.health;
+  if(_collSel.concept) return _collSel.concept;
+  return state.collector.topicHint||'';
+}
+
+function getCollCategory(){
+  if(_collSel.health) return 'health';
+  if(_collSel.concept) return 'concept';
+  return '';
+}
+
 /* ============ 資料收集部 ============ */
 function openCollector(){ fillCollectorCfg(); renderCollector(); openView("collector"); }
 function fillCollectorCfg(){
   document.getElementById("collAutoSet").checked=!!state.collector.auto;
   document.getElementById("collFreqSet").value=state.collector.freq||"daily";
-  document.getElementById("collHintSet").value=state.collector.topicHint||"";
+  // 恢復選取狀態（若有）
+  if(state.collector.topicHint){
+    _collSel.health=''; _collSel.concept='';
+  }
 }
 function saveCollectorCfg(){
   state.collector.auto=document.getElementById("collAutoSet").checked;
   state.collector.freq=document.getElementById("collFreqSet").value;
-  state.collector.topicHint=document.getElementById("collHintSet").value.trim();
+  // 主題由分類選單控制，儲存選取值
+  state.collector.topicHint=getCollTopic();
   save(); updateCollSummary();
 }
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  el.textContent = (state.collector.auto?"自動收集中 · ":"")+(n?`已存 ${n} 則話題`:"每日收集話題，可手動／定時／自動");
+  const catLabel = _collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:'';
+  el.textContent = (state.collector.auto?"自動收集中 · ":"")+(catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
 async function collectNow(){ await collectTopics(false); }
@@ -2449,14 +2598,21 @@ async function collectTopics(silent){
   running=true;
   const btn=document.getElementById("collectBtn");
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 收集中…'; }
-  const sys=`你是保健內容選題編輯。依下方【背景設定】的族群與主題，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的保健話題。每個主題優先配合大健康原理故事寶典的比喻方式（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話比喻切入角度），不要任何其他文字、不要 markdown。絕對不能出現療效、治療、根治等違規字眼。\n\n【背景設定】\n${(state.context||"").slice(0,800)}`;
-  const hint=(getCollectorHint()||state.collector.topicHint)?("主題方向："+(getCollectorHint()||state.collector.topicHint)+"。"):"";
+  const collCat = getCollCategory();
+  const collTopic = getCollTopic() || state.collector.topicHint || '';
+  let sys;
+  if(collCat==='concept'){
+    sys=`你是觀念內容選題編輯，擅長《康園道》系列的文章風格。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line，產出此刻適合發文的觀念類話題（財富觀、經營觀、市場觀、人生觀、自律、累積、選擇等方向）。風格要像《康園道》：用對比和反問帶出思考，有金句收尾。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度和金句方向），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
+  } else {
+    sys=`你是保健內容選題編輯。依下方【背景設定】的族群與主題，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的保健話題。每個主題優先配合大健康原理故事寶典的比喻方式（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話比喻切入角度），不要任何其他文字、不要 markdown。絕對不能出現療效、治療、根治等違規字眼。\n\n【背景設定】\n${(state.context||"").slice(0,800)}`;
+  }
+  const hint=collTopic?("主題方向："+collTopic+"。"):"";
   try{
     const r=await callOpenAI(sys, hint+"請給 6 個話題的 JSON 陣列。", 900);
     let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
     if(!Array.isArray(arr)||arr.length===0) throw new Error("回傳格式無法解析，請再試一次");
     const batch=arr.slice(0,8).map(o=>({ id:Date.now()+Math.random(), time:Date.now(),
-      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(), used:false }))
+      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(), cat:collCat, used:false }))
       .filter(o=>o.topic);
     state.collections=[...batch, ...state.collections].slice(0,120);
     state.collector.lastRun=Date.now();
@@ -2471,11 +2627,11 @@ async function collectTopics(silent){
 function renderCollector(){
   const box=document.getElementById("collectList"); if(!box) return;
   if(state.collections.length===0){
-    box.innerHTML='<div class="chain-empty">還沒有收集任何話題。按上方「立即收集話題」，AI 會幫你找出此刻適合發文的相關話題並存檔。</div>';
+    box.innerHTML='<div class="chain-empty">請選擇上方的健康或觀念主題，再按「立即收集話題」，AI 會依主題產出話題並存檔。</div>';
     updateCollSummary(); return;
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
-    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
