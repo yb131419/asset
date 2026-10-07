@@ -1862,7 +1862,7 @@ function buildPipeGoalFromChips(){
   return parts.join('\n');
 }
 
-function getCollectorHint(){
+function getCollTopic(){
   if(_sel.health) return _sel.health.slice(0,30);
   if(_sel.concept) return _sel.concept.slice(0,30);
   return state.collector.topicHint||'';
@@ -2041,16 +2041,10 @@ function renderPipeSteps(){
 }
 let pipePlatform="all";
 function syncPipeInput(){
-  // 把三個下拉的值組合成 pipeInput 的前綴提示
-  const topic = document.getElementById("pipeTopicSel")?.value || "";
-  const story = document.getElementById("pipeStorySel")?.value || "";
-  // 更新平台
-  const platSel = document.getElementById("pipePlatSel");
-  if(platSel) pipePlatform = platSel.value;
-  // 把主題和故事組合塞入隱藏的 pipeInput（如果使用者沒有自己填的話保持清空讓他補充）
-  window._pipeTopicVal = topic;
-  window._pipeStoryVal = story;
+  // 列表式選擇，不需要舊下拉，保留相容性
+  if(_sel) pipePlatform = _sel.plat || 'all';
 }
+
 function selectPipePlatform(k){
   pipePlatform=k;
   // 同步下拉（從 renderPipeSteps 的按鈕點擊也可能觸發）
@@ -3074,8 +3068,8 @@ async function runAllDepartments(resume){
   // 建立或接續進度
   let run=state.pipeRun;
   if(!resume || !run){
-    // 從晶片分類取得目標
-    pipePlatform = _catState.plat || 'all';
+    // 從列表選擇取得目標
+    pipePlatform = _sel.plat || 'all';
     const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各部門依職責自行發揮
     if(!goal){ toast("請先選擇健康或觀念主題，或在下方輸入說明"); return; }
