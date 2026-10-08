@@ -1604,6 +1604,18 @@
   #gateScreen .gate-btn-sub{display:none;}
   #gateScreen .gate-btn:disabled{opacity:.45;}
   #gateScreen .gate-dots{color:rgba(243,217,163,.8);}
+  /* ===== 圖卡產生器類型：一行兩列；教學卡片下拉：一行一列 ===== */
+  .cg-type-row{display:grid !important;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+  .cg-type-btn{
+    flex:none !important;min-width:0 !important;width:100%;
+    padding:13px 12px !important;min-height:50px;border-radius:14px !important;
+    font-size:15px !important;font-weight:700 !important;letter-spacing:.3px;white-space:nowrap;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .cards-cfg{flex-direction:column;gap:10px;}
+  .cards-cfg select{flex:none;width:100%;min-height:50px;font-size:15px;padding:0 14px;}
+  /* 首頁：資料收集部與圖卡工具之間的分隔線 */
+  .home-divider{height:1px;margin:18px 6px 20px;background:linear-gradient(90deg,transparent,rgba(184,134,60,.45),transparent);}
 </style>
 </head>
 <body>
@@ -1611,7 +1623,6 @@
 <div class="gate" id="gateScreen">
   <div class="gate-card">
     <div class="gate-brand">
-      <div class="gate-kicker">PREMIUM ACCESS</div>
       <div class="gate-title">健康智囊</div>
       <div class="gate-line"></div>
     </div>
@@ -1644,7 +1655,6 @@
 
   <!-- Header -->
   <header class="topbar" id="topbar">
-    <div class="brand-tag">🌿 健康智囊 · HEALTH CONTENT SYSTEM</div>
     <div class="row" style="margin-top:4px;">
       <button class="hdr-toggle" onclick="toggleMenu()" aria-label="選單" style="order:-1;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
@@ -1808,6 +1818,17 @@
     </div>
     <div id="pipeResults"></div>
 
+    <div class="lib-entry" onclick="openCollector()">
+      <div class="le-ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</div>
+      <div class="le-meta">
+        <div class="le-name">資料收集部</div>
+        <div class="le-sub" id="collSummary">每日收集相關話題並存檔，可手動／定時／自動</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="home-divider"></div>
+
     <div class="lib-entry" onclick="openView('cardgen')" style="border-left:3px solid #3A8A5E;">
       <div class="le-ic" style="background:rgba(46,107,74,.12);color:#2E6B4A;">🖼️</div>
       <div class="le-meta">
@@ -1835,15 +1856,6 @@
       <span class="chev">›</span>
     </div>
 
-    <div class="lib-entry" onclick="openCollector()">
-      <div class="le-ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</div>
-      <div class="le-meta">
-        <div class="le-name">資料收集部</div>
-        <div class="le-sub" id="collSummary">每日收集相關話題並存檔，可手動／定時／自動</div>
-      </div>
-      <span class="chev">›</span>
-    </div>
-
     <div class="lib-entry" onclick="openLibrary()">
       <div class="le-ic">📁</div>
       <div class="le-meta">
@@ -1854,10 +1866,10 @@
     </div>
 
     <div class="chain-wrap">
-      <div class="section-label">流程圖（點一下就能進去）</div>
+      <div class="section-label">流程圖</div>
       <div id="chainBox"></div>
     </div>
-    <div class="section-label">三個小幫手（也可以單獨用）</div>
+    <div class="section-label">三個小幫手</div>
     <div id="deptList"></div>
     <div class="home-build" id="homeBuild"></div>
   </section>
@@ -1868,7 +1880,6 @@
       <button class="back" onclick="openView('home')">‹</button>
       <div class="ws-title"><h2>🖼️ 圖卡產生器</h2><p>AI 自動排版 1:1 SVG 圖卡，截圖即可發布</p></div>
     </div>
-    <div class="note">輸入主題或貼上文字，AI 會自動排版成森林綠風格的方形圖卡。建議在桌機截圖，尺寸更精準。</div>
 
     <!-- 主題快選 -->
     <div class="section-label">選擇類型</div>
@@ -1889,7 +1900,6 @@
     <!-- 圖卡預覽區 -->
     <div id="cardgenResult"></div>
 
-    <div class="note" style="margin-top:8px;">📱 截圖時建議對準圖卡邊框，圖卡為 1:1 比例，適合 IG／Facebook 發布。</div>
   </section>
 
   <!-- CARDS 教學卡片工坊 -->
@@ -1898,7 +1908,6 @@
       <button class="back" onclick="openView('home')">‹</button>
       <div class="ws-title"><h2>🎴 教學卡片工坊</h2><p>教材 → 互動問答卡 → 一鍵複製</p></div>
     </div>
-    <div class="note">貼上教材文字或上傳文件（PDF／Word／txt／圖片），AI 會抽出重點做成教學卡。三種格式：同頁卡（問答一起看）、翻轉卡（翻面看答案）、填空卡（挖空考記憶）。每張都能複製，也可複製整副卡當講義；卡組會存在你的瀏覽器。</div>
 
     <div class="input-card">
       <textarea id="cardsInput" placeholder="貼上教材內容…（也可只上傳檔案）"></textarea>
@@ -1946,6 +1955,10 @@
 
     <!-- 主題分類選擇 -->
     <div class="coll-topic-ui">
+
+      <div class="coll-group">
+        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🤖</span><span class="ci-txt">AI定位判定</span><span class="ci-ck">✓</span></div>
+      </div>
 
       <div class="coll-group">
         <div class="coll-group-hd" onclick="toggleCollGroup('collHealthGroup')">
@@ -2014,7 +2027,6 @@
       <button class="back" onclick="openView('home')">‹</button>
       <div class="ws-title"><h2>📁 素材庫</h2><p>檔案留存一次，之後勾選即可使用</p></div>
     </div>
-    <div class="note">檔案存在你自己的瀏覽器。上傳後 AI 會自動做兩件事：①分類到所屬部門（可手動改）②把內容整理成精煉的「備用資料」。之後「一鍵運轉」與各部門執行時，會自動帶入整理版，不必每次重新上傳。圖片會自動壓縮保存。</div>
     <label class="attach lib-upload">＋ 上傳檔案到素材庫
       <input type="file" id="libInput" multiple accept=".txt,.md,.csv,.json,.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" class="hidden" onchange="handleLibUpload(event)">
     </label>
@@ -2410,9 +2422,19 @@ function renderHome(){
   updateCollSummary();
   updateCardsSummary();
   updateKeyStatus();
-  const hb=document.getElementById("homeBuild");
-  if(hb) hb.textContent="版本 "+(DEFAULTS.build||"-")+" · 大健康產業版（整合大健康原理故事寶典）";
+  updateBuildTexts();
 }
+// 版本文字：日期依台北時間即時更新（每分鐘刷新）
+function liveVersionText(){
+  const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()).replace(/-/g,".");
+  return "彥彬＠健康智囊　版本 "+date;
+}
+function updateBuildTexts(){
+  const t=liveVersionText();
+  const hb=document.getElementById("homeBuild"); if(hb) hb.textContent=t;
+  const bt=document.getElementById("buildTag"); if(bt) bt.textContent=t;
+}
+setInterval(updateBuildTexts, 60000);
 function renderPipeSteps(){
   // pipeSteps 和 pipePlatBar 已隱藏，改用首頁下拉；只更新素材庫顯示
   const lp=document.getElementById("libPickBar");
@@ -3028,7 +3050,7 @@ function deleteResult(id){
 
 
 /* ===== 資料收集部分類選擇 ===== */
-const _collSel = { health:'', concept:'' };
+const _collSel = { health:'', concept:'', auto:false };
 const _collSelLabel = { health:'未選擇', concept:'未選擇' };
 
 function toggleCollGroup(id){
@@ -3072,7 +3094,13 @@ function getCollTopic(){
   return state.collector.topicHint||'';
 }
 
+function toggleCollAuto(el){
+  _collSel.auto=!_collSel.auto;
+  el.classList.toggle('selected', _collSel.auto);
+  updateCollSummary();
+}
 function getCollCategory(){
+  if(_collSel.auto) return 'auto';
   if(_collSel.health) return 'health';
   if(_collSel.concept) return 'concept';
   return '';
@@ -3085,7 +3113,7 @@ function fillCollectorCfg(){
   document.getElementById("collFreqSet").value=state.collector.freq||"daily";
   // 恢復選取狀態（若有）
   if(state.collector.topicHint){
-    _collSel.health=''; _collSel.concept='';
+    _collSel.health=''; _collSel.concept=''; _collSel.auto=false;
   }
 }
 function saveCollectorCfg(){
@@ -3098,7 +3126,7 @@ function saveCollectorCfg(){
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  const catLabel = _collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:'';
+  const catLabel = _collSel.auto?'🤖 AI定位判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:'';
   el.textContent = (state.collector.auto?"自動收集中 · ":"")+(catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
@@ -3112,18 +3140,24 @@ async function collectTopics(silent){
   const collCat = getCollCategory();
   const collTopic = getCollTopic() || state.collector.topicHint || '';
   let sys;
-  if(collCat==='concept'){
+  if(collCat==='auto'){
+    const hTopics=[...document.querySelectorAll('#collHealthGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
+    const cTopics=[...document.querySelectorAll('#collConceptGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
+    sys=`你是內容選題編輯，擅長掌握台灣近期熱門話題。請為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 挑出此刻最熱門、適合發文的話題。\n\n【每個話題必須同時符合】\n✓ 落在以下健康主題的範圍：${hTopics}\n✓ 或落在以下觀念主題的範圍：${cTopics}\n✓ 用熱門議題自然帶出上述主題，不要硬湊\n\n【合規】不得出現療效、治療、根治、保證有效等字眼；案例只說個人感受。\n\n只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）、angle（一句話切入角度）、cat（"health" 或 "concept"，表示偏向哪一類）。不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
+  } else if(collCat==='concept'){
     sys=`你是觀念內容選題編輯，擅長《康園道》系列的文章風格。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line，產出此刻適合發文的觀念類話題（財富觀、經營觀、市場觀、人生觀、自律、累積、選擇等方向）。風格要像《康園道》：用對比和反問帶出思考，有金句收尾。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度和金句方向），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
   } else {
     sys=`你是保健內容選題編輯。依下方【背景設定】的族群與主題，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的保健話題。每個主題優先配合大健康原理故事寶典的比喻方式（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話比喻切入角度），不要任何其他文字、不要 markdown。絕對不能出現療效、治療、根治等違規字眼。\n\n【背景設定】\n${(state.context||"").slice(0,800)}`;
   }
-  const hint=collTopic?("主題方向："+collTopic+"。"):"";
+  const hint=collCat==='auto'?"請以近期熱門話題為主，並確保符合上述健康與觀念主題。":(collTopic?("主題方向："+collTopic+"。"):"");
   try{
     const r=await callOpenAI(sys, hint+"請給 6 個話題的 JSON 陣列。", 900);
     let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
     if(!Array.isArray(arr)||arr.length===0) throw new Error("回傳格式無法解析，請再試一次");
     const batch=arr.slice(0,8).map(o=>({ id:Date.now()+Math.random(), time:Date.now(),
-      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(), cat:collCat, used:false }))
+      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(),
+      cat: collCat==='auto' ? (o.cat==='concept'?'concept':'health') : collCat,
+      auto: collCat==='auto', used:false }))
       .filter(o=>o.topic);
     state.collections=[...batch, ...state.collections].slice(0,120);
     state.collector.lastRun=Date.now();
@@ -3142,7 +3176,7 @@ function renderCollector(){
     updateCollSummary(); return;
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
-    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
@@ -4108,7 +4142,7 @@ function fillSettings(){
   document.getElementById("titleSet").value=state.title;
   document.getElementById("contextSet").value=state.context;
   renderIndPick();
-  const bt=document.getElementById("buildTag"); if(bt) bt.textContent="版本 "+(DEFAULTS.build||"-")+"　大健康產業版 · 整合大健康原理故事寶典";
+  updateBuildTexts();
 }
 const TOPIC_TEMPLATES={
   "疲勞體力":"【本次主題】疲勞體力\n【目標族群】容易疲倦、下午就沒力、爬樓梯會喘的人\n【推薦比喻】警察故事（氣血就像薪水，沒薪水警察不工作）\n【合規說法】「她說最近走路比較有力氣，不像以前那麼容易累」",
@@ -4347,7 +4381,7 @@ function renderDrawer(){
 document.getElementById("titleInput").value=state.title;
 document.getElementById("miniTitle").textContent=state.title;
 if(state.headerMin){ document.getElementById("topbar").classList.add("min"); }
-document.getElementById("buildTag").textContent="版本 "+(DEFAULTS.build||"-")+"　大健康產業版 · 整合大健康原理故事寶典";
+updateBuildTexts();
 renderHome();
 initMember();
 checkAutoCollect();
