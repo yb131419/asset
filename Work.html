@@ -3653,7 +3653,7 @@ function cardLayout(text, opts){
     });
   });
   const bodyBottom=y;
-  const H=Math.max(760, Math.round(bodyBottom+150));
+  const H=Math.max(800, Math.round(bodyBottom+210));
   return {W, H, P, ruleY, items, titleLines, titleY0:128, TITLE_LH, BODY_FS, QUOTE_IND, opts};
 }
 function buildCardSVG(text, opts){
@@ -3676,7 +3676,7 @@ function buildCardSVG(text, opts){
     }
     return `<text x="${P}" y="${i.y}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="400" fill="#E9EEE9">${cardEscape(i.t)}</text>`;
   }).join("");
-  const fy=H-P-22;
+  const fy=H-P-14;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
       <linearGradient id="bgG" x1="0" y1="0" x2="0.6" y2="1">
@@ -3708,8 +3708,9 @@ function buildCardSVG(text, opts){
     <rect x="${P}" y="${L.ruleY}" width="84" height="3" rx="1.5" fill="url(#goldG)"/>
     ${quoteBar}
     ${bodySvg}
-    <line x1="${P}" y1="${fy-30}" x2="${W-P}" y2="${fy-30}" stroke="rgba(243,217,163,.22)" stroke-width="1"/>
-    <text x="${P}" y="${fy}" font-family="${F_SANS}" font-size="15" fill="rgba(233,238,233,.62)">以上為個人感受分享，每個人狀況不同</text>
+    <rect x="${P}" y="${fy-62}" width="${W-P*2}" height="50" rx="25" fill="rgba(243,217,163,.10)" stroke="rgba(243,217,163,.38)" stroke-width="1"/>
+    <circle cx="${P+30}" cy="${fy-37}" r="5" fill="url(#goldG)"/>
+    <text x="${P+54}" y="${fy-24}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="#F3E2B5">以上為個人感受分享，每個人狀況不同</text>
   </svg>`;
 }
 function makeCardFromBtn(btn){
