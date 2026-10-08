@@ -567,6 +567,9 @@
   /* 圖卡 SVG */
   .cardwrap:empty{display:none;}
   .svg-card-box{margin-top:14px;padding:14px;border-radius:16px;background:var(--paper);border:1px solid var(--line);}
+  .svg-card-box + .svg-card-box{margin-top:18px;}
+  .card-plat-tag{font-size:12.5px;font-weight:700;color:var(--accent);background:var(--gold-wash);
+    border-radius:10px;padding:8px 12px;margin-bottom:10px;}
   .svg-card-preview{width:100%;overflow-x:auto;border-radius:12px;box-shadow:var(--shadow-lg);}
   .svg-card-preview svg{display:block;width:100%;height:auto;border-radius:12px;}
 
@@ -1515,14 +1518,11 @@
           <div class="topic-group-header" onclick="toggleGroup('platGroup')">
             <span class="tg-icon">🎯</span>
             <span class="tg-title">目標平台</span>
-            <span class="tg-selected" id="platSelected">🌐 全平台</span>
+            <span class="tg-selected" id="platSelected">🎵 TikTok</span>
             <span class="tg-arrow" id="platArrow">›</span>
           </div>
           <div class="topic-list" id="platGroup">
-            <div class="topic-item ti-plat selected" onclick="selectPlat(this,'all')">
-              <span class="ti-ic">🌐</span><span class="ti-text">全平台（六個平台各一版）</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'tiktok')">
+            <div class="topic-item ti-plat selected" onclick="selectPlat(this,'tiktok')">
               <span class="ti-ic">🎵</span><span class="ti-text">TikTok</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'instagram')">
@@ -1883,8 +1883,8 @@
 <script>
 
 /* ===== 列表式主題選擇 ===== */
-const _sel = { health:'', concept:'', story:'', plat:'all' };
-const _selLabel = { health:'未選擇', concept:'未選擇', plat:'🌐 全平台' };
+const _sel = { health:'', concept:'', story:'', plat:'tiktok' };
+const _selLabel = { health:'未選擇', concept:'未選擇', plat:'🎵 TikTok' };
 
 function toggleGroup(id){
   const list = document.getElementById(id);
@@ -1998,7 +1998,6 @@ let cardsFiles = [];       // 教學卡片工坊的附件
 let handoffFrom = null;
 let running = false;
 const PLATFORMS=[
-  {k:"all",      label:"全平台",   ic:"🌐", tip:"請分別為 TikTok、Instagram、Threads、YouTube、Facebook、Line 六個平台各產出一個版本，每個版本「第一行必須單獨只有【平台名稱】」（一段只含一個平台，絕不合併），彼此用一行「— — —」分隔，並依該平台調性調整（短影音腳本／圖文限動／串文／影片腳本／臉書貼文／Line 訊息）。"},
   {k:"tiktok",   label:"TikTok",   ic:"🎵", tip:"請輸出 TikTok 短影音腳本：前 3 秒要有強鉤子、口語節奏快、附口白與字幕、結尾一句行動呼籲，再給 3–5 個主題標籤。"},
   {k:"instagram",label:"Instagram",ic:"📸", tip:"請輸出 Instagram 內容：圖文貼文文案（可分頁）＋一則限動文案，視覺優先、精簡有共鳴，附 5–8 個相關主題標籤。"},
   {k:"threads",  label:"Threads",  ic:"🧵", tip:"請輸出 Threads 短文：像聊天、口語、引發討論或共鳴，可拆成 2–3 則串文。"},
@@ -2006,9 +2005,9 @@ const PLATFORMS=[
   {k:"facebook", label:"Facebook", ic:"📘", tip:"請輸出 Facebook 貼文：可較長、說故事、段落分明、引發留言與分享，結尾一個互動提問或行動呼籲。"},
   {k:"line",     label:"Line",     ic:"💬", tip:"請輸出 Line 訊息：像一對一傳給朋友，親切、簡短、可直接複製傳送，不像廣告。"}
 ];
-let currentPlatform="all";
+let currentPlatform="tiktok";
 function platTip(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.tip:""; }
-function platLabel(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.label:"全平台"; }
+function platLabel(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.label:PLATFORMS[0].label; }
 function renderPlatBar(){
   const bar=document.getElementById("platBar"); if(!bar) return;
   bar.innerHTML='<div class="plat-lbl">🎯 目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
@@ -2128,10 +2127,10 @@ function renderPipeSteps(){
     </div>`;
   }
 }
-let pipePlatform="all";
+let pipePlatform="tiktok";
 function syncPipeInput(){
   // 列表式選擇，不需要舊下拉，保留相容性
-  if(_sel) pipePlatform = _sel.plat || 'all';
+  if(_sel) pipePlatform = _sel.plat || 'tiktok';
 }
 
 function selectPipePlatform(k){
@@ -2465,7 +2464,7 @@ function openDept(id){
   rb.style.background=d.accent;
   const pw=document.getElementById("presetWrap");
   pw.innerHTML=(d.presets||[]).map(p=>`<button class="preset-chip" onclick="usePreset(this)">${esc(p)}</button>`).join("");
-  currentPlatform="all"; renderPlatBar();
+  currentPlatform="tiktok"; renderPlatBar();
   renderWsLib();
   renderHistory();
   openView("dept");
@@ -3062,7 +3061,7 @@ async function runTask(){
   const userContent=built.content;
 
   try{
-    const out=await callOpenAI(sys,userContent,currentPlatform==="all"?3200:1800,true);
+    const out=await callOpenAI(sys,userContent,1800,true);
     const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
       input:input||"(附件處理)", output:out, time:Date.now(),
       fromDept:handoffFrom?handoffFrom.deptName:null };
@@ -3284,14 +3283,14 @@ async function runAllDepartments(resume){
   let run=state.pipeRun;
   if(!resume || !run){
     // 從列表選擇取得目標
-    pipePlatform = _sel.plat || 'all';
+    pipePlatform = _sel.plat || 'tiktok';
     const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各部門依職責自行發揮
     if(!goal){ toast("請先選擇健康或觀念主題，或在下方輸入說明"); return; }
     run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false };
     state.pipeRun=run; save();
   }else{
-    pipePlatform=run.plat||"all";
+    pipePlatform=run.plat||"tiktok";
     if(!document.getElementById("pipeInput").value) document.getElementById("pipeInput").value=run.goal||"";
   }
 
@@ -3328,7 +3327,7 @@ async function runAllDepartments(resume){
       base+=`\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}`;
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
       if(built.trimmed) run.anyTrim=true;
-      const out=await callOpenAI(buildSys(d), built.content, run.plat==="all"?2600:1800);
+      const out=await callOpenAI(buildSys(d), built.content, 1800);
       run.collected.push({name:d.name, out});
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
@@ -3347,15 +3346,15 @@ async function runAllDepartments(resume){
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有部門產出，優化成可直接發布的成品…",
       `目標平台：${platLabel(run.plat)}`);
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個部門的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 若為全平台，六個平台各自獨立成段，第一行只有【平台名稱】，段與段之間用「— — —」分隔\n- 只輸出成品本身，不要出現部門名稱或過程說明`;
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個部門的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現部門名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
-    const finalOut=await callOpenAI(editorSys, comp, run.plat==="all"?3200:2600,true);
+    const finalOut=await callOpenAI(editorSys, comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
       input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
       fromDept:"三部門", platform:platLabel(run.plat) });
-    results.insertAdjacentHTML("afterbegin", finalCard(finalOut));
+    results.insertAdjacentHTML("afterbegin", finalCard(finalOut, platLabel(run.plat)));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
     setPipeBar(TOTAL, TOTAL);
     setPipeRemark("🎉", "全部完成！成品已存入成品庫", "各部門產出也已分別存入部門紀錄");
@@ -3527,14 +3526,14 @@ function toggleClamp(btn){
   const open=body.classList.toggle("full");
   btn.textContent=open?"收合":"展開全文";
 }
-function finalCard(out){
+function finalCard(out, plat){
   const cid="fc"+Date.now();
   return `<div class="output-card final-card">
     <div class="oc-head final-head">📄 成品 · 可直接貼文（已存入成品庫）</div>
     ${richBody(out)}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
-      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-plat="${esc(plat||"")}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
       <button class="mini" onclick="openResults()">📦 前往成品庫</button>
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
@@ -3618,19 +3617,23 @@ function buildCardSVG(text, opts){
 }
 function makeCardFromBtn(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
+  const plat=btn.getAttribute("data-plat")||"";
   const card=btn.closest(".output-card");
   const wrap=card.querySelector(".cardwrap");
-  renderCardInto(wrap, txt);
+  renderCardInto(wrap, txt, plat);
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function renderCardInto(wrap, txt){
-  // 若內容含多個平台版本，分別獨立產生每個平台自己的圖卡，不要混在一起
+function renderCardInto(wrap, txt, plat){
+  // 若內容含多個平台版本（舊資料），分別獨立產生每個平台自己的圖卡，不要混在一起
   const blocks=splitPlatforms(txt);
-  const items = blocks && blocks.length>1 ? blocks.map(b=>b.body) : [txt];
-  wrap.innerHTML = items.map(bodyTxt=>{
+  const items = blocks && blocks.length>1
+    ? blocks.map(b=>({body:b.body, plat:b.label}))
+    : [{body:txt, plat:plat||""}];
+  wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat})=>{
     const svg=buildCardSVG(bodyTxt);
     const cid="card_"+Math.random().toString(36).slice(2);
     return `<div class="svg-card-box">
+      ${itemPlat?`<div class="card-plat-tag">🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）</div>`:""}
       <div class="svg-card-preview" id="${cid}">${svg}</div>
       <div class="hi-actions" style="margin-top:10px;">
         <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
