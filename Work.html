@@ -1616,6 +1616,81 @@
   .cards-cfg select{flex:none;width:100%;min-height:50px;font-size:15px;padding:0 14px;}
   /* 首頁：資料收集部與圖卡工具之間的分隔線 */
   .home-divider{height:1px;margin:18px 6px 20px;background:linear-gradient(90deg,transparent,rgba(184,134,60,.45),transparent);}
+  /* ===== 素材庫：高質感排版（深綠金箔頁頭、卡片化清單） ===== */
+  #view-library .ws-head{
+    background:linear-gradient(160deg,#14402F 0%,#0A2620 58%,#06160F 100%);
+    border-radius:24px;padding:16px 16px 18px;margin:6px 0 14px;position:relative;overflow:hidden;
+    box-shadow:0 14px 34px rgba(5,20,15,.26);align-items:center;
+  }
+  #view-library .ws-head::after{
+    content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle, rgba(243,217,163,.22), transparent 70%);pointer-events:none;
+  }
+  #view-library .back{background:rgba(243,217,163,.10);color:#F3D9A3;border:1px solid rgba(243,217,163,.28);box-shadow:none;position:relative;z-index:1;}
+  #view-library .ws-title{position:relative;z-index:1;min-width:0;}
+  #view-library .ws-title h2{font-family:"Noto Serif TC","Songti TC",serif;color:#F6E3B4;font-size:23px;font-weight:800;letter-spacing:.8px;margin:0;}
+  #view-library .ws-title p{color:rgba(233,238,233,.74);font-size:13.5px;margin-top:4px;}
+
+  /* 上傳按鈕：金色虛線卡 */
+  #view-library .lib-upload{
+    display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;margin:0 0 16px;
+    border-radius:20px;border:1.5px dashed rgba(184,134,60,.55);background:#FFFDF7;color:#7A5520;
+    font-family:"Noto Serif TC","Songti TC",serif;font-size:15.5px;font-weight:800;letter-spacing:.5px;
+    box-shadow:0 1px 2px rgba(20,32,26,.04);cursor:pointer;
+  }
+  #view-library .lib-upload:active{transform:scale(.98);background:#FBF5E6;}
+
+  /* 素材卡 */
+  #view-library .lib-item{
+    display:grid;grid-template-columns:52px 1fr auto;grid-template-areas:"ic meta act" "ic row act";
+    align-items:center;gap:6px 14px;background:#FFFFFF;border:1px solid rgba(184,134,60,.20);
+    border-radius:22px;padding:16px 14px 16px 16px;margin-bottom:12px;
+    box-shadow:0 1px 2px rgba(20,32,26,.04), 0 10px 26px rgba(20,32,26,.07);
+  }
+  #view-library .li-ic{
+    grid-area:ic;width:52px;height:52px;border-radius:17px;display:grid;place-items:center;font-size:24px;
+    background:linear-gradient(160deg,#F7F1E3,#EFE6D0);box-shadow:inset 0 0 0 1.2px rgba(184,134,60,.35);
+  }
+  #view-library .li-meta{grid-area:meta;min-width:0;}
+  #view-library .li-name{
+    font-family:"Noto Serif TC","Songti TC",serif;font-size:16px;font-weight:800;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.3px;
+  }
+  #view-library .li-row{grid-area:row;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;}
+  #view-library .li-dept{
+    appearance:none;-webkit-appearance:none;border:1px solid rgba(23,85,58,.18);background:#FBFAF6;
+    color:#17553A;font-size:13px;font-weight:700;border-radius:999px;padding:7px 28px 7px 12px;min-height:34px;
+    background-image:linear-gradient(45deg,transparent 50%,#17553A 50%),linear-gradient(135deg,#17553A 50%,transparent 50%);
+    background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat;
+    max-width:100%;font-family:inherit;
+  }
+  #view-library .li-class{font-size:12.5px;font-weight:700;color:#7A5520;}
+  #view-library .li-row .hi-btn{border-radius:999px;background:#FBFAF6;border:1px solid rgba(23,85,58,.18);color:#17553A;min-height:34px;padding:6px 12px;font-size:12.5px;}
+
+  /* 指定開關 */
+  #view-library .lib-toggle{
+    grid-area:act;border-radius:999px;min-height:40px;padding:0 14px;font-size:13px;font-weight:800;
+    border:1px solid rgba(20,32,26,.14);background:#F5F4EF;color:var(--ink-soft);font-family:inherit;
+    white-space:nowrap;transition:all .2s;
+  }
+  #view-library .lib-toggle.on{
+    background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;
+    box-shadow:0 6px 14px rgba(10,46,32,.25);
+  }
+  #view-library .lib-toggle:active{transform:scale(.95);}
+  #view-library .lib-del{
+    position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;border:none;background:transparent;
+    font-size:14px;color:var(--ink-faint);opacity:.7;
+  }
+  #view-library .lib-item{position:relative;}
+  #view-library .lib-item .lib-del{grid-area:act;justify-self:end;position:static;margin-top:0;width:auto;height:auto;padding:4px 2px;font-size:15px;}
+  #view-library .lib-item{grid-template-rows:auto auto auto;}
+  #view-library .lib-del{align-self:end;}
+
+  #view-library .chain-empty{
+    background:#FFFFFF;border:1px dashed rgba(184,134,60,.35);border-radius:20px;padding:22px 20px;
+    color:var(--ink-soft);font-size:14px;line-height:1.7;text-align:center;
+  }
 </style>
 </head>
 <body>
@@ -2002,18 +2077,6 @@
         </div>
       </div>
 
-    </div>
-
-    <!-- 自動設定 -->
-    <div class="collect-set" style="margin-top:4px;">
-      <label class="switch-row"><input type="checkbox" id="collAutoSet" onchange="saveCollectorCfg()"><span>自動收集（打開 App 時依頻率執行）</span></label>
-      <div class="cfg-row">
-        <span class="cfg-lbl">頻率</span>
-        <select id="collFreqSet" onchange="saveCollectorCfg()">
-          <option value="daily">每日一次</option>
-          <option value="open">每次開啟 App</option>
-        </select>
-      </div>
     </div>
 
     <button class="pl-run dark" id="collectBtn" onclick="collectNow()">🛰️ 立即收集話題</button>
@@ -3109,16 +3172,13 @@ function getCollCategory(){
 /* ============ 資料收集部 ============ */
 function openCollector(){ fillCollectorCfg(); renderCollector(); openView("collector"); }
 function fillCollectorCfg(){
-  document.getElementById("collAutoSet").checked=!!state.collector.auto;
-  document.getElementById("collFreqSet").value=state.collector.freq||"daily";
   // 恢復選取狀態（若有）
   if(state.collector.topicHint){
     _collSel.health=''; _collSel.concept=''; _collSel.auto=false;
   }
 }
 function saveCollectorCfg(){
-  state.collector.auto=document.getElementById("collAutoSet").checked;
-  state.collector.freq=document.getElementById("collFreqSet").value;
+  state.collector.auto=false;
   // 主題由分類選單控制，儲存選取值
   state.collector.topicHint=getCollTopic();
   save(); updateCollSummary();
@@ -3127,7 +3187,7 @@ function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
   const catLabel = _collSel.auto?'🤖 AI定位判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:'';
-  el.textContent = (state.collector.auto?"自動收集中 · ":"")+(catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
+  el.textContent = (catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
 async function collectNow(){ await collectTopics(false); }
@@ -3207,6 +3267,7 @@ function deleteTopic(id){
   state.collections=state.collections.filter(c=>String(c.id)!==String(id)); save(); renderCollector();
 }
 function checkAutoCollect(){
+  return; // 自動收集已取消
   const c=state.collector; if(!c.auto||!aiReady()||running) return;
   let due=false;
   if(c.freq==="open"){ due=(Date.now()-(c.lastRun||0))>30*60*1000; }
