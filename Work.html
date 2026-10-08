@@ -1691,6 +1691,18 @@
     background:#FFFFFF;border:1px dashed rgba(184,134,60,.35);border-radius:20px;padding:22px 20px;
     color:var(--ink-soft);font-size:14px;line-height:1.7;text-align:center;
   }
+  /* 圖卡：自己設計面板 */
+  .cd-panel{margin-top:14px;padding:16px;border-radius:18px;background:#FFFFFF;border:1px solid rgba(184,134,60,.22);}
+  .cd-head{font-family:"Noto Serif TC","Songti TC",serif;font-weight:800;color:#17553A;font-size:15px;margin-bottom:12px;letter-spacing:.4px;}
+  .cd-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+  .cd-field span,.cd-lbl{font-size:12.5px;font-weight:700;color:var(--ink-soft);letter-spacing:.3px;}
+  .cd-field input,.cd-field textarea{width:100%;border:1px solid rgba(20,32,26,.12);border-radius:12px;padding:10px 12px;font-size:15px;font-family:inherit;background:#FBFAF6;color:var(--ink);outline:none;resize:vertical;}
+  .cd-field input:focus,.cd-field textarea:focus{border-color:#B8863C;box-shadow:0 0 0 3px rgba(184,134,60,.15);}
+  .cd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .cd-seg{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
+  .cd-seg button,.cd-toggle{border-radius:999px;border:1px solid rgba(23,85,58,.18);background:#FBFAF6;color:#17553A;font-size:13px;font-weight:700;padding:7px 12px;min-height:36px;font-family:inherit;}
+  .cd-seg button.on,.cd-toggle.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;}
+  .cd-toggle{min-width:64px;}
 </style>
 </head>
 <body>
@@ -2176,6 +2188,16 @@
     </div>
 
     <div class="field">
+      <label>圖卡預設名稱（每張圖卡可再修改）</label>
+      <input type="text" id="cardNameSet" maxlength="30">
+    </div>
+
+    <div class="field">
+      <label>圖卡底層預設文字（圖卡最下方顯示）</label>
+      <input type="text" id="cardFooterSet" maxlength="60">
+    </div>
+
+    <div class="field">
       <label>背景設定 · 共用（決定內容的方向與合規語氣）</label>
       <div class="ind-pick" id="indPick"></div>
       <textarea id="contextSet" placeholder="共用背景：你的產業定位、目標族群、語氣、合規注意事項…所有部門都會依這段產出，主題快選只會額外附加"></textarea>
@@ -2291,6 +2313,7 @@ function getCollTopic(){
 const DEFAULTS = {
   schema:9,
   contextVer:2,
+  cardDefaults:{name:"", footer:"以上為個人感受分享，每個人狀況不同"},
   topicPick:"",
   build:"2026.10.01-health-v6-chips",
   title:"健康智囊",
@@ -3946,8 +3969,15 @@ function finalCard(out, plat){
 }
 
 /* ============ SVG 圖卡（可直接複製當圖片貼出去） ============ */
-/* ---- 圖卡排版引擎（奢華深綠金箔風） ---- */
+/* ---- 圖卡排版引擎（可自訂設計） ---- */
 const CARD_W=720, CARD_PAD=64;
+const CARD_THEMES={
+  forest:{bg:["#14402F","#0A2620","#05140F"],glow:"#F3D9A3",glowOp:".26",gold:["#FBE9B9","#E7C27A","#B8863C"],frame:"rgba(243,217,163,.32)",frame2:"rgba(243,217,163,.10)",body:"#E9EEE9",head:"#F3D9A3",quote:"#F6E3B4",footText:"rgba(233,238,233,.66)",footBg:"rgba(243,217,163,.10)",footLine:"rgba(243,217,163,.38)",footGold:"#F3E2B5",mark:"rgba(243,217,163,.12)",grain:"0.10"},
+  ivory:{bg:["#FBF8F0","#F4EEDC","#EADFC4"],glow:"#C9994A",glowOp:".18",gold:["#A8782E","#C9994A","#7A5520"],frame:"rgba(122,85,32,.38)",frame2:"rgba(122,85,32,.14)",body:"#2B2A22",head:"#7A5520",quote:"#5C4116",footText:"rgba(43,42,34,.66)",footBg:"rgba(122,85,32,.08)",footLine:"rgba(122,85,32,.4)",footGold:"#5C4116",mark:"rgba(122,85,32,.12)",grain:"0.04"},
+  ink:{bg:["#24272A","#131516","#070808"],glow:"#D9DEE3",glowOp:".16",gold:["#F5F7F6","#CDD3D0","#8E9691"],frame:"rgba(230,235,230,.26)",frame2:"rgba(230,235,230,.10)",body:"#E7EAE7",head:"#FFFFFF",quote:"#FFFFFF",footText:"rgba(231,234,231,.62)",footBg:"rgba(255,255,255,.07)",footLine:"rgba(255,255,255,.30)",footGold:"#E7EAE7",mark:"rgba(255,255,255,.10)",grain:"0.08"},
+  warm:{bg:["#5A3420","#341E12","#1A0E08"],glow:"#F7D9A0",glowOp:".24",gold:["#FBE7BC","#E9B977","#B87A3A"],frame:"rgba(247,217,160,.34)",frame2:"rgba(247,217,160,.10)",body:"#F6EBDD",head:"#F7D9A0",quote:"#FBE7BC",footText:"rgba(246,235,221,.66)",footBg:"rgba(247,217,160,.10)",footLine:"rgba(247,217,160,.38)",footGold:"#F7D9A0",mark:"rgba(247,217,160,.12)",grain:"0.10"}
+};
+const CARD_SIZES={s:22,m:26,l:30};
 function cardEm(str){ let w=0; for(const ch of str){ const c=ch.codePointAt(0); w+= c<128 ? (ch===" "?0.32:0.56) : 1; } return w; }
 function cardWrap(text, maxEm){
   const out=[]; let cur="", w=0;
@@ -3962,46 +3992,49 @@ function cardWrap(text, maxEm){
   return out;
 }
 function cardEscape(s){ return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-function cardLayout(text, opts){
+function cardSplit(text){
+  const lines=(text||"").split("\n");
+  const idx=lines.findIndex(l=>l.trim());
+  if(idx<0) return {title:"", body:""};
+  const title=lines[idx].trim().replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"").replace(/^[👉✅🎯🌀📌]\s*/,"").trim();
+  return {title, body:lines.slice(idx+1).join("\n").replace(/^\n+/,"")};
+}
+function cardLayout(text, o){
   const W=CARD_W, P=CARD_PAD;
+  const BODY_FS=CARD_SIZES[o.size]||26, BODY_LH=Math.round(BODY_FS*1.77);
+  const TITLE_FS=Math.round(BODY_FS*1.75), TITLE_LH=Math.round(TITLE_FS*1.2);
+  const center = o.align==="center";
   const lines=(text||"").split("\n").map(x=>x.replace(/\s+$/,""));
-  // 1) 標題：第一行非空文字（最多兩行）
   const firstIdx=lines.findIndex(l=>l.trim());
-  let titleSrc = firstIdx>=0 ? lines[firstIdx].trim() : (state.title||"健康智囊");
-  titleSrc = titleSrc.replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"").replace(/^[👉✅🎯🌀📌]\s*/,"").trim() || (state.title||"健康智囊");
-  let titleLines=cardWrap(titleSrc, 12);
+  let titleSrc = firstIdx>=0 ? cardSplit(lines[firstIdx]).title : "";
+  titleSrc = titleSrc || (state.title||"健康智囊");
+  const titleMaxEm = (W-2*P)/TITLE_FS - 0.6;
+  let titleLines=cardWrap(titleSrc, titleMaxEm);
   let bodyLines = firstIdx>=0 ? lines.slice(firstIdx+1) : [];
   if(titleLines.length>2){
-    // 標題超過兩行：截斷，完整文字放回內文
     titleLines=[titleLines[0], titleLines[1].slice(0,-1)+"…"];
     bodyLines=[lines[firstIdx].trim(), ...bodyLines];
   }
-  // 2) 內文區塊
-  const blocks=[];
-  let lastWasGap=true;
+  const blocks=[]; let lastWasGap=true;
   bodyLines.forEach(raw=>{
     const t=raw.trim();
     if(!t){ if(!lastWasGap){ blocks.push({gap:true}); lastWasGap=true; } return; }
-    const isHead=/^[#👉✅🎯🌀📌]/.test(t);
-    blocks.push({text:t.replace(/^#+\s*/,""), head:isHead});
+    blocks.push({text:t.replace(/^#+\s*/,""), head:/^[#👉✅🎯🌀📌]/.test(t)});
     lastWasGap=false;
   });
   while(blocks.length && blocks[blocks.length-1].gap) blocks.pop();
-  // 最後一句短句 → 金句收尾樣式
   for(let i=blocks.length-1;i>=0;i--){
     if(blocks[i].gap) continue;
     if(cardEm(blocks[i].text)<=34 && !blocks[i].head) blocks[i].quote=true;
     break;
   }
-  // 3) 座標計算
   const items=[];
-  let y=128;
-  const TITLE_LH=56;
+  let y=124;
   titleLines.forEach((t,i)=>{ items.push({kind:"title", t, y:y+i*TITLE_LH}); });
   y = y + (titleLines.length-1)*TITLE_LH;
   const ruleY = y + 34;
   y = ruleY + 62;
-  const BODY_LH=46, BODY_FS=26, GAP=20, QUOTE_IND=28;
+  const GAP=Math.round(BODY_FS*0.8), QUOTE_IND=28;
   blocks.forEach(b=>{
     if(b.gap){ y+=GAP; return; }
     const maxEm = ((W-P*2)/BODY_FS) - (b.quote?QUOTE_IND/BODY_FS+0.4:0);
@@ -4012,65 +4045,122 @@ function cardLayout(text, opts){
     });
   });
   const bodyBottom=y;
-  const H=Math.max(800, Math.round(bodyBottom+210));
-  return {W, H, P, ruleY, items, titleLines, titleY0:128, TITLE_LH, BODY_FS, QUOTE_IND, opts};
+  const footH = o.footer ? 120 : 70;
+  const H=Math.max(760, Math.round(bodyBottom+footH+50));
+  return {W,H,P,ruleY,items,BODY_FS,TITLE_FS,QUOTE_IND,center};
 }
-function buildCardSVG(text, opts){
-  opts=opts||{};
-  const L=cardLayout(text, opts);
+function buildCardSVG(text, o, uid){
+  o=Object.assign({theme:"forest",size:"m",align:"left",footer:true}, o||{});
+  const T=CARD_THEMES[o.theme]||CARD_THEMES.forest;
+  const L=cardLayout(text, o);
   const {W,H,P}=L;
+  const u=(uid||"c")+"_"+o.theme;
   const F_SERIF="'Noto Serif TC','Songti TC','Source Han Serif TC','PingFang TC',serif";
   const F_SANS="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif";
+  const anchor = L.center ? "middle" : "start";
+  const bx = L.center ? W/2 : P;
   const titleSvg=L.items.filter(i=>i.kind==="title").map(i=>
-    `<text x="${P}" y="${i.y}" font-family="${F_SERIF}" font-size="46" font-weight="800" fill="url(#goldG)" letter-spacing="1">${cardEscape(i.t)}</text>`).join("");
+    `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.TITLE_FS}" font-weight="800" fill="url(#gold_${u})" letter-spacing="1">${cardEscape(i.t)}</text>`).join("");
   const quoteItems=L.items.filter(i=>i.kind==="quote");
-  const quoteBar = quoteItems.length
-    ? `<rect x="${P}" y="${quoteItems[0].y-30}" width="4" height="${quoteItems[quoteItems.length-1].y-quoteItems[0].y+46}" rx="2" fill="url(#goldG)"/>` : "";
+  const quoteBar = (quoteItems.length && !L.center)
+    ? `<rect x="${P}" y="${quoteItems[0].y-30}" width="4" height="${quoteItems[quoteItems.length-1].y-quoteItems[0].y+46}" rx="2" fill="url(#gold_${u})"/>` : "";
   const bodySvg=L.items.filter(i=>i.kind!=="title").map(i=>{
     if(i.kind==="quote"){
-      return `<text x="${P+L.QUOTE_IND}" y="${i.y}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="600" fill="#F6E3B4">${cardEscape(i.t)}</text>`;
+      const qx = L.center ? W/2 : P+L.QUOTE_IND;
+      return `<text x="${qx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="600" fill="${T.quote}">${cardEscape(i.t)}</text>`;
     }
     if(i.kind==="head"){
-      return `<text x="${P}" y="${i.y}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="700" fill="#F3D9A3">${cardEscape(i.t)}</text>`;
+      return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="700" fill="${T.head}">${cardEscape(i.t)}</text>`;
     }
-    return `<text x="${P}" y="${i.y}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="400" fill="#E9EEE9">${cardEscape(i.t)}</text>`;
+    return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="400" fill="${T.body}">${cardEscape(i.t)}</text>`;
   }).join("");
   const fy=H-P-14;
+  const footText = (o.footerText!=null ? o.footerText : (state.cardDefaults&&state.cardDefaults.footer)||"");
+  const nameSvg = o.name ? `<text x="${bx}" y="74" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${Math.round(L.BODY_FS*0.72)}" font-weight="700" letter-spacing="3" fill="${T.head}">${cardEscape(o.name)}</text>` : "";
+  const footSvg = (o.footer && footText) ? `
+    <rect x="${P}" y="${fy-62}" width="${W-P*2}" height="50" rx="25" fill="${T.footBg}" stroke="${T.footLine}" stroke-width="1"/>
+    <circle cx="${P+30}" cy="${fy-37}" r="5" fill="url(#gold_${u})"/>
+    <text x="${P+54}" y="${fy-24}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="${T.footGold}">${cardEscape(footText)}</text>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
-      <linearGradient id="bgG" x1="0" y1="0" x2="0.6" y2="1">
-        <stop offset="0" stop-color="#14402F"/>
-        <stop offset="0.55" stop-color="#0A2620"/>
-        <stop offset="1" stop-color="#05140F"/>
+      <linearGradient id="bg_${u}" x1="0" y1="0" x2="0.6" y2="1">
+        <stop offset="0" stop-color="${T.bg[0]}"/>
+        <stop offset="0.55" stop-color="${T.bg[1]}"/>
+        <stop offset="1" stop-color="${T.bg[2]}"/>
       </linearGradient>
-      <radialGradient id="glowG" cx="0.92" cy="0.04" r="0.75">
-        <stop offset="0" stop-color="#F3D9A3" stop-opacity="0.26"/>
-        <stop offset="1" stop-color="#F3D9A3" stop-opacity="0"/>
+      <radialGradient id="glow_${u}" cx="0.92" cy="0.04" r="0.75">
+        <stop offset="0" stop-color="${T.glow}" stop-opacity="${T.glowOp}"/>
+        <stop offset="1" stop-color="${T.glow}" stop-opacity="0"/>
       </radialGradient>
-      <linearGradient id="goldG" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#FBE9B9"/>
-        <stop offset="0.55" stop-color="#E7C27A"/>
-        <stop offset="1" stop-color="#B8863C"/>
+      <linearGradient id="gold_${u}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="${T.gold[0]}"/>
+        <stop offset="0.55" stop-color="${T.gold[1]}"/>
+        <stop offset="1" stop-color="${T.gold[2]}"/>
       </linearGradient>
-      <filter id="grainF" x="0" y="0" width="100%" height="100%">
+      <filter id="grain_${u}" x="0" y="0" width="100%" height="100%">
         <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" stitchTiles="stitch"/>
         <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 0.93  0 0 0 0 0.78  0 0 0 0.9 -0.35"/>
       </filter>
     </defs>
-    <rect width="${W}" height="${H}" fill="url(#bgG)"/>
-    <rect width="${W}" height="${H}" fill="url(#glowG)"/>
-    <rect width="${W}" height="${H}" filter="url(#grainF)" opacity="0.10"/>
-    <rect x="22" y="22" width="${W-44}" height="${H-44}" rx="22" fill="none" stroke="rgba(243,217,163,.32)" stroke-width="1.2"/>
-    <rect x="30" y="30" width="${W-60}" height="${H-60}" rx="16" fill="none" stroke="rgba(243,217,163,.10)" stroke-width="1"/>
-    <text x="${W-P}" y="${P+58}" font-family="${F_SERIF}" font-size="120" fill="rgba(243,217,163,.12)" text-anchor="end">❝</text>
+    <rect width="${W}" height="${H}" fill="url(#bg_${u})"/>
+    <rect width="${W}" height="${H}" fill="url(#glow_${u})"/>
+    <rect width="${W}" height="${H}" filter="url(#grain_${u})" opacity="${T.grain}"/>
+    <rect x="22" y="22" width="${W-44}" height="${H-44}" rx="22" fill="none" stroke="${T.frame}" stroke-width="1.2"/>
+    <rect x="30" y="30" width="${W-60}" height="${H-60}" rx="16" fill="none" stroke="${T.frame2}" stroke-width="1"/>
+    ${L.center ? "" : `<text x="${W-P}" y="${P+58}" font-family="${F_SERIF}" font-size="120" fill="${T.mark}" text-anchor="end">❝</text>`}
+    ${nameSvg}
     ${titleSvg}
-    <rect x="${P}" y="${L.ruleY}" width="84" height="3" rx="1.5" fill="url(#goldG)"/>
+    <rect x="${L.center?(W-84)/2:P}" y="${L.ruleY}" width="84" height="3" rx="1.5" fill="url(#gold_${u})"/>
     ${quoteBar}
     ${bodySvg}
-    <rect x="${P}" y="${fy-62}" width="${W-P*2}" height="50" rx="25" fill="rgba(243,217,163,.10)" stroke="rgba(243,217,163,.38)" stroke-width="1"/>
-    <circle cx="${P+30}" cy="${fy-37}" r="5" fill="url(#goldG)"/>
-    <text x="${P+54}" y="${fy-24}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="#F3E2B5">以上為個人感受分享，每個人狀況不同</text>
+    ${footSvg}
   </svg>`;
+}
+
+/* ---- 卡片設計狀態（每張圖卡各自保存） ---- */
+window.CARD_STATE = window.CARD_STATE || {};
+function cardStateOf(cid){ return window.CARD_STATE[cid]; }
+function cardComposeText(st){ return (st.title||"") + "\n" + (st.body||""); }
+function cardPreviewHTML(cid){
+  const st=cardStateOf(cid); if(!st) return "";
+  return buildCardSVG(cardComposeText(st), {theme:st.theme,size:st.size,align:st.align,footer:st.footer,name:st.name,footerText:st.footerText}, cid);
+}
+function cardRefresh(cid){
+  const el=document.getElementById(cid); if(!el) return;
+  el.innerHTML = cardPreviewHTML(cid);
+}
+function cardEdit(cid, key, val){
+  const st=cardStateOf(cid); if(!st) return;
+  st[key]=val; cardRefresh(cid);
+}
+function cardSetOpt(cid, key, val, btn){
+  const st=cardStateOf(cid); if(!st) return;
+  st[key]=val; cardRefresh(cid);
+  const group=btn.parentElement;
+  group.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
+}
+function cardToggleFooter(cid, btn){
+  const st=cardStateOf(cid); if(!st) return;
+  st.footer=!st.footer; cardRefresh(cid);
+  btn.classList.toggle("on", st.footer);
+  btn.textContent = st.footer ? "顯示" : "隱藏";
+}
+function cardEditorHTML(cid){
+  const st=cardStateOf(cid);
+  const attr=v=>String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+  const themes=[["forest","深綠金箔"],["ivory","米白墨金"],["ink","墨黑銀"],["warm","焦糖暖金"]];
+  const seg=(key,opts)=>opts.map(([v,l])=>`<button class="${st[key]===v?"on":""}" onclick="cardSetOpt('${cid}','${key}','${v}',this)">${l}</button>`).join("");
+  return `<div class="cd-panel">
+    <div class="cd-head">✏️ 自己設計</div>
+    <label class="cd-field"><span>名稱</span><input type="text" maxlength="30" value="${attr(st.name)}" oninput="cardEdit('${cid}','name',this.value)"></label>
+    <label class="cd-field"><span>標題</span><input type="text" value="${attr(st.title)}" oninput="cardEdit('${cid}','title',this.value)"></label>
+    <label class="cd-field"><span>內文</span><textarea rows="5" oninput="cardEdit('${cid}','body',this.value)">${attr(st.body)}</textarea></label>
+    <div class="cd-row"><span class="cd-lbl">配色</span><div class="cd-seg cd-theme">${seg("theme",themes)}</div></div>
+    <div class="cd-row"><span class="cd-lbl">字級</span><div class="cd-seg">${seg("size",[["s","小"],["m","中"],["l","大"]])}</div></div>
+    <div class="cd-row"><span class="cd-lbl">對齊</span><div class="cd-seg">${seg("align",[["left","靠左"],["center","置中"]])}</div></div>
+    <label class="cd-field"><span>底層文字</span><input type="text" maxlength="60" value="${attr(st.footerText)}" oninput="cardEdit('${cid}','footerText',this.value)"></label>
+    <div class="cd-row"><span class="cd-lbl">底層顯示</span><button class="cd-toggle ${st.footer?"on":""}" onclick="cardToggleFooter('${cid}',this)">${st.footer?"顯示":"隱藏"}</button></div>
+  </div>`;
 }
 function makeCardFromBtn(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
@@ -4081,27 +4171,28 @@ function makeCardFromBtn(btn){
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function renderCardInto(wrap, txt, plat){
-  // 若內容含多個平台版本（舊資料），分別獨立產生每個平台自己的圖卡，不要混在一起
   const blocks=splitPlatforms(txt);
   const groups = blocks && blocks.length>1
     ? blocks.map(b=>({body:b.body, plat:b.label}))
     : [{body:txt, plat:plat||""}];
-  // 每個段落（例如第一段、第二段⋯）各自獨立成一張圖卡，不要擠在同一張
   const items=[];
   groups.forEach(({body, plat:itemPlat})=>{
     const segs=segmentize(body).filter(s=>s.trim());
     segs.forEach((seg,i)=> items.push({body:seg, plat:itemPlat, seg:i+1, segTotal:segs.length}));
   });
   wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat, seg, segTotal})=>{
-    const svg=buildCardSVG(bodyTxt);
     const cid="card_"+Math.random().toString(36).slice(2);
+    const sp=cardSplit(bodyTxt);
+    const cd=state.cardDefaults||{};
+    window.CARD_STATE[cid]={title:sp.title, body:sp.body, theme:"forest", size:"m", align:"left", footer:true, name:cd.name||"", footerText:cd.footer||""};
     const tagBits=[];
     if(itemPlat) tagBits.push(`🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）`);
     if(segTotal>1) tagBits.push(`第 ${seg}／${segTotal} 張`);
     return `<div class="svg-card-box">
       ${tagBits.length?`<div class="card-plat-tag">${tagBits.join("　")}</div>`:""}
-      <div class="svg-card-preview" id="${cid}">${svg}</div>
-      <div class="hi-actions" style="margin-top:10px;">
+      <div class="svg-card-preview" id="${cid}">${cardPreviewHTML(cid)}</div>
+      ${cardEditorHTML(cid)}
+      <div class="hi-actions" style="margin-top:12px;">
         <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
         <button class="hi-btn" onclick="shareCardImage('${cid}')">📤 分享圖卡</button>
       </div>
@@ -4201,6 +4292,9 @@ function fillSettings(){
   renderMemberCenter();
   document.getElementById("autoSet").checked=!!state.autoAnalyze;
   document.getElementById("titleSet").value=state.title;
+  const cd=state.cardDefaults||DEFAULTS.cardDefaults;
+  document.getElementById("cardNameSet").value=cd.name||"";
+  document.getElementById("cardFooterSet").value=cd.footer||"";
   document.getElementById("contextSet").value=state.context;
   renderIndPick();
   updateBuildTexts();
@@ -4262,6 +4356,10 @@ async function deriveBrand(){
 function saveSettings(){
   state.autoAnalyze=document.getElementById("autoSet").checked;
   state.title=document.getElementById("titleSet").value.trim()||"健康智囊";
+  state.cardDefaults={
+    name:document.getElementById("cardNameSet").value.trim(),
+    footer:document.getElementById("cardFooterSet").value.trim()
+  };
   state.context=document.getElementById("contextSet").value.trim();
   save();
   document.getElementById("titleInput").value=state.title;
