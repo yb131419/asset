@@ -1516,29 +1516,28 @@
         <!-- 目標平台 -->
         <div class="topic-group">
           <div class="topic-group-header" onclick="toggleGroup('platGroup')">
-            <span class="tg-icon">🎯</span>
             <span class="tg-title">目標平台</span>
-            <span class="tg-selected" id="platSelected">🎵 TikTok</span>
+            <span class="tg-selected" id="platSelected">TikTok</span>
             <span class="tg-arrow" id="platArrow">›</span>
           </div>
           <div class="topic-list" id="platGroup">
             <div class="topic-item ti-plat selected" onclick="selectPlat(this,'tiktok')">
-              <span class="ti-ic">🎵</span><span class="ti-text">TikTok</span><span class="ti-check">✓</span>
+              <span class="ti-text">TikTok</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'instagram')">
-              <span class="ti-ic">📸</span><span class="ti-text">Instagram</span><span class="ti-check">✓</span>
+              <span class="ti-text">Instagram</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'threads')">
-              <span class="ti-ic">🧵</span><span class="ti-text">Threads</span><span class="ti-check">✓</span>
+              <span class="ti-text">Threads</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'youtube')">
-              <span class="ti-ic">▶️</span><span class="ti-text">YouTube</span><span class="ti-check">✓</span>
+              <span class="ti-text">YouTube</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'facebook')">
-              <span class="ti-ic">📘</span><span class="ti-text">Facebook</span><span class="ti-check">✓</span>
+              <span class="ti-text">Facebook</span><span class="ti-check">✓</span>
             </div>
             <div class="topic-item ti-plat" onclick="selectPlat(this,'line')">
-              <span class="ti-ic">💬</span><span class="ti-text">Line</span><span class="ti-check">✓</span>
+              <span class="ti-text">Line</span><span class="ti-check">✓</span>
             </div>
           </div>
         </div>
@@ -1884,7 +1883,7 @@
 
 /* ===== 列表式主題選擇 ===== */
 const _sel = { health:'', concept:'', story:'', plat:'tiktok' };
-const _selLabel = { health:'未選擇', concept:'未選擇', plat:'🎵 TikTok' };
+const _selLabel = { health:'未選擇', concept:'未選擇', plat:'TikTok' };
 
 function toggleGroup(id){
   const list = document.getElementById(id);
@@ -1932,9 +1931,8 @@ function selectPlat(el, val){
   _sel.plat = val;
   pipePlatform = val;
   const label = el.querySelector('.ti-text').textContent;
-  const ic = el.querySelector('.ti-ic').textContent;
   const badge = document.getElementById('platSelected');
-  if(badge){ badge.textContent = ic+' '+label; badge.classList.add('has-val'); }
+  if(badge){ badge.textContent = label; badge.classList.add('has-val'); }
   setTimeout(()=>toggleGroup('platGroup'),300);
 }
 
@@ -2010,8 +2008,8 @@ function platTip(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.tip:""; }
 function platLabel(k){ const p=PLATFORMS.find(x=>x.k===k); return p?p.label:PLATFORMS[0].label; }
 function renderPlatBar(){
   const bar=document.getElementById("platBar"); if(!bar) return;
-  bar.innerHTML='<div class="plat-lbl">🎯 目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
-    `<button class="plat-chip ${p.k===currentPlatform?'on':''}" onclick="selectPlatform('${p.k}')"><span class="pc-ic">${p.ic}</span>${esc(p.label)}</button>`).join("")+'</div>';
+  bar.innerHTML='<div class="plat-lbl">目標平台</div><div class="plat-scroll">'+PLATFORMS.map(p=>
+    `<button class="plat-chip ${p.k===currentPlatform?"on":""}" onclick="selectPlatform('${p.k}')">${esc(p.label)}</button>`).join("")+'</div>';
 }
 function selectPlatform(k){ currentPlatform=k; renderPlatBar(); }
 const MAX_FILE_CHARS = 12000;
