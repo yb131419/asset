@@ -1781,7 +1781,7 @@
 
     <div class="pipeline">
       <div class="pl-title">🚀 一鍵自動完成</div>
-      <div class="pl-sub">點選主題 + 故事比喻 + 目標平台，按下開始，AI 自動完成全套內容。</div>
+      <div class="pl-sub">點選主題 + 故事比喻，按下開始，AI 自動完成全套內容。</div>
       <!-- 主題分類選擇 -->
       <div class="topic-ui">
 
@@ -1865,36 +1865,6 @@
             </div>
             <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品制度市場和數字之後做出的明白選擇')">
               <span class="ti-ic">✅</span><span class="ti-text">為什麼選擇這份事業</span><span class="ti-check">✓</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 目標平台 -->
-        <div class="topic-group">
-          <div class="topic-group-header" onclick="toggleGroup('platGroup')">
-            <span class="tg-icon">🎯</span>
-            <span class="tg-title">目標平台</span>
-            <span class="tg-selected" id="platSelected">未選擇</span>
-            <span class="tg-arrow" id="platArrow">›</span>
-          </div>
-          <div class="topic-list" id="platGroup">
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'tiktok')">
-              <span class="ti-text">TikTok</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'instagram')">
-              <span class="ti-text">Instagram</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'threads')">
-              <span class="ti-text">Threads</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'youtube')">
-              <span class="ti-text">YouTube</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'facebook')">
-              <span class="ti-text">Facebook</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item ti-plat" onclick="selectPlat(this,'line')">
-              <span class="ti-text">Line</span><span class="ti-check">✓</span>
             </div>
           </div>
         </div>
@@ -2136,8 +2106,6 @@
 
     <div class="preset-wrap" id="presetWrap"></div>
 
-    <div class="plat-bar" id="platBar"></div>
-
     <div id="wsLibBar"></div>
 
     <div class="input-card">
@@ -2273,7 +2241,7 @@ function selectTopic(el, cat, val){
   setTimeout(()=>toggleGroup(groupId),300);
 }
 
-function selectPlat(el, val){
+function selectPlat(el, val){ return;
   const wasSelected = el.classList.contains('selected');
   document.querySelectorAll('#platGroup .topic-item').forEach(i=>i.classList.remove('selected'));
   const badge = document.getElementById('platSelected');
@@ -2407,12 +2375,12 @@ function deptModeGuide(){
   return G[m.k]||"";
 }
 
-function renderPlatBar(){
+function renderPlatBar(){ return;
   const bar=document.getElementById("platBar"); if(!bar) return;
   bar.innerHTML='<div class="plat-head"><span class="plat-lbl">🎯 目標平台</span><span class="plat-hint">'+(currentPlatform?'再點一次可取消':'未選擇')+'</span></div><div class="plat-scroll">'+PLATFORMS.map(p=>
     `<button class="plat-chip ${p.k===currentPlatform?"on":""}" onclick="selectPlatform('${p.k}')"><span class="pc-check">✓</span>${esc(p.label)}</button>`).join("")+'</div>';
 }
-function selectPlatform(k){ currentPlatform = (currentPlatform===k) ? "" : k; renderPlatBar(); }
+function selectPlatform(k){ return; currentPlatform = (currentPlatform===k) ? "" : k; renderPlatBar(); }
 const MAX_FILE_CHARS = 12000;
 const MAX_TOTAL_CHARS = 36000;
 const MAX_CHAIN_CHARS = 2500;
@@ -3473,7 +3441,7 @@ async function runTask(){
   const btn=document.getElementById("runBtn");
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>分析中';
 
-  const sys = `你是「${state.title}」的部門 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的部門定位】\n${d.role}\n\n${deptModeGuide()}\n\n【本次目標平台：${platLabel(currentPlatform)}】${platTip(currentPlatform)}\n\n【寫作風格硬性規定（參考《康園道》系列文章）】\n① 短句為主，每句獨立一行，有節奏感\n② 大量留白，段落間空行，不要密密麻麻\n③ 開頭先描述所有人都有的現象，讓人對號入座\n④ 用對比和反問帶出思考，不要直接說答案\n⑤ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 分層\n⑥ 結尾有金句收尾，一句話讓人記住\n⑦ 不寫推銷字眼，語氣像真心分享\n\n【合規硬性規定（不得違反）】\n✗ 不能說：治療、根治、改善疾病、保證有效、降血糖、降血壓、抗癌\n✗ 癌症、洗腎、精神科案例不能公開\n✓ 案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），可以直接拿去用。`;
+  const sys = `你是「${state.title}」的部門 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的部門定位】\n${d.role}\n\n${deptModeGuide()}\n\n【寫作風格硬性規定（參考《康園道》系列文章）】\n① 短句為主，每句獨立一行，有節奏感\n② 大量留白，段落間空行，不要密密麻麻\n③ 開頭先描述所有人都有的現象，讓人對號入座\n④ 用對比和反問帶出思考，不要直接說答案\n⑤ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 分層\n⑥ 結尾有金句收尾，一句話讓人記住\n⑦ 不寫推銷字眼，語氣像真心分享\n\n【合規硬性規定（不得違反）】\n✗ 不能說：治療、根治、改善疾病、保證有效、降血糖、降血壓、抗癌\n✗ 癌症、洗腎、精神科案例不能公開\n✓ 案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），可以直接拿去用。`;
 
   let textPart = input || "請依你的部門定位，仔細閱讀下方附件內容，直接完成分析並產出可立即使用的成果。";
   if(handoffFrom){ textPart = `【${handoffFrom.deptName} 交辦的素材】\n${clip(handoffFrom.output,MAX_CHAIN_CHARS)}\n\n【本次任務】\n${textPart}`; }
@@ -3747,7 +3715,6 @@ async function runAllDepartments(resume){
       base+= run.stepTasks[i]
         ? `【你的任務】\n${run.stepTasks[i]}\n\n請完成並產出可直接使用的成果。`
         : `請以「${d.name}」的角色，完成你負責的部分，產出可直接使用的成果。`;
-      base+=`\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}`;
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
       if(built.trimmed) run.anyTrim=true;
       const out=await callOpenAI(buildSys(d), built.content, 1800);
@@ -3767,17 +3734,16 @@ async function runAllDepartments(resume){
     }
 
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
-    setPipeRemark("🧵", "正在統整所有部門產出，優化成可直接發布的成品…",
-      `目標平台：${platLabel(run.plat)}`);
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個部門的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【目標平台：${platLabel(run.plat)}】${platTip(run.plat)}\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現部門名稱、平台名稱或過程說明`;
+    setPipeRemark("🧵", "正在統整所有部門產出，優化成可直接發布的成品…");
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個部門的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現部門名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
     const finalOut=await callOpenAI(editorSys, comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
       input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
-      fromDept:"三部門", platform:platLabel(run.plat) });
-    results.insertAdjacentHTML("afterbegin", finalCard(finalOut, platLabel(run.plat)));
+      fromDept:"三部門", platform:"" });
+    results.insertAdjacentHTML("afterbegin", finalCard(finalOut, ""));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
     setPipeBar(TOTAL, TOTAL);
     setPipeRemark("🎉", "全部完成！成品已存入成品庫", "各部門產出也已分別存入部門紀錄");
