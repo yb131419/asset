@@ -3565,17 +3565,24 @@ function wrapCJK(text, maxChars){
   while(out.length && out[out.length-1]==="") out.pop();
   return out;
 }
+function deriveCardTitle(text){
+  const lines=(text||"").split("\n").map(s=>s.trim()).filter(Boolean);
+  let first=lines[0]||"";
+  first=first.replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"").replace(/^[👉✅🎯🌀📌]\s*/,"").trim();
+  if(!first) return state.title||"健康智囊";
+  if(first.length>16) first=first.slice(0,15)+"…";
+  return first;
+}
 function buildCardSVG(text, opts){
   opts=opts||{};
   const W=720;
   const pad=52;
   const maxChars=18;
-  const title=opts.title||state.title||"健康智囊";
-  const plat=opts.plat||"";
+  const title=opts.title||deriveCardTitle(text);
   const bodyLines=wrapCJK(text, maxChars);
   const lineH=34;
   const titleBlockH=96;
-  const footH=70;
+  const footH=56;
   const bodyH=bodyLines.length*lineH;
   const H=Math.max(560, titleBlockH+pad+bodyH+pad+footH);
 
@@ -3602,13 +3609,11 @@ function buildCardSVG(text, opts){
     </defs>
     <rect width="${W}" height="${H}" fill="url(#bgGrad)"/>
     <rect x="0" y="0" width="${W}" height="6" fill="url(#barGrad)"/>
-    <text x="${pad}" y="56" font-size="26" font-family="'PingFang TC','Noto Sans TC',sans-serif" font-weight="700" fill="#F3D9A3">🌿 ${esc2(title)}</text>
-    ${plat?`<text x="${W-pad}" y="56" font-size="15" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#C9D1C9" text-anchor="end">${esc2(plat)}</text>`:""}
-    <line x1="${pad}" y1="76" x2="${W-pad}" y2="76" stroke="rgba(243,217,163,.35)" stroke-width="1"/>
+    <text x="${pad}" y="58" font-size="27" font-family="'PingFang TC','Noto Sans TC',sans-serif" font-weight="700" fill="#F3D9A3">${esc2(title)}</text>
+    <line x1="${pad}" y1="78" x2="${W-pad}" y2="78" stroke="rgba(243,217,163,.35)" stroke-width="1"/>
     ${tspans}
     <line x1="${pad}" y1="${H-footH+6}" x2="${W-pad}" y2="${H-footH+6}" stroke="rgba(243,217,163,.25)" stroke-width="1"/>
-    <text x="${pad}" y="${H-footH+38}" font-size="14" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#8FA895">以上為個人感受分享，每個人狀況不同</text>
-    <text x="${W-pad}" y="${H-footH+38}" font-size="14" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#C79A4B" text-anchor="end">AI 智囊 ・ 一鍵生成</text>
+    <text x="${pad}" y="${H-footH+34}" font-size="14" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#8FA895">以上為個人感受分享，每個人狀況不同</text>
   </svg>`;
 }
 function makeCardFromBtn(btn){
@@ -3618,16 +3623,21 @@ function makeCardFromBtn(btn){
   renderCardInto(wrap, txt);
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function renderCardInto(wrap, txt, plat){
-  const svg=buildCardSVG(txt,{plat});
-  const cid="card_"+Math.random().toString(36).slice(2);
-  wrap.innerHTML=`<div class="svg-card-box">
-    <div class="svg-card-preview" id="${cid}">${svg}</div>
-    <div class="hi-actions" style="margin-top:10px;">
-      <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
-      <button class="hi-btn" onclick="downloadCardImage('${cid}')">⬇️ 下載圖片</button>
-    </div>
-  </div>`;
+function renderCardInto(wrap, txt){
+  // 若內容含多個平台版本，分別獨立產生每個平台自己的圖卡，不要混在一起
+  const blocks=splitPlatforms(txt);
+  const items = blocks && blocks.length>1 ? blocks.map(b=>b.body) : [txt];
+  wrap.innerHTML = items.map(bodyTxt=>{
+    const svg=buildCardSVG(bodyTxt);
+    const cid="card_"+Math.random().toString(36).slice(2);
+    return `<div class="svg-card-box">
+      <div class="svg-card-preview" id="${cid}">${svg}</div>
+      <div class="hi-actions" style="margin-top:10px;">
+        <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
+        <button class="hi-btn" onclick="shareCardImage('${cid}')">📤 分享圖卡</button>
+      </div>
+    </div>`;
+  }).join("");
 }
 function svgToCanvas(svgEl, scale){
   return new Promise((resolve,reject)=>{
@@ -3647,34 +3657,48 @@ function svgToCanvas(svgEl, scale){
     img.src="data:image/svg+xml;base64,"+svg64;
   });
 }
+function canvasToBlob(canvas){
+  return new Promise(res=>canvas.toBlob(res,"image/png"));
+}
 async function copyCardImage(cid, btn){
   try{
     const svgEl=document.querySelector("#"+cid+" svg");
     const canvas=await svgToCanvas(svgEl,2);
-    canvas.toBlob(async (blob)=>{
-      try{
-        await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]);
-        toast("圖卡已複製，直接到對話或貼文貼上即可");
-      }catch(err){
-        downloadCanvas(canvas);
-        toast("這台裝置不支援直接複製圖片，已改為下載圖卡");
-      }
-    }, "image/png");
+    const blob=await canvasToBlob(canvas);
+    try{
+      await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]);
+      toast("圖卡已複製，直接到對話或貼文貼上即可");
+    }catch(err){
+      await shareOrFallback(blob);
+    }
   }catch(e){
     toast("圖卡產生失敗，請再試一次");
   }
 }
-function downloadCanvas(canvas){
-  const a=document.createElement("a");
-  a.download="圖卡_"+Date.now()+".png";
-  a.href=canvas.toDataURL("image/png");
-  a.click();
+async function shareOrFallback(blob){
+  const file=new File([blob], "圖卡_"+Date.now()+".png", {type:"image/png"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{
+      await navigator.share({files:[file], title:state.title||"圖卡"});
+      return;
+    }catch(err){
+      if(err && err.name==="AbortError") return; // 使用者自己取消分享
+    }
+  }
+  // 無法分享也無法複製時，開新視窗顯示圖片，讓使用者長按儲存
+  const url=URL.createObjectURL(blob);
+  window.open(url,"_blank");
+  toast("這台裝置不支援直接分享，已開啟圖片，請長按儲存");
 }
-async function downloadCardImage(cid){
-  const svgEl=document.querySelector("#"+cid+" svg");
-  const canvas=await svgToCanvas(svgEl,2);
-  downloadCanvas(canvas);
-  toast("圖卡已下載");
+async function shareCardImage(cid){
+  try{
+    const svgEl=document.querySelector("#"+cid+" svg");
+    const canvas=await svgToCanvas(svgEl,2);
+    const blob=await canvasToBlob(canvas);
+    await shareOrFallback(blob);
+  }catch(e){
+    toast("圖卡產生失敗，請再試一次");
+  }
 }
 
 function renderOutput(out, d){
