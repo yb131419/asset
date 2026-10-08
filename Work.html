@@ -3509,10 +3509,15 @@ function copyWhole(btn){
   navigator.clipboard.writeText(parts.join("\n\n")).then(()=>toast("已複製整篇，可直接貼文"));
 }
 function resultCard(d,out){
+  const cid="dc"+Date.now()+Math.floor(Math.random()*1000);
   return `<div class="output-card">
     <div class="oc-head"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${d.emoji} ${esc(d.name)}<span class="saved-tag">已存入此部門</span></div>
     ${richBody(out)}
-    <div class="oc-actions"><button class="mini" onclick="copyWhole(this)">📋 複製全部</button></div>
+    <div class="oc-actions">
+      <button class="mini" onclick="copyWhole(this)">📋 複製全部</button>
+      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+    </div>
+    <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
 }
 function copyText(btn){
@@ -3624,14 +3629,23 @@ function makeCardFromBtn(btn){
 function renderCardInto(wrap, txt, plat){
   // 若內容含多個平台版本（舊資料），分別獨立產生每個平台自己的圖卡，不要混在一起
   const blocks=splitPlatforms(txt);
-  const items = blocks && blocks.length>1
+  const groups = blocks && blocks.length>1
     ? blocks.map(b=>({body:b.body, plat:b.label}))
     : [{body:txt, plat:plat||""}];
-  wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat})=>{
+  // 每個段落（例如第一段、第二段⋯）各自獨立成一張圖卡，不要擠在同一張
+  const items=[];
+  groups.forEach(({body, plat:itemPlat})=>{
+    const segs=segmentize(body).filter(s=>s.trim());
+    segs.forEach((seg,i)=> items.push({body:seg, plat:itemPlat, seg:i+1, segTotal:segs.length}));
+  });
+  wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat, seg, segTotal})=>{
     const svg=buildCardSVG(bodyTxt);
     const cid="card_"+Math.random().toString(36).slice(2);
+    const tagBits=[];
+    if(itemPlat) tagBits.push(`🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）`);
+    if(segTotal>1) tagBits.push(`第 ${seg}／${segTotal} 張`);
     return `<div class="svg-card-box">
-      ${itemPlat?`<div class="card-plat-tag">🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）</div>`:""}
+      ${tagBits.length?`<div class="card-plat-tag">${tagBits.join("　")}</div>`:""}
       <div class="svg-card-preview" id="${cid}">${svg}</div>
       <div class="hi-actions" style="margin-top:10px;">
         <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
@@ -3704,15 +3718,18 @@ async function shareCardImage(cid){
 
 function renderOutput(out, d){
   const others=state.departments.filter(x=>x.id!==d.id);
+  const cid="dc"+Date.now();
   document.getElementById("outputZone").innerHTML=
    `<div class="output-card">
      <div class="oc-head"><span class="pin" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${esc(d.name)} 產出<span class="saved-tag">已存入「${esc(d.name)}」紀錄</span></div>
      <div id="lastOutWrap">${richBody(out)}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
+       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
        <div class="handoff-title">交辦給下一個部門 ▸</div>
        ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
      </div>
+     <div class="cardwrap" id="cw-${cid}"></div>
    </div>`;
   window._lastOut=out;
   document.getElementById("outputZone").scrollIntoView({behavior:"smooth",block:"nearest"});
