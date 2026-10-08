@@ -564,6 +564,12 @@
     -webkit-line-clamp:5;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;}
   .res-out.full{-webkit-line-clamp:unset;display:block;}
 
+  /* 圖卡 SVG */
+  .cardwrap:empty{display:none;}
+  .svg-card-box{margin-top:14px;padding:14px;border-radius:16px;background:var(--paper);border:1px solid var(--line);}
+  .svg-card-preview{width:100%;overflow-x:auto;border-radius:12px;box-shadow:var(--shadow-lg);}
+  .svg-card-preview svg{display:block;width:100%;height:auto;border-radius:12px;}
+
   /* 摺疊外框：一鍵跑完的資料預設收合，避免內容一多雜亂 */
   .fold-wrap{padding:6px;}
   .fold-toggle{width:100%;display:flex;align-items:center;gap:9px;padding:14px 16px;
@@ -871,6 +877,50 @@
 
 
 
+
+
+  /* ===== 圖卡產生器 ===== */
+  .cg-type-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .cg-type-btn{
+    flex:1;min-width:80px;padding:10px 8px;border-radius:10px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    background:#fff;border:1.5px solid rgba(26,28,26,.10);
+    color:var(--ink-soft);transition:all .15s;
+    font-family:inherit;
+  }
+  .cg-type-btn.active{
+    background:rgba(46,107,74,.08);
+    border-color:#2E6B4A;color:#2E6B4A;
+  }
+  .cg-type-btn:active{transform:scale(.96);}
+
+  #cardgenResult{margin-top:14px;}
+  .cardgen-wrap{
+    background:#fff;border:1px solid rgba(26,28,26,.08);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 2px 12px rgba(26,28,26,.07);
+  }
+  .cardgen-svg-box{
+    width:100%;aspect-ratio:1/1;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;background:#1C3D2A;
+  }
+  .cardgen-svg-box svg{width:100%;height:100%;}
+  .cardgen-actions{
+    padding:12px 14px;display:flex;gap:8px;align-items:center;
+    border-top:1px solid rgba(26,28,26,.06);
+  }
+  .cga-btn{
+    flex:1;padding:11px 8px;border-radius:10px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:inherit;border:1.5px solid rgba(26,28,26,.10);
+    background:#fff;color:var(--ink-soft);transition:all .15s;
+  }
+  .cga-btn.primary{
+    background:linear-gradient(160deg,#3A8A5E,#2E6B4A);
+    color:#fff;border-color:transparent;
+  }
+  .cga-btn:active{transform:scale(.96);}
+  .cardgen-hint{font-size:11.5px;color:var(--ink-faint);text-align:center;padding:8px 14px 12px;}
 
   /* ===== 資料收集部 分類列表 ===== */
   .coll-topic-ui{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
@@ -1510,6 +1560,15 @@
     </div>
     <div id="pipeResults"></div>
 
+    <div class="lib-entry" onclick="openView('cardgen')" style="border-left:3px solid #3A8A5E;">
+      <div class="le-ic" style="background:rgba(46,107,74,.12);color:#2E6B4A;">🖼️</div>
+      <div class="le-meta">
+        <div class="le-name">圖卡產生器</div>
+        <div class="le-sub">AI 自動排版金句卡、健康卡、觀念卡，截圖即發布</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
     <div class="lib-entry cards-entry" onclick="openCards()">
       <div class="le-ic">🎴</div>
       <div class="le-meta">
@@ -1553,6 +1612,36 @@
     <div class="section-label">三個小幫手（也可以單獨用）</div>
     <div id="deptList"></div>
     <div class="home-build" id="homeBuild"></div>
+  </section>
+
+  <!-- CARDGEN 圖卡產生器 -->
+  <section id="view-cardgen" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🖼️ 圖卡產生器</h2><p>AI 自動排版 1:1 SVG 圖卡，截圖即可發布</p></div>
+    </div>
+    <div class="note">輸入主題或貼上文字，AI 會自動排版成森林綠風格的方形圖卡。建議在桌機截圖，尺寸更精準。</div>
+
+    <!-- 主題快選 -->
+    <div class="section-label">選擇類型</div>
+    <div class="cg-type-row">
+      <button class="cg-type-btn active" onclick="selectCardType(this,'quote')">💬 金句卡</button>
+      <button class="cg-type-btn" onclick="selectCardType(this,'health')">🌿 健康知識</button>
+      <button class="cg-type-btn" onclick="selectCardType(this,'concept')">💡 觀念文章</button>
+      <button class="cg-type-btn" onclick="selectCardType(this,'case')">👤 感受案例</button>
+    </div>
+
+    <div class="input-card" style="margin-top:12px;">
+      <textarea id="cardgenInput" placeholder="輸入主題或貼上內容，例如：「改變需要代價，但不改變的代價更大」&#10;&#10;也可以不填，讓 AI 依選擇的類型自動發揮。" style="min-height:100px;"></textarea>
+      <div class="input-actions">
+        <button class="run-btn" id="cardgenBtn" style="background:linear-gradient(160deg,#3A8A5E,#2E6B4A);" onclick="generateCard()">生成圖卡 ▸</button>
+      </div>
+    </div>
+
+    <!-- 圖卡預覽區 -->
+    <div id="cardgenResult"></div>
+
+    <div class="note" style="margin-top:8px;">📱 截圖時建議對準圖卡邊框，圖卡為 1:1 比例，適合 IG／Facebook 發布。</div>
   </section>
 
   <!-- CARDS 教學卡片工坊 -->
@@ -2240,6 +2329,122 @@ function deleteDeck(id){
   toast("已刪除");
 }
 
+
+/* ===== 圖卡產生器 ===== */
+let _cardType = 'quote';
+function selectCardType(btn, type){
+  document.querySelectorAll('.cg-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  _cardType = type;
+}
+
+const CARD_TYPE_PROMPTS = {
+  quote: '產出一張「金句卡」。取出文字裡最有力量的一句金句作為主標題，加上2-3行補充說明，結尾加1個引人思考的問句。',
+  health: '產出一張「健康知識卡」。用大健康原理故事寶典的比喻方式（鍋子/蒼蠅/水管/魚缸/警察/農夫/房子/堵車）說明健康道理，不能有療效宣稱，案例只說個人感受。',
+  concept: '產出一張「觀念文章卡」。用《康園道》風格：短句有節奏感，對比帶出思考，金句收尾。',
+  case: '產出一張「感受案例卡」。只說個人感受，不說療效，結尾加「以上是個人感受，每個人狀況不同」。'
+};
+
+async function generateCard(){
+  if(!aiReady()){ toast('請先到設定填入金鑰或 GAS 網址'); openView('settings'); return; }
+  if(!canRun()) return;
+  const input = document.getElementById('cardgenInput').value.trim();
+  const btn = document.getElementById('cardgenBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> 生成中…';
+  document.getElementById('cardgenResult').innerHTML = '';
+
+  const typePrompt = CARD_TYPE_PROMPTS[_cardType] || CARD_TYPE_PROMPTS.quote;
+  const sys = `你是專業的社群圖卡設計師，同時是《康園道》風格的內容創作者。
+你的任務：把使用者的文字內容，整理成適合 SVG 圖卡的精煉版本，然後輸出完整的 SVG 代碼。
+
+【圖卡設計規格】
+- 尺寸：viewBox="0 0 380 380"（正方形 1:1）
+- 主色：深森林綠 #1C3D2A 作為背景
+- 卡面：白色 #F6FAF7 圓角卡片（x=24,y=24,w=332,h=332）
+- 強調色：#3A8A5E（中綠）、#5CC98A（亮綠）
+- 文字色：深色 #1A1C1A、輔助 #4A4E4A、綠色 #2E6B4A、白色 #FFFFFF
+- 字型：font-family="PingFang TC, Noto Sans TC, Microsoft JhengHei, sans-serif"
+
+【排版結構（從上到下）】
+1. 頂部綠色裝飾條（y=24-29）
+2. 類型標籤（y≈55，小字母距）
+3. 分隔線
+4. 主標題（1-2行，14-16px，最重要的一句話）
+5. 副標題或引言（12-13px，2-3行）
+6. 深綠色強調區塊（圓角 rect，白色文字，1-2行關鍵重點）
+7. 金句或結尾問句（13px，綠色）
+8. 底部分隔線 + hashtag
+9. 葉片裝飾（左下、右上各一組橢圓）
+
+【SVG 技術規範】
+- 所有文字必須有 text-anchor 和 font-size 屬性
+- 繁體中文每個字約 14px 寬，13px font-size 每字約 13px
+- 每行最多 18 個字，超過必須換行用 <tspan>
+- 不能使用 CSS class，只用 inline style 和屬性
+- 確保所有元素在 x=30~350、y=24~356 範圍內
+- 輸出純 SVG 代碼，不加任何說明文字、不加 markdown fence
+
+【合規規定】
+絕對不能出現：治療、治癒、根治、降血糖、改善疾病、保證有效
+案例只說「個人感受」`;
+
+  const userMsg = `${typePrompt}
+
+【原始內容】
+${input || '請依照類型自動產出一個保健或觀念類的圖卡內容'}
+
+請直接輸出完整的 SVG 代碼，不要加任何說明。`;
+
+  try {
+    const raw = await callOpenAI(sys, userMsg, 2400, true);
+    // 擷取 SVG
+    let svgCode = raw.trim();
+    const svgStart = svgCode.indexOf('<svg');
+    const svgEnd = svgCode.lastIndexOf('</svg>') + 6;
+    if(svgStart >= 0 && svgEnd > svgStart){
+      svgCode = svgCode.slice(svgStart, svgEnd);
+    }
+    if(!svgCode.startsWith('<svg')){
+      throw new Error('AI 沒有產出有效的 SVG，請再試一次');
+    }
+
+    // 修正：確保 viewBox 是正方形
+    svgCode = svgCode.replace(/viewBox="[^"]*"/, 'viewBox="0 0 380 380"');
+    svgCode = svgCode.replace(/width="[^"]*"/, 'width="100%"');
+    svgCode = svgCode.replace(/height="[^"]*"/, 'height="100%"');
+
+    const result = document.getElementById('cardgenResult');
+    result.innerHTML = `
+      <div class="cardgen-wrap">
+        <div class="cardgen-svg-box" id="cardSvgBox">${svgCode}</div>
+        <div class="cardgen-actions">
+          <button class="cga-btn" onclick="regenerateCard()">🔄 重新生成</button>
+          <button class="cga-btn primary" onclick="copyCardSvg()">📋 複製 SVG 代碼</button>
+        </div>
+        <div class="cardgen-hint">📱 在圖卡上長按或截圖即可儲存圖片</div>
+      </div>`;
+    // 儲存最後一張 SVG
+    window._lastCardSvg = svgCode;
+    result.scrollIntoView({behavior:'smooth', block:'start'});
+    toast('圖卡生成完成！長按圖片可儲存');
+  } catch(err) {
+    toast('生成失敗：' + err.message);
+    document.getElementById('cardgenResult').innerHTML =
+      `<div class="output-card"><div class="oc-head">⚠️ 生成失敗</div><div class="output-body" style="color:#A8442E">${esc(err.message)}</div></div>`;
+  } finally {
+    btn.disabled = false; btn.innerHTML = '生成圖卡 ▸';
+  }
+}
+
+function regenerateCard(){
+  generateCard();
+}
+
+function copyCardSvg(){
+  if(!window._lastCardSvg){ toast('尚未生成圖卡'); return; }
+  navigator.clipboard.writeText(window._lastCardSvg).then(()=>toast('已複製 SVG 代碼，可貼到 Figma 或其他工具'));
+}
+
 /* ============ 部門工作區 ============ */
 function openDept(id){
   current=id; pendingFiles=[]; handoffFrom=null;
@@ -2484,11 +2689,21 @@ function renderResults(){
       ${body}
       <div class="hi-actions">
         <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
+        <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
         <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
       </div>
+      <div class="cardwrap" id="rescw-${t.id}"></div>
     </div>`;
   }).join("");
   updateResSummary();
+}
+function makeCardFromResult(btn){
+  const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
+  const plat=btn.getAttribute("data-plat")||"";
+  const card=btn.closest(".res-item");
+  const wrap=card.querySelector(".cardwrap");
+  renderCardInto(wrap, txt, plat);
+  wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function copyResultWhole(btn){
   const card=btn.closest(".res-item");
@@ -3313,14 +3528,153 @@ function toggleClamp(btn){
   btn.textContent=open?"收合":"展開全文";
 }
 function finalCard(out){
+  const cid="fc"+Date.now();
   return `<div class="output-card final-card">
     <div class="oc-head final-head">📄 成品 · 可直接貼文（已存入成品庫）</div>
     ${richBody(out)}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
+      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
       <button class="mini" onclick="openResults()">📦 前往成品庫</button>
     </div>
+    <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
+}
+
+/* ============ SVG 圖卡（可直接複製當圖片貼出去） ============ */
+function wrapCJK(text, maxChars){
+  // 依現有換行先切段，再對超長的行做自動換行（中文/英文混合皆可）
+  const lines=[];
+  (text||"").split(/\n/).forEach(raw=>{
+    const line=raw.trim();
+    if(line==="" ){ lines.push(""); return; }
+    let cur="";
+    for(const ch of line){
+      cur+=ch;
+      if(cur.length>=maxChars){ lines.push(cur); cur=""; }
+    }
+    if(cur) lines.push(cur);
+  });
+  // 收掉多餘的連續空行，最多保留 1 行空白
+  const out=[];
+  for(const l of lines){
+    if(l==="" && out.length && out[out.length-1]==="") continue;
+    out.push(l);
+  }
+  while(out.length && out[0]==="") out.shift();
+  while(out.length && out[out.length-1]==="") out.pop();
+  return out;
+}
+function buildCardSVG(text, opts){
+  opts=opts||{};
+  const W=720;
+  const pad=52;
+  const maxChars=18;
+  const title=opts.title||state.title||"健康智囊";
+  const plat=opts.plat||"";
+  const bodyLines=wrapCJK(text, maxChars);
+  const lineH=34;
+  const titleBlockH=96;
+  const footH=70;
+  const bodyH=bodyLines.length*lineH;
+  const H=Math.max(560, titleBlockH+pad+bodyH+pad+footH);
+
+  const esc2=s=>(s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+  let tspans="";
+  let y=titleBlockH+6;
+  bodyLines.forEach(l=>{
+    const isHead = /^[#👉✅🎯🌀📌]/.test(l);
+    tspans+=`<text x="${pad}" y="${y}" font-size="23" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="${isHead?'#F3D9A3':'#ECEFEC'}" font-weight="${isHead?700:400}" xml:space="preserve">${esc2(l)||" "}</text>`;
+    y+=lineH;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0D3D2A"/>
+        <stop offset="1" stop-color="#101210"/>
+      </linearGradient>
+      <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#F3D9A3"/>
+        <stop offset="1" stop-color="#C79A4B"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#bgGrad)"/>
+    <rect x="0" y="0" width="${W}" height="6" fill="url(#barGrad)"/>
+    <text x="${pad}" y="56" font-size="26" font-family="'PingFang TC','Noto Sans TC',sans-serif" font-weight="700" fill="#F3D9A3">🌿 ${esc2(title)}</text>
+    ${plat?`<text x="${W-pad}" y="56" font-size="15" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#C9D1C9" text-anchor="end">${esc2(plat)}</text>`:""}
+    <line x1="${pad}" y1="76" x2="${W-pad}" y2="76" stroke="rgba(243,217,163,.35)" stroke-width="1"/>
+    ${tspans}
+    <line x1="${pad}" y1="${H-footH+6}" x2="${W-pad}" y2="${H-footH+6}" stroke="rgba(243,217,163,.25)" stroke-width="1"/>
+    <text x="${pad}" y="${H-footH+38}" font-size="14" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#8FA895">以上為個人感受分享，每個人狀況不同</text>
+    <text x="${W-pad}" y="${H-footH+38}" font-size="14" font-family="'PingFang TC','Noto Sans TC',sans-serif" fill="#C79A4B" text-anchor="end">AI 智囊 ・ 一鍵生成</text>
+  </svg>`;
+}
+function makeCardFromBtn(btn){
+  const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
+  const card=btn.closest(".output-card");
+  const wrap=card.querySelector(".cardwrap");
+  renderCardInto(wrap, txt);
+  wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function renderCardInto(wrap, txt, plat){
+  const svg=buildCardSVG(txt,{plat});
+  const cid="card_"+Math.random().toString(36).slice(2);
+  wrap.innerHTML=`<div class="svg-card-box">
+    <div class="svg-card-preview" id="${cid}">${svg}</div>
+    <div class="hi-actions" style="margin-top:10px;">
+      <button class="hi-btn" onclick="copyCardImage('${cid}', this)">🖼️ 複製圖卡（可直接貼上）</button>
+      <button class="hi-btn" onclick="downloadCardImage('${cid}')">⬇️ 下載圖片</button>
+    </div>
+  </div>`;
+}
+function svgToCanvas(svgEl, scale){
+  return new Promise((resolve,reject)=>{
+    const xml=new XMLSerializer().serializeToString(svgEl);
+    const svg64=btoa(unescape(encodeURIComponent(xml)));
+    const img=new Image();
+    const w=parseInt(svgEl.getAttribute("width"),10)||720;
+    const h=parseInt(svgEl.getAttribute("height"),10)||900;
+    img.onload=()=>{
+      const canvas=document.createElement("canvas");
+      canvas.width=w*scale; canvas.height=h*scale;
+      const ctx=canvas.getContext("2d");
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      resolve(canvas);
+    };
+    img.onerror=reject;
+    img.src="data:image/svg+xml;base64,"+svg64;
+  });
+}
+async function copyCardImage(cid, btn){
+  try{
+    const svgEl=document.querySelector("#"+cid+" svg");
+    const canvas=await svgToCanvas(svgEl,2);
+    canvas.toBlob(async (blob)=>{
+      try{
+        await navigator.clipboard.write([new ClipboardItem({"image/png": blob})]);
+        toast("圖卡已複製，直接到對話或貼文貼上即可");
+      }catch(err){
+        downloadCanvas(canvas);
+        toast("這台裝置不支援直接複製圖片，已改為下載圖卡");
+      }
+    }, "image/png");
+  }catch(e){
+    toast("圖卡產生失敗，請再試一次");
+  }
+}
+function downloadCanvas(canvas){
+  const a=document.createElement("a");
+  a.download="圖卡_"+Date.now()+".png";
+  a.href=canvas.toDataURL("image/png");
+  a.click();
+}
+async function downloadCardImage(cid){
+  const svgEl=document.querySelector("#"+cid+" svg");
+  const canvas=await svgToCanvas(svgEl,2);
+  downloadCanvas(canvas);
+  toast("圖卡已下載");
 }
 
 function renderOutput(out, d){
