@@ -4875,6 +4875,7 @@ function renderGate(){
     badge.classList.remove("err");
     expireEl.textContent = isVip ? `有效期限：${member.expire||"永久有效"}` : `剩餘次數：${member.remain} 次`;
     btn.disabled=false;
+    gateTickStop();
     btnText.textContent="進入系統";
   }else if(member.ready){
     // 驗證回應了，但等級異常（如：權限校驗異常）
@@ -4883,6 +4884,7 @@ function renderGate(){
     badge.classList.add("err");
     expireEl.textContent = member.msg || "請重新整理頁面再試";
     btn.disabled=false;
+    gateTickStop();
     btnText.textContent="重新驗證";
   }else{
     nameEl.textContent = "—";
@@ -4890,8 +4892,28 @@ function renderGate(){
     badge.classList.remove("err");
     expireEl.textContent = "請稍候";
     btn.disabled=true;
-    btnText.textContent="驗證中…";
+    gateTickStart();
+    btnText.textContent=gateVerifyText();
   }
+}
+// 驗證中的按鈕文字會依進度動態變化（每 0.5 秒換一次）
+var _gateTimer=null, _gateN=0;
+function gateVerifyText(){
+  const n=_gateN||0;
+  const s=["連線 LINE 中","確認會員權限","讀取會員資料"][Math.floor(n/3)%3];
+  return s + "·".repeat(n%3+1);
+}
+function gateTickStart(){
+  if(_gateTimer) return;
+  _gateTimer=setInterval(()=>{
+    _gateN=(_gateN||0)+1;
+    const b=document.getElementById("gateBtn"), t=document.getElementById("gateBtnText");
+    if(t && b && b.disabled) t.textContent=gateVerifyText();
+  },500);
+}
+function gateTickStop(){
+  if(_gateTimer){ clearInterval(_gateTimer); _gateTimer=null; }
+  _gateN=0;
 }
 function enterApp(){
   if(!memberOK()){ initMember(); return; } // 異常狀態下按鈕當「重新驗證」用
