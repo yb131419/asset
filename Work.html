@@ -595,7 +595,7 @@
     padding-bottom:6px;border-bottom:1px dashed rgba(78,217,160,.25);}
   .pb-seg-body{font-size:14.5px;line-height:1.7;color:#F2FAF5;white-space:pre-wrap;word-break:break-word;}
 
-  /* 部門產出卡片化（同教學卡片工坊精裝卡面） */
+  /* 部門產出卡片化（同教學工坊精裝卡面） */
   .seg-deck{padding:14px;display:flex;flex-direction:column;gap:16px;}
   .seg-card{position:relative;border-radius:22px;padding:22px 20px 56px;
     background:
@@ -623,7 +623,7 @@
     box-shadow:0 4px 12px rgba(14,40,22,.18), inset 0 1px 0 rgba(255,255,255,.25);
     transition:transform .18s var(--spring);}
   .seg-copy:active{transform:scale(.92);}
-  /* 平台分塊：套用與教學卡片工坊相同的精裝卡面（深棕燙金） */
+  /* 平台分塊：套用與教學工坊相同的精裝卡面（深棕燙金） */
   .plat-blocks{padding:14px;display:flex;flex-direction:column;gap:16px;}
   .plat-block{position:relative;border:1px solid rgba(78,217,160,.5);border-radius:22px;overflow:hidden;
     background:
@@ -726,7 +726,7 @@
   .wslib .f{display:inline-flex;align-items:center;gap:5px;background:rgba(31,138,114,.1);
     border:1px solid rgba(31,138,114,.3);color:#1F8A72;border-radius:16px;padding:7px 12px;font-weight:600;}
 
-  /* ========== 教學卡片工坊（精裝卡面） ========== */
+  /* ========== 教學工坊（精裝卡面） ========== */
   .cards-entry .le-ic{background:rgba(138,90,46,.14);color:#1A7A5E;}
   .card-deck{display:flex;flex-direction:column;gap:16px;margin-top:6px;}
   .tcard{perspective:1400px;min-height:200px;animation:deal .55s var(--spring) backwards;}
@@ -2056,19 +2056,10 @@
       <span class="chev">›</span>
     </div>
 
-    <div class="lib-entry" onclick="openView('cardgen')" style="border-left:3px solid #3A8A5E;">
-      <div class="le-ic" style="background:rgba(46,107,74,.12);color:#2E6B4A;">🖼️</div>
-      <div class="le-meta">
-        <div class="le-name">圖卡產生器</div>
-        <div class="le-sub">AI 自動排版金句卡、健康卡、觀念卡，截圖即發布</div>
-      </div>
-      <span class="chev">›</span>
-    </div>
-
     <div class="lib-entry cards-entry" onclick="openCards()">
       <div class="le-ic">🎴</div>
       <div class="le-meta">
-        <div class="le-name">教學卡片工坊</div>
+        <div class="le-name">教學工坊</div>
         <div class="le-sub" id="cardsSummary">貼上健康知識或故事寶典內容，AI 做成問答卡，可當講義</div>
       </div>
       <span class="chev">›</span>
@@ -2076,36 +2067,11 @@
 
   </section>
 
-  <!-- CARDGEN 圖卡產生器 -->
-  <section id="view-cardgen" class="view">
-    <div class="ws-head">
-      <button class="back" onclick="openView('home')">‹</button>
-      <div class="ws-title"><h2>🖼️ 圖卡產生器</h2><p>AI 自動排版金句卡、健康卡、觀念卡，截圖即發布</p></div>
-    </div>
-    <div class="section-label">選擇類型</div>
-    <div class="cg-type-row">
-      <button class="cg-type-btn active" onclick="selectCardType(this,'quote')">💬 金句卡</button>
-      <button class="cg-type-btn" onclick="selectCardType(this,'health')">🌿 健康知識</button>
-      <button class="cg-type-btn" onclick="selectCardType(this,'concept')">💡 觀念文章</button>
-      <button class="cg-type-btn" onclick="selectCardType(this,'case')">👤 感受案例</button>
-    </div>
-
-    <div class="input-card" style="margin-top:12px;">
-      <textarea id="cardgenInput" placeholder="輸入主題或貼上內容，例如：「改變需要代價，但不改變的代價更大」&#10;&#10;也可以不填，讓 AI 依選擇的類型自動發揮。" style="min-height:100px;"></textarea>
-      <div class="input-actions">
-        <button class="run-btn" id="cardgenBtn" style="background:linear-gradient(160deg,#3A8A5E,#2E6B4A);" onclick="generateCard()">生成圖卡 ▸</button>
-      </div>
-    </div>
-
-    <!-- 圖卡預覽區 -->
-    <div id="cardgenResult"></div>
-  </section>
-
-  <!-- CARDS 教學卡片工坊 -->
+  <!-- CARDS 教學工坊 -->
   <section id="view-cards" class="view">
     <div class="ws-head">
       <button class="back" onclick="openView('home')">‹</button>
-      <div class="ws-title"><h2>🎴 教學卡片工坊</h2><p>教材 → 互動問答卡 → 一鍵複製</p></div>
+      <div class="ws-title"><h2>🎴 教學工坊</h2><p>教材 → 互動問答卡 → 一鍵複製</p></div>
     </div>
 
     <div class="input-card">
@@ -2459,7 +2425,7 @@ const DEFAULTS = {
 let state = load();
 let current = null;
 let pendingFiles = [];
-let cardsFiles = [];       // 教學卡片工坊的附件
+let cardsFiles = [];       // 教學工坊的附件
 let handoffFrom = null;
 let running = false;
 const PLATFORMS=[
@@ -2665,7 +2631,7 @@ function selectPipePlatform(k){
 function getIdByName(name){ const d=state.departments.find(x=>x.name===name); return d?d.id:""; }
 function hexA(hex,a){ const n=hex.replace("#",""); const r=parseInt(n.slice(0,2),16),g=parseInt(n.slice(2,4),16),b=parseInt(n.slice(4,6),16); return `rgba(${r},${g},${b},${a})`; }
 
-/* ============ 教學卡片工坊 ============ */
+/* ============ 教學工坊 ============ */
 function openCards(){ renderDecks(); openView("cards"); }
 function updateCardsSummary(){
   const el=document.getElementById("cardsSummary"); if(!el) return;
@@ -4692,7 +4658,7 @@ function renderDrawer(){
     <div class="dr-sep"></div>
     ${depts}
     <div class="dr-sep"></div>
-    <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學卡片工坊<span class="cnt">${state.decks.length} 副</span></button>
+    <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學工坊<span class="cnt">${state.decks.length} 副</span></button>
     <button class="dr-item" onclick="goMenu(openResults)"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📦</span>成品庫<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(openCollector)"><span class="ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</span>資料收集部<span class="cnt">${state.collections.length} 則</span></button>
     <button class="dr-item" onclick="goMenu(openLibrary)"><span class="ic" style="background:rgba(26,122,94,.14);color:#1A7A5E">📁</span>素材庫<span class="cnt">${state.library.length} 個</span></button>
