@@ -3344,7 +3344,7 @@ function resItemHTML(t, isVideo){
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${richBody(t.output, true, tag)}
-    ${cgGroupHTML(t.output, t.platform||"", true)}
+    ${cgGroupHTML(t.output, t.platform||"", true, isVideo)}
     <div class="cardwrap" id="rescw-${t.id}"></div>
   </div>`;
 }
@@ -4233,7 +4233,7 @@ function resultCard(d,out){
     ${richBody(out, d.id==="video")}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製全部</button>
-      ${cgGroupHTML(out, "", d.id==="video")}
+      ${cgGroupHTML(out, "", d.id==="video", d.id==="video")}
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
@@ -4493,12 +4493,13 @@ function cardEditorHTML(cid, open){
     </div>
   </div>`;
 }
-function cgGroupHTML(txt, plat, single){
-  const mode="multi";
+// noMulti：短影音只提供一張長圖
+function cgGroupHTML(txt, plat, single, noMulti){
+  const mode = noMulti ? "single" : "multi";
   return `<div class="cg-group" data-open="0" data-txt="${encodeURIComponent(txt||"")}" data-plat="${esc(plat||"")}" data-single="${single?"1":""}" data-mode="${mode}">
     <button class="cg-seg cg-gen" onclick="cgGenerate(this)">🖼️ 產生圖卡</button>
     <button class="cg-seg" data-m="single" onclick="cgGenerate(this,'single')">一張長圖</button>
-    <button class="cg-seg" data-m="multi" onclick="cgGenerate(this,'multi')">多張圖片</button>
+    ${noMulti ? "" : `<button class="cg-seg" data-m="multi" onclick="cgGenerate(this,'multi')">多張圖片</button>`}
   </div>`;
 }
 function cgGenerate(btn, mode){
@@ -4716,7 +4717,7 @@ function renderOutput(out, d){
      <div id="lastOutWrap">${richBody(out, d.id==="video")}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
-       ${cgGroupHTML(out, "", d.id==="video")}
+       ${cgGroupHTML(out, "", d.id==="video", d.id==="video")}
        <div class="handoff-title">交辦給下一個分類 ▸</div>
        ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
      </div>
