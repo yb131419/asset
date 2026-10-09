@@ -2239,11 +2239,20 @@ body.v-mode #village{display:flex}
 /* 覆蓋層：原本的頁面疊在村莊上方，村莊仍在背後 */
 body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
   width:min(100vw,500px);height:100%;z-index:125;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg,#F5F3EC)}
-#vSheetBack{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:140;
+#vSheetBack{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64% + 10px);z-index:140;
   min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(243,217,163,.6);
   background:linear-gradient(170deg,#173D2D,#0B2119);color:#F6E3B4;font:800 14px/1 "Noto Serif TC","Songti TC",serif;
   box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer}
 body.v-sheet #vSheetBack{display:block}
+
+/* 村莊下方面板：頁面功能在村莊畫面中開啟，地圖仍可見 */
+body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:auto;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(100vw,500px);height:62%;z-index:125;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  border-radius:20px 20px 0 0;box-shadow:0 -12px 32px rgba(0,0,0,.45);background:var(--bg,#F5F3EC)}
+#vStatus{position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 116px);z-index:6;
+  font:700 12.5px/1.4 "Noto Sans TC","PingFang TC",sans-serif;color:#F6E3B4;background:rgba(6,20,14,.82);
+  border:1px solid rgba(231,194,122,.5);border-radius:10px;padding:6px 10px;pointer-events:none}
+#vStatus[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -5880,32 +5889,45 @@ const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36'
 /* ---------- NPC（對應原本各項功能） ---------- */
 const NPC=[
   /* 流程順序：設定 → 收集 → 素材 → 一鍵 → 五大寫作 → 成品 → 教學（名稱與原版相同） */
-  {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
-   lines:['在這裡管理身分、背景設定與素材。'],
-   acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
-         ['👤 會員中心',()=>go(()=>openMemberCenter())],
-         ['✨ 草擬健康定位',()=>bg(()=>deriveBrand())],
-         ['🔄 重新驗證',()=>bg(()=>{initMember();toast('正在重新驗證會員資格…');})]]},
   {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:4,y:3,look:L('#6B4E9E','#E2D6FA','hat'),
    lines:['選好方向告訴我，我去打探消息。'],
-   acts:[['🛰️ 開始收集',()=>bg(()=>collectNow())],['📋 收集設定',()=>go(()=>openCollector())]]},
-  {id:'library',name:'素材庫',role:'上傳與管理備用資料',ic:'📁',x:4,y:7,look:L('#2E7A6A','#CFEFE3','bag'),
-   lines:['檔案留存一次，之後勾選即可使用。'],
-   acts:[['📁 打開素材庫',()=>go(()=>openLibrary())]]},
+   acts:[['🛰️ 開始收集',()=>bg(()=>collectNow(),'資料收集')],['📋 收集設定',()=>go(()=>openCollector())]]},
   {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:8,y:7,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
    lines:['主題備妥後交給我，一次跑完整套文案。','一人一次，走完全程。'],
    acts:()=>{
      const a=[];
      const r=state.pipeRun;
      if(r && !r.done){
-       a.push(['▶ 接續上次進度',()=>bg(()=>runAllDepartments(true))]);
-       a.push(['✕ 放棄進度',()=>bg(vzDiscardPipe)]);
+       a.push(['▶ 接續上次進度',()=>bg(()=>runAllDepartments(true),'一鍵自動完成')]);
+       a.push(['✕ 放棄進度',()=>bg(vzDiscardPipe,'放棄進度')]);
      }else{
-       a.push(['▶ 一鍵自動幫我寫',()=>bg(()=>runAllDepartments())]);
+       a.push(['▶ 一鍵自動幫我寫',()=>bg(()=>runAllDepartments(),'一鍵自動完成')]);
      }
      a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
    }},
+  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:15,look:L('#3A4A8A','#F3D9A3','hat'),
+   lines:['每產出一則成品，你的等級就會提升。'],
+   acts:[['📝 圖文',()=>go(()=>openResults('final'))],
+         ['🎬 短影音',()=>go(()=>openResults('video'))],
+         ['📈 市場經營',()=>go(()=>openResults('market'))],
+         ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
+         ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
+  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:4,y:19,look:L('#2E6FB0','#CFE3FA','hat'),
+   lines:['一步一步來，我教你怎麼開始。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:4,y:23,look:L('#8A5A2E','#F3D9A3','hat'),
+   lines:['不推銷，先交朋友。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+  {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
+   lines:['在這裡管理身分、背景設定與素材。'],
+   acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
+         ['👤 會員中心',()=>go(()=>openMemberCenter())],
+         ['✨ 草擬健康定位',()=>bg(()=>deriveBrand(),'草擬健康定位')],
+         ['🔄 重新驗證',()=>bg(()=>initMember(),'重新驗證會員')]]},
+  {id:'library',name:'素材庫',role:'上傳與管理備用資料',ic:'📁',x:4,y:7,look:L('#2E7A6A','#CFEFE3','bag'),
+   lines:['檔案留存一次，之後勾選即可使用。'],
+   acts:[['📁 打開素材庫',()=>go(()=>openLibrary())]]},
   {id:'icebreak',name:'故事破冰',role:'用比喻故事讓人停下來',ic:'📖',x:4,y:11,look:L('#C7902B','#FFF1CC','hat'),
    lines:['用比喻故事，讓人停下來產生共鳴。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('icebreak'))]]},
@@ -5915,19 +5937,6 @@ const NPC=[
   {id:'video',name:'影音內容',role:'把圖文改寫成一分鐘口播',ic:'🎬',x:8,y:11,look:L('#B5652E','#FFD9A8','hat'),
    lines:['鏡頭前要有節奏，三秒內抓住人。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('video'))]]},
-  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:4,y:19,look:L('#2E6FB0','#CFE3FA','hat'),
-   lines:['一步一步來，我教你怎麼開始。'],
-   acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
-  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:4,y:23,look:L('#8A5A2E','#F3D9A3','hat'),
-   lines:['不推銷，先交朋友。'],
-   acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
-  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:15,look:L('#3A4A8A','#F3D9A3','hat'),
-   lines:['每產出一則成品，你的等級就會提升。'],
-   acts:[['📝 圖文',()=>go(()=>openResults('final'))],
-         ['🎬 短影音',()=>go(()=>openResults('video'))],
-         ['📈 市場經營',()=>go(()=>openResults('market'))],
-         ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
-         ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
   {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:8,y:19,look:L('#A8782E','#FBE9B9','hat'),
    lines:['拿來教材，我幫你鍛造成卡片。'],
    acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
@@ -5958,10 +5967,16 @@ function setMode(m){
   if(m==='village'){ hideCard(); renderVillage(); window.scrollTo(0,0); }
 }
 // 頁面類功能：在村莊上方開啟原本的頁面（不切換到列表，關閉後回到村莊）
-function go(fn){ document.body.classList.add('v-sheet'); fn(); }
+function go(fn){ hideCard(); document.body.classList.add('v-sheet'); fn(); }
 // 背景功能：直接在村莊執行，不開啟頁面
-function bg(fn){ try{ fn(); }catch(e){ toast('發生錯誤：'+e.message); } }
+function vzStatus(t){ const el=document.getElementById('vStatus'); if(el){ el.textContent=t; el.hidden=!t; } }
+function bg(fn,label){
+  vzStatus('⏳ 執行中：'+(label||'')+'…');
+  Promise.resolve().then(fn).then(()=>vzStatus('✅ 已完成：'+(label||'')), e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
+}
 function closeSheet(){ document.body.classList.remove('v-sheet'); renderVillage(); }
+const vzStatusEl=document.createElement('div'); vzStatusEl.id='vStatus'; vzStatusEl.hidden=true;
+document.getElementById('village').appendChild(vzStatusEl);
 // 原本的 openView('home') 在覆蓋層中代表「返回」，改為關閉覆蓋層
 const _ov=openView;
 openView=function(v){
@@ -5975,7 +5990,7 @@ document.body.appendChild(sheetBack);
 // 一鍵運轉進度顯示在村莊標題列
 let vzBusy=false;
 const _spb=setPipeBar;
-setPipeBar=function(d,t){ _spb(d,t); vzBusy=true; document.getElementById('vNext').textContent='一鍵運轉中 '+d+'/'+t; };
+setPipeBar=function(d,t){ _spb(d,t); vzBusy=true; vzStatus('⏳ 一鍵運轉中 '+d+'/'+t); };
 const _hpb=hidePipeBar;
 hidePipeBar=function(){ _hpb(); vzBusy=false; renderVillage(); };
 function vzDiscardPipe(){
@@ -5986,6 +6001,7 @@ const btn=document.createElement('button');
 btn.id='vToggle'; btn.type='button';
 btn.onclick=()=>setMode(document.body.classList.contains('v-mode')?'list':'village');
 function placeToggle(){
+  return; // 村莊版不切換到列表
   const isV=document.body.classList.contains('v-mode');
   btn.textContent = isV ? '☰ 列表' : '🏘 村莊';
   if(isV){
@@ -6318,7 +6334,8 @@ function buildGrid(){
 }
 
 /* ---------- 光影與動態 ---------- */
-function isNight(){
+function isNight(){ return false; // 村莊固定白天
+
   const h=+new Intl.DateTimeFormat('en-US',{hour:'numeric',hour12:false,timeZone:'Asia/Taipei'}).format(new Date())%24;
   return h>=18||h<6;
 }
@@ -6422,7 +6439,7 @@ function render(t){
     fillOn(g,0,0,W,H,'rgba(255,200,120,.05)');
   }
   g.globalCompositeOperation='lighter';
-  const glowA=night?0.5:0.14;
+  const glowA=night?0.5:0;
   LANTERNS.forEach(([x,y])=>{
     const cx=x*T+8, cy=y*T+6;
     const rg=g.createRadialGradient(cx,cy,1,cx,cy,night?26:16);
@@ -6445,7 +6462,7 @@ function render(t){
 
   // 暗角
   const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,W*0.62);
-  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.45)');
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.16)');
   g.fillStyle=vg; g.fillRect(0,0,W,H);
   g.setTransform(1,0,0,1,0,0);
 }
