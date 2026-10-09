@@ -1703,6 +1703,25 @@
   .cd-seg button,.cd-toggle{border-radius:999px;border:1px solid rgba(23,85,58,.18);background:#FBFAF6;color:#17553A;font-size:13px;font-weight:700;padding:7px 12px;min-height:36px;font-family:inherit;}
   .cd-seg button.on,.cd-toggle.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;}
   .cd-toggle{min-width:64px;}
+
+  /* ===== 登入頁呼吸動效 ===== */
+  @keyframes gateRingBreathe{
+    0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(243,217,163,.38),0 10px 26px rgba(0,0,0,.35);}
+    50%{transform:scale(1.035);box-shadow:0 0 0 12px rgba(243,217,163,0),0 14px 34px rgba(243,217,163,.22);}
+  }
+  @keyframes gateRingHalo{
+    0%,100%{opacity:.35;} 50%{opacity:1;}
+  }
+  @keyframes gateBtnBreathe{
+    0%,100%{box-shadow:0 0 0 0 rgba(243,217,163,.45),0 10px 26px rgba(0,0,0,.35);}
+    50%{box-shadow:0 0 0 14px rgba(243,217,163,0),0 14px 36px rgba(243,217,163,.38);}
+  }
+  #gateScreen .gate-avatar-ring{animation:gateRingBreathe 3.6s ease-in-out infinite;}
+  #gateScreen .gate-avatar-ring::after{animation:gateRingHalo 3.6s ease-in-out infinite;}
+  #gateScreen .gate-btn:not(:disabled){animation:gateBtnBreathe 2.8s ease-in-out infinite;}
+  @media (prefers-reduced-motion: reduce){
+    #gateScreen .gate-avatar-ring,#gateScreen .gate-avatar-ring::after,#gateScreen .gate-btn:not(:disabled){animation:none;}
+  }
 </style>
 </head>
 <body>
