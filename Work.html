@@ -4236,7 +4236,7 @@ function cardLayout(text, o){
     });
   });
   const bodyBottom=y;
-  const footH = (o.footer ? 120 : 70) + (o.name ? 44 : 0);
+  const footH = (o.footer ? 120 : 70) + ((o.name || o.pageLabel) ? 44 : 0);
   const need=Math.round(bodyBottom+footH+50);
   const ratioH = CARD_RATIOS[o.ratio] ? Math.round(W*CARD_RATIOS[o.ratio]) : 0;
   const H = ratioH ? Math.max(ratioH, need) : Math.max(760, need);
@@ -4268,12 +4268,14 @@ function buildCardSVG(text, o, uid){
     return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="400" fill="${T.body}">${cardEscape(i.t)}</text>`;
   }).join("");
   const fy=H-P-14;
+  const lift=(o.name||o.pageLabel)?44:0;
   const footText = (o.footerText!=null ? o.footerText : (state.cardDefaults&&state.cardDefaults.footer)||"");
   const nameSvg = o.name ? `<text x="${W-P}" y="${fy}" text-anchor="end" font-family="${F_SANS}" font-size="36" font-weight="800" letter-spacing="1" fill="${T.head}">${cardEscape(o.name)}</text>` : "";
   const footSvg = (o.footer && footText) ? `
-    <rect x="${P}" y="${fy-62-(o.name?44:0)}" width="${W-P*2}" height="50" rx="25" fill="${T.footBg}" stroke="${T.footLine}" stroke-width="1"/>
-    <circle cx="${P+30}" cy="${fy-37-(o.name?44:0)}" r="5" fill="url(#gold_${u})"/>
-    <text x="${P+54}" y="${fy-24-(o.name?44:0)}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="${T.footGold}">${cardEscape(footText)}</text>` : "";
+    <rect x="${P}" y="${fy-62-lift}" width="${W-P*2}" height="50" rx="25" fill="${T.footBg}" stroke="${T.footLine}" stroke-width="1"/>
+    <circle cx="${P+30}" cy="${fy-37-lift}" r="5" fill="url(#gold_${u})"/>
+    <text x="${P+54}" y="${fy-24-lift}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="${T.footGold}">${cardEscape(footText)}</text>` : "";
+  const pageSvg = o.pageLabel ? `<text x="${P}" y="${fy}" font-family="${F_SANS}" font-size="30" font-weight="800" letter-spacing="1" fill="${T.head}">${cardEscape(o.pageLabel)}</text>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
       <linearGradient id="bg_${u}" x1="0" y1="0" x2="0.6" y2="1">
@@ -4302,6 +4304,7 @@ function buildCardSVG(text, o, uid){
     <rect x="30" y="30" width="${W-60}" height="${H-60}" rx="16" fill="none" stroke="${T.frame2}" stroke-width="1"/>
     ${L.center ? "" : `<text x="${W-P}" y="${P+58}" font-family="${F_SERIF}" font-size="120" fill="${T.mark}" text-anchor="end">❝</text>`}
     ${nameSvg}
+    ${pageSvg}
     ${titleSvg}
     <rect x="${L.center?(W-84)/2:(L.right?W-P-84:P)}" y="${L.ruleY}" width="84" height="3" rx="1.5" fill="url(#gold_${u})"/>
     ${quoteBar}
@@ -4316,7 +4319,7 @@ function cardStateOf(cid){ return window.CARD_STATE[cid]; }
 function cardComposeText(st){ return (st.title||"") + "\n" + (st.body||""); }
 function cardPreviewHTML(cid){
   const st=cardStateOf(cid); if(!st) return "";
-  return buildCardSVG(cardComposeText(st), {theme:st.theme,size:st.size,align:st.align,footer:st.footer,name:st.name,footerText:st.footerText,ratio:st.ratio}, cid);
+  return buildCardSVG(cardComposeText(st), {theme:st.theme,size:st.size,align:st.align,footer:st.footer,name:st.name,footerText:st.footerText,ratio:st.ratio,pageLabel:st.pageLabel}, cid);
 }
 function cardRefresh(cid){
   const el=document.getElementById(cid); if(!el) return;
@@ -4387,7 +4390,7 @@ function paginateCardBody(sp, o, ratioKey){
   }
   flush();
   if(!pages.length) pages.push("");
-  return pages.map((b,i)=>({ title: i===0 ? sp.title : `${sp.title}（續）`, body:b }));
+  return pages.map(b=>({ title: sp.title, body:b }));
 }
 function renderCardInto(wrap, txt, plat, single, mode){
   mode = mode || wrap._cardMode || "multi";
@@ -4418,10 +4421,10 @@ function renderCardInto(wrap, txt, plat, single, mode){
     ? `<button class="hi-btn cg-share-all" onclick="shareAllCards(this)">📤 一次分享全部 ${total} 張</button>` : "";
   const cards = items.map((it,i)=>{
     const cid="card_"+Math.random().toString(36).slice(2);
-    window.CARD_STATE[cid]={title:it.sp.title, body:it.sp.body, theme:"forest", size:"m", align:"left", ratio, footer:true, name:cd.name||"", footerText:cd.footerText||cd.footer||""};
+    const pageLabel = (mode==="multi" && total>1) ? `${i>0?"續 ":""}${i+1}／${total}` : "";
+    window.CARD_STATE[cid]={title:it.sp.title, body:it.sp.body, theme:"forest", size:"m", align:"left", ratio, footer:true, name:cd.name||"", footerText:cd.footerText||cd.footer||"", pageLabel};
     const tagBits=[];
     if(it.plat) tagBits.push(`🎯 適用平台：${esc(it.plat)}（僅作提醒，不會印在圖卡上）`);
-    if(total>1) tagBits.push(`第 ${i+1}／${total} 張`);
     return `<div class="svg-card-box">
       ${tagBits.length?`<div class="card-plat-tag">${tagBits.join("　")}</div>`:""}
       <div class="svg-card-preview" id="${cid}">${cardPreviewHTML(cid)}</div>
