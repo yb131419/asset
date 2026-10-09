@@ -2265,6 +2265,10 @@ body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:auto;b
   background:transparent;color:#F3EBD3;font:700 14px/1.3 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer}
 .vdd-item:last-child{border-bottom:0}
 .vdd-item:active{background:rgba(231,194,122,.16)}
+
+.vdd-head{font-size:12.5px;color:rgba(243,236,220,.72);margin:12px 2px 8px}
+.vdd-btns{display:flex;gap:8px;margin-top:12px}
+.vdd-btns .vbtn{flex:1}
 </style>
 </head>
 <body>
@@ -5867,30 +5871,31 @@ function fillOn(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h);}
 
 /* ---------- 版面資料 ---------- */
 const BLDS=[
-  {x:1, y:2, w:3,h:2, roof:'#2E6FB0', wall:'#E9E0C8', win:1},  // 資料塔（資料收集）
-  {x:1, y:6, w:3,h:2, roof:'#2E6A5A', wall:'#E9E0C8', win:1},  // 素材倉（素材庫）
-  {x:1, y:10,w:3,h:2, roof:'#B0701F', wall:'#EADCB8', win:1},  // 故事小屋（故事破冰）
-  {x:1, y:14,w:3,h:2, roof:'#1F7A62', wall:'#E9E0C8', win:1},  // 核心書院（核心處理）
-  {x:1, y:18,w:3,h:2, roof:'#2A67A6', wall:'#E9E0C8', win:2},  // 市場店（市場經營）
-  {x:1, y:22,w:3,h:2, roof:'#9A5424', wall:'#EADCB8', win:1},  // 暖身小屋（暖身邀約）
-  {x:9, y:2, w:3,h:2, roof:'#2E5A8A', wall:'#E9E0C8', win:1},  // 城主府（會員與設定）
-  {x:9, y:6, w:3,h:2, roof:'#7A3E2A', wall:'#EADCB8', win:2},  // 大長老殿（一鍵完成）
-  {x:9, y:10,w:3,h:2, roof:'#B5652E', wall:'#E9E0C8', win:1},  // 影音舞台（影音內容）
-  {x:9, y:14,w:3,h:2, roof:'#5A4A8A', wall:'#E9E0C8', win:2},  // 成品館（成品庫）
-  {x:9, y:18,w:3,h:2, roof:'#7A4E22', wall:'#EADCB8', win:1},  // 教學工坊
+  {x:2, y:3, w:3,h:2, roof:'#2E6FB0', wall:'#E9E0C8', win:1},  // 資料收集的小屋
+  {x:9, y:6, w:3,h:2, roof:'#7A3E2A', wall:'#EADCB8', win:2},  // 大長老殿
+  {x:9, y:15,w:3,h:2, roof:'#5A4A8A', wall:'#E9E0C8', win:2},  // 成品館
+  {x:2, y:15,w:3,h:2, roof:'#2A67A6', wall:'#E9E0C8', win:1},  // 市場店
 ];
-const POND={x0:9,y0:21,x1:11,y1:23};
-const TREES=[[5,5],[12,9],[5,16],[8,21],[12,24],[5,22]];
-const LANTERNS=[[5,8],[8,10],[5,18],[8,18],[5,2],[8,24]];
-const PAVILION={x:9,y:24};
-const isPath=(x,y)=>((x===6||x===7)&&y>=1&&y<=24)||((y===12||y===13)&&x>=1&&x<=12);
+const POND={x0:1,y0:11,x1:12,y1:12};              // 河流（中間留出小橋）
+const isBridge=(x,y)=>(x===6||x===7)&&y>=11&&y<=12;
+const TREES=[[5,1],[12,1],[1,8],[12,24],[4,13],[11,13]];
+const CHERRY=[[11,3],[1,21]];                    // 櫻花樹
+const ROCKS=[[4,9],[12,18],[1,13]];
+const BUSHES=[[1,17],[11,18],[4,24],[12,8]];
+const MUSH=[[3,6],[4,23]];
+const REEDS=[[2,10],[5,10],[9,10],[12,10],[3,13],[10,13]];
+const CROPS=[[2,19]];                            // 小菜園（3×2）
+const LANTERNS=[[5,9],[8,13],[5,22]];
+const PAVILION={x:9,y:21};                       // 涼亭（暖身）
+const isPath=(x,y)=>((x===6||x===7)&&y>=1&&y<=24)||(y===13&&x>=1&&x<=12);
 
 const BLK=new Set();
 for(let x=0;x<VW;x++){BLK.add(key(x,0));BLK.add(key(x,VH-1));}
 for(let y=0;y<VH;y++){BLK.add(key(0,y));BLK.add(key(VW-1,y));}
 BLDS.forEach(d=>{for(let yy=0;yy<d.h;yy++)for(let xx=0;xx<d.w;xx++)BLK.add(key(d.x+xx,d.y+yy));});
-for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++)BLK.add(key(x,y));
-TREES.forEach(([x,y])=>BLK.add(key(x,y)));
+for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++){ if(!isBridge(x,y)) BLK.add(key(x,y)); }
+TREES.concat(CHERRY,ROCKS,BUSHES).forEach(([x,y])=>BLK.add(key(x,y)));
+BLK.add(key(PAVILION.x,PAVILION.y)); BLK.add(key(PAVILION.x+1,PAVILION.y));
 
 /* ---------- 角色外觀 ---------- */
 function L(cloth,acc,kind,hair,beard){
@@ -5901,10 +5906,10 @@ const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36'
 /* ---------- NPC（對應原本各項功能） ---------- */
 const NPC_ALL=[
   /* 流程順序：設定 → 收集 → 素材 → 一鍵 → 五大寫作 → 成品 → 教學（名稱與原版相同） */
-  {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:4,y:3,look:L('#6B4E9E','#E2D6FA','hat'),
+  {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:5,y:5,look:L('#6B4E9E','#E2D6FA','hat'),
    lines:['選好方向告訴我，我去打探消息。'],
    acts:[['🛰️ 開始收集',()=>bg(()=>collectNow(),'資料收集')],['📋 收集設定',()=>go(()=>openCollector())]]},
-  {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:8,y:7,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
+  {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:8,y:8,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
    lines:['主題備妥後交給我，一次跑完整套文案。','一人一次，走完全程。'],
    acts:()=>{
      const a=[];
@@ -5918,17 +5923,17 @@ const NPC_ALL=[
      a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
    }},
-  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:15,look:L('#3A4A8A','#F3D9A3','hat'),
+  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['📝 圖文',()=>go(()=>openResults('final'))],
          ['🎬 短影音',()=>go(()=>openResults('video'))],
          ['📈 市場經營',()=>go(()=>openResults('market'))],
          ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
          ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
-  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:4,y:19,look:L('#2E6FB0','#CFE3FA','hat'),
+  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
-  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:4,y:23,look:L('#8A5A2E','#F3D9A3','hat'),
+  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
@@ -6060,11 +6065,26 @@ function renderVillage(){
 
 /* ---------- 對話卡 ---------- */
 let curN=null;
-let dlgTimer=null, dlgTyping=false;
+let dlgTimer=null, dlgTyping=false, dlgSel=null;
+// 每個選項點開後，角色的回應（沒有指定的選項，使用角色的台詞）
+const OPT_REPLY={
+  '🛰️ 開始收集':'好，我現在去打探消息，完成後會存進資料收集。',
+  '📋 收集設定':'收集的方向與來源可以在這裡調整。',
+  '▶ 一鍵自動幫我寫':'主題備妥了嗎？那就開始，一次跑完整套文案。',
+  '▶ 接續上次進度':'上次做到一半，我們從那裡接著寫。',
+  '✕ 放棄進度':'放棄的話，已完成的產出仍會保留在各分類。',
+  '📋 成品清單':'這裡是你所有的成品，點進去可以複製或做圖卡。',
+  '📝 圖文':'圖文成品都在這裡，可以逐篇查看與複製。',
+  '🎬 短影音':'短影音的口播稿都在這裡。',
+  '📈 市場經營':'市場經營的成品，一步一步照著做就好。',
+  '🤝 暖身邀約':'暖身邀約的成品，先交朋友，不急著推。',
+  '🖼 做圖卡':'挑一則成品，我幫你排成圖卡。',
+  '✍️ 進入工坊':'好，我們開始寫，先告訴我你想講什麼。'
+};
 function openCard(n){
-  curN=n;
+  curN=n; dlgSel=null;
   const c=document.getElementById('vCard');
-  const line=n.lines[Math.floor(Math.random()*n.lines.length)];
+  n._greet=n.lines[Math.floor(Math.random()*n.lines.length)];
   c.innerHTML=
     '<div class="vc-h">'+
       '<div class="vc-ic" style="background:'+n.look.cloth+'33;border-color:'+n.look.cloth+'">'+n.ic+'</div>'+
@@ -6076,22 +6096,29 @@ function openCard(n){
   c.hidden=false;
   document.getElementById('vGridBox').hidden=true;
   document.getElementById('vcX').onclick=hideCard;
-  document.getElementById('vcT').textContent=line;
-  renderMenu(false);
+  renderMenu();
 }
-// 下拉選單：與列表項目相同樣式，點開後選擇要執行的動作
-function renderMenu(open){
-  const n=curN, box=document.getElementById('vcB');
+// 多選單：先列出所有選項；點選後角色回應，再決定執行或返回
+function renderMenu(){
+  const n=curN, box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!n || !box) return;
   const acts=typeof n.acts==='function' ? n.acts() : n.acts;
-  box.innerHTML=
-    '<button class="vdd-toggle" id="vddT" type="button"><span>'+(open?'▴':'▾')+'　選擇要做的事</span><span class="vdd-n">'+acts.length+' 項</span></button>'+
-    (open ? '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>' : '');
-  document.getElementById('vddT').onclick=()=>renderMenu(!open);
-  box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
-    const act=acts[+bt.dataset.i];
-    hideCard(); act[1]();
-  });
+  if(!dlgSel){
+    tEl.textContent=n._greet;
+    box.innerHTML='<div class="vdd-head">請選擇要做的事，點選後會看到說明</div>'+
+      '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
+    box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
+      const i=+bt.dataset.i;
+      dlgSel={i, reply:OPT_REPLY[acts[i][0]] || n._greet};
+      renderMenu();
+    });
+  }else{
+    tEl.textContent=dlgSel.reply;
+    box.innerHTML='<div class="vdd-btns"><button class="vbtn" id="vddGo" type="button">▶ 執行</button>'+
+      '<button class="vbtn g" id="vddBack" type="button">← 返回選單</button></div>';
+    document.getElementById('vddGo').onclick=()=>{ const act=acts[dlgSel.i]; hideCard(); act[1](); };
+    document.getElementById('vddBack').onclick=()=>{ dlgSel=null; renderMenu(); };
+  }
 }
 function hideCard(){
   curN=null; clearInterval(dlgTimer); dlgTyping=false;
@@ -6153,6 +6180,48 @@ function pavilion(){
   fillOn(b,X+2,Y+10,3,5,'#F3EBD3'); fillOn(b,X+2*T-5,Y+10,3,5,'#F3EBD3');
   fillOn(b,X+7,Y+11,2,2,'#8A5A2E');
 }
+function cherry(X,Y){
+  fillOn(b,X+2,Y+13,12,2,'rgba(0,0,0,.22)');
+  fillOn(b,X+6,Y+9,4,5,'#5A3A22'); fillOn(b,X+6,Y+9,1,5,'#7A5230');
+  const cx=X+8, cy=Y+6;
+  const sh=[[-5,4,'#D9789A'],[-4,6,'#D9789A'],[-3,8,'#E38CA9'],[-2,8,'#E38CA9'],[-1,8,'#E38CA9'],
+            [0,8,'#E38CA9'],[1,8,'#C9678A'],[2,6,'#C9678A'],[3,4,'#C9678A']];
+  sh.forEach(([dy,w,col])=>fillOn(b,cx-Math.floor(w/2),cy+dy,w,1,col));
+  fillOn(b,cx-4,cy-4,3,1,'#FAD2DF'); fillOn(b,cx-3,cy-3,2,1,'#FAD2DF');
+  fillOn(b,cx+2,cy-1,1,1,'#FFF0F5'); fillOn(b,cx-1,cy+2,1,1,'#FFF0F5');
+}
+function rock(X,Y){
+  fillOn(b,X+2,Y+12,12,2,'rgba(0,0,0,.2)');
+  fillOn(b,X+3,Y+7,10,6,'#9AA0A6'); fillOn(b,X+4,Y+5,7,3,'#B4BAC0');
+  fillOn(b,X+5,Y+6,3,1,'#D6DADF'); fillOn(b,X+3,Y+11,10,2,'#6E757C');
+}
+function bush(X,Y){
+  fillOn(b,X+2,Y+13,12,2,'rgba(0,0,0,.2)');
+  [[4,8,6,4],[2,9,12,4],[3,11,10,3]].forEach(([x,y,w,h],i)=>fillOn(b,X+x,Y+y,w,h,['#3F7E45','#2F6B3A','#245A2F'][i]));
+  fillOn(b,X+5,Y+6,2,1,'#6FA55A'); fillOn(b,X+9,Y+8,2,1,'#4C8F4E');
+  fillOn(b,X+6,Y+5,3,1,'#E9A8C0');
+}
+function mush(X,Y){
+  fillOn(b,X+6,Y+10,4,5,'#F3E6CC');
+  fillOn(b,X+4,Y+6,8,4,'#D8452E'); fillOn(b,X+5,Y+7,1,1,'#FFFFFF'); fillOn(b,X+9,Y+8,1,1,'#FFFFFF');
+  fillOn(b,X+4,Y+9,8,1,'#F3E6CC');
+}
+function reed(X,Y){
+  [[3,'#5E8A3A'],[6,'#4C7A30'],[10,'#5E8A3A'],[13,'#4C7A30']].forEach(([x,c])=>{
+    fillOn(b,X+x,Y+4,1,12,c); fillOn(b,X+x,Y+2,1,2,'#8A6A3A');
+  });
+}
+function crop(X,Y){
+  for(let r=0;r<2;r++){
+    fillOn(b,X,Y+r*T,T*3,T,'#7A5230');
+    for(let i=0;i<3;i++){
+      const cx=X+i*T;
+      fillOn(b,cx+3,Y+r*T+6,2,4,'#3F8A3F'); fillOn(b,cx+8,Y+r*T+6,2,4,'#3F8A3F');
+      fillOn(b,cx+3,Y+r*T+5,2,1,'#6FBF5A'); fillOn(b,cx+8,Y+r*T+5,2,1,'#6FBF5A');
+    }
+  }
+}
+
 function buildBG(){
   const R=mulberry(20261010);
   const pal=['#5E9C4E','#63A553','#58924A','#5A9A4C'];
@@ -6172,8 +6241,12 @@ function buildBG(){
     fillOn(b,X+9,Y+9-(ty%2),4,3,'#D9B98A');
     fillOn(b,X,Y+T-1,T,1,'#A88050');
   }
-  fillOn(b,(POND.x0-1)*T,(POND.y0-1)*T,(POND.x1-POND.x0+3)*T,(POND.y1-POND.y0+3)*T,'#D9C48E');
+  for(let x=POND.x0;x<=POND.x1;x++) for(const y of [POND.y0-1,POND.y1+1]){
+    if(y<0||y>=VH||isPath(x,y)||isBridge(x,y)) continue;
+    fillOn(b,x*T,y*T,T,T,'#D9C48E');
+  }
   for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++){
+    if(isBridge(x,y)) continue;
     const X=x*T, Y=y*T;
     fillOn(b,X,Y,T,T,(x+y)%2?'#2E6FB0':'#2A67A6');
     fillOn(b,X+2,Y+4,5,1,'#5C9ED8');
@@ -6184,7 +6257,19 @@ function buildBG(){
     if(BLK.has(key(tx,ty))||isPath(tx,ty)||npcAt.has(key(tx,ty))) continue;
     flower(tx*T,ty*T,R);
   }
+  for(let y=POND.y0;y<=POND.y1;y++)for(const x of [6,7]){
+    const X=x*T, Y=y*T;
+    fillOn(b,X,Y,T,T,'#9A6B3A');
+    fillOn(b,X,Y+4,T,1,'#6E4A22'); fillOn(b,X,Y+10,T,1,'#6E4A22');
+    fillOn(b,X+(x===6?0:T-2),Y,2,T,'#B98B52');
+  }
+  REEDS.forEach(([x,y])=>reed(x*T,y*T));
+  MUSH.forEach(([x,y])=>mush(x*T,y*T));
+  CROPS.forEach(([x,y])=>crop(x*T,y*T));
   pavilion();
+  CHERRY.forEach(([x,y])=>cherry(x*T,y*T));
+  ROCKS.forEach(([x,y])=>rock(x*T,y*T));
+  BUSHES.forEach(([x,y])=>bush(x*T,y*T));
   for(let x=0;x<VW;x++){ tree(x*T,0); tree(x*T,(VH-1)*T); }
   for(let y=1;y<VH-1;y++){ tree(0,y*T); tree((VW-1)*T,y*T); }
   TREES.forEach(([x,y])=>tree(x*T,y*T));
@@ -6408,6 +6493,7 @@ function render(t){
 
   // 水面閃光
   for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++){
+    if(isBridge(x,y)) continue;
     const o=((t/700)+x*2.3+y*1.7)%1;
     fillOn(g,x*T+Math.floor(o*12)+1,y*T+5+((x+y)%3)*3,3,1,'rgba(255,255,255,.6)');
   }
