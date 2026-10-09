@@ -2176,6 +2176,8 @@
         <div class="le-name">短影音</div>
         <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
       </div>
+      <span class="chev">›</span>
+    </div>
 
     <div class="lib-entry results-entry" onclick="openResults('market')">
       <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</div>
@@ -2183,8 +2185,6 @@
         <div class="le-name">市場經營</div>
         <div class="le-sub" id="resSumM">給新手的完整上手流程</div>
       </div>
-      <span class="chev">›</span>
-    </div>
       <span class="chev">›</span>
     </div>
 
@@ -2287,6 +2287,21 @@
           <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','健康是最重要的資產：很多人把健康當理所當然直到身體出問題才後悔，健康不是開銷是投資')"><span class="ci-ic">🌱</span><span class="ci-txt">健康是最重要的資產</span><span class="ci-ck">✓</span></div>
           <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','改變的代價：很多人想改變卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')"><span class="ci-ic">💪</span><span class="ci-txt">改變的代價</span><span class="ci-ck">✓</span></div>
           <div class="coll-item-sel" onclick="selectCollTopic(this,'concept','為什麼選擇這份事業：不是因為別人說好，而是自己真正看懂了商品制度市場和數字之後做出的明白選擇')"><span class="ci-ic">✅</span><span class="ci-txt">為什麼選擇這份事業</span><span class="ci-ck">✓</span></div>
+        </div>
+      </div>
+      <div class="coll-group">
+        <div class="coll-group-hd" onclick="toggleCollGroup('collBizGroup')">
+          <span class="cg-ic">🧭</span>
+          <span class="cg-title">經營主題</span>
+          <span class="cg-sel" id="collBizSel">未選擇</span>
+          <span class="cg-arr" id="collBizArr">›</span>
+        </div>
+        <div class="coll-list" id="collBizGroup">
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','新手怎麼開始經營：不會經營也沒關係，先定方向、再一步步做，第一步最重要')"><span class="ci-ic">🧭</span><span class="ci-txt">新手怎麼開始經營</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','引流怎麼做：沒人看到怎麼辦，先找到對的人，再讓對的人願意停下來')"><span class="ci-ic">📣</span><span class="ci-txt">引流怎麼做</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','互動與回覆：留言和私訊要怎麼回，才會讓人願意繼續聊下去')"><span class="ci-ic">💬</span><span class="ci-txt">互動與回覆</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','經營節奏：每天只做一件小事，比三天打魚兩天曬網更能累積')"><span class="ci-ic">📅</span><span class="ci-txt">經營節奏</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','追蹤與檢視：每週看一次數字，知道什麼有效、什麼要調整')"><span class="ci-ic">📊</span><span class="ci-txt">追蹤與檢視</span><span class="ci-ck">✓</span></div>
         </div>
       </div>
 
@@ -3542,27 +3557,25 @@ function deleteResult(id){
 
 
 /* ===== 資料收集分類選擇 ===== */
-const _collSel = { health:'', concept:'', auto:false };
-const _collSelLabel = { health:'未選擇', concept:'未選擇' };
+const _collSel = { health:'', concept:'', biz:'', auto:false };
+const _collSelLabel = { health:'未選擇', concept:'未選擇', biz:'未選擇' };
 
+const COLL_GROUPS=['collHealthGroup','collConceptGroup','collBizGroup'];
 function toggleCollGroup(id){
   const list = document.getElementById(id);
-  const arrowId = id==='collHealthGroup'?'collHealthArr':'collConceptArr';
-  const arrow = document.getElementById(arrowId);
+  if(!list) return;
   const isOpen = list.classList.toggle('open');
-  if(arrow) arrow.classList.toggle('open', isOpen);
-  // 關閉另一個
-  const otherId = id==='collHealthGroup'?'collConceptGroup':'collHealthGroup';
-  const otherArrowId = id==='collHealthGroup'?'collConceptArr':'collHealthArr';
-  const other = document.getElementById(otherId);
-  const otherArrow = document.getElementById(otherArrowId);
-  if(other){ other.classList.remove('open'); }
-  if(otherArrow){ otherArrow.classList.remove('open'); }
+  document.getElementById(id.replace('Group','Arr'))?.classList.toggle('open', isOpen);
+  // 關閉其他分類
+  COLL_GROUPS.filter(g=>g!==id).forEach(g=>{
+    document.getElementById(g)?.classList.remove('open');
+    document.getElementById(g.replace('Group','Arr'))?.classList.remove('open');
+  });
 }
 
 function selectCollTopic(el, cat, val){
-  const groupId = cat==='health'?'collHealthGroup':'collConceptGroup';
-  const selId   = cat==='health'?'collHealthSel':'collConceptSel';
+  const groupId = cat==='health'?'collHealthGroup':cat==='biz'?'collBizGroup':'collConceptGroup';
+  const selId   = cat==='health'?'collHealthSel':cat==='biz'?'collBizSel':'collConceptSel';
   // 取消同組其他
   document.querySelectorAll('#'+groupId+' .coll-item-sel').forEach(i=>i.classList.remove('selected'));
   // 切換
@@ -3583,6 +3596,7 @@ function getCollTopic(){
   // 優先用選取的分類，沒有就用舊的 topicHint
   if(_collSel.health) return _collSel.health;
   if(_collSel.concept) return _collSel.concept;
+  if(_collSel.biz) return _collSel.biz;
   return state.collector.topicHint||'';
 }
 
@@ -3595,6 +3609,7 @@ function getCollCategory(){
   if(_collSel.auto) return 'auto';
   if(_collSel.health) return 'health';
   if(_collSel.concept) return 'concept';
+  if(_collSel.biz) return 'biz';
   return '';
 }
 
@@ -3615,7 +3630,7 @@ function saveCollectorCfg(){
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  const catLabel = _collSel.auto?'🤖 AI定位判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:'';
+  const catLabel = _collSel.auto?'🤖 AI定位判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:'';
   el.textContent = (catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
@@ -3633,6 +3648,8 @@ async function collectTopics(silent){
     const hTopics=[...document.querySelectorAll('#collHealthGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
     const cTopics=[...document.querySelectorAll('#collConceptGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
     sys=`你是內容選題編輯，擅長掌握台灣近期熱門話題。請為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 挑出此刻最熱門、適合發文的話題。\n\n【每個話題必須同時符合】\n✓ 落在以下健康主題的範圍：${hTopics}\n✓ 或落在以下觀念主題的範圍：${cTopics}\n✓ 用熱門議題自然帶出上述主題，不要硬湊\n\n【合規】不得出現療效、治療、根治、保證有效等字眼；案例只說個人感受。\n\n只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）、angle（一句話切入角度）、cat（"health" 或 "concept"，表示偏向哪一類）。不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
+  } else if(collCat==='biz'){
+    sys=`你是網路經營內容選題編輯，專門為完全新手設計。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的「網路經營」話題（新手開始、引流、互動回覆、經營節奏、追蹤檢視等方向）。語氣親切、像前輩帶新手，不做收入或成效保證。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
   } else if(collCat==='concept'){
     sys=`你是觀念內容選題編輯，擅長《康園道》系列的文章風格。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line，產出此刻適合發文的觀念類話題（財富觀、經營觀、市場觀、人生觀、自律、累積、選擇等方向）。風格要像《康園道》：用對比和反問帶出思考，有金句收尾。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度和金句方向），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
   } else {
@@ -3666,7 +3683,7 @@ function renderCollector(){
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
     <button class="coll-del" onclick="deleteTopic('${c.id}')">刪除</button>
-    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':c.cat==="biz"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🧭 經營</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
