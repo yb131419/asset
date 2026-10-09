@@ -1,1087 +1,616 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>智囊軍師・天堂風</title>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none}
-html,body{width:100%;height:100%;background:#000;overflow:hidden;font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif;color:#e8e0c8;font-size:13px}
-button,input,select,textarea{font-family:inherit}
-.hidden{display:none!important}
-.win{background:linear-gradient(#2a2620,#15120d);border:2px solid;border-color:#a89a70 #3a3020 #3a3020 #a89a70;box-shadow:inset 0 0 0 1px #000,0 0 0 1px #000;padding:6px}
-.btn{background:linear-gradient(#5a5240,#332e22);border:1px solid;border-color:#a89c78 #151208 #151208 #a89c78;color:#f0e6c0;padding:4px 10px;cursor:pointer;font-size:13px}
-.btn:hover{background:linear-gradient(#6e6450,#3e3828)}
-.btn:active{border-color:#151208 #a89c78 #a89c78 #151208}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.wide{display:block;width:100%;margin-top:6px;text-align:left;padding:8px 10px}
-input,textarea,.sel{background:#000;border:1px solid #6b5f45;color:#fff;padding:5px;outline:none;width:100%;font-size:14px}
-textarea{resize:vertical;min-height:60px}
-input:focus,textarea:focus{border-color:#ffd24a}
-#login{position:fixed;inset:0;background:radial-gradient(#2a2216 0%,#000 75%);display:flex;align-items:center;justify-content:center;z-index:50}
-.lg{width:360px;max-width:92vw;padding:22px;text-align:center}
-.logo{font-size:34px;color:#ffd24a;letter-spacing:6px;text-shadow:0 2px 0 #5a3a00,0 0 16px #ff9a1a}
-.sub{color:#bfb394;margin:6px 0 14px;font-size:12px;line-height:1.6}
-.row{display:flex;gap:8px;margin-top:14px}
-.row .btn{flex:1;padding:8px 0}
-.hint{color:#8c8270;font-size:12px;margin-top:10px;text-align:left;line-height:1.6}
-.hint.warn{color:#c8a050}
-.err{color:#ff8a6a;min-height:18px;margin-top:6px;font-size:12px}
-#rot{position:fixed;inset:0;background:#000;color:#f0e6c0;display:none;align-items:center;justify-content:center;z-index:99;font-size:20px}
-@media (orientation:portrait) and (max-width:900px){#rot.on{display:flex}}
-#cv{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:crosshair}
-#hud{position:fixed;inset:0;pointer-events:none}
-#hud .win{pointer-events:auto}
-.abs{position:absolute}
-#chatWin{left:8px;top:8px;width:320px;height:170px;display:flex;flex-direction:column}
-.wt{color:#ffd24a;text-align:center;border-bottom:1px solid #5a4a2a;margin-bottom:4px;padding-bottom:2px;font-weight:bold}
-#log{flex:1;overflow-y:auto;background:#000;border:1px solid #3a3220;padding:4px;font-size:13px;line-height:1.5}
-.mini{right:8px;top:8px;padding:4px}
-#mm{display:block;background:#000;border:1px solid #3a3220}
-#stWin{right:8px;top:150px;width:210px}
-#invWin{right:8px;top:440px;width:210px}
-#outWin{left:8px;top:190px;width:340px;max-height:52vh;overflow-y:auto}
-#dlg{left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,92vw);max-height:72vh;overflow-y:auto;pointer-events:auto;z-index:20}
-.tb td{padding:2px 4px}
-.tb td:first-child{color:#bfb394}
-.item{display:flex;justify-content:space-between;align-items:center;padding:3px 0;gap:6px}
-.npc-say{color:#e8e0c8;background:#0a0906;border:1px solid #3a3220;padding:8px;margin:6px 0;line-height:1.7;white-space:pre-wrap;font-size:13px}
-.npc-say.small{font-size:12px;color:#bfb394}
-.chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 6px}
-.chip{padding:3px 8px;border:1px solid #6b5f45;background:#1a1610;color:#e8e0c8;cursor:pointer;font-size:12px}
-.chip.on{background:#5a4a2a;color:#fff;border-color:#ffd24a}
-.out{border-bottom:1px dashed #3a3220;padding:6px 2px}
-.out-h{display:flex;justify-content:space-between;align-items:center;gap:6px;cursor:pointer}
-.out-t{color:#ffd24a;font-weight:bold}
-.out-d{color:#8c8270;font-size:11px}
-.out-b{white-space:pre-wrap;font-size:12.5px;line-height:1.6;margin-top:4px;color:#e8e0c8;display:none}
-.out.open .out-b{display:block}
-.out-p{color:#8c8270;font-size:12px;margin-top:2px}
-.out.open .out-p{display:none}
-#toast{left:50%;top:30%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;white-space:nowrap;font-size:15px;color:#ffd24a;pointer-events:auto}
-.bottom{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:6px;padding:6px;pointer-events:none;flex-wrap:wrap}
-.bottom .win{pointer-events:auto}
-.portrait{width:150px;height:104px;text-align:center;font-size:13px;padding-top:12px}
-.portrait #pname{color:#fff;font-size:15px;font-weight:bold}
-.portrait #plv{color:#ffd24a;margin-top:4px;font-size:12px;line-height:1.4}
-.bars{flex:1;min-width:0;height:104px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:8px 10px}
-.bar{position:relative;height:18px;background:#0a0a0a;border:1px solid #000;overflow:hidden}
-.bar i{position:absolute;left:0;top:0;bottom:0;width:100%;transition:width .2s}
-.bar span{position:absolute;inset:0;text-align:center;font-size:12px;line-height:16px;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
-.hp i{background:linear-gradient(#ff4a4a,#8a0c0c)}
-.mp i{background:linear-gradient(#5a9cff,#1a3c88)}
-.exp{height:8px}
-.exp i{background:linear-gradient(#e0b050,#7a5a1a)}
-.slots{display:flex;gap:4px;padding:4px}
-.slot{width:64px;height:82px;border:1px solid;border-color:#8c8060 #111 #111 #8c8060;background:#14110c;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px;position:relative;gap:4px}
-.slot b{color:#ffd24a;font-size:15px}
-.slot em{position:absolute;right:4px;top:3px;font-style:normal;color:#9f9f9f;font-size:11px}
-.slot.on{background:#4a3a1a;box-shadow:inset 0 0 8px #ffb347}
-.menu{display:flex;flex-direction:column;gap:4px;padding:6px;width:120px}
-.menu .btn{width:100%}
-@media (max-width:900px){
-  #chatWin{width:50vw;height:120px}
-  #stWin{top:auto;bottom:150px;right:8px;width:170px}
-  #invWin{top:auto;bottom:150px;right:190px;width:170px}
-  #outWin{width:86vw;top:150px}
-  .mini{display:none}
-  .bottom{flex-wrap:nowrap;gap:4px;padding:4px}
-  .portrait{width:110px;height:96px;font-size:12px;padding-top:8px}
-  .slot{width:50px;height:70px}
-  .menu{width:84px}
-}
+<!--
+==========================================================================
+智囊軍師 · 像素村莊整合補丁
+共三段，依序貼入「health-ai-v6 (1).html」：
+  【A】貼到 </head> 之前
+  【B】貼到 <div class="app"> 之前（gate 區塊之後）
+  【C】貼到 </body> 之前（原本的 <script> 之後）
+不需要修改原檔任何既有程式碼。
+==========================================================================
+-->
+
+<!-- ===================== 【A】貼到 </head> 之前 ===================== -->
+<style id="vz-style">
+/* 列表模式時，原本的 .app 不顯示（由村莊接管畫面） */
+body.v-mode .app{visibility:hidden}
+
+/* 切換按鈕（村莊 ⇄ 列表）：列表時放在右上角標題列，村莊時放在村莊標題列 */
+#vToggle{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 13px;border-radius:999px;
+  border:1px solid rgba(243,217,163,.5);background:linear-gradient(160deg,rgba(243,217,163,.2),rgba(243,217,163,.05));
+  color:#F6E3B4;font:800 13px/1 "Noto Serif TC","Songti TC",serif;letter-spacing:.5px;cursor:pointer;flex:0 0 auto;
+  white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25);transition:transform .15s}
+#vToggle:active{transform:scale(.94)}
+
+/* 村莊外框 */
+#village{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,500px);height:100%;z-index:120;
+  display:none;flex-direction:column;overflow:hidden;color:#F3EBD3;
+  background:radial-gradient(120% 70% at 50% 0%,#1F5139 0%,#0E2A1E 55%,#061510 100%)}
+body.v-mode #village{display:flex}
+#vFlash{position:absolute;inset:0;pointer-events:none;z-index:9;opacity:0;
+  background:radial-gradient(circle,rgba(255,236,170,.55),transparent 70%)}
+#vFlash.on{animation:vFlash .9s ease-out}
+@keyframes vFlash{0%{opacity:1}100%{opacity:0}}
+
+/* 標題列與角色資訊 */
+#vHead{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:14px 14px 10px}
+#vHead::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:1px;
+  background:linear-gradient(90deg,transparent,#E7C27A,transparent)}
+.vAv{width:44px;height:44px;border-radius:50%;flex:0 0 auto;border:2px solid #E7C27A;background:#0C2219;overflow:hidden;
+  display:grid;place-items:center;font-size:20px;box-shadow:0 0 0 3px rgba(231,194,122,.15)}
+.vAv img{width:100%;height:100%;object-fit:cover}
+#vInfo{flex:1;min-width:0}
+#vName{font:900 16px/1.2 "Noto Serif TC","Songti TC",serif;color:#F6E3B4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vTitle{font-size:11.5px;letter-spacing:1.5px;color:rgba(243,217,163,.7);margin-top:2px}
+#vLv{font:800 22px/1 "Courier New",monospace;color:#F3D9A3;text-shadow:0 2px 0 #000}
+#vXp{position:relative;z-index:3;margin:0 14px 8px;height:10px;border-radius:99px;background:rgba(0,0,0,.45);
+  box-shadow:inset 0 0 0 1px rgba(231,194,122,.35);overflow:hidden}
+#vXpFill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#8A6428,#E7C27A,#FFF1CC,#E7C27A);
+  box-shadow:0 0 12px rgba(231,194,122,.6);transition:width .6s}
+#vMeta{position:relative;z-index:3;display:flex;justify-content:space-between;margin:0 16px 10px;font-size:12px;color:rgba(243,236,220,.72)}
+
+/* 地圖 */
+#vMapBox{position:relative;z-index:2;padding:0 8px}
+#vWrap{position:relative;width:100%;aspect-ratio:3/2;border-radius:16px;overflow:hidden;
+  box-shadow:0 14px 34px rgba(0,0,0,.45),0 0 0 2px rgba(231,194,122,.45)}
+#vCv{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges;
+  cursor:pointer;touch-action:manipulation}
+#vLbls{position:absolute;inset:0;pointer-events:none}
+.vLbl{position:absolute;transform:translate(-50%,-100%);padding:3px 6px;border-radius:6px;white-space:nowrap;
+  font:700 10.5px/1.2 "Noto Sans TC","PingFang TC",sans-serif;color:#F6E3B4;background:rgba(6,20,14,.84);
+  border:1px solid rgba(231,194,122,.55);box-shadow:0 2px 0 #000;transition:background .2s,color .2s}
+.vLbl.hot{background:#E7C27A;color:#0B1A12}
+
+/* 底部：對話卡與快速清單 */
+#vBottom{position:relative;z-index:3;flex:1;min-height:0;overflow-y:auto;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px))}
+#vCard{background:linear-gradient(170deg,#173D2D,#0B2119);border:1.5px solid rgba(231,194,122,.5);border-radius:18px;
+  padding:14px;box-shadow:0 14px 30px rgba(0,0,0,.35);animation:vIn .35s ease both}
+#vCard[hidden],#vGridBox[hidden]{display:none}
+@keyframes vIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.vc-h{display:flex;align-items:center;gap:10px}
+.vc-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex:0 0 auto;border:1px solid}
+.vc-n{font:900 17px/1.2 "Noto Serif TC","Songti TC",serif;color:#F6E3B4}
+.vc-r{font-size:12px;color:rgba(243,236,220,.65);margin-top:3px}
+.vc-x{margin-left:auto;flex:0 0 auto}
+.vc-t{margin:12px 0;font-size:14px;line-height:1.7;color:#EFE9D6;background:rgba(0,0,0,.25);border-radius:12px;padding:10px 12px}
+.vc-btns{display:flex;flex-wrap:wrap;gap:8px}
+.vbtn{flex:1 1 auto;min-height:46px;padding:0 14px;border-radius:999px;border:1px solid rgba(231,194,122,.5);
+  background:linear-gradient(170deg,#FBE9B9,#E7C27A 55%,#C79A4B);color:#14201A;
+  font:800 14px/1 "Noto Serif TC","Songti TC",serif;letter-spacing:.5px;box-shadow:0 4px 0 #7A5520;cursor:pointer;transition:transform .12s}
+.vbtn:active{transform:translateY(2px);box-shadow:0 2px 0 #7A5520}
+.vbtn.g{background:rgba(243,217,163,.08);color:#F6E3B4;border-color:rgba(243,217,163,.3);box-shadow:none}
+.vbtn.sm{flex:0 0 auto;min-height:36px;padding:0 12px}
+#vHint{font-size:12.5px;color:rgba(243,236,220,.72);text-align:center;margin:0 0 10px;letter-spacing:.3px}
+#vGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vchip{display:flex;align-items:center;gap:6px;min-height:44px;padding:8px 10px;border-radius:14px;
+  border:1px solid rgba(231,194,122,.3);background:rgba(255,255,255,.04);color:#F3EBD3;
+  font:700 13px/1.2 "Noto Sans TC",sans-serif;cursor:pointer;text-align:left;transition:transform .12s,background .2s}
+.vchip span{font-size:17px}
+.vchip:active{transform:scale(.96);background:rgba(231,194,122,.16)}
 </style>
-</head>
-<body>
-<canvas id="cv"></canvas>
-<div id="rot">請將手機轉成橫向遊玩</div>
 
-<div id="login">
-  <div class="win lg">
-    <div class="logo">智囊軍師</div>
-    <div class="sub">— 天堂風・村莊冒險版 —<br>走遍村莊找 NPC 接任務，到迷霧洞窟打怪收集題材。</div>
-    <div class="row">
-      <button class="btn" id="btnEnter">LINE 登入進入村莊</button>
-      <button class="btn" id="btnOff">訪客試玩</button>
+<!-- ===================== 【B】貼到 <div class="app"> 之前 ===================== -->
+<div id="village" aria-label="智囊村莊">
+  <div id="vFlash"></div>
+  <div id="vHead">
+    <div class="vAv" id="vAv"><span>👤</span></div>
+    <div id="vInfo">
+      <div id="vName">冒險者</div>
+      <div id="vTitle">見習冒險者</div>
     </div>
-    <div class="hint">任務會呼叫智囊軍師的 AI，需要黃金或尊爵會員，並會消耗次數（尊爵不扣次）。</div>
-    <div class="hint warn">訪客可以逛村莊、打怪，但無法執行 AI 任務。</div>
-    <div class="err" id="err"></div>
+    <div id="vLv">Lv.1</div>
   </div>
-</div>
-
-<div id="hud" class="hidden">
-  <div class="win abs" id="chatWin">
-    <div class="wt">訊息</div>
-    <div id="log"></div>
-  </div>
-
-  <div class="win abs mini"><canvas id="mm" width="150" height="100"></canvas></div>
-
-  <div class="win abs hidden" id="stWin"></div>
-  <div class="win abs hidden" id="invWin"></div>
-  <div class="win abs hidden" id="outWin"></div>
-
-  <div class="win abs hidden" id="dlg">
-    <div id="dlgBody"></div>
-  </div>
-
-  <div class="win abs hidden" id="toast">
-    <span id="toastTxt"></span>
-    <button class="btn" id="toastBtn"></button>
-  </div>
-
-  <div class="bottom">
-    <div class="win portrait">
-      <div id="pname"></div>
-      <div id="plv"></div>
+  <div id="vXp"><div id="vXpFill"></div></div>
+  <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
+  <div id="vMapBox">
+    <div id="vWrap">
+      <canvas id="vCv" width="384" height="256"></canvas>
+      <div id="vLbls"></div>
     </div>
-    <div class="win bars">
-      <div class="bar hp"><i id="hpF"></i><span id="hpT"></span></div>
-      <div class="bar mp"><i id="mpF"></i><span id="mpT"></span></div>
-      <div class="bar exp"><i id="expF"></i></div>
-    </div>
-    <div class="win slots" id="slots"></div>
-    <div class="win menu">
-      <button class="btn" id="bInv">背包[B]</button>
-      <button class="btn" id="bSt">狀態[C]</button>
-      <button class="btn" id="bOut">成果[O]</button>
-      <button class="btn" id="bFull">全螢幕[F3]</button>
+  </div>
+  <div id="vBottom">
+    <div id="vCard" hidden></div>
+    <div id="vGridBox">
+      <div id="vHint">點地圖上的人物，或下方名稱，走過去與他對話</div>
+      <div id="vGrid"></div>
     </div>
   </div>
 </div>
 
+<!-- ===================== 【C】貼到 </body> 之前 ===================== -->
 <script>
 (function(){
 'use strict';
+/* =========================================================
+   智囊村莊 · 像素村（整合版）
+   村莊只是入口：所有功能都呼叫原本的函式（openDept、
+   openCollector、openCards、openLibrary、openResults、
+   openView、runAllDepartments），行為與列表模式完全一致。
+   升級以「成品數量」為準：每則圖文或短影音成品 +1 點。
+   ========================================================= */
 
-/* ================= 後端與會員設定（沿用智囊軍師） ================= */
-const GAS_URL = "https://script.google.com/macros/s/AKfycbx7EHpSHR65XPn4ROOfaqYbOmWQ7al-5Gkouz1d6Kunyed8GU7P6nI-sXS_V_K8rQQI/exec";
-const LIFF_ID = "2008578880-YB0IXDbA";
-const MODEL = "gpt-4o-mini";
+const VW=24, VH=16, T=16, W=VW*T, H=VH*T;
+const cv=document.getElementById('vCv');
+const g=cv.getContext('2d'); g.imageSmoothingEnabled=false;
+const bgC=document.createElement('canvas'); bgC.width=W; bgC.height=H;
+const b=bgC.getContext('2d'); b.imageSmoothingEnabled=false;
 
-/* ================= 工具 ================= */
-const $ = id => document.getElementById(id);
-const rnd = (a,b) => a + Math.random()*(b-a);
-const ri  = (a,b) => Math.floor(rnd(a,b+1));
-const dd  = (a,b,c,d) => Math.hypot(a-c, b-d);
-const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-const hashv = (tx,ty) => ((tx*73856093)^(ty*19349663))>>>0;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const fmtTime = t => { const d=new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+const key=(x,y)=>x+','+y;
+function mulberry(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function fillOn(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h);}
 
-/* ================= 常數 ================= */
-const TILE = 32, MW = 60, MH = 40;
-const CAVE_TILE = {tx:50, ty:9};   // 村莊入口旁的落點
-const COL = {0:'#4a6b2a',1:'#22401a',2:'#2a5a8a',3:'#7a6a4a',4:'#120818',5:'#3c3a36',6:'#0c0b0a',7:'#6b4a2a'};
-const MONS = [
-  {n:'焦慮蝠',     lv:1, hp:30,  dmg:4,  exp:20,  col:'#7a5ab0', spd:60, r:9,  aggro:150},
-  {n:'拖延哥布林', lv:3, hp:70,  dmg:8,  exp:60,  col:'#6a8a30', spd:50, r:11, aggro:170},
-  {n:'比較骷髏',   lv:6, hp:150, dmg:14, exp:150, col:'#d8d0b0', spd:55, r:11, aggro:190},
-  {n:'誤解魔',     lv:9, hp:300, dmg:22, exp:350, col:'#a04030', spd:45, r:14, aggro:200}
+/* ---------- 版面資料 ---------- */
+const BLDS=[
+  {x:2, y:2, w:4,h:2, roof:'#7A3E2A', wall:'#EADCB8', win:2},  // 大長老殿
+  {x:9, y:1, w:3,h:2, roof:'#2E5A8A', wall:'#E9E0C8', win:1},  // 城主府
+  {x:13,y:2, w:3,h:2, roof:'#5A4A8A', wall:'#E9E0C8', win:2},  // 成品館
+  {x:3, y:6, w:3,h:2, roof:'#B0701F', wall:'#EADCB8', win:1},  // 故事小屋
+  {x:8, y:6, w:3,h:2, roof:'#1F7A62', wall:'#E9E0C8', win:1},  // 核心書院
+  {x:14,y:6, w:2,h:2, roof:'#9A5424', wall:'#EADCB8', win:1},  // 影音舞台
+  {x:16,y:6, w:3,h:2, roof:'#2E6FB0', wall:'#E9E0C8', win:2},  // 市場店
+  {x:20,y:9, w:2,h:2, roof:'#6B4E9E', wall:'#D9D0C0', win:1},  // 資料塔
+  {x:10,y:10,w:3,h:2, roof:'#7A4E22', wall:'#EADCB8', win:1},  // 教學工坊
+  {x:2, y:10,w:3,h:2, roof:'#2E6A5A', wall:'#E9E0C8', win:1},  // 素材倉
 ];
-const TOPIC_POOL = ['腸胃消化','睡眠品質','手腳冰冷','壓力與情緒','飲食節奏','體力下降','循環與代謝','經營的堅持','新手的第一步','和陌生人開場'];
-const PLAYER = {
-  speed:130, radius:7, attackRange:48, skillRange:220, pickRadius:26, meleeStop:44,
-  chaseRange:400, autoRange:300, skillCost:10, skillCooldown:2, attackCooldown:0.7,
-  potionCooldown:1, mpRegenPerSec:2, potionHeal:60
-};
-const ATTACK_RANGE = 30, ATTACK_CD = 1.4, LEASH = 160, WANDER_SPEED = 0.35;
-const SAVE_INTERVAL = 10;
-const NPC_RANGE = 48, NPC_TALK_RANGE = 56;
-const TOWN_NPC_Y = 19;
+const POND={x0:17,y0:2,x1:21,y1:4};
+const TREES=[[1,7],[22,6],[18,13],[5,14],[16,14],[22,13],[1,14],[8,14],[13,14],[21,5],[6,3]];
+const LANTERNS=[[7,5],[13,5],[7,13],[18,11],[1,4],[22,10]];
+const PAVILION={x:6,y:10};
+const isPath=(x,y)=>(y===9&&x>=1&&x<=22)||((x===11||x===12)&&y>=3&&y<=14);
 
-/* ================= 村民（部門）與任務 ================= */
-const NPCS = [
-  {id:'icebreak', name:'破冰老人', emoji:'📖', tx:14, color:'#C7902B',
-   intro:'你有沒有發現……一句話能讓人停下來。\n我教你用比喻開場。', quests:['q_icebreak']},
-  {id:'core', name:'核心老師', emoji:'🌿', tx:22, color:'#1F8A72',
-   intro:'道理要講清楚，案例只說個人感受。', quests:['q_core']},
-  {id:'video', name:'影音使者', emoji:'🎬', tx:30, color:'#B5652E',
-   intro:'把圖文改寫成一分鐘口播。\n先完成一個任務，我才有稿可以改。', quests:['q_video']},
-  {id:'market', name:'市場商人', emoji:'📈', tx:38, color:'#2E6FB0',
-   intro:'新手最怕不知道第一步。\n我給你完整的上手流程。', quests:['q_market']},
-  {id:'warmup', name:'暖身大師', emoji:'🤝', tx:46, color:'#8A5A2E',
-   intro:'從暖身到自然邀約，一步一步來。', quests:['q_warmup']}
+const BLK=new Set();
+for(let x=0;x<VW;x++){BLK.add(key(x,0));BLK.add(key(x,VH-1));}
+for(let y=0;y<VH;y++){BLK.add(key(0,y));BLK.add(key(VW-1,y));}
+BLDS.forEach(d=>{for(let yy=0;yy<d.h;yy++)for(let xx=0;xx<d.w;xx++)BLK.add(key(d.x+xx,d.y+yy));});
+for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++)BLK.add(key(x,y));
+TREES.forEach(([x,y])=>BLK.add(key(x,y)));
+
+/* ---------- 角色外觀 ---------- */
+function L(cloth,acc,kind,hair,beard){
+  return {skin:'#F2C9A0',hair:hair||'#3A2A1E',cloth,pants:'#2A2A36',shoe:'#1A1210',acc,kind:kind||'hat',beard:!!beard,line:'#0B1A12'};
+}
+const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36',shoe:'#1A1210',acc:'#E7C27A',kind:'bag',beard:false,line:'#0B1A12'};
+
+/* ---------- NPC（對應原本各項功能） ---------- */
+const NPC=[
+  {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:3,y:4,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
+   lines:['主題備妥後交給我，一次跑完整套文案。','一人一次，走完全程。'],
+   acts:[['▶ 一鍵自動幫我寫',()=>go(()=>{openView('home');runAllDepartments();})],
+         ['📋 回到列表首頁',()=>go(()=>openView('home'))]]},
+  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:14,y:4,look:L('#3A4A8A','#F3D9A3','hat'),
+   lines:['每產出一則成品，你的等級就會提升。'],
+   acts:[['📝 圖文',()=>go(()=>openResults('final'))],['🎬 短影音',()=>go(()=>openResults('video'))]]},
+  {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:10,y:3,look:L('#7A3E2A','#E7C27A','crown'),
+   lines:['在這裡管理身分、背景設定與素材。'],
+   acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))]]},
+  {id:'icebreak',name:'故事破冰',role:'用比喻故事讓人停下來',ic:'📖',x:4,y:8,look:L('#C7902B','#FFF1CC','hat'),
+   lines:['用比喻故事，讓人停下來產生共鳴。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('icebreak'))]]},
+  {id:'core',name:'核心處理',role:'把健康道理講清楚',ic:'🌿',x:9,y:8,look:L('#1F8A72','#CFEFE3','hat'),
+   lines:['道理說明白，案例只說個人感受。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('core'))]]},
+  {id:'video',name:'影音內容',role:'把圖文改寫成一分鐘口播',ic:'🎬',x:15,y:8,look:L('#B5652E','#FFD9A8','hat'),
+   lines:['鏡頭前要有節奏，三秒內抓住人。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('video'))]]},
+  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:17,y:8,look:L('#2E6FB0','#CFE3FA','hat'),
+   lines:['一步一步來，我教你怎麼開始。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+  {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:20,y:11,look:L('#6B4E9E','#E2D6FA','hat'),
+   lines:['選好方向告訴我，我去打探消息。'],
+   acts:[['🛰️ 開始收集',()=>go(()=>openCollector())]]},
+  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:6,y:12,look:L('#8A5A2E','#F3D9A3','hat'),
+   lines:['不推銷，先交朋友。'],
+   acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+  {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:11,y:12,look:L('#A8782E','#FBE9B9','hat'),
+   lines:['拿來教材，我幫你鍛造成卡片。'],
+   acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
+  {id:'library',name:'素材庫',role:'上傳與管理備用資料',ic:'📁',x:3,y:12,look:L('#2E7A6A','#CFEFE3','bag'),
+   lines:['檔案留存一次，之後勾選即可使用。'],
+   acts:[['📁 打開素材庫',()=>go(()=>openLibrary())]]},
 ];
-for (const n of NPCS) { n.x = n.tx*TILE+16; n.y = TOWN_NPC_Y*TILE+16; }
+const npcAt=new Map();
+NPC.forEach(n=>npcAt.set(key(n.x,n.y),n));
+NPC.forEach(n=>BLK.has(key(n.x,n.y)) && console.warn('NPC 位置被障礙佔用：',n.name));
 
-const ROLE_ICE = "你是『故事破冰』，負責用《康園道》的文章風格 ＋ 大健康原理故事寶典的比喻，寫出讓人停下來的開場。\n\n【風格】短句為主，每句獨立一行；先描述一個所有人都有的現象，讓人對號入座；用反問句引發思考；留白多；不推銷、不說療效，像朋友分享；重點句用 # 強調。\n\n【八大核心比喻】鍋子→腸胃消化｜蒼蠅→反覆發炎｜水管→血液循環｜魚缸→整體調理｜農夫→保健品角色｜警察→氣血體力｜房子→體質寒濕｜堵車→微循環\n\n任務：依使用者給的題材，選最適合的比喻，寫出讓 40–65 歲中年人覺得「這在說我！」的開場。\n合規紅線：不說療效、治療、根治、保證有效。繁體台灣用語。";
-const ROLE_CORE = "你是『核心處理』，負責用《康園道》的文章風格，把健康道理講清楚，分享合規的感受案例。\n\n【風格】短句、每句獨立一行；用「對比」帶出觀念（知道 vs 理解、一般人 vs 真正懂的人）；反問句帶動思考；用 👉 ✅ 🎯 🌀 📌 分層；重點句用 # 強調；結尾有金句。\n\n【內容】1. 用比喻說明道理 2. 分享合規感受案例（只說個人感受）3. 用對比與反問讓人自己思考。\n\n【合規鐵則】不說：治療、根治、改善疾病、保證有效、降血糖。案例結尾必加「以上是個人感受，每個人狀況不同」。癌症、洗腎、精神科案例不能公開。繁體台灣用語。";
-const ROLE_VIDEO = "你是『影音內容』，負責把圖文內容改寫成一分鐘的短影音逐字稿（口播稿）。\n\n【改寫原則】觀點、故事、感受案例必須與圖文內容完全一致，不新增圖文沒有的觀點、數據、療效或產品承諾。口語化、短句、有節奏，像真人對著鏡頭說話。全文約 280 字，分四段：1. 開場鉤子（前 3 秒）2. 核心觀念 3. 生活感受（只說個人感受）4. 收尾金句＋低壓力行動呼籲。禁止誇大與醫療用語。\n\n【輸出格式】第一行寫「一分鐘逐字稿｜約 280 字」；每段先寫一行短標題（不超過 10 字），空一行後寫口白；畫面提示以「（畫面：…）」放在該段口白最前面。";
-const ROLE_MARKET = "你是『市場經營』，專門寫給完全新手看的網路經營教學。使用者沒有任何網路經營經驗，請從「完全不會」開始，一步一步教到能真正上手。\n\n【必須涵蓋】先列「流程總覽」（共幾步、每步一句話），再依序詳細寫至少 8 步，涵蓋：確認經營方向與準備、建立平台帳號、規劃內容與發布節奏、製作第一批內容、發布第一則內容、引流與互動、追蹤與回覆、每日與每週檢視。\n\n【每一步都要包含】步驟標題（「第 X 步：」開頭）、為什麼要做、怎麼做（寫到新手照著做就能完成）、新手常見錯誤與避開方法、完成的確認方式。\n\n【寫作原則】白話、短句；第一次出現的專有名詞先用一句話解釋；只給方向與做法，不給收入或成效保證，不用「保證」「一定」「穩定收入」；不使用醫療用語，不推銷產品。繁體台灣用語。最後一段：新手最重要的三個提醒。";
-const ROLE_WARMUP = "你是『暖身邀約』，專門寫給完全新手看的「暖身→邀約」教學。使用者沒有任何經驗，請從「完全不會」開始，把陌生人變成願意聊的人，再自然地邀請對方進一步了解。\n\n【必須涵蓋】先列「流程總覽」，再依序詳細寫至少 8 步：認識對象與名單整理、第一次接觸的開場、暖身互動、了解對方需求、分享有價值的內容、自然邀約、被拒絕或沒回覆怎麼辦、每日與每週的檢視。\n\n【每一步都要包含】步驟標題（「第 X 步：」開頭）、為什麼要做、怎麼做（具體可照做）、新手常見錯誤與避開方法、完成的確認方式。\n\n【寫作原則】語氣像朋友分享、不推銷，尊重對方選擇；只給方向與做法，不給收入或成效保證；不使用醫療用語，不寫「加入直銷」「賺錢機會」。繁體台灣用語。最後一段：新手最重要的三個提醒。";
+/* ---------- 導覽：切換村莊 / 列表 ---------- */
+function setMode(m){
+  document.body.classList.toggle('v-mode', m==='village');
+  placeToggle();
+  if(m==='village'){ hideCard(); renderVillage(); window.scrollTo(0,0); }
+}
+function go(fn){ setMode('list'); fn(); }
 
-const CONTEXT = "【行業／領域】（依你的產業填寫，例如：餐飲、美業、教育、顧問、電商、服務業等）\n【品牌／個人定位】用生活化的故事與真實分享，幫助有需求的人找到適合自己的選擇\n【目標客群】（年齡、職業、主要需求或困擾）\n【合作夥伴】（服務或合作對象、專業資格、服務方式，依實際情況填寫）\n【語氣風格】溫暖真誠、像朋友說話、不說教不推銷、說真話\n\n【寫作風格（必須嚴格遵守）】短句為主，每句獨立成行；段落之間空行；先提出大家都會遇到的困惑；用對比帶出思考；反問句貫穿全文；重點句用 # 或《》強調；結尾金句收尾；絕對不寫「購買」「成交」「加入」等推銷字眼。\n\n【合規底線】不誇大效果、不做保證或絕對化承諾；不冒充專業意見；案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。";
-
-const QUESTS = {
-  q_icebreak: {name:'寫破冰開場',   lv:1, input:'topic', topicOpt:false, role:ROLE_ICE},
-  q_core:     {name:'講清健康觀念', lv:2, input:'topic', topicOpt:false, role:ROLE_CORE},
-  q_video:    {name:'改寫一分鐘口播', lv:3, input:'last',  topicOpt:false, role:ROLE_VIDEO},
-  q_market:   {name:'新手經營流程', lv:4, input:'topic', topicOpt:true,  role:ROLE_MARKET},
-  q_warmup:   {name:'暖身邀約流程', lv:5, input:'topic', topicOpt:true,  role:ROLE_WARMUP}
-};
-
-function buildSys(role){
-  return `你是「智囊軍師」的任務 AI 助理。\n\n【背景設定】\n${CONTEXT}\n\n【你的任務定位】\n${role}\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`;
-}
-
-/* ================= 會員（沿用 LINE LIFF + GAS 驗證） ================= */
-const member = { ready:false, lineId:"guest", lineName:"訪客", level:"", remain:"", msg:"", expire:"" };
-let _memberBusy = false;
-function memberOK(){ return member.ready && (member.level==="黃金"||member.level==="尊爵"); }
-function memberLine(){
-  if(!member.ready) return member.msg ? ("⚠️ "+member.msg) : "會員驗證中…";
-  if(member.level==="尊爵") return "👑 尊爵會員（不扣次）";
-  if(member.level==="黃金") return `🥇 黃金會員・剩 ${member.remain} 次`;
-  return "⚠️ "+(member.msg||"會員狀態異常，請重新驗證");
-}
-async function gasPost(params, timeoutMs){
-  const body = new URLSearchParams({ lineId:member.lineId, lineName:member.lineName, ...params });
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs || 55000);
-  try{
-    const res = await fetch(GAS_URL, {method:"POST", body, signal:ctrl.signal});
-    return await res.json();
-  }catch(e){
-    if(e && e.name==="AbortError") throw new Error("後端逾時未回應，請稍後重試");
-    throw e;
-  }finally{ clearTimeout(timer); }
-}
-async function initMember(){
-  if(_memberBusy) return;
-  _memberBusy = true;
-  try{
-    if(window.liff && LIFF_ID){
-      await liff.init({liffId:LIFF_ID});
-      if(!liff.isLoggedIn()){ liff.login(); return; }
-      const p = await liff.getProfile();
-      member.lineId = p.userId; member.lineName = p.displayName || "";
-    }else{
-      member.lineId = "未登入"; member.lineName = "測試模式";
-    }
-    let r = null;
-    for(let a=0; a<3; a++){
-      r = await gasPost({action:"getPermission"}, 20000);
-      if(r && r.success && r.permission && r.permission.level) break;
-      if(a<2) await sleep(1200*(a+1));
-    }
-    if(r && r.success && r.permission){
-      const pm = r.permission;
-      member.ready = true; member.level = pm.level; member.remain = pm.remainCount;
-      member.expire = pm.expireDate; member.msg = pm.msg || "";
-      if(!pm.allow && pm.level) addChat("系統","次數已用完，請聯繫管理員儲值");
-    }else{
-      member.ready = false;
-      member.msg = (r && r.errMsg) || "會員驗證失敗";
-    }
-  }catch(e){
-    member.ready = false;
-    member.msg = "登入失敗：" + (e && e.message ? e.message : e);
-  }finally{ _memberBusy = false; }
-  if(G.pl) updateWin();
-}
-
-/* ================= 遊戲狀態 ================= */
-const G = {
-  running:false, zone:'town', map:[], mons:[], floats:[], fx:[], pl:null,
-  spawnT:{tx:10,ty:20}, cam:{x:0,y:0}, cd:0, skCd:0, potCd:0, auto:false,
-  lock:null, target:null, talk:null, dlg:null, toastAction:null,
-  msgs:[], nearCave:false, t:0, uiT:0, saveT:0, key:'', busy:false
-};
-const K = {};
-const VP = {w:0, h:0};
-
-function newChar(name){
-  return {name, lv:1, exp:0, hp:100, maxHp:100, mp:50, maxMp:50,
-          inv:{藥水:3, 金幣:0}, topics:[], outputs:[], qdone:{},
-          zone:'town', x:null, y:null};
-}
-function calcMax(p){
-  p.maxHp = 100 + (p.lv-1)*25;
-  p.maxMp = 50 + (p.lv-1)*8;
-}
-
-function addChat(text){
-  G.msgs.push({text, t:Date.now()});
-  if(G.msgs.length>120) G.msgs.shift();
-  const list = G.msgs.slice(-40);
-  $('log').innerHTML = list.map(m => `<div>${esc(m.text)}</div>`).join("");
-  $('log').scrollTop = 1e9;
-}
-
-/* ================= 存檔 ================= */
-function saveGame(){
-  if(!G.pl || !G.key) return;
-  try{ localStorage.setItem(G.key, JSON.stringify(G.pl)); }catch(e){}
-}
-function readSave(key){
-  try{ return JSON.parse(localStorage.getItem(key)); }catch(e){ return null; }
-}
-
-/* ================= 地圖 ================= */
-function isWalkable(v){ return v===0 || v===3 || v===4 || v===5; }
-function walkT(tx,ty){
-  if(tx<0||ty<0||tx>=MW||ty>=MH) return false;
-  return isWalkable(G.map[ty][tx]);
-}
-function canAt(x,y,r){
-  return walkT(Math.floor((x-r)/TILE),Math.floor((y-r)/TILE)) &&
-         walkT(Math.floor((x+r)/TILE),Math.floor((y-r)/TILE)) &&
-         walkT(Math.floor((x-r)/TILE),Math.floor((y+r)/TILE)) &&
-         walkT(Math.floor((x+r)/TILE),Math.floor((y+r)/TILE));
-}
-function move(e,dx,dy,r){
-  if(canAt(e.x+dx,e.y,r)) e.x+=dx;
-  if(canAt(e.x,e.y+dy,r)) e.y+=dy;
-}
-function stepTo(e,x,y,s){
-  const dx=x-e.x, dy=y-e.y, d=Math.hypot(dx,dy)||1;
-  move(e,dx/d*s,dy/d*s,7);
-}
-
-function buildTown(){
-  const m = [];
-  for(let y=0;y<MH;y++){
-    const row=[];
-    for(let x=0;x<MW;x++){
-      const edge = x<1||y<1||x>=MW-1||y>=MH-1;
-      const r = Math.random();
-      row.push(edge||r<0.06 ? 1 : r<0.09 ? 2 : 0);
-    }
-    m.push(row);
-  }
-  for(let x=1;x<MW-1;x++) m[20][x]=3;          // 橫向大路
-  for(let y=1;y<MH-1;y++) m[y][10]=3;          // 縱向小路
-  for(const n of NPCS){                        // 村民房屋（擋住）與站位
-    m[TOWN_NPC_Y][n.tx]=0;
-    m[TOWN_NPC_Y-2][n.tx]=7;
-    m[TOWN_NPC_Y-2][n.tx+1]=7;
-  }
-  for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
-    const v=m[8+dy][50+dx]; if(v===1||v===2) m[8+dy][50+dx]=0;
-  }
-  m[8][50]=4;                                  // 迷霧洞窟入口
-  return {m, spawn:{tx:10, ty:20}};
-}
-function buildField(){
-  const m=[];
-  for(let y=0;y<MH;y++){ const row=[]; for(let x=0;x<MW;x++) row.push(6); m.push(row); }
-  const rooms=[];
-  for(let i=0;i<14;i++){
-    const w=ri(4,9), h=ri(4,7), x=ri(2,MW-w-2), y=ri(2,MH-h-2);
-    rooms.push({cx:x+(w>>1), cy:y+(h>>1)});
-    for(let yy=y;yy<y+h;yy++) for(let xx=x;xx<x+w;xx++) m[yy][xx]=5;
-  }
-  for(let i=1;i<rooms.length;i++){
-    const a=rooms[i-1], b=rooms[i];
-    for(let x=Math.min(a.cx,b.cx);x<=Math.max(a.cx,b.cx);x++) m[a.cy][x]=5;
-    for(let y=Math.min(a.cy,b.cy);y<=Math.max(a.cy,b.cy);y++) m[y][b.cx]=5;
-  }
-  const ex=rooms[rooms.length-1]; m[ex.cy][ex.cx]=4;
-  return {m, spawn:{tx:rooms[0].cx, ty:rooms[0].cy}};
-}
-
-function enterZone(zone, pos){
-  const p = G.pl;
-  const b = zone==='field' ? buildField() : buildTown();
-  G.zone = zone; G.map = b.m; G.spawnT = b.spawn; p.zone = zone;
-  const ok = pos && walkT(Math.floor(pos.x/TILE), Math.floor(pos.y/TILE));
-  const sp = ok ? pos : {x:b.spawn.tx*TILE+16, y:b.spawn.ty*TILE+16};
-  p.x = sp.x; p.y = sp.y;
-  G.target=null; G.lock=null; G.talk=null; G.fx=[];
-  spawnMons(zone);
-  saveGame();
-}
-function spawnMons(zone){
-  G.mons = [];
-  if(zone!=='field') return;
-  const types = MONS.slice(1);
-  let tries=0;
-  while(G.mons.length<30 && tries++<5000){
-    const tx=ri(1,MW-2), ty=ri(1,MH-2), v=G.map[ty][tx];
-    if(v!==5) continue;
-    if(dd(tx,ty,G.spawnT.tx,G.spawnT.ty)<6) continue;
-    const t = types[ri(0,types.length-1)];
-    const mul = 1.5;
-    const x=tx*TILE+16, y=ty*TILE+16;
-    G.mons.push({t, mul, x, y, sx:x, sy:y, hp:t.hp*mul, maxHp:t.hp*mul,
-                 dead:false, rT:0, cd:0, flash:0, wT:0, wx:0, wy:0});
-  }
-}
-
-/* ================= 戰鬥 ================= */
-function nearestAlive(x,y,r){
-  let best=null, bd=r;
-  for(const m of G.mons){
-    if(m.dead) continue;
-    const d=dd(x,y,m.x,m.y);
-    if(d<=bd){ bd=d; best=m; }
-  }
-  return best;
-}
-function floatTxt(x,y,txt,col){ G.floats.push({x,y,txt,col,t:1}); }
-function doAttack(m){
-  if(!m || m.dead || G.cd>0) return;
-  const p=G.pl;
-  if(dd(p.x,p.y,m.x,m.y) > PLAYER.attackRange) return;
-  G.cd = PLAYER.attackCooldown;
-  hitMon(m, ri(6,12)+p.lv*3, '#ffffff');
-}
-function skill(){
-  const p=G.pl;
-  if(G.skCd>0) return;
-  const m=nearestAlive(p.x,p.y,PLAYER.skillRange);
-  if(!m){ addChat('沒有可攻擊的目標'); return; }
-  if(p.mp<PLAYER.skillCost){ addChat('MP 不足'); return; }
-  p.mp -= PLAYER.skillCost;
-  G.skCd = PLAYER.skillCooldown;
-  G.fx.push({x1:p.x,y1:p.y,x2:m.x,y2:m.y,t:0.3,max:0.3});
-  hitMon(m, ri(20,28)+p.lv*6, '#ffb347');
-}
-function hitMon(m,dmg,col){
-  m.hp -= dmg; m.flash = 0.12;
-  floatTxt(m.x, m.y-m.t.r-12, String(dmg), col);
-  if(m.hp<=0) killMon(m);
-}
-function killMon(m){
-  const p=G.pl;
-  m.dead=true; m.rT=8;
-  if(G.lock===m) G.lock=null;
-  const gold = ri(1, m.t.lv*3*m.mul);
-  const ex = Math.round(m.t.exp*m.mul);
-  p.inv.金幣 += gold; p.exp += ex;
-  addChat(`你擊敗了 ${m.t.n}，獲得 ${ex} 經驗、${gold} 金幣`);
-  if(Math.random()<0.5){                       // 掉落題材（任務素材）
-    const pool = TOPIC_POOL.filter(t => !p.topics.includes(t));
-    if(pool.length){
-      const t = pool[ri(0,pool.length-1)];
-      p.topics.push(t);
-      addChat(`📜 獲得題材：「${t}」`);
-    }
-  }
-  if(Math.random()<0.25){ p.inv.藥水=(p.inv.藥水||0)+1; addChat('獲得 藥水 ×1'); }
-  while(p.exp >= p.lv*100){
-    p.exp -= p.lv*100; p.lv++; calcMax(p);
-    p.hp=p.maxHp; p.mp=p.maxMp;
-    addChat(`恭喜升級！目前等級 Lv.${p.lv}`);
-  }
-  saveGame();
-}
-function usePotion(){
-  const p=G.pl;
-  if(G.potCd>0) return;
-  if(!p.inv.藥水){ addChat('沒有藥水'); return; }
-  G.potCd = PLAYER.potionCooldown;
-  p.inv.藥水--;
-  const h = Math.min(PLAYER.potionHeal, p.maxHp-p.hp);
-  p.hp += h;
-  floatTxt(p.x, p.y-30, '+'+h, '#7dff7d');
-}
-function die(){
-  const p=G.pl;
-  addChat('你已陣亡，被送回村莊（經驗 -5%）');
-  p.exp = Math.floor(p.exp*0.95);
-  p.hp = Math.floor(p.maxHp*0.5);
-  enterZone('town');
-}
-function monAI(m,dt){
-  if(m.dead){
-    m.rT -= dt;
-    if(m.rT<=0){ m.dead=false; m.hp=m.maxHp; m.x=m.sx; m.y=m.sy; }
-    return;
-  }
-  const p=G.pl;
-  m.cd-=dt; m.flash-=dt;
-  const d=dd(m.x,m.y,p.x,p.y), sp=m.t.spd*0.8;
-  if(d<=ATTACK_RANGE){
-    if(m.cd<=0){
-      m.cd=ATTACK_CD;
-      const dmg=Math.round(m.t.dmg*m.mul*rnd(0.8,1.2));
-      p.hp=Math.max(0,p.hp-dmg);
-      floatTxt(p.x,p.y-30,'-'+dmg,'#ff5050');
-    }
-  } else if(d<m.t.aggro){
-    move(m,(p.x-m.x)/d*sp*dt,(p.y-m.y)/d*sp*dt,8);
-  } else if(dd(m.x,m.y,m.sx,m.sy)>LEASH){
-    stepTo(m,m.sx,m.sy,sp*dt);
-  } else {
-    m.wT-=dt;
-    if(m.wT<=0){ const a=rnd(0,Math.PI*2); m.wx=Math.cos(a); m.wy=Math.sin(a); m.wT=rnd(1,3); }
-    move(m,m.wx*sp*WANDER_SPEED*dt,m.wy*sp*WANDER_SPEED*dt,8);
-  }
-}
-
-/* ================= 任務執行（呼叫智囊軍師 AI） ================= */
-function canRun(){
-  if(!memberOK()){
-    addChat(member.ready ? "會員驗證異常，正在重新驗證，請稍候再試" : "會員驗證中，請稍候再試");
-    if(!_memberBusy) initMember();
-    return false;
-  }
-  if(member.level==="黃金" && Number(member.remain)<=0){
-    addChat("次數已用完，請聯繫管理員儲值");
-    return false;
-  }
-  return true;
-}
-async function callAI(sys, userText, maxTok){
-  let lastErr="";
-  for(let a=0;a<4;a++){
-    let r;
-    try{
-      r = await gasPost({
-        action:"generate", sys,
-        user: JSON.stringify([{type:"text", text:userText}]),
-        maxTok: String(maxTok||1800), model: MODEL, charge: "1"
-      }, 55000);
-    }catch(e){
-      lastErr = "後端連線失敗：" + e.message;
-      if(a<2){ addChat(`連線逾時，重試中…（${a+1}/3）`); await sleep(1500); continue; }
-      throw new Error(lastErr);
-    }
-    if(r && r.success){
-      if(r.remain!==undefined && r.remain!==null && r.remain!==""){ member.remain = r.remain; }
-      updateWin();
-      return (r.content||"").trim();
-    }
-    const m = (r && r.errMsg) || "後端回應異常";
-    if(r && r.errorType==="no_permission"){ member.remain=0; throw new Error(m); }
-    if(/rate limit/i.test(m)){
-      lastErr = m;
-      const wait = Math.min(1800*(a+1), 12000);
-      addChat(`AI 流量滿了，${(wait/1000).toFixed(1)} 秒後自動重試…`);
-      await sleep(wait); continue;
-    }
-    throw new Error(m);
-  }
-  throw new Error("AI 流量限制重試多次仍失敗，請稍等 1 分鐘再執行。" + lastErr);
-}
-
-async function runQuest(qid, topic){
-  const q = QUESTS[qid];
-  const p = G.pl;
-  if(!q || G.busy) return;
-  if(p.lv < q.lv){ addChat(`等級不足，需要 Lv.${q.lv}`); return; }
-  if(!canRun()) return;
-
-  let userText = "";
-  if(q.input==="last"){
-    const last = p.outputs[0];
-    if(!last){ addChat("請先完成一個任務，產生圖文內容後再來找我。"); return; }
-    userText = "以下是圖文內容，請依規定改寫：\n\n" + last.text;
+const btn=document.createElement('button');
+btn.id='vToggle'; btn.type='button';
+btn.onclick=()=>setMode(document.body.classList.contains('v-mode')?'list':'village');
+function placeToggle(){
+  const isV=document.body.classList.contains('v-mode');
+  btn.textContent = isV ? '☰ 列表' : '🏘 村莊';
+  if(isV){
+    document.getElementById('vHead').insertBefore(btn, document.getElementById('vLv'));
   }else{
-    if(!topic && !q.topicOpt){ addChat("請先選擇或輸入一個題材。"); return; }
-    userText = topic ? ("本次題材：" + topic) : "請依經營新手的需求，寫出完整可照做的流程。";
-  }
-
-  G.busy = true;
-  addChat(`📜 任務「${q.name}」進行中，請稍候…`);
-  try{
-    const out = await callAI(buildSys(q.role), userText, 1800);
-    if(!out) throw new Error("AI 沒有回傳內容");
-    p.outputs.unshift({id:Date.now(), qid, title:q.name, topic:topic||"", text:out, time:Date.now()});
-    if(p.outputs.length>30) p.outputs.length = 30;
-    p.qdone[qid] = (p.qdone[qid]||0) + 1;
-    const ex = 30 + p.lv*10, gold = 20 + p.lv*5;
-    p.exp += ex; p.inv.金幣 += gold;
-    addChat(`✅ 完成「${q.name}」，獲得 ${ex} 經驗、${gold} 金幣。成果已存入 [O] 成果。`);
-    while(p.exp >= p.lv*100){
-      p.exp -= p.lv*100; p.lv++; calcMax(p); p.hp=p.maxHp; p.mp=p.maxMp;
-      addChat(`恭喜升級！目前等級 Lv.${p.lv}`);
-    }
-    saveGame();
-    renderOutputs();
-    setOutputsOpen(true);
-  }catch(e){
-    addChat("任務失敗：" + (e && e.message ? e.message : e));
-  }finally{
-    G.busy = false;
-    if(G.dlg && G.dlg.view==="form") renderDialog();
+    const row=document.querySelector('.topbar .row');
+    if(row) row.insertBefore(btn, row.querySelector('.gear'));
   }
 }
 
-/* ================= 對話視窗 ================= */
-function npcById(id){ return NPCS.find(n => n.id===id); }
-function openDialog(npcId){
-  const npc = npcById(npcId);
-  if(!npc) return;
-  G.dlg = {npc, view:"list", qid:null, topic:""};
-  renderDialog();
-  $('dlg').classList.remove('hidden');
+/* ---------- 等級（以成品數量計算） ---------- */
+function countResults(){
+  return state.tasks.filter(t=>t.deptId==='final'||t.deptId==='video').length;
 }
-function closeDialog(){
-  G.dlg = null;
-  $('dlg').classList.add('hidden');
+// 升到下一級所需點數：Lv1→2 需 3 點，之後每級多 1 點
+function levelOf(p){
+  let lv=1, need=3;
+  while(p>=need){ p-=need; lv++; need=2+lv; }
+  return {lv, cur:p, need};
 }
-function renderDialog(){
-  const d = G.dlg;
-  if(!d) return;
-  const p = G.pl;
-  let h;
-  if(d.view==="list"){
-    h = `<div class="wt">${esc(d.npc.emoji)} ${esc(d.npc.name)}</div>
-         <div class="npc-say">${esc(d.npc.intro)}</div>`;
-    for(const qid of d.npc.quests){
-      const q = QUESTS[qid];
-      const ok = p.lv >= q.lv;
-      const cnt = p.qdone[qid] || 0;
-      h += `<button class="btn wide" data-act="pick" data-q="${qid}" ${ok?"":"disabled"}>📜 ${esc(q.name)}${ok?"":"（需 Lv."+q.lv+"）"}　<span style="color:#bfb394">已完成 ${cnt} 次</span></button>`;
+const TITLES=['見習冒險者','初階軍師','中階謀士','高階智囊','名家軍師','大師軍師'];
+function vzFlash(){ const f=document.getElementById('vFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+
+function renderVillage(){
+  const pts=countResults();
+  const L2=levelOf(pts);
+  document.getElementById('vLv').textContent='Lv.'+L2.lv;
+  document.getElementById('vTitle').textContent=TITLES[Math.min(L2.lv-1,TITLES.length-1)];
+  document.getElementById('vName').textContent=(typeof member!=='undefined' && member.lineName)||'冒險者';
+  document.getElementById('vXpFill').style.width=(L2.cur/L2.need*100).toFixed(1)+'%';
+  document.getElementById('vCount').textContent=pts+' 則成品';
+  document.getElementById('vNext').textContent='距 Lv.'+(L2.lv+1)+' 還需 '+(L2.need-L2.cur)+' 則';
+  const av=document.getElementById('vAv');
+  const pic=(typeof member!=='undefined' && member.pic)||'';
+  if(pic && av.dataset.pic!==pic){ av.dataset.pic=pic; av.innerHTML='<img src="'+pic+'" alt="">'; }
+  else if(!pic && av.dataset.pic!=='none'){ av.dataset.pic='none'; av.innerHTML='<span>👤</span>'; }
+  const prev=+localStorage.getItem('vz_lv')||1;
+  if(L2.lv>prev){ toast('🎉 升級！Lv.'+L2.lv+'　'+TITLES[Math.min(L2.lv-1,TITLES.length-1)]); vzFlash(); }
+  localStorage.setItem('vz_lv', String(L2.lv));
+}
+
+/* ---------- 對話卡 ---------- */
+let curN=null;
+function openCard(n){
+  curN=n;
+  const c=document.getElementById('vCard');
+  const line=n.lines[Math.floor(Math.random()*n.lines.length)];
+  c.innerHTML=
+    '<div class="vc-h">'+
+      '<div class="vc-ic" style="background:'+n.look.cloth+'33;border-color:'+n.look.cloth+'">'+n.ic+'</div>'+
+      '<div><div class="vc-n">'+n.name+'</div><div class="vc-r">'+n.role+'</div></div>'+
+      '<button class="vbtn g sm vc-x" id="vcX" type="button">✕</button>'+
+    '</div>'+
+    '<div class="vc-t">'+line+'</div>'+
+    '<div class="vc-btns">'+n.acts.map((a,i)=>'<button class="vbtn'+(i?' g':'')+'" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
+  c.hidden=false;
+  document.getElementById('vGridBox').hidden=true;
+  document.getElementById('vcX').onclick=hideCard;
+  c.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{
+    const act=n.acts[+bt.dataset.i]; hideCard(); act[1]();
+  });
+}
+function hideCard(){
+  curN=null;
+  document.getElementById('vCard').hidden=true;
+  document.getElementById('vGridBox').hidden=false;
+}
+
+/* ---------- 地圖背景（一次繪製，之後重複使用） ---------- */
+function flower(X,Y,R){
+  const cols=['#F4A7B9','#F7E07A','#FFFFFF','#C7A4F0'];
+  const c=cols[Math.floor(R()*cols.length)];
+  const ox=X+3+Math.floor(R()*9), oy=Y+3+Math.floor(R()*9);
+  fillOn(b,ox,oy,2,2,c); fillOn(b,ox,oy+2,1,2,'#3E7A36');
+}
+function tree(X,Y){
+  fillOn(b,X+2,Y+13,12,2,'rgba(0,0,0,.22)');
+  fillOn(b,X+6,Y+9,4,5,'#5A3A22'); fillOn(b,X+6,Y+9,1,5,'#7A5230');
+  const cx=X+8, cy=Y+6;
+  const sh=[[-5,4,'#2F6B3A'],[-4,6,'#2F6B3A'],[-3,8,'#2F6B3A'],[-2,8,'#2F6B3A'],[-1,8,'#2F6B3A'],
+            [0,8,'#2F6B3A'],[1,8,'#245A2F'],[2,6,'#245A2F'],[3,4,'#245A2F']];
+  sh.forEach(([dy,w,col])=>fillOn(b,cx-Math.floor(w/2),cy+dy,w,1,col));
+  fillOn(b,cx-4,cy-4,3,1,'#4C8F4E'); fillOn(b,cx-3,cy-3,2,1,'#4C8F4E');
+  fillOn(b,cx-5,cy-2,2,1,'#3F7E45'); fillOn(b,cx+1,cy+3,3,1,'#1D4D29');
+}
+function building(d){
+  const X=d.x*T, Y=d.y*T, W2=d.w*T, H2=d.h*T, roofH=Math.round(H2*0.46);
+  fillOn(b,X+3,Y+H2,W2-3,3,'rgba(0,0,0,.28)');
+  fillOn(b,X+1,Y+roofH,W2-2,H2-roofH,d.wall);
+  fillOn(b,X+1,Y+H2-3,W2-2,3,'rgba(120,90,50,.25)');
+  fillOn(b,X,Y,W2,roofH,d.roof);
+  fillOn(b,X,Y+roofH-2,W2,2,'rgba(0,0,0,.28)');
+  fillOn(b,X,Y,W2,1,'rgba(255,255,255,.28)');
+  for(let rx=X+3;rx<X+W2-2;rx+=5) fillOn(b,rx,Y+3,1,roofH-6,'rgba(0,0,0,.16)');
+  const wy=Y+roofH+3;
+  const wx=[X+4, X+W2-9];
+  for(let i=0;i<d.win;i++){
+    const x0=wx[i]; if(x0===undefined) break;
+    fillOn(b,x0-1,wy-1,7,6,'#3A2414');
+    fillOn(b,x0,wy,5,4,'#F7D98B');
+    fillOn(b,x0+2,wy,1,4,'#B88A3A');
+  }
+  const dx=X+Math.floor(W2/2)-3, dy=Y+H2-8;
+  fillOn(b,dx-2,dy-2,10,2,d.roof);
+  fillOn(b,dx,dy,6,8,'#5A3A22'); fillOn(b,dx+1,dy+1,4,7,'#3A2414');
+}
+function lantern(X,Y){
+  fillOn(b,X+7,Y+7,2,8,'#2A1E14');
+  fillOn(b,X+5,Y+4,6,4,'#8A5A2E');
+  fillOn(b,X+6,Y+5,4,2,'#FFD27A');
+  fillOn(b,X+6,Y+3,4,1,'#5A3A22');
+  fillOn(b,X+6,Y+15,4,1,'rgba(0,0,0,.25)');
+}
+function pavilion(){
+  const X=PAVILION.x*T, Y=PAVILION.y*T;
+  fillOn(b,X+1,Y+15,2*T-2,2,'rgba(0,0,0,.22)');
+  fillOn(b,X+1,Y+3,2*T-2,1,'#D9864A');
+  fillOn(b,X+2,Y+4,2*T-4,4,'#B5652E');
+  fillOn(b,X,Y+8,2*T,2,'#8A4A22');
+  fillOn(b,X+2,Y+10,3,5,'#F3EBD3'); fillOn(b,X+2*T-5,Y+10,3,5,'#F3EBD3');
+  fillOn(b,X+7,Y+11,2,2,'#8A5A2E');
+}
+function buildBG(){
+  const R=mulberry(20261010);
+  const pal=['#5E9C4E','#63A553','#58924A','#5A9A4C'];
+  for(let ty=0;ty<VH;ty++)for(let tx=0;tx<VW;tx++){
+    const X=tx*T, Y=ty*T;
+    fillOn(b,X,Y,T,T,pal[Math.floor(R()*pal.length)]);
+    for(let i=0;i<5;i++){
+      const bx=X+Math.floor(R()*15), by=Y+Math.floor(R()*15);
+      fillOn(b,bx,by,1,2,R()<.5?'#77B864':'#4A7E3E');
     }
-    h += `<button class="btn wide" data-act="close">離開</button>`;
+  }
+  for(let ty=0;ty<VH;ty++)for(let tx=0;tx<VW;tx++){
+    if(!isPath(tx,ty)) continue;
+    const X=tx*T, Y=ty*T;
+    fillOn(b,X,Y,T,T,'#C9A56A');
+    fillOn(b,X+2+(tx%3),Y+3,4,3,'#B8925A');
+    fillOn(b,X+9,Y+9-(ty%2),4,3,'#D9B98A');
+    fillOn(b,X,Y+T-1,T,1,'#A88050');
+  }
+  fillOn(b,(POND.x0-1)*T,(POND.y0-1)*T,(POND.x1-POND.x0+3)*T,(POND.y1-POND.y0+3)*T,'#D9C48E');
+  for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++){
+    const X=x*T, Y=y*T;
+    fillOn(b,X,Y,T,T,(x+y)%2?'#2E6FB0':'#2A67A6');
+    fillOn(b,X+2,Y+4,5,1,'#5C9ED8');
+    fillOn(b,X+9,Y+11,4,1,'#4D8ACB');
+  }
+  for(let i=0;i<46;i++){
+    const tx=Math.floor(R()*VW), ty=Math.floor(R()*VH);
+    if(BLK.has(key(tx,ty))||isPath(tx,ty)||npcAt.has(key(tx,ty))) continue;
+    flower(tx*T,ty*T,R);
+  }
+  pavilion();
+  for(let x=0;x<VW;x++){ tree(x*T,0); tree(x*T,(VH-1)*T); }
+  for(let y=1;y<VH-1;y++){ tree(0,y*T); tree((VW-1)*T,y*T); }
+  TREES.forEach(([x,y])=>tree(x*T,y*T));
+  BLDS.forEach(building);
+  LANTERNS.forEach(([x,y])=>lantern(x*T,y*T));
+}
+
+/* ---------- 人物像素繪製 ---------- */
+function human(X,Y,o,dir,step,bob,alert){
+  const ax=X+2, ay=Y-2+bob, K=o.line;
+  fillOn(g,ax+1,Y+12,10,2,'rgba(0,0,0,.32)');
+  const lu=step===1, ru=step===2;
+  fillOn(g,ax+3,ay+12,2,lu?1:2,o.pants); fillOn(g,ax+3,ay+(lu?13:14),2,1,o.shoe);
+  fillOn(g,ax+7,ay+12,2,ru?1:2,o.pants); fillOn(g,ax+7,ay+(ru?13:14),2,1,o.shoe);
+  fillOn(g,ax+2,ay+6,8,7,K);
+  fillOn(g,ax+3,ay+7,6,5,o.cloth);
+  fillOn(g,ax+3,ay+10,6,1,o.acc);
+  fillOn(g,ax+2,ay+7,1,4,o.cloth); fillOn(g,ax+9,ay+7,1,4,o.cloth);
+  fillOn(g,ax+2,ay+11,1,1,o.skin); fillOn(g,ax+9,ay+11,1,1,o.skin);
+  fillOn(g,ax+3,ay,6,7,K);
+  fillOn(g,ax+4,ay+1,4,5,o.skin);
+  fillOn(g,ax+4,ay,4,2,o.hair); fillOn(g,ax+3,ay+1,1,2,o.hair); fillOn(g,ax+8,ay+1,1,2,o.hair);
+  if(dir===3){
+    fillOn(g,ax+4,ay+1,4,3,o.hair);
   }else{
-    const q = QUESTS[d.qid];
-    h = `<div class="wt">📜 ${esc(q.name)}</div>`;
-    if(q.input==="last"){
-      const last = p.outputs[0];
-      h += `<div class="npc-say">將以你最近一次的成果作為素材：${last ? esc(last.title)+"（"+fmtTime(last.time)+"）" : "目前沒有成果，請先完成其他任務。"}</div>`;
-    }else{
-      const chips = p.topics.length
-        ? p.topics.map(t => `<span class="chip${d.topic===t?" on":""}" data-act="topic" data-t="${esc(t)}">${esc(t)}</span>`).join("")
-        : `<span style="color:#8c8270;font-size:12px">背包沒有題材，去村外打怪會掉落題材；也可以直接輸入。</span>`;
-      h += `<div class="npc-say small">選一個題材${q.topicOpt?"（可不選）":""}：</div>
-            <div class="chips">${chips}</div>
-            <input id="topicIn" maxlength="40" placeholder="或自己輸入題材" value="${esc(d.topic)}">`;
-    }
-    h += `<div class="npc-say small">${esc(memberLine())}　・每次執行消耗 1 次（尊爵不扣次）</div>`;
-    h += `<button class="btn wide" data-act="run" ${G.busy?"disabled":""}>${G.busy?"任務進行中…":"▶ 執行任務"}</button>`;
-    h += `<button class="btn wide" data-act="back">返回</button>`;
+    const e='#1A1C1A';
+    if(dir===0){ fillOn(g,ax+5,ay+3,1,1,e); fillOn(g,ax+7,ay+3,1,1,e); fillOn(g,ax+6,ay+5,1,1,'#B5654A'); }
+    if(dir===1){ fillOn(g,ax+4,ay+3,1,1,e); }
+    if(dir===2){ fillOn(g,ax+7,ay+3,1,1,e); }
   }
-  $('dlgBody').innerHTML = h;
-}
-
-/* ================= 成果、背包、狀態 ================= */
-function setOutputsOpen(on){ $('outWin').classList.toggle('hidden', !on); if(on) renderOutputs(); }
-function renderOutputs(){
-  const p = G.pl;
-  if(!p) return;
-  const list = p.outputs.length
-    ? p.outputs.map(o => `<div class="out" data-id="${o.id}">
-        <div class="out-h" data-act="toggle" data-id="${o.id}">
-          <span class="out-t">${esc(o.title)}</span><span class="out-d">${fmtTime(o.time)}</span>
-        </div>
-        <div class="out-p">${esc(o.text.slice(0,80))}…</div>
-        <div class="out-b">${esc(o.text)}</div>
-        <div style="text-align:right;margin-top:4px"><button class="btn" data-act="copy" data-id="${o.id}">複製</button></div>
-      </div>`).join("")
-    : `<div style="color:#8c8270;padding:8px">還沒有成果。去找村民接任務吧。</div>`;
-  $('outWin').innerHTML = `<div class="wt">成果（${p.outputs.length}）<button class="btn" style="float:right;padding:0 6px" data-act="closeOut">×</button></div>${list}`;
-}
-function updateWin(){
-  const p = G.pl;
-  if(!p) return;
-  const qs = Object.keys(QUESTS).map(id => `<tr><td>${esc(QUESTS[id].name)}</td><td>${p.qdone[id]||0}</td></tr>`).join("");
-  $('stWin').innerHTML = `<div class="wt">狀態</div><table class="tb">
-    <tr><td>名稱</td><td>${esc(p.name)}</td></tr>
-    <tr><td>等級</td><td>${p.lv}</td></tr>
-    <tr><td>HP</td><td>${Math.ceil(p.hp)}/${p.maxHp}</td></tr>
-    <tr><td>MP</td><td>${Math.ceil(p.mp)}/${p.maxMp}</td></tr>
-    <tr><td>經驗</td><td>${p.exp}/${p.lv*100}</td></tr>
-    <tr><td>金幣</td><td>${p.inv.金幣}</td></tr>
-  </table>
-  <div class="npc-say small">${esc(memberLine())}</div>
-  <table class="tb">${qs}</table>
-  <button class="btn wide" data-act="verify">🔄 重新驗證會員</button>`;
-  $('invWin').innerHTML = `<div class="wt">背包</div>
-    <div class="item"><span>藥水 ×${p.inv.藥水||0}</span><button class="btn" data-act="potion">使用</button></div>
-    <div class="item"><span>金幣 ×${p.inv.金幣}</span></div>
-    <div class="wt" style="margin-top:6px">題材（${p.topics.length}）</div>
-    <div class="chips">${p.topics.length ? p.topics.map(t=>`<span class="chip">${esc(t)}</span>`).join("") : '<span style="color:#8c8270;font-size:12px">打怪會掉落題材</span>'}</div>`;
-}
-
-/* ================= 村民查找與提示 ================= */
-function nearestNpc(x,y,range){
-  if(G.zone!=='town') return null;
-  let best=null, bd=range||NPC_RANGE;
-  for(const n of NPCS){
-    const d=dd(x,y,n.x,n.y);
-    if(d<bd){ bd=d; best=n; }
+  if(o.beard) fillOn(g,ax+4,ay+5,4,2,'#D8D8DE');
+  if(o.kind==='crown'){
+    fillOn(g,ax+4,ay-1,4,1,o.acc); fillOn(g,ax+4,ay-2,1,1,o.acc);
+    fillOn(g,ax+6,ay-2,1,1,o.acc); fillOn(g,ax+7,ay-2,1,1,o.acc);
   }
-  return best;
-}
-function talkNearest(){
-  const n = nearestNpc(G.pl.x, G.pl.y, NPC_TALK_RANGE);
-  if(!n){ addChat(G.zone==='town' ? "附近沒有村民，走近一點再按 T。" : "請先回到村莊找村民。"); return; }
-  openDialog(n.id);
-}
-
-/* ================= 每幀更新 ================= */
-function updatePrompt(p){
-  const tx=Math.floor(p.x/TILE), ty=Math.floor(p.y/TILE);
-  let txt=null, btn=null, act=null;
-  const onGate = !!(G.map[ty] && G.map[ty][tx]===4);
-  if(onGate){
-    if(G.zone==='town'){ txt="發現迷霧洞窟"; btn="進入洞窟"; act=()=>enterZone('field'); }
-    else { txt="發現出口"; btn="回到村莊"; act=()=>enterZone('town', {x:CAVE_TILE.tx*TILE+16, y:CAVE_TILE.ty*TILE+16}); }
-  } else if(G.zone==='town' && !G.dlg){
-    const n = nearestNpc(p.x, p.y);
-    if(n){ txt=`👤 ${n.name}`; btn="對話"; act=()=>openDialog(n.id); }
+  if(o.kind==='hat'){
+    fillOn(g,ax+2,ay+1,8,1,o.acc); fillOn(g,ax+4,ay-2,4,3,o.acc);
+    fillOn(g,ax+4,ay,4,1,'rgba(0,0,0,.25)');
   }
-  const key = txt ? txt+"|"+btn : "";
-  if(key!==G.promptKey){
-    G.promptKey = key;
-    G.toastAction = act;
-    if(txt){
-      $('toastTxt').textContent = txt;
-      $('toastBtn').textContent = btn;
-      $('toast').classList.remove('hidden');
-    }else{
-      $('toast').classList.add('hidden');
+  if(o.kind==='bag'){
+    fillOn(g,ax+10,ay+7,2,4,o.acc); fillOn(g,ax+10,ay+9,2,1,'#5A3A22');
+  }
+  if(alert){
+    const blink=Math.floor(performance.now()/380)%2===0;
+    if(blink){ fillOn(g,ax+5,ay-6,2,3,'#FFD27A'); fillOn(g,ax+5,ay-2,2,1,'#FFD27A'); }
+  }
+}
+function dirOf(dx,dy){ if(dy>0)return 0; if(dx<0)return 1; if(dx>0)return 2; return 3; }
+
+/* ---------- 玩家與移動 ---------- */
+const P={x:12,y:14,vx:12,vy:14,dir:0,path:[],after:null,last:0};
+
+function walkable(x,y){
+  if(x<0||y<0||x>=VW||y>=VH) return false;
+  const k=key(x,y);
+  return !BLK.has(k)&&!npcAt.has(k);
+}
+function findPath(sx,sy,tx,ty){
+  if(sx===tx&&sy===ty) return [];
+  const prev=new Map(); const q=[[sx,sy]]; prev.set(key(sx,sy),null);
+  let found=false;
+  for(let qi=0;qi<q.length;qi++){
+    const [x,y]=q[qi];
+    if(x===tx&&y===ty){found=true;break;}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=x+dx, ny=y+dy, k=key(nx,ny);
+      if(prev.has(k)) continue;
+      if(!walkable(nx,ny)&&!(nx===tx&&ny===ty)) continue;
+      prev.set(k,[x,y]); q.push([nx,ny]);
     }
   }
+  if(!found) return null;
+  const path=[]; let cur=[tx,ty];
+  while(cur && !(cur[0]===sx&&cur[1]===sy)){ path.unshift(cur); cur=prev.get(key(cur[0],cur[1])); }
+  return path;
+}
+function tapTile(tx,ty){
+  if(tx<0||ty<0||tx>=VW||ty>=VH) return;
+  const n=npcAt.get(key(tx,ty));
+  if(n){ walkNear(n); return; }
+  if(!walkable(tx,ty)) return;
+  const p=findPath(P.x,P.y,tx,ty);
+  if(p && p.length){ hideCard(); P.path=p; P.after=null; }
+  else if(!p) toast('走不過去，換個位置試試');
+}
+function walkNear(n){
+  hideCard();
+  if(Math.abs(n.x-P.x)+Math.abs(n.y-P.y)===1){ P.dir=dirOf(n.x-P.x,n.y-P.y); openCard(n); return; }
+  let best=null;
+  for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const ax=n.x+dx, ay=n.y+dy;
+    if(!walkable(ax,ay)) continue;
+    const p=findPath(P.x,P.y,ax,ay);
+    if(p && (!best || p.length<best.length)) best=p;
+  }
+  if(!best){ toast('走不過去，換個位置試試'); return; }
+  P.path=best;
+  P.after=()=>{ P.dir=dirOf(n.x-P.x,n.y-P.y); openCard(n); };
+}
+function stepPlayer(t){
+  if(!P.path.length) return;
+  if(t-P.last<130) return;
+  P.last=t;
+  const [nx,ny]=P.path.shift();
+  P.dir=dirOf(nx-P.x,ny-P.y);
+  P.x=nx; P.y=ny;
+  if(!P.path.length && P.after){ const f=P.after; P.after=null; f(); }
 }
 
-function update(dt){
-  const p=G.pl;
-  G.t += dt;
-  G.cd = Math.max(0,G.cd-dt);
-  G.skCd = Math.max(0,G.skCd-dt);
-  G.potCd = Math.max(0,G.potCd-dt);
+/* ---------- 標籤與格子清單 ---------- */
+function buildLabels(){
+  const box=document.getElementById('vLbls');
+  NPC.forEach(n=>{
+    const el=document.createElement('div');
+    el.className='vLbl';
+    el.textContent=n.name;
+    el.style.left=((n.x+.5)/VW*100)+'%';
+    el.style.top=((n.y*T-4)/H*100)+'%';
+    box.appendChild(el);
+    n._el=el;
+  });
+}
+function updateLabels(){
+  NPC.forEach(n=>n._el.classList.toggle('hot', Math.abs(n.x-P.x)+Math.abs(n.y-P.y)===1));
+}
+function buildGrid(){
+  const box=document.getElementById('vGrid');
+  box.innerHTML=NPC.map(n=>'<button class="vchip" type="button" data-id="'+n.id+'"><span>'+n.ic+'</span>'+n.name+'</button>').join('');
+  box.querySelectorAll('.vchip').forEach(bt=>bt.onclick=()=>{
+    const n=NPC.find(x=>x.id===bt.dataset.id); if(n) walkNear(n);
+  });
+}
 
-  let mx=0, my=0;
-  if(K.ArrowLeft||K.KeyA) mx--;
-  if(K.ArrowRight||K.KeyD) mx++;
-  if(K.ArrowUp||K.KeyW) my--;
-  if(K.ArrowDown||K.KeyS) my++;
+/* ---------- 光影與動態 ---------- */
+function isNight(){
+  const h=+new Intl.DateTimeFormat('en-US',{hour:'numeric',hour12:false,timeZone:'Asia/Taipei'}).format(new Date())%24;
+  return h>=18||h<6;
+}
+function bobOf(i,t){ return Math.sin(t/520+i*1.9)>0.55?-1:0; }
 
-  const spd = PLAYER.speed;
-  if(mx||my){
-    G.target=null; G.lock=null; G.talk=null;
-    const l=Math.hypot(mx,my);
-    move(p, mx/l*spd*dt, my/l*spd*dt, PLAYER.radius);
-  } else if(G.talk){
-    const n=G.talk;
-    if(dd(p.x,p.y,n.x,n.y) < NPC_TALK_RANGE){ G.talk=null; openDialog(n.id); }
-    else stepTo(p, n.x, n.y, spd*dt);
-  } else if(G.target){
-    const tx=G.target.x-p.x, ty=G.target.y-p.y, d=Math.hypot(tx,ty);
-    if(d<3) G.target=null;
-    else move(p, tx/d*Math.min(spd*dt,d), ty/d*Math.min(spd*dt,d), PLAYER.radius);
-  } else if(G.lock){
-    const m=G.lock;
-    if(m.dead || dd(p.x,p.y,m.x,m.y)>PLAYER.chaseRange) G.lock=null;
-    else if(dd(p.x,p.y,m.x,m.y)>PLAYER.meleeStop) stepTo(p,m.x,m.y,spd*dt);
-    else doAttack(m);
-  } else if(G.auto){
-    const m=nearestAlive(p.x,p.y,PLAYER.autoRange);
-    if(m){
-      if(dd(p.x,p.y,m.x,m.y)>PLAYER.meleeStop) stepTo(p,m.x,m.y,spd*dt);
-      else doAttack(m);
+function render(t){
+  g.globalCompositeOperation='source-over';
+  g.drawImage(bgC,0,0);
+
+  // 水面閃光
+  for(let y=POND.y0;y<=POND.y1;y++)for(let x=POND.x0;x<=POND.x1;x++){
+    const o=((t/700)+x*2.3+y*1.7)%1;
+    fillOn(g,x*T+Math.floor(o*12)+1,y*T+5+((x+y)%3)*3,3,1,'rgba(255,255,255,.6)');
+  }
+
+  // 人物與 NPC（依 y 排序，形成前後遮擋）
+  const list=NPC.map((n,i)=>({y:n.y,draw:()=>{
+    const d=Math.abs(n.x-P.x)+Math.abs(n.y-P.y)<=2 ? dirOf(P.x-n.x,P.y-n.y) : 0;
+    human(n.x*T,n.y*T,n.look,d,0,bobOf(i,t),Math.abs(n.x-P.x)+Math.abs(n.y-P.y)===1);
+  }}));
+  const walking=P.path.length>0;
+  const pStep=walking ? (Math.floor(t/130)%2===0?1:2) : 0;
+  list.push({y:P.vy,draw:()=>{
+    fillOn(g,P.vx*T+3,P.vy*T+13,10,2,'rgba(231,194,122,.35)');
+    human(P.vx*T,P.vy*T,PLAYER_LOOK,P.dir,pStep,0,false);
+  }});
+  list.sort((a,c)=>a.y-c.y).forEach(o=>o.draw());
+
+  // 夜間光效
+  const night=isNight();
+  if(night){
+    fillOn(g,0,0,W,H,'rgba(12,22,64,.42)');
+  }else{
+    fillOn(g,0,0,W,H,'rgba(255,200,120,.05)');
+  }
+  g.globalCompositeOperation='lighter';
+  const glowA=night?0.5:0.14;
+  LANTERNS.forEach(([x,y])=>{
+    const cx=x*T+8, cy=y*T+6;
+    const rg=g.createRadialGradient(cx,cy,1,cx,cy,night?26:16);
+    rg.addColorStop(0,'rgba(255,190,100,'+glowA+')');
+    rg.addColorStop(1,'rgba(255,190,100,0)');
+    g.fillStyle=rg; g.fillRect(cx-28,cy-28,56,56);
+  });
+  if(night){
+    for(let i=0;i<16;i++){
+      const fx=(i*97.3+t*0.012*(1+i%3))%W;
+      const fy=60+(i*53.7)%(H-80)+Math.sin(t/500+i)*6;
+      const a=0.4+0.4*Math.sin(t/300+i);
+      g.fillStyle='rgba(255,240,150,'+a.toFixed(2)+')';
+      g.fillRect(Math.round(fx),Math.round(fy),1,1);
+      g.fillStyle='rgba(255,240,150,'+(a*0.25).toFixed(2)+')';
+      g.fillRect(Math.round(fx)-1,Math.round(fy)-1,3,3);
     }
   }
+  g.globalCompositeOperation='source-over';
 
-  p.mp = Math.min(p.maxMp, p.mp + dt*PLAYER.mpRegenPerSec);
-  for(const m of G.mons) monAI(m,dt);
-  if(p.hp<=0){ die(); return; }
-
-  for(const f of G.floats){ f.t-=dt; f.y-=28*dt; }
-  G.floats = G.floats.filter(f=>f.t>0);
-  for(const f of G.fx) f.t-=dt;
-  G.fx = G.fx.filter(f=>f.t>0);
-
-  updatePrompt(p);
-
-  G.cam.x = Math.max(0, Math.min(MW*TILE-VP.w, p.x-VP.w/2));
-  G.cam.y = Math.max(0, Math.min(MH*TILE-VP.h, p.y-(VP.h/2-40)));
+  // 暗角
+  const vg=g.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,W*0.62);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.45)');
+  g.fillStyle=vg; g.fillRect(0,0,W,H);
 }
 
-/* ================= 繪圖 ================= */
-const cv = $('cv');
-const ctx = cv.getContext('2d');
-
-function drawTile(v,tx,ty,x,y){
-  ctx.fillStyle = COL[v]; ctx.fillRect(x,y,TILE,TILE);
-  const h = hashv(tx,ty);
-  if(v===0||v===3||v===5){
-    ctx.fillStyle='rgba(0,0,0,.18)';
-    if(h%5===0) ctx.fillRect(x+(h%20), y+((h>>3)%20), 2, 2);
-  }
-  if(v===1){
-    ctx.fillStyle='#0f2208'; ctx.beginPath(); ctx.arc(x+16,y+14,14,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#3a2a14'; ctx.fillRect(x+14,y+18,4,12);
-  }
-  if(v===2){
-    ctx.strokeStyle='rgba(180,220,255,.35)'; ctx.beginPath();
-    ctx.moveTo(x+4,y+10+(h%8)); ctx.lineTo(x+28,y+10+(h%8)); ctx.stroke();
-  }
-  if(v===4){
-    const a=0.5+0.5*Math.sin(G.t*4);
-    ctx.fillStyle='#1a0a2a'; ctx.beginPath(); ctx.ellipse(x+16,y+16,14,11,0,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=`rgba(190,120,255,${0.4+a*0.6})`; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.ellipse(x+16,y+16,12,9,0,0,Math.PI*2); ctx.stroke(); ctx.lineWidth=1;
-  }
-  if(v===6){
-    ctx.fillStyle='#2a2826'; ctx.fillRect(x+2,y+2,28,28);
-    ctx.strokeStyle='#000'; ctx.strokeRect(x+2,y+2,28,28);
-  }
-  if(v===7){ // 房屋（擋住）
-    ctx.fillStyle='#8a5a34'; ctx.fillRect(x+2,y+12,28,20);
-    ctx.fillStyle='#8a3a2a'; ctx.beginPath(); ctx.moveTo(x,y+14); ctx.lineTo(x+16,y+2); ctx.lineTo(x+32,y+14); ctx.fill();
-    ctx.fillStyle='#3a2414'; ctx.fillRect(x+13,y+22,6,10);
-    ctx.strokeStyle='#000'; ctx.strokeRect(x+2,y+12,28,20);
-  }
-}
-function drawMon(m){
-  const t=m.t;
-  ctx.fillStyle = m.flash>0 ? '#ffffff' : t.col;
-  ctx.beginPath(); ctx.arc(m.x,m.y,t.r,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(m.x-3,m.y-2,1.8,0,Math.PI*2); ctx.arc(m.x+3,m.y-2,1.8,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#000';
-  ctx.beginPath(); ctx.arc(m.x-3,m.y-2,0.9,0,Math.PI*2); ctx.arc(m.x+3,m.y-2,0.9,0,Math.PI*2); ctx.fill();
-  const w=28, by=m.y-t.r-12;
-  ctx.fillStyle='#000'; ctx.fillRect(m.x-w/2,by,w,4);
-  ctx.fillStyle='#d02020'; ctx.fillRect(m.x-w/2,by,w*Math.max(0,m.hp)/m.maxHp,4);
-  ctx.font='11px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center';
-  ctx.fillStyle='#ffe066'; ctx.fillText(`${t.n} Lv${t.lv}`, m.x, by-4);
-}
-function drawNpc(n){
-  ctx.fillStyle=n.color; ctx.beginPath(); ctx.arc(n.x,n.y,12,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#fff';
-  ctx.fillText(n.emoji, n.x, n.y+5);
-  ctx.font='12px "Microsoft JhengHei",sans-serif';
-  ctx.lineWidth=3; ctx.strokeStyle='#000'; ctx.strokeText(n.name, n.x, n.y-18);
-  ctx.fillStyle='#ffe066'; ctx.fillText(n.name, n.x, n.y-18);
-}
-function drawPlayer(){
-  const p=G.pl;
-  ctx.fillStyle='#2f5f9a'; ctx.beginPath(); ctx.ellipse(p.x,p.y+4,11,9,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#f0c8a0'; ctx.beginPath(); ctx.arc(p.x,p.y-7,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#402818'; ctx.beginPath(); ctx.arc(p.x,p.y-9,7,Math.PI,0); ctx.fill();
-  ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.beginPath(); ctx.ellipse(p.x,p.y+4,11,9,0,0,Math.PI*2); ctx.stroke();
-  ctx.font='12px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center';
-  ctx.lineWidth=3; ctx.strokeStyle='#000'; ctx.strokeText(`${p.name} Lv.${p.lv}`,p.x,p.y-22);
-  ctx.fillStyle='#fff'; ctx.fillText(`${p.name} Lv.${p.lv}`,p.x,p.y-22);
-}
-function draw(){
-  const sx=Math.round(G.cam.x), sy=Math.round(G.cam.y);
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,VP.w,VP.h);
-  ctx.save(); ctx.translate(-sx,-sy);
-  const x0=Math.max(0,Math.floor(sx/TILE)), x1=Math.min(MW-1,Math.ceil((sx+VP.w)/TILE));
-  const y0=Math.max(0,Math.floor(sy/TILE)), y1=Math.min(MH-1,Math.ceil((sy+VP.h)/TILE));
-  for(let ty=y0;ty<=y1;ty++) for(let tx=x0;tx<=x1;tx++) drawTile(G.map[ty][tx],tx,ty,tx*TILE,ty*TILE);
-  if(G.zone==='town') for(const n of NPCS) drawNpc(n);
-  for(const m of G.mons) if(!m.dead) drawMon(m);
-  drawPlayer();
-  for(const f of G.fx){
-    ctx.strokeStyle=`rgba(255,180,70,${f.t/f.max})`; ctx.lineWidth=3;
-    ctx.beginPath(); ctx.moveTo(f.x1,f.y1-10); ctx.lineTo(f.x2,f.y2); ctx.stroke();
-  }
-  ctx.font='bold 14px "Microsoft JhengHei",sans-serif'; ctx.textAlign='center'; ctx.lineWidth=3;
-  for(const f of G.floats){
-    ctx.globalAlpha=Math.min(1,f.t*2);
-    ctx.strokeStyle='#000'; ctx.strokeText(f.txt,f.x,f.y);
-    ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,f.y);
-  }
-  ctx.globalAlpha=1;
-  ctx.restore();
-  if(G.zone==='field'){
-    const g=ctx.createRadialGradient(VP.w/2,VP.h/2,Math.min(VP.w,VP.h)*0.25,VP.w/2,VP.h/2,Math.max(VP.w,VP.h)*0.6);
-    g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.75)');
-    ctx.fillStyle=g; ctx.fillRect(0,0,VP.w,VP.h);
-  }
-}
-function drawMini(){
-  const c=$('mm').getContext('2d'), W=150, H=100, sx=W/MW, sy=H/MH;
-  c.clearRect(0,0,W,H);
-  for(let y=0;y<MH;y++) for(let x=0;x<MW;x++){
-    c.fillStyle = COL[G.map[y][x]]; c.fillRect(x*sx,y*sy,sx+.5,sy+.5);
-  }
-  if(G.zone==='town'){ c.fillStyle='#ffd24a'; for(const n of NPCS) c.fillRect(n.x/TILE*sx-1.5,n.y/TILE*sy-1.5,3,3); }
-  c.fillStyle='#ff4040';
-  for(const m of G.mons) if(!m.dead) c.fillRect(m.x/TILE*sx-1,m.y/TILE*sy-1,2,2);
-  c.fillStyle='#fff';
-  c.fillRect(G.pl.x/TILE*sx-1.5,G.pl.y/TILE*sy-1.5,3,3);
-}
-
-/* ================= HUD ================= */
-function setBar(f,t,v,mx){
-  $(f).style.width = (Math.max(0,v)/mx*100)+'%';
-  $(t).textContent = `${Math.ceil(Math.max(0,v))}/${mx}`;
-}
-function memberShort(){
-  if(!member.ready) return "驗證中";
-  if(member.level==="尊爵") return "👑 尊爵";
-  if(member.level==="黃金") return `🥇 黃金・剩${member.remain}`;
-  return "⚠️ 未開通";
-}
-function updateHUD(){
-  const p=G.pl;
-  $('pname').textContent = p.name;
-  $('plv').innerHTML = `Lv.${p.lv}　${G.zone==='town'?'村莊':'迷霧洞窟'}<br><span style="font-size:11px;color:#bfb394">${esc(memberShort())}</span>`;
-  setBar('hpF','hpT',p.hp,p.maxHp);
-  setBar('mpF','mpT',p.mp,p.maxMp);
-  $('expF').style.width = Math.min(100,p.exp/(p.lv*100)*100)+'%';
-  const sl=document.querySelectorAll('.slot');
-  sl[2].classList.toggle('on', G.auto);
-  sl[4].querySelector('em').textContent = p.inv.藥水||0;
-}
-
-function toggleFull(){
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-  else document.exitFullscreen?.();
-}
-const SLOTS = [
-  {k:'Z',  n:'普攻', fn:()=>doAttack(nearestAlive(G.pl.x,G.pl.y,PLAYER.attackRange))},
-  {k:'X',  n:'火焰箭', fn:skill},
-  {k:'F',  n:'自動', fn:()=>{ G.auto=!G.auto; addChat('自動攻擊 '+(G.auto?'開':'關')); }},
-  {k:'T',  n:'對話', fn:talkNearest},
-  {k:'F1', n:'藥水', fn:usePotion},
-  {k:'F2', n:'回村', fn:()=>enterZone('town')}
-];
-
-/* ================= 啟動 ================= */
-function copyText(t){
-  if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>addChat('已複製到剪貼簿')).catch(()=>addChat('複製失敗，請手動選取'));
-  else addChat('此瀏覽器不支援自動複製，請手動選取');
-}
-function startGame(){
-  G.key = 'ai_game_v1_' + (member.lineId || 'guest');
-  const p = readSave(G.key) || newChar(member.lineName || '冒險者');
-  p.topics = p.topics || []; p.outputs = p.outputs || []; p.qdone = p.qdone || {};
-  p.inv = p.inv || {藥水:3, 金幣:0};
-  p.name = member.lineName || p.name;
-  G.pl = p;
-  calcMax(p);
-  if(p.hp>p.maxHp) p.hp = p.maxHp;
-  const pos = (p.x!=null && p.y!=null) ? {x:p.x, y:p.y} : null;
-  $('login').classList.add('hidden');
-  $('hud').classList.remove('hidden');
-  enterZone(p.zone==='field' ? 'field' : 'town', pos);
-  addChat('歡迎來到智囊軍師村。走到村民旁按 T 或點擊對話。');
-  if(!memberOK()) addChat('提醒：目前不是黃金／尊爵會員，只能逛村莊與打怪，無法執行 AI 任務。');
-  $('slots').innerHTML = SLOTS.map((s,i) => `<div class="slot" data-i="${i}"><b>${s.k}</b><span>${s.n}</span><em></em></div>`).join('');
-  updateWin();
-  renderOutputs();
-  G.running = true;
-}
-
-$('btnEnter').onclick = async () => {
-  $('btnEnter').disabled = true;
-  $('err').textContent = "";
-  await initMember();
-  if(!member.ready && member.msg) $('err').textContent = member.msg;
-  $('btnEnter').disabled = false;
-  startGame();
-};
-$('btnOff').onclick = () => {
-  member.lineId = "guest"; member.lineName = "訪客";
-  startGame();
-};
-
-$('toastBtn').onclick = () => { if(G.toastAction) G.toastAction(); };
-$('bInv').onclick = () => { $('invWin').classList.toggle('hidden'); updateWin(); };
-$('bSt').onclick = () => { $('stWin').classList.toggle('hidden'); updateWin(); };
-$('bOut').onclick = () => setOutputsOpen($('outWin').classList.contains('hidden'));
-$('bFull').onclick = toggleFull;
-
-$('dlgBody').addEventListener('click', e => {
-  const el = e.target.closest('[data-act]');
-  const d = G.dlg;
-  if(!el || !d) return;
-  const act = el.dataset.act;
-  if(act==='close') closeDialog();
-  else if(act==='pick'){ d.view='form'; d.qid=el.dataset.q; d.topic=''; renderDialog(); }
-  else if(act==='back'){ d.view='list'; renderDialog(); }
-  else if(act==='topic'){ d.topic=el.dataset.t; renderDialog(); }
-  else if(act==='run'){
-    const inp = $('topicIn');
-    const topic = (inp ? inp.value.trim() : "") || d.topic || "";
-    runQuest(d.qid, topic);
-  }
-});
-$('outWin').addEventListener('click', e => {
-  const el = e.target.closest('[data-act]');
-  if(!el) return;
-  const act = el.dataset.act;
-  if(act==='closeOut'){ setOutputsOpen(false); return; }
-  if(act==='toggle'){ el.closest('.out').classList.toggle('open'); return; }
-  if(act==='copy'){
-    const o = G.pl.outputs.find(x => String(x.id)===el.dataset.id);
-    if(o) copyText(o.text);
-  }
-});
-$('invWin').addEventListener('click', e => {
-  const el = e.target.closest('[data-act]');
-  if(el && el.dataset.act==='potion') usePotion();
-});
-$('stWin').addEventListener('click', async e => {
-  const el = e.target.closest('[data-act]');
-  if(!el || el.dataset.act!=='verify') return;
-  addChat('重新驗證會員中…');
-  await initMember();
-  addChat(memberLine());
-});
-$('slots').onclick = e => { const d=e.target.closest('.slot'); if(d) SLOTS[+d.dataset.i].fn(); };
-$('slots').innerHTML = SLOTS.map((s,i) => `<div class="slot" data-i="${i}"><b>${s.k}</b><span>${s.n}</span><em></em></div>`).join('');
-
-cv.addEventListener('pointerdown', e=>{
-  if(!G.running) return;
-  const wx=e.clientX+G.cam.x, wy=e.clientY+G.cam.y;
-  if(G.zone==='town'){
-    for(const n of NPCS){
-      if(dd(wx,wy,n.x,n.y) < 28){ G.talk=n; G.lock=null; G.target=null; return; }
-    }
-  }
-  let best=null, bd=PLAYER.pickRadius;
-  for(const m of G.mons){ if(m.dead) continue; const d=dd(wx,wy,m.x,m.y); if(d<bd){ bd=d; best=m; } }
-  G.talk=null;
-  if(best){ G.lock=best; G.target=null; }
-  else { G.lock=null; G.target={x:wx,y:wy}; }
-});
-
-window.addEventListener('keydown', e=>{
-  const tn = e.target.tagName;
-  if(tn==='INPUT'||tn==='SELECT'||tn==='TEXTAREA') return;
-  if(!G.running) return;
-  K[e.code] = true;
-  if(['Space','F1','F2','F3','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
-  if(e.repeat) return;
-  switch(e.code){
-    case 'KeyZ': case 'Space': doAttack(nearestAlive(G.pl.x,G.pl.y,PLAYER.attackRange)); break;
-    case 'KeyX': skill(); break;
-    case 'KeyF': SLOTS[2].fn(); break;
-    case 'KeyT': talkNearest(); break;
-    case 'F1': usePotion(); break;
-    case 'F2': enterZone('town'); break;
-    case 'F3': toggleFull(); break;
-    case 'KeyB': $('invWin').classList.toggle('hidden'); updateWin(); break;
-    case 'KeyC': $('stWin').classList.toggle('hidden'); updateWin(); break;
-    case 'KeyO': setOutputsOpen($('outWin').classList.contains('hidden')); break;
-    case 'Escape': closeDialog(); break;
-  }
-});
-window.addEventListener('keyup', e=>{ K[e.code]=false; });
-
-function resize(){ VP.w = cv.width = innerWidth; VP.h = cv.height = innerHeight; }
-window.addEventListener('resize', resize);
-resize();
-
-/* ================= 主迴圈 ================= */
-let last = 0;
-function loop(ts){
-  const dt = Math.min(0.05, ((ts-last)/1000)||0); last = ts;
-  if(G.running){
-    update(dt);
-    draw();
-    G.uiT -= dt;
-    if(G.uiT<=0){
-      G.uiT = 0.25;
-      updateHUD();
-      if(!$('stWin').classList.contains('hidden') || !$('invWin').classList.contains('hidden')) updateWin();
-      drawMini();
-    }
-    G.saveT += dt;
-    if(G.saveT>SAVE_INTERVAL){ G.saveT=0; saveGame(); }
-  }
+/* ---------- 迴圈與輸入 ---------- */
+function loop(t){
   requestAnimationFrame(loop);
+  if(!document.body.classList.contains('v-mode')) return;
+  stepPlayer(t);
+  P.vx+=(P.x-P.vx)*0.32; P.vy+=(P.y-P.vy)*0.32;
+  if(Math.abs(P.x-P.vx)<0.01) P.vx=P.x;
+  if(Math.abs(P.y-P.vy)<0.01) P.vy=P.y;
+  render(t);
+  updateLabels();
 }
-requestAnimationFrame(loop);
 
+cv.addEventListener('pointerdown',e=>{
+  const r=cv.getBoundingClientRect();
+  const mx=(e.clientX-r.left)/r.width*W, my=(e.clientY-r.top)/r.height*H;
+  tapTile(Math.floor(mx/T), Math.floor(my/T));
+});
+
+document.addEventListener('keydown',e=>{
+  if(!document.body.classList.contains('v-mode')) return;
+  if(!document.getElementById('vCard').hidden) return;
+  const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0],w:[0,-1],s:[0,1],a:[-1,0],d:[1,0]};
+  const d=m[e.key]; if(!d) return;
+  e.preventDefault();
+  const nx=P.x+d[0], ny=P.y+d[1];
+  if(walkable(nx,ny)){ P.path=[[nx,ny]]; P.after=null; }
+  else P.dir=dirOf(d[0],d[1]);
+});
+
+/* ---------- 啟動 ---------- */
+buildBG();
+buildLabels();
+buildGrid();
+window.vzSetMode=setMode;
+setMode('village');
+requestAnimationFrame(loop);
+setInterval(()=>{ if(document.body.classList.contains('v-mode')) renderVillage(); },3000);
 })();
 </script>
-</body>
-</html>
