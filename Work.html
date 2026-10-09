@@ -2141,8 +2141,169 @@
   .lc-btn.primary{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;}
   .lc-btn.ghost{flex:0 0 auto;color:#9A3D25;border-color:rgba(154,61,37,.2);}
   .lib-card .li-digest{margin-top:12px;}
-</style>
-</head>
+/* ===== 遊戲風格覆蓋層（RPG 冒險 HUD，貼在 </style> 前） ===== */
+:root{
+  --rpg-gold:#E8B84A; --rpg-gold-d:#8F6418; --rpg-parch:#F4E7C5; --rpg-ink:#2D1E10;
+  --rpg-red:#D9483B; --ink:#2D1E10; --ink-soft:#5A4524; --ink-faint:#8A7450; --line:rgba(45,30,16,.22);
+  --accent:#8F6418;
+}
+body{
+  background:radial-gradient(ellipse at 50% -10%,#3A2D4D 0%,transparent 60%),linear-gradient(180deg,#1B1424 0%,#261C30 100%)!important;
+  color:#F4E7C5!important;
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif!important;
+}
+.app{padding-bottom:120px!important;}
+h1,h2,h3,.ws-title h2,.dept-name,.le-name,.pl-title,.gate-title{font-family:"PingFang TC","Noto Sans TC",sans-serif!important;letter-spacing:1px;}
+
+/* 羊皮紙面板（任務卷軸） */
+.dept-card,.lib-entry,.output-card,.res-item,.coll-item,.deck-item,.lib-card,.hist-item,
+.input-card,.role-box,.coll-daily,.svg-card-box,.mode-card,.plat-bar,.res-row,.lib-item,
+.coll-group,.lib-empty,.chain-empty,.lib-stats .ls-cell,.cd-panel,.pp-panel,.wslib-toggle,
+.guide-entry,.tcard-front,.seg-card,.file-chip,.preset-chip,.collect-set{
+  background:linear-gradient(180deg,#FBF3DA 0%,#F4E7C5 100%)!important;
+  border:3px solid var(--rpg-ink)!important;
+  border-radius:10px!important;
+  box-shadow:inset 0 0 0 2px #F4E7C5,inset 0 0 0 3px var(--rpg-gold-d),0 4px 0 #000!important;
+  color:var(--rpg-ink);
+}
+.dept-card .bar{display:none!important;}
+.output-card .oc-head,#view-dept .output-card .oc-head,.final-head,.oc-head{
+  background:linear-gradient(180deg,#3A2D4D,#241B30)!important;color:var(--rpg-gold)!important;
+  border-bottom:3px solid #000!important;text-shadow:1px 1px 0 #000;font-family:"PingFang TC",sans-serif!important;letter-spacing:1px;
+}
+.saved-tag,.guide-tag,.deck-tag,.coll-used,.res-plat,.lc-kind,.tag,.lc-chip.ok{
+  background:#000!important;color:var(--rpg-gold)!important;border:2px solid var(--rpg-gold-d)!important;
+}
+
+/* 頂部 HUD：角色頭像框 */
+.topbar{
+  background:linear-gradient(180deg,#3A2D4D 0%,#1B1424 100%)!important;
+  border-bottom:4px solid var(--rpg-gold-d)!important;border-radius:0 0 18px 18px!important;
+  box-shadow:0 5px 0 #000!important;
+}
+.topbar::after{display:none!important;}
+.brand-tag{color:var(--rpg-gold)!important;}
+.title-edit{color:var(--rpg-gold)!important;font-weight:900!important;text-shadow:2px 2px 0 #000;letter-spacing:2px;}
+.gear,.hdr-toggle{background:#2A2233!important;color:var(--rpg-gold)!important;border:2px solid var(--rpg-gold-d)!important;border-radius:8px!important;}
+.hero-member{
+  display:grid!important;grid-template-columns:auto 1fr;grid-template-areas:"av name" "av badge" "av hp";
+  align-items:center;gap:2px 12px;text-align:left;
+  background:linear-gradient(90deg,#2A2233,#362A44)!important;
+  border:3px solid var(--rpg-gold-d)!important;border-radius:12px!important;box-shadow:inset 0 0 0 2px #000!important;
+}
+.hero-member::before{display:none!important;}
+.hero-avatar-ring{grid-area:av;width:60px;height:60px;margin:0;background:linear-gradient(180deg,var(--rpg-gold),var(--rpg-gold-d))!important;border:2px solid #000;}
+.hero-dot{border-color:#2A2233!important;}
+.hero-name{grid-area:name;color:var(--rpg-gold)!important;font-weight:900!important;text-shadow:1px 1px 0 #000;font-size:15px!important;}
+.hero-badge{grid-area:badge;justify-self:start;margin:0!important;background:#000!important;color:#F4E7C5!important;border:1px solid var(--rpg-gold-d)!important;border-radius:4px!important;font-size:11px!important;}
+.hero-badge.warn{color:#FFB38A!important;}
+.rpg-hp{grid-area:hp;display:flex;align-items:center;gap:6px;width:100%;font-size:11px;font-weight:900;color:var(--rpg-gold);}
+.rpg-lv{background:var(--rpg-gold);color:#2D1E10;border:2px solid #000;border-radius:4px;padding:0 6px;line-height:16px;white-space:nowrap;}
+.rpg-bar{flex:1;height:12px;background:#000;border:2px solid var(--rpg-gold-d);border-radius:3px;overflow:hidden;}
+.rpg-bar i{display:block;height:100%;width:100%;background:linear-gradient(180deg,#8FE39A,#3FA655);transition:width .5s;}
+.rpg-bar i.mid{background:linear-gradient(180deg,#FFE27A,#D9A21B);}
+.rpg-bar i.low{background:linear-gradient(180deg,#FF9A8A,var(--rpg-red));}
+.rpg-hp b{min-width:36px;text-align:right;color:#F4E7C5;}
+
+/* 區塊標題與分隔線 */
+.section-label,.home-cat{color:var(--rpg-gold)!important;text-shadow:1px 1px 0 #000;}
+.section-label::before{background:var(--rpg-gold)!important;}
+.home-cat::after{background:linear-gradient(90deg,var(--rpg-gold-d),transparent)!important;}
+.home-divider{height:3px!important;border:0!important;margin:18px 28px!important;background:repeating-linear-gradient(90deg,var(--rpg-gold-d) 0 8px,transparent 8px 14px)!important;}
+
+/* 首頁：副本入口（一鍵出擊） */
+.pipeline{
+  background:linear-gradient(180deg,#3A2D4D,#241B30)!important;
+  border:3px solid var(--rpg-gold-d)!important;border-radius:12px!important;
+  box-shadow:inset 0 0 0 2px #000,0 5px 0 #000!important;
+}
+.pipeline::before{display:none!important;}
+.pl-title{background:none!important;-webkit-text-fill-color:var(--rpg-gold)!important;color:var(--rpg-gold)!important;text-shadow:2px 2px 0 #000;}
+.pl-sub{color:#D8C9A8!important;}
+.pl-chip,.pl-goto,.pl-empty{background:var(--rpg-parch)!important;color:var(--rpg-ink)!important;border:2px solid #000!important;}
+.pl-chip-txt small{color:var(--rpg-gold-d)!important;}
+.pl-chip-txt b{color:var(--rpg-ink)!important;}
+.pl-chip-x{background:var(--rpg-red)!important;color:#fff!important;border:2px solid #000!important;}
+
+/* 按鈕：金色技能按鈕 */
+.pl-run,.pl-run.dark,button.pl-run.dark,.run-btn,.save-main,.gate-btn,.cga-btn.primary,.lc-btn.primary{
+  background:linear-gradient(180deg,#FFE08A 0%,var(--rpg-gold) 50%,var(--rpg-gold-d) 100%)!important;
+  color:#2D1E10!important;border:3px solid #000!important;border-radius:8px!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.6),0 5px 0 #000!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.5);font-weight:900!important;letter-spacing:3px!important;
+}
+.pl-run:active,.run-btn:active,.save-main:active,.gate-btn:active{transform:translateY(4px)!important;box-shadow:0 1px 0 #000!important;}
+.pl-run:disabled,.run-btn:disabled,.gate-btn:disabled{background:#6B6070!important;color:#CFC6D8!important;}
+
+/* 職業徽記：戰士／法師／吟遊詩人／商人／牧師 */
+#deptList .dept-card .dept-ic{border-radius:8px!important;border:2px solid #000!important;color:#fff!important;text-shadow:1px 1px 0 #000;}
+#deptList .dept-card:nth-child(1) .dept-ic{background:#C0392B!important;}
+#deptList .dept-card:nth-child(2) .dept-ic{background:#2E6FB0!important;}
+#deptList .dept-card:nth-child(3) .dept-ic{background:#7D4FB5!important;}
+#deptList .dept-card:nth-child(4) .dept-ic{background:#B8860B!important;}
+#deptList .dept-card:nth-child(5) .dept-ic{background:#3A8F5C!important;}
+#deptList .dept-count{background:#000!important;color:var(--rpg-gold)!important;border:2px solid var(--rpg-gold-d)!important;border-radius:4px!important;}
+#deptList .dept-count.zero{color:#8A7450!important;}
+
+/* 選取狀態：技能已裝備 */
+.mode-btn.on,.plat-chip.on,.cg-seg.on,.cg-mode button.on,.cd-seg button.on,.cd-toggle.on,
+.pp-chip.on,.lc-use.on,.lib-toggle.on,.cp-chip.on,.mopt.on,.wslib-toggle.open{
+  background:linear-gradient(180deg,#5A4A7A,#2A2238)!important;color:var(--rpg-gold)!important;
+  border:2px solid #000!important;box-shadow:0 3px 0 #000!important;
+}
+.coll-item-sel.selected{background:#FFF1B8!important;}
+
+/* 成品與卡片：深色羊皮（稀有道具） */
+.plat-block,.tcard-back,.pipeline-card{
+  background:linear-gradient(180deg,#3A2D4D,#241B30)!important;border:3px solid var(--rpg-gold-d)!important;
+  box-shadow:inset 0 0 0 2px #000,0 4px 0 #000!important;color:#F4E7C5!important;
+}
+.lib-drop{background:linear-gradient(180deg,#3A2D4D,#241B30)!important;border:3px solid var(--rpg-gold-d)!important;color:var(--rpg-gold)!important;box-shadow:0 5px 0 #000!important;}
+.ld-txt b{color:var(--rpg-gold)!important;}
+.ld-ic{background:var(--rpg-gold)!important;color:#2D1E10!important;border:2px solid #000;}
+
+/* 底部快捷列：技能欄 */
+.rpg-nav{
+  position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:500px;z-index:120;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(180deg,#2A2233,#120C18);border-top:3px solid var(--rpg-gold-d);box-shadow:0 -4px 0 rgba(0,0,0,.35);
+}
+.rpg-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:#CFC3A6;font-size:11px;font-weight:900;letter-spacing:1px;padding:0;}
+.rpg-slot{width:50px;height:50px;display:grid;place-items:center;font-size:22px;background:linear-gradient(180deg,#3A2D4D,#1E1628);border:3px solid var(--rpg-gold-d);border-radius:10px;box-shadow:inset 0 0 0 2px #000,0 3px 0 #000;transition:transform .15s;}
+.rpg-nav button.on .rpg-slot{border-color:var(--rpg-gold);transform:translateY(-6px);box-shadow:inset 0 0 0 2px #000,0 0 14px rgba(232,184,74,.6),0 3px 0 #000;}
+.rpg-nav button.on{color:var(--rpg-gold);}
+.rpg-nav button:active .rpg-slot{transform:scale(.92);}
+
+/* 系統訊息：卷軸通知 */
+.toast{
+  background:var(--rpg-parch)!important;color:var(--rpg-ink)!important;border:3px solid #000!important;border-radius:6px!important;
+  box-shadow:0 5px 0 #000!important;font-weight:900!important;bottom:104px!important;
+}
+
+/* 側邊選單：冒險者手冊 */
+.drawer{background:linear-gradient(180deg,#2A2233,#1B1424)!important;border-right:3px solid var(--rpg-gold-d)!important;}
+.dr-head,.dr-cat{color:var(--rpg-gold)!important;}
+.dr-item{color:var(--rpg-parch)!important;}
+.dr-item:active{background:rgba(232,184,74,.12)!important;}
+.dr-item .cnt{color:#CFC3A6!important;}
+
+/* 登入畫面：勇者登錄 */
+#gateScreen{background:radial-gradient(ellipse at 50% 20%,#4A3A66 0%,#140E1C 70%)!important;}
+#gateScreen .gate-title,#gateScreen .gt-txt{color:var(--rpg-gold)!important;-webkit-text-fill-color:var(--rpg-gold)!important;background:none!important;animation:none!important;}
+#gateScreen .gate-title{text-shadow:3px 3px 0 #000!important;filter:none!important;}
+#gateScreen .gate-kicker{color:#D8C9A8!important;}
+#gateScreen .gate-line{background:var(--rpg-gold)!important;}
+#gateScreen .gate-id{background:linear-gradient(180deg,#FBF3DA,#F4E7C5)!important;border:3px solid var(--rpg-ink)!important;border-radius:10px!important;box-shadow:0 5px 0 #000!important;}
+#gateScreen .gate-name,#gateScreen .gate-expire{color:var(--rpg-ink)!important;}
+#gateScreen .gate-avatar-ring{background:linear-gradient(180deg,var(--rpg-gold),var(--rpg-gold-d))!important;border:3px solid #000!important;}
+#gateScreen .gate-badge{background:#000!important;color:var(--rpg-gold)!important;border:2px solid var(--rpg-gold-d)!important;}
+#gateScreen .gate-rule-item{color:#E8DCC0!important;border-color:rgba(232,184,74,.2)!important;}
+#gateScreen .gate-btn{min-height:60px;font-size:18px!important;}
+
+/* 狀態頁小字 */
+.build-tag,.home-build{color:#8A7A9E!important;}
+
 <body>
 <!-- 進場驗證頁：質感登入頁，顯示會員身分後才進入系統 -->
 <div class="gate" id="gateScreen">
@@ -2202,6 +2363,7 @@
       </div>
       <div class="hero-name" id="heroName">🌿 尚未登入</div>
       <div class="hero-badge" id="heroBadge">LINE 會員驗證中…</div>
+      <div class="rpg-hp" id="rpgHp" style="visibility:hidden"><span class="rpg-lv" id="rpgLv">Lv</span><div class="rpg-bar"><i id="rpgHpFill"></i></div><b id="rpgHpTxt">—</b></div>
     </div>
   </header>
 
@@ -2556,6 +2718,14 @@
   </section>
 
 </div>
+
+<nav class="rpg-nav" id="rpgNav">
+  <button data-v="collector" onclick="openCollector()"><span class="rpg-slot">📜</span>任務</button>
+  <button data-v="home" onclick="openView('home')"><span class="rpg-slot">⚔️</span>出擊</button>
+  <button data-v="library" onclick="openLibrary()"><span class="rpg-slot">🎒</span>背包</button>
+  <button data-v="results" onclick="openResults('final')"><span class="rpg-slot">🏆</span>成品</button>
+  <button data-v="cards" onclick="openCards()"><span class="rpg-slot">📖</span>圖鑑</button>
+</nav>
 
 <div class="drawer-mask" id="drawerMask" onclick="toggleMenu(false)"></div>
 <aside class="drawer" id="drawer">
@@ -5681,6 +5851,35 @@ checkAutoCollect();
 setTimeout(checkDailyOptimize, 5000);
 setInterval(checkAutoCollect, 15*60*1000);
 setInterval(checkDailyOptimize, 30*60*1000);
+
+/* ===== 遊戲風格：HUD 與底部快捷列同步（不改動原有邏輯） ===== */
+const RPG_HP_FULL = 20;   // 黃金會員：20 次視為滿血，可自行調整
+function rpgNav(v){
+  const key = v==="dept" ? "home" : v;
+  document.querySelectorAll("#rpgNav button").forEach(b=>b.classList.toggle("on", b.dataset.v===key));
+}
+function rpgHud(){
+  const box=document.getElementById("rpgHp"), fill=document.getElementById("rpgHpFill"),
+        txt=document.getElementById("rpgHpTxt"), lv=document.getElementById("rpgLv");
+  if(!box) return;
+  if(!memberOK()){ box.style.visibility="hidden"; return; }
+  box.style.visibility="visible";
+  if(member.level==="尊爵"){
+    lv.textContent="Lv.99 勇者"; fill.style.width="100%"; fill.className=""; txt.textContent="∞"; return;
+  }
+  lv.textContent="Lv.10 冒險者";
+  const n=Math.max(0, Number(member.remain)||0);
+  const pct=Math.min(100, Math.round(n/RPG_HP_FULL*100));
+  fill.style.width=pct+"%";
+  fill.className = pct>50 ? "" : (pct>20 ? "mid" : "low");
+  txt.textContent=n;
+}
+const _rpgOpenView=openView;
+openView=function(v){ _rpgOpenView(v); rpgNav(v); };
+const _rpgUpdKey=updateKeyStatus;
+updateKeyStatus=function(){ _rpgUpdKey(); rpgHud(); };
+rpgNav("home");
+rpgHud();
 </script>
 </body>
 </html>
