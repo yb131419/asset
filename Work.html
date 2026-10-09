@@ -4176,6 +4176,8 @@ const CARD_THEMES={
   warm:{bg:["#5A3420","#341E12","#1A0E08"],glow:"#F7D9A0",glowOp:".24",gold:["#FBE7BC","#E9B977","#B87A3A"],frame:"rgba(247,217,160,.34)",frame2:"rgba(247,217,160,.10)",body:"#F6EBDD",head:"#F7D9A0",quote:"#FBE7BC",footText:"rgba(246,235,221,.66)",footBg:"rgba(247,217,160,.10)",footLine:"rgba(247,217,160,.38)",footGold:"#F7D9A0",mark:"rgba(247,217,160,.12)",grain:"0.10"}
 };
 const CARD_SIZES={s:22,m:26,l:30};
+// 平台比例（高 ÷ 寬）：IG／FB 貼文用 4:5 或 1:1，限動用 9:16
+const CARD_RATIOS={auto:0, ig45:1.25, sq:1, story:16/9};
 function cardEm(str){ let w=0; for(const ch of str){ const c=ch.codePointAt(0); w+= c<128 ? (ch===" "?0.32:0.56) : 1; } return w; }
 function cardWrap(text, maxEm){
   const out=[]; let cur="", w=0;
@@ -4245,7 +4247,9 @@ function cardLayout(text, o){
   });
   const bodyBottom=y;
   const footH = (o.footer ? 120 : 70) + (o.name ? 44 : 0);
-  const H=Math.max(760, Math.round(bodyBottom+footH+50));
+  const need=Math.round(bodyBottom+footH+50);
+  const ratioH = CARD_RATIOS[o.ratio] ? Math.round(W*CARD_RATIOS[o.ratio]) : 0;
+  const H = ratioH ? Math.max(ratioH, need) : Math.max(760, need);
   return {W,H,P,ruleY,items,BODY_FS,TITLE_FS,QUOTE_IND,center,right};
 }
 function buildCardSVG(text, o, uid){
@@ -4322,7 +4326,7 @@ function cardStateOf(cid){ return window.CARD_STATE[cid]; }
 function cardComposeText(st){ return (st.title||"") + "\n" + (st.body||""); }
 function cardPreviewHTML(cid){
   const st=cardStateOf(cid); if(!st) return "";
-  return buildCardSVG(cardComposeText(st), {theme:st.theme,size:st.size,align:st.align,footer:st.footer,name:st.name,footerText:st.footerText}, cid);
+  return buildCardSVG(cardComposeText(st), {theme:st.theme,size:st.size,align:st.align,footer:st.footer,name:st.name,footerText:st.footerText,ratio:st.ratio}, cid);
 }
 function cardRefresh(cid){
   const el=document.getElementById(cid); if(!el) return;
@@ -4354,6 +4358,7 @@ function cardEditorHTML(cid){
     <label class="cd-field"><span>名稱</span><input type="text" maxlength="30" value="${attr(st.name)}" oninput="cardEdit('${cid}','name',this.value)"></label>
     <label class="cd-field"><span>標題</span><input type="text" value="${attr(st.title)}" oninput="cardEdit('${cid}','title',this.value)"></label>
     <label class="cd-field"><span>內文</span><textarea rows="5" oninput="cardEdit('${cid}','body',this.value)">${attr(st.body)}</textarea></label>
+    <div class="cd-row cd-row-tight"><span class="cd-lbl">尺寸</span><select class="cd-select" onchange="cardEdit('${cid}','ratio',this.value)">${[["ig45","IG／FB 直式 4:5"],["sq","IG／FB 方形 1:1"],["story","限動 9:16"],["auto","自動（依內容高度）"]].map(([v,l])=>`<option value="${v}" ${(st.ratio||"ig45")===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row cd-row-tight"><span class="cd-lbl">配色</span><select class="cd-select" onchange="cardEdit('${cid}','theme',this.value)">${themes.map(([v,l])=>`<option value="${v}" ${st.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row"><span class="cd-lbl">字級</span><div class="cd-seg">${seg("size",[["s","小"],["m","中"],["l","大"]])}</div></div>
     <div class="cd-row"><span class="cd-lbl">對齊</span><div class="cd-seg">${seg("align",[["left","靠左"],["center","置中"],["right","靠右"]])}</div></div>
@@ -4384,7 +4389,7 @@ function renderCardInto(wrap, txt, plat, single){
     const cid="card_"+Math.random().toString(36).slice(2);
     const sp=cardSplit(bodyTxt);
     const cd=state.cardDefaults||{};
-    window.CARD_STATE[cid]={title:sp.title, body:sp.body, theme:"forest", size:"m", align:"left", footer:true, name:cd.name||"", footerText:cd.footer||""};
+    window.CARD_STATE[cid]={title:sp.title, body:sp.body, theme:"forest", size:"m", align:"left", ratio:"ig45", footer:true, name:cd.name||"", footerText:cd.footerText||cd.footer||""};
     const tagBits=[];
     if(itemPlat) tagBits.push(`🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）`);
     if(segTotal>1) tagBits.push(`第 ${seg}／${segTotal} 張`);
