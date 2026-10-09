@@ -2446,7 +2446,7 @@ function deptModeGuide(){
     invite:"【本次模式：互動邀約】以私訊引導與留言互動為主，第一句先了解對方，低壓力邀請「先聊聊看」，不推銷。",
     auto:"【本次模式：AI定位判定】請先依需求判斷最適合的定位（觀念分享／健康分享"+(d.id==="invite"?"／互動邀約":"")+"），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
   };
-  return G[m.k]||"";
+  return (G[m.k]||"")+"\n\n【標題格式】每一段內容都要先寫一行「標題：」加上不超過10個字的短標題（不含符號），精準概括該段重點，標題獨立成行，之後空一行再寫內文。";
 }
 
 function renderPlatBar(){ return;
@@ -3887,7 +3887,13 @@ function splitPlatforms(text){
   return named.length>=2 ? named : null;
 }
 // 把一段產出切成卡片段落（部門產出一律卡片化顯示）
+const TITLE_LINE_RE=/^\s*【?標題】?[：:]/;
 function segmentize(text){
+  const t=(text||"").trim();
+  if(/^\s*【?標題】?[：:]/m.test(t)){
+    const chunks=t.split(/\n(?=\s*【?標題】?[：:])/).map(x=>x.trim()).filter(Boolean);
+    if(chunks.length) return chunks;
+  }
   const parts=(text||"").split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
   const segs=[];
   for(const p of parts){
@@ -3898,10 +3904,20 @@ function segmentize(text){
 }
 // 從段落抽出一個簡短標題，讓每張卡都像教學卡片一樣有標題可看
 function deriveSegTitle(seg, idx){
-  let first=(seg.split("\n")[0]||"").trim();
-  first=first.replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"$1：").trim();
-  if(!first) return "重點內容 "+(idx+1);
-  return first;
+  const first=(seg.split("\n")[0]||"").trim();
+  const tm=first.match(/^【?標題】?[：:]\s*(.+)$/);
+  if(tm) return tm[1].replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu,"").trim();
+  let f=first.replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu,"").replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").trim();
+  if(!f) return "重點內容 "+(idx+1);
+  let n=0, out="";
+  for(const ch of f){
+    if(/[\p{L}\p{N}]/u.test(ch)){ if(n>=10) break; n++; }
+    out+=ch;
+  }
+  return out.trim();
+}
+function stripTitleLine(seg){
+  return (seg||"").replace(/^\s*【?標題】?[：:][^\n]*\n*/,"").trim();
 }
 // 摺疊外框：預設收合，資料一多也不會亂；點擊展開查看
 function foldWrap(innerHtml, count, noun){
@@ -3934,7 +3950,7 @@ function richBody(out){
       const mini=pieces.map((p,i)=>`
         <div class="pb-seg">
           <div class="pb-seg-title">${esc(deriveSegTitle(p,i))}</div>
-          <div class="pb-seg-body">${esc(p.replace(/^#+\s*/gm,""))}</div>
+          <div class="pb-seg-body">${esc(stripTitleLine(p).replace(/^#+\s*/gm,""))}</div>
         </div>`).join("");
       return `
       <div class="plat-block">
@@ -3952,7 +3968,7 @@ function richBody(out){
         <span class="tcard-num">${String(i+1).padStart(2,"0")}</span>
         <span class="tcard-tag">部門產出 · 第 ${i+1} 段</span>
         <div class="tcard-q">${esc(deriveSegTitle(s,i))}</div>
-        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(s.replace(/^#+\s*/gm,""))}</div>
+        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(stripTitleLine(s).replace(/^#+\s*/gm,""))}</div>
         <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
       </div>
     </div>`).join("")+`</div>`;
