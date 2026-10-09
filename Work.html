@@ -3235,7 +3235,6 @@ function resItemHTML(t, isVideo){
     <div class="hi-actions">
       <button class="hi-btn del" onclick="deleteResult(${t.id})">🗑 刪除</button>
       <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
-      <button class="hi-btn" onclick="shareFromBtn(this)">📤 分享</button>
       <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="1" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
     </div>
     <div class="cardwrap" id="rescw-${t.id}"></div>
@@ -4051,7 +4050,7 @@ function singleBody(out, tag){
       <span class="tcard-tag">${esc(tag||"影音內容 · 一分鐘逐字稿")}</span>
       <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc((out||"").replace(/^#+\s*/gm,""))}</div>
       <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
-        <button class="tcard-share" onclick="shareFromBtn(this)">📤 分享</button>
+        <button class="tcard-share" onclick="shareFromBtn(this)">📝 文字分享</button>
     </div></div></div>`;
 }
 function richBody(out, single, tag){
@@ -4068,7 +4067,7 @@ function richBody(out, single, tag){
       return `
       <div class="plat-block">
         <div class="pb-head"><span class="pb-name">${esc(b.label)}</span>
-          <span class="pb-acts"><button class="pb-copy" onclick="copyBlock(this)">📋 複製</button><button class="pb-copy" onclick="shareFromBtn(this)">📤 分享</button></span></div>
+          <span class="pb-acts"><button class="pb-copy" onclick="copyBlock(this)">📋 複製</button><button class="pb-copy" onclick="shareFromBtn(this)">📝 文字分享</button></span></div>
         <div class="pb-body">${mini}</div>
       </div>`;
     }).join("")+`</div>`;
@@ -4083,7 +4082,7 @@ function richBody(out, single, tag){
         <div class="tcard-q">${esc(deriveSegTitle(s,i))}</div>
         <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(stripTitleLine(s).replace(/^#+\s*/gm,""))}</div>
         <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
-        <button class="tcard-share" onclick="shareFromBtn(this)">📤 分享</button>
+        <button class="tcard-share" onclick="shareFromBtn(this)">📝 文字分享</button>
       </div>
     </div>`).join("")+`</div>`;
   return foldWrap(inner, segs.length, "張卡片");
@@ -4160,9 +4159,9 @@ function finalCard(out, plat){
 /* ---- 圖卡排版引擎（可自訂設計） ---- */
 const CARD_W=720, CARD_PAD=64;
 const CARD_THEMES={
-  forest:{bg:["#14402F","#0A2620","#05140F"],glow:"#F3D9A3",glowOp:".26",gold:["#FBE9B9","#E7C27A","#B8863C"],frame:"rgba(243,217,163,.32)",frame2:"rgba(243,217,163,.10)",body:"#E9EEE9",head:"#F3D9A3",quote:"#F6E3B4",footText:"rgba(233,238,233,.66)",footBg:"rgba(243,217,163,.10)",footLine:"rgba(243,217,163,.38)",footGold:"#F3E2B5",mark:"rgba(243,217,163,.12)",grain:"0.10"},
-  ivory:{bg:["#FBF8F0","#F4EEDC","#EADFC4"],glow:"#C9994A",glowOp:".18",gold:["#A8782E","#C9994A","#7A5520"],frame:"rgba(122,85,32,.38)",frame2:"rgba(122,85,32,.14)",body:"#2B2A22",head:"#7A5520",quote:"#5C4116",footText:"rgba(43,42,34,.66)",footBg:"rgba(122,85,32,.08)",footLine:"rgba(122,85,32,.4)",footGold:"#5C4116",mark:"rgba(122,85,32,.12)",grain:"0.04"},
-  ink:{bg:["#24272A","#131516","#070808"],glow:"#D9DEE3",glowOp:".16",gold:["#F5F7F6","#CDD3D0","#8E9691"],frame:"rgba(230,235,230,.26)",frame2:"rgba(230,235,230,.10)",body:"#E7EAE7",head:"#FFFFFF",quote:"#FFFFFF",footText:"rgba(231,234,231,.62)",footBg:"rgba(255,255,255,.07)",footLine:"rgba(255,255,255,.30)",footGold:"#E7EAE7",mark:"rgba(255,255,255,.10)",grain:"0.08"},
+  forest:{bg:["#14402F","#0A2620","#05140F"],glow:"#F3D9A3",glowOp:".26",gold:["#FBE9B9","#E7C27A","#B8863C"],frame:"rgba(243,217,163,.32)",frame2:"rgba(243,217,163,.10)",body:"#E9EEE9",head:"#F3D9A3",quote:"#F6E3B4",footText:"rgba(233,238,233,.66)",footBg:"rgba(243,217,163,.10)",footLine:"rgba(243,217,163,.38)",footGold:"#F3E2B5",mark:"rgba(243,217,163,.12)",grain:"0.10",nameColor:"#8FE3C0"},
+  ivory:{bg:["#FBF8F0","#F4EEDC","#EADFC4"],glow:"#C9994A",glowOp:".18",gold:["#A8782E","#C9994A","#7A5520"],frame:"rgba(122,85,32,.38)",frame2:"rgba(122,85,32,.14)",body:"#2B2A22",head:"#7A5520",quote:"#5C4116",footText:"rgba(43,42,34,.66)",footBg:"rgba(122,85,32,.08)",footLine:"rgba(122,85,32,.4)",footGold:"#5C4116",mark:"rgba(122,85,32,.12)",grain:"0.04",nameColor:"#A8472A"},
+  ink:{bg:["#24272A","#131516","#070808"],glow:"#D9DEE3",glowOp:".16",gold:["#F5F7F6","#CDD3D0","#8E9691"],frame:"rgba(230,235,230,.26)",frame2:"rgba(230,235,230,.10)",body:"#E7EAE7",head:"#FFFFFF",quote:"#FFFFFF",footText:"rgba(231,234,231,.62)",footBg:"rgba(255,255,255,.07)",footLine:"rgba(255,255,255,.30)",footGold:"#E7EAE7",mark:"rgba(255,255,255,.10)",grain:"0.08",nameColor:"#8EC5FF"},
   warm:{bg:["#5A3420","#341E12","#1A0E08"],glow:"#F7D9A0",glowOp:".24",gold:["#FBE7BC","#E9B977","#B87A3A"],frame:"rgba(247,217,160,.34)",frame2:"rgba(247,217,160,.10)",body:"#F6EBDD",head:"#F7D9A0",quote:"#FBE7BC",footText:"rgba(246,235,221,.66)",footBg:"rgba(247,217,160,.10)",footLine:"rgba(247,217,160,.38)",footGold:"#F7D9A0",mark:"rgba(247,217,160,.12)",grain:"0.10"}
 };
 const CARD_SIZES={s:22,m:26,l:30};
@@ -4245,7 +4244,7 @@ function cardLayout(text, o){
   return {W,H,P,ruleY,items,BODY_FS,TITLE_FS,QUOTE_IND,center,right,need};
 }
 function buildCardSVG(text, o, uid){
-  o=Object.assign({theme:"forest",size:"m",align:"left",footer:true}, o||{});
+  o=Object.assign({theme:"forest",size:"m",align:"left",footer:true,nameColor:"#F4A7A0"}, o||{});
   const T=CARD_THEMES[o.theme]||CARD_THEMES.forest;
   const L=cardLayout(text, o);
   const {W,H,P}=L;
@@ -4272,12 +4271,12 @@ function buildCardSVG(text, o, uid){
   const fy=H-P-14;
   const lift=(o.name||o.pageLabel)?44:0;
   const footText = (o.footerText!=null ? o.footerText : (state.cardDefaults&&state.cardDefaults.footer)||"");
-  const nameSvg = o.name ? `<text x="${W-P}" y="${fy}" text-anchor="end" font-family="${F_SANS}" font-size="36" font-weight="800" letter-spacing="1" fill="${T.head}">${cardEscape(o.name)}</text>` : "";
+  const nameSvg = o.name ? `<text x="${P}" y="${fy}" text-anchor="start" font-family="${F_SANS}" font-size="36" font-weight="800" letter-spacing="1" fill="${T.nameColor||T.head}">${cardEscape(o.name)}</text>` : "";
   const footSvg = (o.footer && footText) ? `
     <rect x="${P}" y="${fy-62-lift}" width="${W-P*2}" height="50" rx="25" fill="${T.footBg}" stroke="${T.footLine}" stroke-width="1"/>
     <circle cx="${P+30}" cy="${fy-37-lift}" r="5" fill="url(#gold_${u})"/>
     <text x="${P+54}" y="${fy-24-lift}" font-family="${F_SANS}" font-size="23" font-weight="600" letter-spacing="0.5" fill="${T.footGold}">${cardEscape(footText)}</text>` : "";
-  const pageSvg = o.pageLabel ? `<text x="${P}" y="${fy}" font-family="${F_SANS}" font-size="30" font-weight="800" letter-spacing="1" fill="${T.head}">${cardEscape(o.pageLabel)}</text>` : "";
+  const pageSvg = o.pageLabel ? `<text x="${W-P}" y="${fy}" text-anchor="end" font-family="${F_SANS}" font-size="30" font-weight="800" letter-spacing="1" fill="${T.head}">${cardEscape(o.pageLabel)}</text>` : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
     <defs>
       <linearGradient id="bg_${u}" x1="0" y1="0" x2="0.6" y2="1">
@@ -4432,7 +4431,7 @@ function renderCardInto(wrap, txt, plat, single, mode){
       <div class="svg-card-preview" id="${cid}">${cardPreviewHTML(cid)}</div>
       ${cardEditorHTML(cid)}
       <div style="margin-top:12px;">
-        <button class="hi-btn" style="display:block;width:100%;" onclick="shareCardImage('${cid}')">📤 分享此張</button>
+        <button class="hi-btn" style="display:block;width:100%;" onclick="shareCardImage('${cid}')">🖼️ 分享圖卡</button>
       </div>
     </div>`;
   }).join("");
