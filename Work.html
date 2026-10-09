@@ -2446,7 +2446,7 @@ function deptModeGuide(){
     invite:"【本次模式：互動邀約】以私訊引導與留言互動為主，第一句先了解對方，低壓力邀請「先聊聊看」，不推銷。",
     auto:"【本次模式：AI定位判定】請先依需求判斷最適合的定位（觀念分享／健康分享"+(d.id==="invite"?"／互動邀約":"")+"），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
   };
-  return (G[m.k]||"")+"\n\n【標題格式】每一段內容都要先寫一行「標題：」加上不超過10個字的短標題（不含符號），精準概括該段重點，標題獨立成行，之後空一行再寫內文。";
+  return (G[m.k]||"")+"\n\n【段落格式】每一段內容的開頭，先單獨寫一行不超過10個字的短標題（不加任何符號或前綴），標題後空一行再寫內文；內文不要重複標題的文字。";
 }
 
 function renderPlatBar(){ return;
@@ -3888,15 +3888,25 @@ function splitPlatforms(text){
 }
 // 把一段產出切成卡片段落（部門產出一律卡片化顯示）
 const TITLE_LINE_RE=/^\s*【?標題】?[：:]/;
+function cardCount(t){ let n=0; for(const ch of (t||"")) if(/[\p{L}\p{N}]/u.test(ch)) n++; return n; }
+// 獨立成段且不到 10 個字的短段落 = 一個章節的標題
+function isHeadPara(p){
+  if(!p) return false;
+  if(TITLE_LINE_RE.test(p)) return true;
+  return !/\n/.test(p) && cardCount(p)<10 && p.length<60;
+}
 function segmentize(text){
-  const t=(text||"").trim();
-  if(/^\s*【?標題】?[：:]/m.test(t)){
-    const chunks=t.split(/\n(?=\s*【?標題】?[：:])/).map(x=>x.trim()).filter(Boolean);
-    if(chunks.length) return chunks;
+  const paras=(text||"").split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+  if(paras.some(isHeadPara)){
+    const segs=[]; let cur=null;
+    paras.forEach(p=>{
+      if(isHeadPara(p)){ cur={paras:[p]}; segs.push(cur); }
+      else { if(!cur){ cur={paras:[]}; segs.push(cur); } cur.paras.push(p); }
+    });
+    return segs.map(sg=>sg.paras.join("\n\n"));
   }
-  const parts=(text||"").split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
   const segs=[];
-  for(const p of parts){
+  for(const p of paras){
     if(segs.length && (p.length<36 || segs[segs.length-1].length<36)) segs[segs.length-1]+="\n\n"+p;
     else segs.push(p);
   }
@@ -3917,7 +3927,9 @@ function deriveSegTitle(seg, idx){
   return out.trim();
 }
 function stripTitleLine(seg){
-  return (seg||"").replace(/^\s*【?標題】?[：:][^\n]*\n*/,"").trim();
+  const paras=(seg||"").split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+  if(paras.length && isHeadPara(paras[0])) return paras.slice(1).join("\n\n");
+  return paras.join("\n\n");
 }
 // 摺疊外框：預設收合，資料一多也不會亂；點擊展開查看
 function foldWrap(innerHtml, count, noun){
@@ -4602,4 +4614,3 @@ setInterval(checkAutoCollect, 15*60*1000);
 </script>
 </body>
 </html>
-
