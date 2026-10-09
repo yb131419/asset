@@ -3647,7 +3647,7 @@ function resItemHTML(t, isVideo){
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${richBody(t.output, true, tag)}
-    ${cgGroupHTML(t.output, t.platform||"", true, isVideo)}
+    ${cgGroupHTML(t.output, t.platform||"", true, false)}
     <div class="cardwrap" id="rescw-${t.id}"></div>
   </div>`;
 }
@@ -4550,7 +4550,7 @@ function resultCard(d,out){
     ${richBody(out, d.id==="video")}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製全部</button>
-      ${cgGroupHTML(out, "", d.id==="video", d.id==="video")}
+      ${cgGroupHTML(out, "", d.id==="video", false)}
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
@@ -5034,7 +5034,7 @@ function renderOutput(out, d){
      <div id="lastOutWrap">${richBody(out, d.id==="video")}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
-       ${cgGroupHTML(out, "", d.id==="video", d.id==="video")}
+       ${cgGroupHTML(out, "", d.id==="video", false)}
        <div class="handoff-title">交辦給下一個分類 ▸</div>
        ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
      </div>
