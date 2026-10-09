@@ -1894,6 +1894,11 @@
     background:linear-gradient(180deg,#FFFFFF,#F7F5EE);border:1px solid rgba(23,85,58,.16);color:#17553A;
     box-shadow:0 2px 8px rgba(14,40,22,.06);}
   .hi-actions .hi-btn.del{grid-column:1 / -1;color:#9A4B3A;background:#FFF7F4;border-color:rgba(154,75,58,.2);}
+
+  .cg-mode{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:4px 0 12px;}
+  .cg-mode button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:40px;}
+  .cg-mode button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;box-shadow:0 3px 10px rgba(14,40,22,.2);}
+  .cg-share-all{display:block;width:100%;margin-bottom:14px;min-height:46px;border-radius:14px;}
 </style>
 </head>
 <body>
@@ -4235,7 +4240,7 @@ function cardLayout(text, o){
   const need=Math.round(bodyBottom+footH+50);
   const ratioH = CARD_RATIOS[o.ratio] ? Math.round(W*CARD_RATIOS[o.ratio]) : 0;
   const H = ratioH ? Math.max(ratioH, need) : Math.max(760, need);
-  return {W,H,P,ruleY,items,BODY_FS,TITLE_FS,QUOTE_IND,center,right};
+  return {W,H,P,ruleY,items,BODY_FS,TITLE_FS,QUOTE_IND,center,right,need};
 }
 function buildCardSVG(text, o, uid){
   o=Object.assign({theme:"forest",size:"m",align:"left",footer:true}, o||{});
@@ -4360,33 +4365,100 @@ function makeCardFromBtn(btn){
   renderCardInto(wrap, txt, plat, single);
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function renderCardInto(wrap, txt, plat, single){
+// 多張模式：依平台比例（4:5）把長文切成多頁，每頁都能完整顯示
+function paginateCardBody(sp, o, ratioKey){
+  const target=Math.round(CARD_W*CARD_RATIOS[ratioKey]);
+  const fits=(body)=>cardLayout(`${sp.title}\n${body}`, o).need <= target;
+  const paras=(sp.body||"").split(/\n\s*\n/).map(x=>x.replace(/\s+$/,"")).filter(x=>x.trim());
+  const pages=[]; let cur=[];
+  const flush=()=>{ if(cur.length){ pages.push(cur.join("\n\n")); cur=[]; } };
+  for(const para of paras){
+    if(fits([...cur,para].join("\n\n"))){ cur.push(para); continue; }
+    flush();
+    if(fits(para)){ cur.push(para); continue; }
+    // 單一段落本身就超過一頁：逐字切頁
+    let chunk="";
+    for(const ch of para){
+      const t=chunk+ch;
+      if(fits(t)) chunk=t;
+      else { if(chunk) pages.push(chunk); chunk=ch; }
+    }
+    if(chunk) cur.push(chunk);
+  }
+  flush();
+  if(!pages.length) pages.push("");
+  return pages.map((b,i)=>({ title: i===0 ? sp.title : `${sp.title}（續）`, body:b }));
+}
+function renderCardInto(wrap, txt, plat, single, mode){
+  mode = mode || wrap._cardMode || "multi";
+  wrap._cardArgs = {txt, plat, single};
+  wrap._cardMode = mode;
   const blocks=single?null:splitPlatforms(txt);
   const groups = blocks && blocks.length>1
     ? blocks.map(b=>({body:b.body, plat:b.label}))
     : [{body:txt, plat:plat||""}];
+  const cd=state.cardDefaults||{};
+  const ratio = mode==="multi" ? "ig45" : "auto";
+  const mo={size:"m", align:"left", footer:true, name:cd.name||"", ratio};
   const items=[];
   groups.forEach(({body, plat:itemPlat})=>{
     const segs=single?[body]:segmentize(body).filter(s=>s.trim());
-    segs.forEach((seg,i)=> items.push({body:seg, plat:itemPlat, seg:i+1, segTotal:segs.length}));
+    segs.forEach(seg=>{
+      const sp=cardSplit(seg);
+      const pages = mode==="multi" ? paginateCardBody(sp, mo, "ig45") : [sp];
+      pages.forEach(pg=> items.push({sp:pg, plat:itemPlat}));
+    });
   });
-  wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat, seg, segTotal})=>{
+  const total=items.length;
+  const tools=`<div class="cg-mode">
+      <button class="${mode==="single"?"on":""}" onclick="setCardMode(this,'single')">🖼 一張長圖</button>
+      <button class="${mode==="multi"?"on":""}" onclick="setCardMode(this,'multi')">📑 多張（4:5）</button>
+    </div>`;
+  const shareAll = (mode==="multi" && total>1)
+    ? `<button class="hi-btn cg-share-all" onclick="shareAllCards(this)">📤 一次分享全部 ${total} 張</button>` : "";
+  const cards = items.map((it,i)=>{
     const cid="card_"+Math.random().toString(36).slice(2);
-    const sp=cardSplit(bodyTxt);
-    const cd=state.cardDefaults||{};
-    window.CARD_STATE[cid]={title:sp.title, body:sp.body, theme:"forest", size:"m", align:"left", ratio:"ig45", footer:true, name:cd.name||"", footerText:cd.footerText||cd.footer||""};
+    window.CARD_STATE[cid]={title:it.sp.title, body:it.sp.body, theme:"forest", size:"m", align:"left", ratio, footer:true, name:cd.name||"", footerText:cd.footerText||cd.footer||""};
     const tagBits=[];
-    if(itemPlat) tagBits.push(`🎯 適用平台：${esc(itemPlat)}（僅作提醒，不會印在圖卡上）`);
-    if(segTotal>1) tagBits.push(`第 ${seg}／${segTotal} 張`);
+    if(it.plat) tagBits.push(`🎯 適用平台：${esc(it.plat)}（僅作提醒，不會印在圖卡上）`);
+    if(total>1) tagBits.push(`第 ${i+1}／${total} 張`);
     return `<div class="svg-card-box">
       ${tagBits.length?`<div class="card-plat-tag">${tagBits.join("　")}</div>`:""}
       <div class="svg-card-preview" id="${cid}">${cardPreviewHTML(cid)}</div>
       ${cardEditorHTML(cid)}
       <div style="margin-top:12px;">
-        <button class="hi-btn" style="display:block;width:100%;" onclick="shareCardImage('${cid}')">📤 分享圖卡</button>
+        <button class="hi-btn" style="display:block;width:100%;" onclick="shareCardImage('${cid}')">📤 分享此張</button>
       </div>
     </div>`;
   }).join("");
+  wrap.innerHTML = tools + shareAll + cards;
+}
+function setCardMode(btn, mode){
+  const wrap=btn.closest(".cardwrap"); if(!wrap||!wrap._cardArgs) return;
+  const a=wrap._cardArgs;
+  renderCardInto(wrap, a.txt, a.plat, a.single, mode);
+}
+async function shareAllCards(btn){
+  const wrap=btn.closest(".cardwrap"); if(!wrap) return;
+  const svgs=[...wrap.querySelectorAll(".svg-card-preview svg")];
+  btn.disabled=true;
+  try{
+    const files=[];
+    for(const el of svgs){
+      const canvas=await svgToCanvas(el,2);
+      const blob=await canvasToBlob(canvas);
+      files.push(new File([blob], `圖卡_${Date.now()}_${files.length+1}.png`, {type:"image/png"}));
+    }
+    if(navigator.canShare && navigator.canShare({files})){
+      await navigator.share({files, title: state.title||"圖卡"});
+    }else{
+      toast("這台裝置不支援一次分享多張，請逐張分享");
+    }
+  }catch(e){
+    if(!(e && e.name==="AbortError")) toast("分享失敗，請逐張分享");
+  }finally{
+    btn.disabled=false;
+  }
 }
 function svgToCanvas(svgEl, scale){
   return new Promise((resolve,reject)=>{
