@@ -2041,6 +2041,22 @@
   /* ===== 資料收集：補充說明整合為高質感區塊 ===== */
   #view-collector .coll-note{margin:4px 0 16px;padding:16px 16px 14px;border-radius:24px;background:linear-gradient(165deg,#1F4A36 0%,#0D2A1E 100%);border:1px solid rgba(214,178,100,.35);box-shadow:0 14px 30px rgba(10,38,28,.22), inset 0 1px 0 rgba(255,236,190,.1);}
   #view-collector .coll-note .pp-panel{background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;}
+  /* ===== 素材庫：文件解析總結 ===== */
+  .li-digest{margin-top:10px;padding:14px 14px 12px;border-radius:16px;background:linear-gradient(180deg,#FFFDF8,#F6F1E5);border:1px solid rgba(176,134,70,.25);font-size:13px;line-height:1.75;color:#2B3A33;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto;}
+  /* ===== 每日優化 ===== */
+  .coll-daily{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:20px;background:#FFFDF8;border:1px solid rgba(176,134,70,.28);margin:4px 0 14px;}
+  .cd-txt{min-width:0;flex:1;}
+  .cd-txt b{display:block;font-size:15px;color:#1F3A2E;margin-bottom:3px;}
+  .cd-txt span{font-size:12px;line-height:1.5;color:#66756B;}
+  .cd-sw{flex:0 0 auto;min-width:84px;padding:9px 14px;border-radius:999px;border:1px solid rgba(23,85,58,.2);background:#fff;color:#17553A;font-weight:800;font-size:13px;font-family:inherit;}
+  .cd-sw.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;}
+  .fb-box{margin-top:12px;padding:12px;border-radius:16px;background:#FBFAF6;border:1px solid rgba(23,85,58,.14);}
+  .fb-hd{font-size:13px;font-weight:800;color:#17553A;margin-bottom:8px;}
+  .fb-rate{display:flex;gap:8px;margin-bottom:8px;}
+  .fb-rate button{flex:1;padding:9px;border-radius:999px;border:1px solid rgba(23,85,58,.18);background:#fff;font-weight:700;font-family:inherit;font-size:13px;color:#17553A;}
+  .fb-rate button.on{background:#17553A;color:#F6E3B4;border-color:transparent;}
+  .fb-box textarea{width:100%;min-height:64px;border-radius:12px;border:1px solid rgba(23,85,58,.16);padding:10px;font-family:inherit;font-size:13px;background:#fff;box-sizing:border-box;}
+  .fb-save{margin-top:8px;width:100%;padding:10px;border-radius:999px;border:0;background:rgba(23,85,58,.1);color:#17553A;font-weight:800;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -2301,6 +2317,10 @@
 
     </div>
 
+    <div class="coll-daily">
+      <div class="cd-txt"><b>每日優化</b><span>每天自動收集話題，並依上一篇成品與回饋改寫文案（使用網路即時資料）</span></div>
+      <button class="cd-sw" id="dailyOptBtn" onclick="toggleDailyOpt()">已開啟</button>
+    </div>
     <div class="coll-note">
       <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
@@ -3558,6 +3578,10 @@ function resItemHTML(t, isVideo){
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${richBody(t.output, true, tag)}
+    ${t.deptId==="final" ? `<div class="fb-box"><div class="fb-hd">📈 每日優化回饋</div>
+      <div class="fb-rate"><button class="${t.rating==="up"?"on":""}" onclick="setFeedback(${t.id},'up')">👍 好用</button><button class="${t.rating==="down"?"on":""}" onclick="setFeedback(${t.id},'down')">👎 不好</button></div>
+      <textarea id="fb-${t.id}" placeholder="寫下回饋，例如：語氣再口語一點、多放實際案例">${esc(t.feedback||"")}</textarea>
+      <button class="fb-save" onclick="saveFeedback(${t.id})">儲存回饋</button></div>` : ""}
     ${cgGroupHTML(t.output, t.platform||"", true, false)}
     <div class="cardwrap" id="rescw-${t.id}"></div>
   </div>`;
@@ -3694,7 +3718,8 @@ async function collectTopics(silent){
   }
   const hint=collCat==='auto'?"請以近期熱門話題為主，並確保符合上述健康與觀念主題。":(collTopic?("主題方向："+collTopic+"。"):"");
   try{
-    const r=await callOpenAI(sys, hint+"請給 6 個話題的 JSON 陣列。", 900);
+    const rs=await webSearch((collTopic||"台灣 網路經營 健康")+" 近期 熱門 話題 最新");
+    const r=await callOpenAI(sys+realDataBlock(rs), hint+"請給 6 個話題的 JSON 陣列。", 900);
     let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
     if(!Array.isArray(arr)||arr.length===0) throw new Error("回傳格式無法解析，請再試一次");
     const batch=arr.slice(0,8).map(o=>({ id:Date.now()+Math.random(), time:Date.now(),
@@ -3779,13 +3804,80 @@ function topicToLibrary(id){
 function deleteTopic(id){
   state.collections=state.collections.filter(c=>String(c.id)!==String(id)); save(); renderCollector();
 }
+/* ============ 每日優化（收集＋文案）與網路即時資料 ============ */
+function dOpt(){ if(!state.dailyOpt) state.dailyOpt={on:true,lastCollect:"",lastOpt:""}; return state.dailyOpt; }
+function todayKey(){ return new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}); }
+// 透過後端做網路搜尋（需後端支援 action=search），失敗時回傳 null，流程照常進行
+async function webSearch(q){
+  try{
+    const r=await gasPost({action:"search", q:String(q||"").slice(0,300), charge:"0"}, 90000);
+    if(r && r.success && r.content) return {content:String(r.content).trim(), sources:r.sources||[]};
+  }catch(e){}
+  return null;
+}
+function realDataBlock(rs){
+  if(!rs||!rs.content) return "";
+  const src=(rs.sources||[]).slice(0,6).map(x=>`- ${x.title||""} ${x.url||""}`.trim()).join("\n");
+  return `\n\n【今日網路即時資料（依此為依據，只能使用其中的數字與事實，並標註來源，不可編造）】\n${rs.content}${src?`\n來源：\n${src}`:""}`;
+}
+function renderDailyOpt(){
+  const b=document.getElementById("dailyOptBtn"); if(!b) return;
+  const on=dOpt().on; b.textContent=on?"已開啟":"已關閉"; b.classList.toggle("on",on);
+}
+function toggleDailyOpt(){
+  const o=dOpt(); o.on=!o.on; save(); renderDailyOpt();
+  toast(o.on?"每日優化已開啟：每天自動收集話題與改寫文案":"每日優化已關閉");
+}
+// 每日收集話題（每天第一次開啟時執行一次）
 function checkAutoCollect(){
-  return; // 自動收集已取消
-  const c=state.collector; if(!c.auto||!aiReady()||running) return;
-  let due=false;
-  if(c.freq==="open"){ due=(Date.now()-(c.lastRun||0))>30*60*1000; }
-  else { due = new Date().toDateString()!==new Date(c.lastRun||0).toDateString(); }
-  if(due) collectTopics(true);
+  const o=dOpt();
+  if(!o.on || running || !memberOK() || o.lastCollect===todayKey()) return;
+  o.lastCollect=todayKey(); save();
+  collectTopics(true);
+}
+// 每日優化文案：依最近一篇成品、使用者回饋與今日網路資料改寫（每天最多一次）
+async function checkDailyOptimize(){
+  const o=dOpt();
+  if(!o.on || running || !memberOK() || o.lastOpt===todayKey()) return;
+  const cutoff=Date.now()-7*864e5;
+  const t=state.tasks.filter(x=>x.deptId==="final" && x.time>cutoff && x.output)
+    .sort((a,b)=>b.time-a.time)[0];
+  if(!t) return;
+  o.lastOpt=todayKey(); save();
+  await dailyOptimizeTask(t);
+}
+async function dailyOptimizeTask(t){
+  running=true;
+  try{
+    const goal=(t.input||"").replace(/^\[成品\]\s*/,"").replace(/^\[一鍵運轉\]\s*/,"");
+    const rs=await webSearch(`${goal} 台灣 最新 數據 案例`);
+    const fb=(t.feedback||"").trim();
+    const sys="你是社群主編。請在保留主題與結構的前提下改寫這篇成品，目的是提升效果：\n"
+      +"1. 使用者回饋優先，逐條落實\n"
+      +"2. 若有今日網路即時資料，替換過時或不精確的描述，只能使用資料中的數字與事實\n"
+      +"3. 口語親切、台灣用語、不誇大、不使用醫療用語、不做收入或療效保證\n"
+      +"4. 只輸出改寫後的成品本文，第一行為標題";
+    const user=`【原成品】\n${t.output}\n\n【使用者回饋】\n${fb||"（無，依效果自行優化）"}${realDataBlock(rs)}`;
+    const out=await callOpenAI(sys,user,2000,true);
+    if(!out) throw new Error("AI 沒有回覆");
+    state.tasks.push({id:Date.now(), deptId:"final", deptName:"每日優化", accent:"#0A2A1C",
+      input:`[成品] ${goal}`, output:out, time:Date.now(), topic:t.topic||"", optFrom:t.id,
+      fromDept:"每日優化", platform:t.platform||""});
+    save(); renderResults(); updateResSummary();
+    toast("每日優化完成，已存入圖文");
+  }catch(e){ toast("每日優化失敗："+e.message); }
+  finally{ running=false; }
+}
+function setFeedback(id, v){
+  const t=state.tasks.find(x=>x.id===+id); if(!t) return;
+  t.rating=v; save(); renderResults();
+  toast(v==="up"?"已標記：好用":"已標記：不好，下次每日優化會調整");
+}
+function saveFeedback(id){
+  const t=state.tasks.find(x=>x.id===+id); if(!t) return;
+  const el=document.getElementById("fb-"+id);
+  t.feedback=(el?el.value:"").trim(); save();
+  toast("回饋已儲存，下次每日優化會採用");
 }
 
 /* ============ 素材庫 ============ */
@@ -3843,19 +3935,35 @@ async function classifyMaterial(item){
   }catch(e){ return ""; }
 }
 // 上傳後 AI 整理：把素材濃縮成結構化「備用資料」，之後各分類直接引用整理版
-async function organizeMaterial(item){
+const LIB_CHUNK=6000, LIB_MAX_CHUNKS=12;
+const LIB_OPEN=new Set();
+// 素材解析：整份文件分段解析（不截斷）→ 各段筆記 → 彙整成結構化總結
+async function organizeMaterial(item, onProgress){
   if(!aiReady()) return "";
-  const sys="你是資料整理助理。把使用者的素材整理成一份精煉的『備用資料』，之後 AI 產文會直接引用它。格式：\n【素材重點】3–6 條關鍵重點\n【可用數據／事實】有就列，沒有寫「無」\n【可引用的句子／故事】1–3 句\n【適合用途】一句話\n用繁體台灣用語（原文若是簡體或英文也一律轉成繁體中文），總長 800 字內，只輸出整理結果。";
-  let user;
   if(item.kind==="image" && item.url){
-    user=[{type:"text",text:"請讀懂這張圖片（含文字與圖表），整理成備用資料。"},{type:"image_url",image_url:{url:item.url}}];
-  }else{
-    const c=(item.content||"").slice(0,MAX_FILE_CHARS);
-    if(!c.trim()) return "";
-    user=`素材名稱：${item.name}\n內容：\n${c}`;
+    const user=[{type:"text",text:"請讀懂這張圖片（含文字與圖表），依下列格式整理成結構化總結。"},{type:"image_url",image_url:{url:item.url}}];
+    try{ return (await callOpenAI(LIB_FINAL_SYS, user, 1200)).trim(); }catch(e){ return ""; }
   }
-  try{ return (await callOpenAI(sys,user,1100)).trim(); }catch(e){ return ""; }
+  const full=(item.content||"").trim();
+  if(!full) return "";
+  const chunks=[]; for(let i=0;i<full.length;i+=LIB_CHUNK) chunks.push(full.slice(i,i+LIB_CHUNK));
+  const use=chunks.slice(0,LIB_MAX_CHUNKS), truncated=chunks.length>use.length;
+  const sysChunk="你是文件解析助理。閱讀這一段素材，只根據原文擷取：①本段主旨（一句）②重要概念、流程或步驟 ③原文中的數字、日期、金額、比例（原文保留）④可直接引用的案例、見證或金句（原文保留）。不推測，不加入原文沒有的資訊。條列輸出，繁體中文。";
+  const notes=[];
+  for(let i=0;i<use.length;i++){
+    if(onProgress) onProgress(`解析第 ${i+1}/${use.length} 段`);
+    try{ notes.push(await callOpenAI(sysChunk, `素材：${item.name}（第 ${i+1}/${use.length} 段）\n\n${use[i]}`, 700)); }catch(e){ notes.push(""); }
+  }
+  const joined=notes.filter(Boolean).join("\n\n");
+  if(!joined) return "";
+  if(onProgress) onProgress("彙整成總結…");
+  let out="";
+  try{ out=(await callOpenAI(LIB_FINAL_SYS, `素材名稱：${item.name}\n\n各段解析筆記：\n${joined.slice(0,16000)}`, 1400)).trim(); }catch(e){ out=""; }
+  if(out && truncated) out += `\n\n（注意：素材超過 ${LIB_MAX_CHUNKS*LIB_CHUNK} 字，僅解析前段）`;
+  return out;
 }
+const LIB_FINAL_SYS="你是文件總結專家。依素材內容產出結構化總結，格式：\n【文件概要】2–3 句說明這份素材是什麼、對經營有什麼用\n【核心重點】3–6 條\n【流程與步驟】有就列，沒有寫「無」\n【可用數據與事實】只列原文有的數字與事實，沒有寫「無」\n【可引用案例與金句】有就列，沒有寫「無」\n【使用注意】使用時的限制（例如不可誇大、需標註為個人感受）\n只根據素材內容，不推測，不加入素材沒有的資訊。繁體中文，台灣用語。";
+function toggleLibDigest(id){ const k=String(id); if(LIB_OPEN.has(k)) LIB_OPEN.delete(k); else LIB_OPEN.add(k); renderLibrary(); }
 function libIcon(k){ return k==="image"?"🖼":(k==="pdf"?"📕":(k==="doc"?"📘":"📄")); }
 function fmtSize(n){ return n>1024?(n/1024).toFixed(0)+"K 字元":n+" 字元"; }
 function deptNameOf(id){ const d=state.departments.find(x=>x.id===id); return d?d.name:""; }
@@ -3868,15 +3976,19 @@ function renderLibrary(){
       const opts=`<option value="">通用（全部）</option>`+state.departments.map(d=>
         `<option value="${d.id}" ${x.deptId===d.id?'selected':''}>${esc(d.name)}</option>`).join("");
       const deptSel = x.classifying
-        ? `<span class="li-class"><span class="mini-spin"></span> AI 整理中…</span>`
+        ? `<span class="li-class"><span class="mini-spin"></span> ${esc(x.progress||"AI 整理中…")}</span>`
         : `<select class="li-dept" onchange="assignLibDept('${x.id}',this.value)">${opts}</select>
-           ${x.digest?'<span class="li-class" style="color:var(--accent)">✓ 已整理</span>'
-                     :`<button class="hi-btn" style="min-height:34px;padding:6px 10px;" onclick="reorganizeLib('${x.id}')">🪄 AI 整理</button>`}`;
+           ${x.digest?`<span class="li-class" style="color:var(--accent)">✓ 已解析</span>
+                     <button class="hi-btn" style="min-height:34px;padding:6px 10px;" onclick="toggleLibDigest('${x.id}')">${LIB_OPEN.has(String(x.id))?"收合摘要":"📑 查看摘要"}</button>
+                     <button class="hi-btn" style="min-height:34px;padding:6px 10px;" onclick="reorganizeLib('${x.id}')">🔁 重新解析</button>`
+                     :`<button class="hi-btn" style="min-height:34px;padding:6px 10px;" onclick="reorganizeLib('${x.id}')">🪄 AI 解析總結</button>`}`;
+      const digestBlock = (x.digest && LIB_OPEN.has(String(x.id))) ? `<div class="li-digest">${esc(x.digest)}</div>` : "";
       return `<div class="lib-item">
         <span class="li-ic">${libIcon(x.kind)}</span>
         <div class="li-meta">
           <div class="li-name">${esc(x.name)}</div>
           <div class="li-row">${deptSel}</div>
+          ${digestBlock}
         </div>
         <button class="lib-toggle ${x.active?'on':''}" onclick="toggleLibActive('${x.id}')">${x.active?'✓ 指定':'指定'}</button>
         <button class="lib-del" onclick="deleteLib('${x.id}')">🗑</button>
@@ -3888,9 +4000,9 @@ function renderLibrary(){
 async function reorganizeLib(id){
   const x=state.library.find(o=>String(o.id)===String(id)); if(!x) return;
   if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); return; }
-  x.classifying=true; renderLibrary();
-  x.digest=await organizeMaterial(x);
-  x.classifying=false; save(); renderLibrary();
+  x.classifying=true; x.progress="準備解析…"; renderLibrary();
+  x.digest=await organizeMaterial(x, (m)=>{ x.progress=m; renderLibrary(); });
+  x.classifying=false; x.progress=""; if(x.digest) LIB_OPEN.add(String(x.id)); save(); renderLibrary();
   toast(x.digest?"AI 整理完成，之後會用整理版當備用資料":"整理失敗，請再試一次");
 }
 function assignLibDept(id,v){ const x=state.library.find(o=>String(o.id)===String(id)); if(x){ x.deptId=v; save(); } }
@@ -5270,8 +5382,11 @@ if(state.headerMin){ document.getElementById("topbar").classList.add("min"); }
 updateBuildTexts();
 renderHome();
 initMember();
+renderDailyOpt();
 checkAutoCollect();
+setTimeout(checkDailyOptimize, 5000);
 setInterval(checkAutoCollect, 15*60*1000);
+setInterval(checkDailyOptimize, 30*60*1000);
 </script>
 </body>
 </html>
