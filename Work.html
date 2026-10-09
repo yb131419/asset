@@ -3521,6 +3521,7 @@ function renderResults(){
 const RES_MANAGE={final:false, video:false};
 const RES_SEL={final:new Set(), video:new Set()};
 function resTitleOf(t){
+  if(t.topic) return String(t.topic).slice(0,60);
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   if(t.deptId==="video"){
     // 短影音：略過「一分鐘逐字稿」標頭與段落小標，取第一句口白當標題
@@ -4226,7 +4227,8 @@ async function runAllDepartments(resume){
     const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
     if(!goal){ toast("請先選擇健康或觀念主題，或在下方輸入說明"); return; }
-    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false };
+    const bizT = (_sel.biz && _selLabel.biz && _selLabel.biz!=='未選擇') ? _selLabel.biz : "";
+    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT };
     state.pipeRun=run; save();
   }else{
     pipePlatform=run.plat||"";
@@ -4273,7 +4275,7 @@ async function runAllDepartments(resume){
       run.collected.push({name:d.name, out, deptId:d.id});
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
-        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(),
+        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"",
         fromDept: i>0?run.prevName:null });
 
       const step=document.getElementById("plstep-"+i);
@@ -4293,7 +4295,7 @@ async function runAllDepartments(resume){
     comp+="請統整並優化成可直接發布的最終成品貼文。";
     const finalOut=await callOpenAI(editorSys, comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
-      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(),
+      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"",
       fromDept:"三分類", platform:"" });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut, ""));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
