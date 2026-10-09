@@ -4738,7 +4738,7 @@ function cardEditorHTML(cid, open){
 }
 // noMulti：短影音只提供一張長圖
 function cgGroupHTML(txt, plat, single, noMulti){
-  const mode = noMulti ? "single" : "multi";
+  const mode = "single";
   return `<div class="cg-group" data-open="0" data-txt="${encodeURIComponent(txt||"")}" data-plat="${esc(plat||"")}" data-single="${single?"1":""}" data-mode="${mode}">
     <button class="cg-seg cg-gen" onclick="cgGenerate(this)">🖼️ 產生圖卡</button>
     <button class="cg-seg" data-m="single" onclick="cgGenerate(this,'single')">一張長圖</button>
@@ -4749,7 +4749,7 @@ function cgGenerate(btn, mode){
   const g=btn.closest(".cg-group"); if(!g) return;
   g.dataset.open="1";  // 第一次按下「產生圖卡」後才顯示版面選項
   if(mode) g.dataset.mode=mode;
-  const m=g.dataset.mode||"multi";
+  const m=g.dataset.mode||"single";
   const card=g.closest(".res-item, .output-card, .hist-item");
   const wrap=card && card.querySelector(".cardwrap");
   if(!wrap){ toast("找不到圖卡區域"); return; }
@@ -4791,7 +4791,7 @@ function paginateCardBody(sp, o, ratioKey){
   return pages.map(b=>({ title: sp.title, body:b }));
 }
 function renderCardInto(wrap, txt, plat, single, mode){
-  mode = mode || wrap._cardMode || "multi";
+  mode = mode || wrap._cardMode || "single";
   wrap._cardArgs = {txt, plat, single};
   wrap._cardMode = mode;
   const blocks=single?null:splitPlatforms(txt);
