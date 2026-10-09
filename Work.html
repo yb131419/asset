@@ -2002,6 +2002,12 @@
   .oc-actions .cg-seg:active{transform:scale(.97);}
   .oc-actions .cg-seg.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;
     box-shadow:0 4px 12px rgba(14,40,22,.22);}
+  /* ── 圖文／短影音：依經營主題分組 ── */
+  .res-topic-group + .res-topic-group{margin-top:10px;}
+  .res-topic-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 2px 8px;
+    padding:9px 14px;border-radius:14px;background:linear-gradient(120deg,rgba(201,154,78,.16),rgba(201,154,78,.06));
+    border:1px solid rgba(201,154,78,.28);color:#8A5A2E;font-size:13px;font-weight:800;letter-spacing:.3px;}
+  .res-topic-head b{font-size:12px;color:#8A7450;font-weight:700;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -3520,8 +3526,14 @@ function renderResults(){
 // ===== 成品列表：標題預覽 + 多筆選取刪除 =====
 const RES_MANAGE={final:false, video:false};
 const RES_SEL={final:new Set(), video:new Set()};
+// 取得成品所屬的經營主題：新存的用 t.topic；舊成品從 input 內的【經營主題】還原
+function topicOf(t){
+  if(t.topic) return String(t.topic).trim();
+  const m=String(t.input||"").match(/【經營主題】([^\n【]+)/);
+  return m ? m[1].trim() : "";
+}
 function resTitleOf(t){
-  if(t.topic) return String(t.topic).slice(0,60);
+  const tp=topicOf(t); if(tp) return tp.slice(0,60);
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   if(t.deptId==="video"){
     // 短影音：略過「一分鐘逐字稿」標頭與段落小標，取第一句口白當標題
@@ -3544,7 +3556,15 @@ function resSection(title, icon, items, isVideo){
         <button class="del" onclick="resDeleteSelected('${kind}')">刪除所選 (<b id="sel-${kind}">${RES_SEL[kind].size}</b>)</button>
       </span>`:""}
     </div>`;
-  const rows=items.map(t=>resRowHTML(t,isVideo,kind,manage)).join("");
+  const hasTopic = items.some(t=>topicOf(t));
+  let rows;
+  if(!hasTopic){
+    rows = items.map(t=>resRowHTML(t,isVideo,kind,manage)).join("");
+  }else{
+    const groups=new Map();
+    items.forEach(t=>{ const k=topicOf(t); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); });
+    rows=[...groups.entries()].map(([k,arr])=>`<div class="res-topic-group"><div class="res-topic-head"><span>🧭 ${esc(k||"未指定經營主題")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`).join("");
+  }
   return `<div class="res-sec" data-kind-sec="${kind}">${head}${bar}<div class="res-list">${rows}</div></div>`;
 }
 function resRowHTML(t, isVideo, kind, manage){
