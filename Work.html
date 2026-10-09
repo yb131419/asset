@@ -1899,6 +1899,16 @@
   .cg-mode button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:40px;}
   .cg-mode button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;box-shadow:0 3px 10px rgba(14,40,22,.2);}
   .cg-share-all{display:block;width:100%;margin-bottom:14px;min-height:46px;border-radius:14px;}
+
+  .cg-group{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:12px 0 4px;}
+  .cg-seg{flex:1;border:0;background:transparent;border-radius:999px;padding:10px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:42px;white-space:nowrap;}
+  .cg-seg.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;box-shadow:0 3px 10px rgba(14,40,22,.2);}
+  button.cd-head.cd-fold{display:inline-flex;align-items:center;gap:6px;background:#FBFAF6;border:1px solid rgba(23,85,58,.2);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;color:#17553A;font-family:inherit;margin:0 0 4px;}
+  .cd-fold .cd-arrow{font-size:12px;opacity:.7;}
+  .cd-body[hidden]{display:none;}
+
+  .res-top{justify-content:space-between;}
+  .res-del{margin-left:auto;font-size:12px;font-weight:700;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:5px 12px;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -3229,14 +3239,11 @@ function resItemHTML(t, isVideo){
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
       <span class="res-time">${timeStr(t.time)}</span>
+      <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button>
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${richBody(t.output, true, tag)}
-    <div class="hi-actions">
-      <button class="hi-btn del" onclick="deleteResult(${t.id})">🗑 刪除</button>
-      <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
-      <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="1" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
-    </div>
+    ${cgGroupHTML(t.output, t.platform||"", true)}
     <div class="cardwrap" id="rescw-${t.id}"></div>
   </div>`;
 }
@@ -4126,7 +4133,7 @@ function resultCard(d,out){
     ${richBody(out, d.id==="video")}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製全部</button>
-      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-single="${d.id==="video"?"1":""}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+      ${cgGroupHTML(out, "", d.id==="video")}
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
@@ -4147,7 +4154,7 @@ function finalCard(out, plat){
     ${richBody(out)}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
-      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-plat="${esc(plat||"")}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+      ${cgGroupHTML(out, plat, false)}
       <button class="mini" onclick="openResults('final')">📝 前往圖文</button>
       <button class="mini" onclick="openResults('video')">🎬 前往短影音</button>
     </div>
@@ -4326,29 +4333,48 @@ function cardRefresh(cid){
   const el=document.getElementById(cid); if(!el) return;
   el.innerHTML = cardPreviewHTML(cid);
 }
-function cardEdit(cid, key, val){
+const CARD_SHARED_KEYS=["theme","size","align","ratio","footer","name","footerText"];
+// 同一組圖卡（多張）中，樣式類設定一起改；標題與內文各自保留
+function applyCardShared(cid, key, val){
   const st=cardStateOf(cid); if(!st) return;
-  st[key]=val; cardRefresh(cid);
+  const el=document.getElementById(cid);
+  const wrap=el && el.closest(".cardwrap");
+  if(!CARD_SHARED_KEYS.includes(key) || !wrap){ st[key]=val; cardRefresh(cid); return; }
+  wrap.querySelectorAll(".svg-card-preview").forEach(pv=>{
+    const s2=cardStateOf(pv.id); if(s2){ s2[key]=val; cardRefresh(pv.id); }
+  });
+  wrap.querySelectorAll(".svg-card-box").forEach(box=>{
+    const pv=box.querySelector(".svg-card-preview");
+    if(!pv || pv.id===cid) return;
+    const pn=box.querySelector(".cd-panel");
+    if(pn){ const open=!pn.querySelector(".cd-body").hidden; pn.outerHTML=cardEditorHTML(pv.id, open); }
+  });
 }
+function cardEdit(cid, key, val){ applyCardShared(cid, key, val); }
 function cardSetOpt(cid, key, val, btn){
-  const st=cardStateOf(cid); if(!st) return;
-  st[key]=val; cardRefresh(cid);
+  applyCardShared(cid, key, val);
   const group=btn.parentElement;
   group.querySelectorAll("button").forEach(b=>b.classList.toggle("on", b===btn));
 }
 function cardToggleFooter(cid, btn){
   const st=cardStateOf(cid); if(!st) return;
-  st.footer=!st.footer; cardRefresh(cid);
+  applyCardShared(cid, "footer", !st.footer);
   btn.classList.toggle("on", st.footer);
   btn.textContent = st.footer ? "顯示" : "隱藏";
 }
-function cardEditorHTML(cid){
+function toggleCdPanel(btn){
+  const body=btn.parentElement.querySelector(".cd-body");
+  body.hidden=!body.hidden;
+  btn.querySelector(".cd-arrow").textContent = body.hidden ? "▾" : "▴";
+}
+function cardEditorHTML(cid, open){
   const st=cardStateOf(cid);
   const attr=v=>String(v||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
   const themes=[["forest","深綠金箔"],["ivory","米白墨金"],["ink","墨黑銀"],["warm","焦糖暖金"]];
   const seg=(key,opts)=>opts.map(([v,l])=>`<button class="${st[key]===v?"on":""}" onclick="cardSetOpt('${cid}','${key}','${v}',this)">${l}</button>`).join("");
   return `<div class="cd-panel">
-    <div class="cd-head">✏️ 自己設計</div>
+    <button class="cd-head cd-fold" onclick="toggleCdPanel(this)">✏️ 自己設計 <span class="cd-arrow">${open?"▴":"▾"}</span></button>
+    <div class="cd-body" ${open?"":"hidden"}>
     <label class="cd-field"><span>名稱</span><input type="text" maxlength="30" value="${attr(st.name)}" oninput="cardEdit('${cid}','name',this.value)"></label>
     <label class="cd-field"><span>標題</span><textarea rows="2" oninput="cardEdit('${cid}','title',this.value)">${attr(st.title)}</textarea></label>
     <label class="cd-field"><span>內文</span><textarea rows="5" oninput="cardEdit('${cid}','body',this.value)">${attr(st.body)}</textarea></label>
@@ -4358,7 +4384,27 @@ function cardEditorHTML(cid){
     <div class="cd-row"><span class="cd-lbl">對齊</span><div class="cd-seg">${seg("align",[["left","靠左"],["center","置中"],["right","靠右"]])}</div></div>
     <label class="cd-field"><span>底層文字</span><textarea rows="2" maxlength="60" oninput="cardEdit('${cid}','footerText',this.value)">${attr(st.footerText)}</textarea></label>
     <div class="cd-row"><span class="cd-lbl">底層顯示</span><button class="cd-toggle ${st.footer?"on":""}" onclick="cardToggleFooter('${cid}',this)">${st.footer?"顯示":"隱藏"}</button></div>
+    </div>
   </div>`;
+}
+function cgGroupHTML(txt, plat, single){
+  const mode="multi";
+  return `<div class="cg-group" data-txt="${encodeURIComponent(txt||"")}" data-plat="${esc(plat||"")}" data-single="${single?"1":""}" data-mode="${mode}">
+    <button class="cg-seg" onclick="cgGenerate(this)">🖼️ 產生圖卡</button>
+    <button class="cg-seg" data-m="single" onclick="cgGenerate(this,'single')">一張長圖</button>
+    <button class="cg-seg on" data-m="multi" onclick="cgGenerate(this,'multi')">多張（4:5）</button>
+  </div>`;
+}
+function cgGenerate(btn, mode){
+  const g=btn.closest(".cg-group"); if(!g) return;
+  if(mode) g.dataset.mode=mode;
+  const m=g.dataset.mode||"multi";
+  const card=g.closest(".res-item, .output-card, .hist-item");
+  const wrap=card && card.querySelector(".cardwrap");
+  if(!wrap){ toast("找不到圖卡區域"); return; }
+  renderCardInto(wrap, decodeURIComponent(g.dataset.txt||""), g.dataset.plat||"", g.dataset.single==="1", m);
+  g.querySelectorAll(".cg-seg[data-m]").forEach(b=>b.classList.toggle("on", b.dataset.m===m));
+  wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function makeCardFromBtn(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
@@ -4414,10 +4460,7 @@ function renderCardInto(wrap, txt, plat, single, mode){
     });
   });
   const total=items.length;
-  const tools=`<div class="cg-mode">
-      <button class="${mode==="single"?"on":""}" onclick="setCardMode(this,'single')">🖼 一張長圖</button>
-      <button class="${mode==="multi"?"on":""}" onclick="setCardMode(this,'multi')">📑 多張（4:5）</button>
-    </div>`;
+  const tools="";
   const shareAll = (mode==="multi" && total>1)
     ? `<button class="hi-btn cg-share-all" onclick="shareAllCards(this)">📤 一次分享全部 ${total} 張</button>` : "";
   const cards = items.map((it,i)=>{
@@ -4535,7 +4578,7 @@ function renderOutput(out, d){
      <div id="lastOutWrap">${richBody(out, d.id==="video")}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
-       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-single="${d.id==="video"?"1":""}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+       ${cgGroupHTML(out, "", d.id==="video")}
        <div class="handoff-title">交辦給下一個分類 ▸</div>
        ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
      </div>
