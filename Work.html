@@ -989,6 +989,7 @@
   .coll-item-sel:last-child{border-bottom:none;}
   .coll-item-sel:active{background:rgba(46,107,74,.05);}
   .coll-item-sel.selected{background:rgba(46,107,74,.07);}
+  .ci-sub{display:block;font-size:11.5px;font-weight:500;color:#7A8A80;line-height:1.55;margin-top:3px;white-space:normal;}
 
   .ci-ic{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
   .ci-txt{font-size:13.5px;color:var(--ink-soft);flex:1;line-height:1.4;}
@@ -2336,7 +2337,7 @@
     <div class="coll-topic-ui">
 
       <div class="coll-group">
-        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🤖</span><span class="ci-txt">AI定位判定</span><span class="ci-ck">✓</span></div>
+        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🤖</span><span class="ci-txt">智囊軍師判定<small class="ci-sub">由智囊軍師依素材與需求，判斷該用「觀念分享」或「健康分享」的方向寫作，並決定語氣與合規重點。判定結果會寫在成品第一行，方便你確認。</small></span><span class="ci-ck">✓</span></div>
       </div>
 
       <div class="coll-group">
@@ -2394,17 +2395,17 @@
       <div class="coll-group">
         <div class="coll-group-hd" onclick="toggleCollGroup('collNetGroup')">
           <span class="cg-ic">🌐</span>
-          <span class="cg-title">網路經營</span>
+          <span class="cg-title">網路行銷</span>
           <span class="cg-sel" id="collNetSel">未選擇</span>
           <span class="cg-arr" id="collNetArr">›</span>
         </div>
         <div class="coll-list" id="collNetGroup">
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🕐</span><span class="ci-txt">一天發文幾次與發文時段</span><span class="ci-ck">✓</span></div>
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">📅</span><span class="ci-txt">一週發文節奏表</span><span class="ci-ck">✓</span></div>
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🗓️</span><span class="ci-txt">依選定主題規劃一週內容</span><span class="ci-ck">✓</span></div>
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">⚖️</span><span class="ci-txt">內容比例（教學、分享、互動、推薦）</span><span class="ci-ck">✓</span></div>
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🛠️</span><span class="ci-txt">每則貼文的製作與發布步驟</span><span class="ci-ck">✓</span></div>
-          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🔍</span><span class="ci-txt">每週檢視與調整方式</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="不知道要發什麼內容"><span class="ci-ic">🧩</span><span class="ci-txt">不知道要發什麼內容<small class="ci-sub">找不到選題、每次都要想很久</small></span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="發文沒有固定節奏"><span class="ci-ic">⏰</span><span class="ci-txt">發文沒有固定節奏<small class="ci-sub">常常斷更，忙起來就停</small></span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="有發文但沒人看到"><span class="ci-ic">👀</span><span class="ci-txt">有發文但沒人看到<small class="ci-sub">曝光低，追蹤者不增加</small></span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="有人看但不互動"><span class="ci-ic">💤</span><span class="ci-txt">有人看但不互動<small class="ci-sub">留言、按讚、收藏都很少</small></span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="有互動但沒人私訊"><span class="ci-ic">💬</span><span class="ci-txt">有互動但沒人私訊<small class="ci-sub">不知道怎麼自然引導對方聊下去</small></span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="pickNetBottleneck(this)" data-val="不會看數據"><span class="ci-ic">📉</span><span class="ci-txt">不會看數據<small class="ci-sub">不知道什麼內容有效、該怎麼調整</small></span><span class="ci-ck">✓</span></div>
         </div>
       </div>
     </div>
@@ -2716,7 +2717,7 @@ function buildPipeGoalFromChips(){
   if(_sel.health) parts.push('【健康主題】'+_sel.health);
   if(_sel.concept) parts.push('【觀念主題】'+_sel.concept);
   if(_sel.biz) parts.push('【經營主題】'+_sel.biz);
-  if(_bizPlan.length) parts.push('【網路經營】'+_bizPlan.join('、'));
+  if(_bizPlan.length) parts.push('【網路行銷卡點】'+_bizPlan[0]+'（只先解決這個卡點，不整合其他問題）');
   if(_sel.story) parts.push('【故事比喻】'+_sel.story);
   const free = document.getElementById('pipeInput').value.trim();
   if(free) parts.push('【補充說明】'+free);
@@ -2798,11 +2799,11 @@ const DEPT_MODES={
   icebreak:[
     {k:"concept",label:"觀念分享",tip:"只講觀念與道理，用對比與反問帶出思考"},
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
-    {k:"auto",label:"AI定位判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
+    {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
   core:[
     {k:"concept",label:"觀念分享",tip:"只講觀念與道理，用對比與反問帶出思考"},
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
-    {k:"auto",label:"AI定位判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
+    {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
   video:[
     {k:"video",label:"口播逐字稿",tip:"依圖文內容改寫成一分鐘口語逐字稿"}],
   market:[
@@ -2839,7 +2840,7 @@ function deptModeGuide(){
     netplan:"【本次模式：網路經營】請寫給完全沒有經驗的新手，做一份可以直接照著執行的網路經營完整規劃，必須全部解析、不可省略，依序包含：\n第一部分｜經營前準備：平台怎麼選、帳號定位一句話、需要的工具與帳號。\n第二部分｜發文頻率：一天發文幾次（依平台給出建議次數與理由）、每天建議的發文時段、一週的發文節奏表（週一到週日各發幾則）。\n第三部分｜內容規劃：請依本次選定的主題（健康或觀念）規劃一週內容表，每天寫出「主題、內容類型、目的」；並給出內容比例（例如教學、分享、互動、推薦各佔多少）與為什麼這樣排。\n第四部分｜每則貼文的製作流程：選題、寫文案、準備圖片或影片、檢查、發布、回覆留言，每一步都寫出「怎麼做、點哪裡、常見錯誤、完成的確認方式」。\n第五部分｜每日與每週檢視：每天要做的 3 件小事、每週怎麼看數據與調整內容。\n寫作原則：白話、短句、第一次出現的專有名詞先用一句話解釋；只給方向與做法，不提收入或成效保證；涉及健康內容時不使用醫療用語、不做療效或前後對比誇大的描述、不推銷產品；繁體台灣用語。",
     guide:"【本次模式：經營方向】請寫給完全新手看的網路經營完整上手流程，從準備到每日經營，每一步都要詳細說明怎麼做。只給方向與做法，不提收入或成效保證。",
     video:"【本次模式：口播逐字稿】請嚴格依照「本次共同目標」與圖文內容改寫，不另立新觀點；輸出為約 280 字的一分鐘口播逐字稿。",
-    auto:"【本次模式：AI定位判定】請先依需求判斷最適合的定位（觀念分享／健康分享），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
+    auto:"【本次模式：智囊軍師判定】請先依需求判斷最適合的定位（觀念分享／健康分享），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
   };
   return (G[m.k]||"")+"\n\n【段落格式】每一段內容的開頭，先單獨寫一行不超過10個字的短標題（不加任何符號或前綴），標題後空一行再寫內文；內文不要重複標題的文字。";
 }
@@ -3834,7 +3835,7 @@ function saveCollectorCfg(){
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  const catLabel = _collSel.auto?'🤖 AI定位判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:'';
+  const catLabel = _collSel.auto?'🤖 智囊軍師判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:'';
   el.textContent = (catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
@@ -3909,13 +3910,23 @@ function renderPlPicked(){
   const box=document.getElementById('plPicked'); if(!box) return;
   const items=[['health','🌿','健康主題'],['concept','💡','觀念主題'],['biz','🧭','經營主題']].filter(([k])=>_sel[k]);
   const html=items.map(([k,ic,name])=>`<div class="pl-chip"><span class="pl-chip-ic">${ic}</span><div class="pl-chip-txt"><small>${name}</small><b>${esc(_selLabel[k]||_sel[k].slice(0,24))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPick('${k}')">×</button></div>`);
-  if(_bizPlan.length) html.push(`<div class="pl-chip"><span class="pl-chip-ic">🗓️</span><div class="pl-chip-txt"><small>網路經營</small><b>${esc(_bizPlan.join("、"))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPlan()">×</button></div>`);
+  if(_bizPlan.length) html.push(`<div class="pl-chip"><span class="pl-chip-ic">🗓️</span><div class="pl-chip-txt"><small>網路行銷卡點</small><b>${esc(_bizPlan[0])}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPlan()">×</button></div>`);
   box.innerHTML = html.length ? html.join("") : '<div class="pl-empty">尚未選擇主題，請先到「資料收集」選擇</div>';
 }
 function syncNetBadge(){
   const el=document.getElementById("collNetSel"); if(!el) return;
-  el.textContent = _bizPlan.length ? `已選 ${_bizPlan.length} 項` : "未選擇";
+  el.textContent = _bizPlan.length ? _bizPlan[0] : "未選擇";
   el.classList.toggle("has-val", _bizPlan.length>0);
+}
+// 網路行銷：單選，先解決一個卡點
+function pickNetBottleneck(el){
+  const v=el.querySelector('.ci-txt').firstChild.textContent.trim();
+  const was=_bizPlan[0]===v;
+  _bizPlan.length=0;
+  if(!was) _bizPlan.push(v);
+  document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.toggle("selected", !was && b===el));
+  syncNetBadge(); persistPipeSel(); renderPlPicked();
+  if(!was) toggleCollGroup('collNetGroup');
 }
 function toggleBizPlan(el){
   const v=((el.querySelector&&el.querySelector('.ci-txt'))||el).textContent.trim(); const i=_bizPlan.indexOf(v);
@@ -3927,8 +3938,19 @@ function clearPlan(){
   document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.remove("selected"));
   syncNetBadge(); persistPipeSel(); renderPlPicked();
 }
+// 一鍵完成後：清空主題、卡點與補充說明，回到預設狀態（素材庫與成品不受影響）
+function resetPipeDefaults(){
+  ['health','concept','biz'].forEach(k=>{ _sel[k]=''; _selLabel[k]='未選擇'; _collSel[k]=''; _collSelLabel[k]='未選擇'; });
+  _collSel.auto=false;
+  ['healthSelected','bizSelected','conceptSelected','collHealthSel','collBizSel','collConceptSel'].forEach(id=>{
+    const el=document.getElementById(id); if(el){ el.textContent='未選擇'; el.classList.remove('has-val'); } });
+  document.querySelectorAll('.topic-item.selected, .coll-item-sel.selected').forEach(i=>i.classList.remove('selected'));
+  _bizPlan.length=0; syncNetBadge();
+  const pi=document.getElementById('pipeInput'); if(pi) pi.value='';
+  persistPipeSel(); renderPlPicked();
+}
 function restoreBizPlanChips(){
-  document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.toggle("selected", _bizPlan.includes(b.querySelector(".ci-txt").textContent.trim())));
+  document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.toggle("selected", _bizPlan[0]===b.querySelector(".ci-txt").firstChild.textContent.trim()));
   syncNetBadge();
 }
 function clearPick(cat){
@@ -4616,6 +4638,7 @@ async function runAllDepartments(resume){
 
     const anyTrim=run.anyTrim;
     state.pipeRun=null;   // 完成，清除進度
+    resetPipeDefaults();  // 完成後清空主題與補充說明，回到預設
     save(); renderHome();
     if(anyTrim) toast("素材過長已自動截取；成品已存入成品庫，各產出已存入分類"); else toast("成品已存入成品庫，各產出已存入分類");
     results.scrollIntoView({behavior:"smooth",block:"start"});
