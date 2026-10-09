@@ -238,6 +238,26 @@
   .input-card textarea{width:100%;min-height:108px;border:none;outline:none;resize:vertical;
     font-size:16px;background:transparent;color:var(--ink);line-height:1.6;}
   .files{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 2px;}
+  .cp-wrap{margin:10px 0 2px;}
+  .cp-open{width:100%;display:flex;align-items:center;gap:8px;padding:12px 14px;border-radius:16px;border:1px dashed rgba(138,90,46,.45);background:#FBF6EC;color:#6B4A22;font-size:14px;font-weight:800;font-family:inherit;}
+  .cp-open #cpCount{color:#17553A;}
+  .cp-caret{margin-left:auto;opacity:.6;}
+  .cp-panel{margin-top:8px;padding:12px;border-radius:18px;background:#FFFDF8;border:1px solid rgba(138,90,46,.18);max-height:52vh;overflow:auto;}
+  .cp-panel[hidden]{display:none;}
+  .cp-ext{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .cp-ext label{font-size:12.5px;font-weight:800;color:#66756B;white-space:nowrap;}
+  .cp-ext select{flex:1;min-height:40px;border-radius:12px;padding:0 10px;font-family:inherit;font-size:13.5px;border:1px solid rgba(23,85,58,.18);background:#fff;}
+  .cp-hint{font-size:12px;color:#8A8A7A;line-height:1.6;margin-bottom:8px;}
+  .cp-group{margin-top:10px;}
+  .cp-gh{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:800;color:#8A5A2E;padding:4px 2px;}
+  .cp-gh em{font-style:normal;color:#66756B;font-weight:700;}
+  .cp-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:6px;border-radius:14px;border:1px solid rgba(23,85,58,.12);background:#fff;text-align:left;font-family:inherit;}
+  .cp-row.on{border-color:#17553A;background:#EEF5EF;}
+  .cp-ck{width:20px;height:20px;border-radius:7px;border:1.5px solid rgba(23,85,58,.35);display:inline-grid;place-items:center;font-size:12px;color:#fff;flex:0 0 auto;}
+  .cp-row.on .cp-ck{background:#17553A;border-color:#17553A;}
+  .cp-t{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:#1F3A2E;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cp-row small{font-size:11px;color:#8A8A7A;white-space:nowrap;}
+  .file-chip.cp-ref{background:#EEF5EF;color:#17553A;}
   .file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);
     border:1px solid var(--line);border-radius:20px;padding:7px 11px 7px 13px;font-size:12.5px;}
   .file-chip .rm{color:var(--ink-faint);font-size:16px;padding:0 2px;}
@@ -2267,6 +2287,10 @@
     <div class="input-card">
       <textarea id="cardsInput" placeholder="貼上教材內容…（也可只上傳檔案）"></textarea>
       <div class="files" id="cardsFileList"></div>
+      <div class="cp-wrap">
+        <button class="cp-open" onclick="toggleCardsPick()">📚 調用成品做延伸 <span id="cpCount"></span><span class="cp-caret">▾</span></button>
+        <div class="cp-panel" id="cpPanel" hidden></div>
+      </div>
       <div class="cards-cfg">
         <select id="cardsCount">
           <option value="6">6 張卡</option>
@@ -2364,10 +2388,25 @@
           <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','經營節奏：每天只做一件小事，比三天打魚兩天曬網更能累積')"><span class="ci-ic">📅</span><span class="ci-txt">經營節奏</span><span class="ci-ck">✓</span></div>
           <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','追蹤與檢視：每週看一次數字，知道什麼有效、什麼要調整')"><span class="ci-ic">📊</span><span class="ci-txt">追蹤與檢視</span><span class="ci-ck">✓</span></div>
           <div class="coll-item-sel" onclick="selectCollTopic(this,'biz','案例與個人感受分享：用真實的個人感受方式寫內容，不誇大、不保證')"><span class="ci-ic">📖</span><span class="ci-txt">案例與個人感受分享</span><span class="ci-ck">✓</span></div>
-          <div class="coll-plan"><div class="coll-plan-hd">🗓️ 經營規劃 <span>可多選，會一起帶入流程</span></div><div class="coll-plan-chips"><button class="cp-chip" onclick="toggleBizPlan(this)">一天發文幾次與發文時段</button><button class="cp-chip" onclick="toggleBizPlan(this)">一週發文節奏表</button><button class="cp-chip" onclick="toggleBizPlan(this)">依選定主題規劃一週內容</button><button class="cp-chip" onclick="toggleBizPlan(this)">內容比例（教學、分享、互動、推薦）</button><button class="cp-chip" onclick="toggleBizPlan(this)">每則貼文的製作與發布步驟</button><button class="cp-chip" onclick="toggleBizPlan(this)">每週檢視與調整方式</button></div></div>
         </div>
       </div>
 
+      <div class="coll-group">
+        <div class="coll-group-hd" onclick="toggleCollGroup('collNetGroup')">
+          <span class="cg-ic">🌐</span>
+          <span class="cg-title">網路經營</span>
+          <span class="cg-sel" id="collNetSel">未選擇</span>
+          <span class="cg-arr" id="collNetArr">›</span>
+        </div>
+        <div class="coll-list" id="collNetGroup">
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🕐</span><span class="ci-txt">一天發文幾次與發文時段</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">📅</span><span class="ci-txt">一週發文節奏表</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🗓️</span><span class="ci-txt">依選定主題規劃一週內容</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">⚖️</span><span class="ci-txt">內容比例（教學、分享、互動、推薦）</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🛠️</span><span class="ci-txt">每則貼文的製作與發布步驟</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="toggleBizPlan(this)"><span class="ci-ic">🔍</span><span class="ci-txt">每週檢視與調整方式</span><span class="ci-ck">✓</span></div>
+        </div>
+      </div>
     </div>
 
     <div class="coll-daily">
@@ -2677,7 +2716,7 @@ function buildPipeGoalFromChips(){
   if(_sel.health) parts.push('【健康主題】'+_sel.health);
   if(_sel.concept) parts.push('【觀念主題】'+_sel.concept);
   if(_sel.biz) parts.push('【經營主題】'+_sel.biz);
-  if(_bizPlan.length) parts.push('【經營規劃】'+_bizPlan.join('、'));
+  if(_bizPlan.length) parts.push('【網路經營】'+_bizPlan.join('、'));
   if(_sel.story) parts.push('【故事比喻】'+_sel.story);
   const free = document.getElementById('pipeInput').value.trim();
   if(free) parts.push('【補充說明】'+free);
@@ -2972,9 +3011,55 @@ async function handleCardsFiles(e){
   }
   renderCardsFiles();
 }
+let cardsRefs=[];            // 教學工坊調用的成品 id（最多 5 則）
+let cardsExtendVal="examples";
+const CP_EXTEND={
+  examples:"延伸例題與應用情境：以成品的觀念為核心，補上新的生活例題、實際應用情境與常見問題，不照抄成品原文。",
+  breakdown:"拆解成單一觀念卡：把成品拆成更細的觀念，每張卡只講一個重點，並附上一句好記的口訣。",
+  beginner:"改寫成新手問答：站在剛開始接觸的人角度，用他會問的問題帶出成品的重點與做法。"
+};
 function renderCardsFiles(){
+  const refChips=cardsRefs.map(id=>{ const t=state.tasks.find(x=>String(x.id)===id);
+    return t?`<span class="file-chip cp-ref">📚 ${esc(cpTitleOf(t).slice(0,18))}<span class="rm" onclick="toggleCardsRef('${id}')">×</span></span>`:""; }).join("");
   document.getElementById("cardsFileList").innerHTML=cardsFiles.map((f,i)=>
-    `<span class="file-chip">${libIcon(f.kind)} ${esc(f.name)}<span class="rm" onclick="rmCardsFile(${i})">×</span></span>`).join("");
+    `<span class="file-chip">${libIcon(f.kind)} ${esc(f.name)}<span class="rm" onclick="rmCardsFile(${i})">×</span></span>`).join("")+refChips;
+  const cnt=document.getElementById("cpCount"); if(cnt) cnt.textContent = cardsRefs.length?`（已選 ${cardsRefs.length}）`:"";
+}
+// 成品的顯示標題：優先用內容第一個標題（主題已是分組名稱，避免重複）
+function cpTitleOf(t){
+  const sp=cardSplit((t.output||"").replace(/^#+\s*/gm,""));
+  return (sp.title || (t.input||"").replace(/^\[成品\]\s*/,"") || "（未命名）").slice(0,60);
+}
+function toggleCardsPick(){
+  const panel=document.getElementById("cpPanel"); if(!panel) return;
+  panel.hidden=!panel.hidden; if(!panel.hidden) renderCardsPick();
+}
+function toggleCardsRef(id){
+  id=String(id); const i=cardsRefs.indexOf(id);
+  if(i>=0) cardsRefs.splice(i,1);
+  else { if(cardsRefs.length>=5){ toast("一次最多調用 5 則成品"); return; } cardsRefs.push(id); }
+  renderCardsPick(); renderCardsFiles();
+}
+function renderCardsPick(){
+  const panel=document.getElementById("cpPanel"); if(!panel) return;
+  const list=state.tasks.filter(t=>t.output && String(t.output).trim()).slice().reverse().slice(0,60);
+  const groups={};
+  list.forEach(t=>{ const k=topicOf(t)||"未分類主題"; (groups[k]=groups[k]||[]).push(t); });
+  const opts=[["examples","延伸例題與應用情境"],["breakdown","拆解成單一觀念卡"],["beginner","改寫成新手問答"]]
+    .map(([k,v])=>`<option value="${k}" ${k===cardsExtendVal?"selected":""}>${v}</option>`).join("");
+  const body = list.length ? Object.keys(groups).map(k=>`<div class="cp-group">
+      <div class="cp-gh"><span>${esc(k)}</span><em>${groups[k].length}</em></div>
+      ${groups[k].map(t=>{ const on=cardsRefs.includes(String(t.id));
+        return `<button class="cp-row${on?" on":""}" onclick="toggleCardsRef('${t.id}')">
+          <span class="cp-ck">${on?"✓":""}</span>
+          <span class="cp-t">${esc(cpTitleOf(t))}</span>
+          <small>${esc(t.deptName||"")}</small></button>`; }).join("")}
+    </div>`).join("")
+    : '<div class="chain-empty">還沒有成品。先到首頁一鍵產出，成品會出現在這裡。</div>';
+  panel.innerHTML = `<div class="cp-ext"><label>延伸方式</label>
+      <select onchange="cardsExtendVal=this.value">${opts}</select></div>
+    <div class="cp-hint">勾選成品，AI 會以它的觀念與案例為依據，延伸出新的卡片（最多 5 則）。</div>${body}`;
+  const cnt=document.getElementById("cpCount"); if(cnt) cnt.textContent = cardsRefs.length?`（已選 ${cardsRefs.length}）`:"";
 }
 function rmCardsFile(i){ cardsFiles.splice(i,1); renderCardsFiles(); }
 // 解析卡片 JSON：正常解析失敗時，用逐張搶救（即使回覆被截斷也能撈回完整的卡）
@@ -2996,17 +3081,20 @@ async function generateCards(){
   if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
   if(!canRun()) return;
   const txt=document.getElementById("cardsInput").value.trim();
+  const refs=cardsRefs.map(id=>state.tasks.find(x=>String(x.id)===id)).filter(t=>t&&t.output);
+  const refText=refs.map(t=>`---「成品：${cpTitleOf(t)}」---\n${String(t.output).slice(0,4000)}`).join("\n\n");
   const imgFiles=cardsFiles.filter(f=>f.isImage);
   const fileTexts=cardsFiles.filter(f=>!f.isImage)
     .map(f=>`---「${f.name}」---\n${(f.content||"").slice(0,MAX_FILE_CHARS)}`).join("\n\n");
-  if(!txt && !fileTexts && imgFiles.length===0){ toast("請貼上教材或上傳檔案"); return; }
+  if(!txt && !fileTexts && !refText && imgFiles.length===0){ toast("請貼上教材、上傳檔案或調用成品"); return; }
   running=true;
   const btn=document.getElementById("cardsBtn");
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>製卡中';
   const n=parseInt(document.getElementById("cardsCount").value,10)||10;
   const mode=document.getElementById("cardsMode").value;
-  const sys=`你是教學設計師。把使用者的教材整理成教學卡片。卡片類型：${CARD_MODES[mode]}\n【硬性規定】cards 陣列長度必須「剛好 ${n} 張」，不可少張、不可多張。若教材太少，就把觀念拆細或延伸例題補滿 ${n} 張。\n每張卡精簡：q 不超過 40 字，a 不超過 90 字。由淺入深排序。\n【語言鐵則】不論教材原文是簡體、英文或其他語言，所有輸出一律轉成繁體中文（台灣用語）。\n只回 JSON：{"title":"卡組名稱（8字內）","cards":[{"q":"...","a":"..."}]}，不要 markdown、不要其他文字。`;
-  let userText=(txt?("教材內容：\n"+txt+"\n\n"):"")+(fileTexts?("【附加教材檔】\n"+fileTexts.slice(0,MAX_TOTAL_CHARS)):"");
+  let sys=`你是教學設計師。把使用者的教材整理成教學卡片。卡片類型：${CARD_MODES[mode]}\n【硬性規定】cards 陣列長度必須「剛好 ${n} 張」，不可少張、不可多張。若教材太少，就把觀念拆細或延伸例題補滿 ${n} 張。\n每張卡精簡：q 不超過 40 字，a 不超過 90 字。由淺入深排序。\n【語言鐵則】不論教材原文是簡體、英文或其他語言，所有輸出一律轉成繁體中文（台灣用語）。\n只回 JSON：{"title":"卡組名稱（8字內）","cards":[{"q":"...","a":"..."}]}，不要 markdown、不要其他文字。`;
+  if(refs.length) sys+=`\n【延伸規定】使用者調用了已完成的成品作為依據。${CP_EXTEND[cardsExtendVal]||CP_EXTEND.examples}卡片要有延伸價值，不要只是複述成品。`;
+  let userText=(refText?("【調用的成品（延伸依據）】\n"+refText+"\n\n"):"")+(txt?("教材內容：\n"+txt+"\n\n"):"")+(fileTexts?("【附加教材檔】\n"+fileTexts.slice(0,MAX_TOTAL_CHARS)):"");
   if(imgFiles.length && !userText) userText="教材在附圖中，請先讀懂圖片內容（含文字與圖表）再製卡。";
   else if(imgFiles.length) userText+="\n\n另附教材圖片，請一併讀懂內容（含文字與圖表）納入製卡。";
   const user = imgFiles.length
@@ -3031,7 +3119,7 @@ async function generateCards(){
     const deck={ id:Date.now(), time:Date.now(), title:obj.title||"教學卡組", mode, cards };
     state.decks.unshift(deck); state.decks=state.decks.slice(0,60); save();
     renderDeck(deck); renderDecks(); updateCardsSummary();
-    document.getElementById("cardsInput").value=""; cardsFiles=[]; renderCardsFiles();
+    document.getElementById("cardsInput").value=""; cardsFiles=[]; cardsRefs=[]; renderCardsFiles(); renderCardsPick();
     toast(cards.length>=n?`已產生 ${cards.length} 張卡並保存`:`教材量有限，本次產出 ${cards.length}/${n} 張並已保存`);
     document.getElementById("deckZone").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){ toast("製卡失敗："+err.message); }
@@ -3674,7 +3762,7 @@ function deleteResult(id){
 const _collSel = { health:'', concept:'', biz:'', auto:false };
 const _collSelLabel = { health:'未選擇', concept:'未選擇', biz:'未選擇' };
 
-const COLL_GROUPS=['collHealthGroup','collConceptGroup','collBizGroup'];
+const COLL_GROUPS=['collHealthGroup','collConceptGroup','collBizGroup','collNetGroup'];
 function toggleCollGroup(id){
   const list = document.getElementById(id);
   if(!list) return;
@@ -3821,21 +3909,27 @@ function renderPlPicked(){
   const box=document.getElementById('plPicked'); if(!box) return;
   const items=[['health','🌿','健康主題'],['concept','💡','觀念主題'],['biz','🧭','經營主題']].filter(([k])=>_sel[k]);
   const html=items.map(([k,ic,name])=>`<div class="pl-chip"><span class="pl-chip-ic">${ic}</span><div class="pl-chip-txt"><small>${name}</small><b>${esc(_selLabel[k]||_sel[k].slice(0,24))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPick('${k}')">×</button></div>`);
-  if(_bizPlan.length) html.push(`<div class="pl-chip"><span class="pl-chip-ic">🗓️</span><div class="pl-chip-txt"><small>經營規劃</small><b>${esc(_bizPlan.join("、"))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPlan()">×</button></div>`);
+  if(_bizPlan.length) html.push(`<div class="pl-chip"><span class="pl-chip-ic">🗓️</span><div class="pl-chip-txt"><small>網路經營</small><b>${esc(_bizPlan.join("、"))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPlan()">×</button></div>`);
   box.innerHTML = html.length ? html.join("") : '<div class="pl-empty">尚未選擇主題，請先到「資料收集」選擇</div>';
 }
-function toggleBizPlan(btn){
-  const v=btn.textContent.trim(); const i=_bizPlan.indexOf(v);
-  if(i>=0){ _bizPlan.splice(i,1); btn.classList.remove("on"); } else { _bizPlan.push(v); btn.classList.add("on"); }
-  persistPipeSel(); renderPlPicked();
+function syncNetBadge(){
+  const el=document.getElementById("collNetSel"); if(!el) return;
+  el.textContent = _bizPlan.length ? `已選 ${_bizPlan.length} 項` : "未選擇";
+  el.classList.toggle("has-val", _bizPlan.length>0);
+}
+function toggleBizPlan(el){
+  const v=((el.querySelector&&el.querySelector('.ci-txt'))||el).textContent.trim(); const i=_bizPlan.indexOf(v);
+  if(i>=0){ _bizPlan.splice(i,1); el.classList.remove("selected"); } else { _bizPlan.push(v); el.classList.add("selected"); }
+  syncNetBadge(); persistPipeSel(); renderPlPicked();
 }
 function clearPlan(){
   _bizPlan.length=0;
-  document.querySelectorAll(".cp-chip").forEach(b=>b.classList.remove("on"));
-  persistPipeSel(); renderPlPicked();
+  document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.remove("selected"));
+  syncNetBadge(); persistPipeSel(); renderPlPicked();
 }
 function restoreBizPlanChips(){
-  document.querySelectorAll(".cp-chip").forEach(b=>b.classList.toggle("on", _bizPlan.includes(b.textContent.trim())));
+  document.querySelectorAll("#collNetGroup .coll-item-sel").forEach(b=>b.classList.toggle("selected", _bizPlan.includes(b.querySelector(".ci-txt").textContent.trim())));
+  syncNetBadge();
 }
 function clearPick(cat){
   _sel[cat]=''; _selLabel[cat]='未選擇';
