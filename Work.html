@@ -2027,6 +2027,20 @@
   @media (prefers-reduced-motion: reduce){
     #gateScreen .gt-ic,#gateScreen .gt-txt{animation:none;}
   }
+  /* ===== 一鍵流程：已選主題（唯讀）與前往資料收集 ===== */
+  .pl-picked{display:flex;flex-direction:column;gap:10px;margin:14px 0 12px;}
+  .pl-chip{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-radius:18px;background:rgba(246,227,180,.08);border:1px solid rgba(246,227,180,.22);}
+  .pl-chip-ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(246,227,180,.14);font-size:18px;flex:0 0 auto;}
+  .pl-chip-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+  .pl-chip-txt small{font-size:11px;letter-spacing:1px;color:rgba(246,227,180,.65);font-weight:700;}
+  .pl-chip-txt b{font-size:14.5px;color:#FFFFFF;font-weight:800;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .pl-chip-x{width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#F6E3B4;font-size:18px;line-height:1;flex:0 0 auto;}
+  .pl-empty{padding:16px;border-radius:18px;border:1px dashed rgba(246,227,180,.3);color:rgba(246,227,180,.78);font-size:13.5px;text-align:center;}
+  .pl-goto{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;margin-bottom:14px;border-radius:999px;border:1px solid rgba(246,227,180,.35);background:transparent;color:#F6E3B4;font-weight:800;font-size:14px;letter-spacing:.5px;font-family:inherit;}
+  .pl-goto b{font-size:18px;line-height:1;}
+  /* ===== 資料收集：補充說明整合為高質感區塊 ===== */
+  #view-collector .coll-note{margin:4px 0 16px;padding:16px 16px 14px;border-radius:24px;background:linear-gradient(165deg,#1F4A36 0%,#0D2A1E 100%);border:1px solid rgba(214,178,100,.35);box-shadow:0 14px 30px rgba(10,38,28,.22), inset 0 1px 0 rgba(255,236,190,.1);}
+  #view-collector .coll-note .pp-panel{background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;}
 </style>
 </head>
 <body>
@@ -2108,126 +2122,12 @@
     <div class="home-cat">寫作</div>
     <div class="pipeline">
       <div class="pl-title">🚀 一鍵自動完成</div>
-      <div class="pl-sub">點選主題 + 故事比喻，按下開始，AI 自動完成全套內容。</div>
-      <!-- 主題分類選擇 -->
-      <div class="topic-ui">
-
-        <!-- 健康主題列表 -->
-        <div class="topic-group">
-          <div class="topic-group-header" onclick="toggleGroup('healthGroup')">
-            <span class="tg-icon">🌿</span>
-            <span class="tg-title">健康主題</span>
-            <span class="tg-selected" id="healthSelected">未選擇</span>
-            <span class="tg-arrow" id="healthArrow">›</span>
-          </div>
-          <div class="topic-list" id="healthGroup">
-            <div class="topic-item" onclick="selectTopic(this,'health','睡眠品質差，很難入睡或半夜容易醒，白天精神差')">
-              <span class="ti-ic">😴</span><span class="ti-text">睡眠品質差</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','容易疲勞，下午就沒力，爬樓梯會喘，整個人沒精神')">
-              <span class="ti-ic">⚡</span><span class="ti-text">疲勞體力不足</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','腸胃不舒服，容易腹脹消化差，喜歡喝冷飲')">
-              <span class="ti-ic">🍽️</span><span class="ti-text">腸胃消化問題</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','身體反覆發炎，老是有狀況，暫時好了又來')">
-              <span class="ti-ic">🔥</span><span class="ti-text">反覆發炎不適</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','血液循環差，手腳容易冰冷，整個人感覺沉重')">
-              <span class="ti-ic">🩸</span><span class="ti-text">血液循環差</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','氣血不足，容易累，走路就喘，整個人沒精神')">
-              <span class="ti-ic">👮</span><span class="ti-text">氣血不足體虛</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','體質寒濕，怕冷，容易反覆生病，手腳冰')">
-              <span class="ti-ic">🏠</span><span class="ti-text">體質寒濕虛弱</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','身體酸麻脹痛，微循環不好，腳容易腫')">
-              <span class="ti-ic">🚗</span><span class="ti-text">酸麻脹痛循環差</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','分享客戶使用後的真實感受案例，用個人感受方式表達')">
-              <span class="ti-ic">💬</span><span class="ti-text">分享感受案例</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'health','引流話術，帶有健康困擾的人去找老師諮詢')">
-              <span class="ti-ic">🤝</span><span class="ti-text">引流邀約話術</span><span class="ti-check">✓</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 觀念主題列表 -->
-        <div class="topic-group">
-          <div class="topic-group-header" onclick="toggleGroup('conceptGroup')">
-            <span class="tg-icon">💡</span>
-            <span class="tg-title">觀念主題</span>
-            <span class="tg-selected" id="conceptSelected">未選擇</span>
-            <span class="tg-arrow" id="conceptArrow">›</span>
-          </div>
-          <div class="topic-list" id="conceptGroup">
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》財富篇的風格，寫一篇關於「收入結構」的觀念文章：很多人努力工作卻從來沒有想過自己的錢是怎麼賺出來的，今天的努力能不能累積，有沒有天花板')">
-              <span class="ti-ic">💰</span><span class="ti-text">收入結構與財富觀</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》經營篇的風格，寫一篇關於「自律與自由」的觀念文章：真正的自由不是沒有人管你，而是沒有人管你的時候你依然知道自己該做什麼')">
-              <span class="ti-ic">🎯</span><span class="ti-text">自律與自由</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》市場篇的風格，寫一篇關於「人脈的本質」的觀念文章：很多人以為人脈是認識的人，其實人脈是關係的累積，認識一個人和真正建立關係是兩件完全不同的事')">
-              <span class="ti-ic">🤝</span><span class="ti-text">人脈的本質</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》市場篇的風格，寫一篇關於「傾聽與提問」的觀念文章：真正厲害的人不是最會說的人，而是最知道什麼時候該聽、什麼時候該問、什麼時候才該回答')">
-              <span class="ti-ic">👂</span><span class="ti-text">傾聽與提問的力量</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》理解篇的風格，寫一篇關於「知道和理解的差別」的觀念文章：知道一件事和真正理解一件事是兩個完全不同的層次，很多人停留在聽過說得出來，卻從來沒有真正弄明白')">
-              <span class="ti-ic">🧠</span><span class="ti-text">知道 vs 真正理解</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「選擇還是習慣」的觀念文章：很多人以為自己在選擇人生，其實是習慣替他們選了人生，熟悉不代表是好的選擇')">
-              <span class="ti-ic">🔄</span><span class="ti-text">選擇還是習慣？</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「累積還是消耗」的觀念文章：很多人很努力，但努力的方式是消耗不是累積，今天的努力有沒有讓明天的自己更強')">
-              <span class="ti-ic">📈</span><span class="ti-text">累積還是消耗？</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「健康是最重要的資產」的觀念文章：很多人把健康當成理所當然，直到身體出問題才後悔，健康不是開銷是投資')">
-              <span class="ti-ic">🌱</span><span class="ti-text">健康是最重要的資產</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「改變的代價」的觀念文章：很多人想改變卻不願意付出改變的代價，真正的改變從來不舒服，但不改變的代價更大')">
-              <span class="ti-ic">💪</span><span class="ti-text">改變的代價</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'concept','用《康園道》的風格，寫一篇關於「為什麼選擇這份事業」的觀念文章：不是因為別人說好，而是自己真正看懂了商品制度市場和數字之後做出的明白選擇')">
-              <span class="ti-ic">✅</span><span class="ti-text">為什麼選擇這份事業</span><span class="ti-check">✓</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 經營主題列表 -->
-        <div class="topic-group">
-          <div class="topic-group-header" onclick="toggleGroup('bizGroup')">
-            <span class="tg-icon">🧭</span>
-            <span class="tg-title">經營主題</span>
-            <span class="tg-selected" id="bizSelected">未選擇</span>
-            <span class="tg-arrow" id="bizArrow">›</span>
-          </div>
-          <div class="topic-list" id="bizGroup">
-            <div class="topic-item" onclick="selectTopic(this,'biz','新手怎麼開始經營：不會經營也沒關係，先定方向、再一步步做，第一步最重要')">
-              <span class="ti-ic">🧭</span><span class="ti-text">新手怎麼開始經營</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'biz','引流怎麼做：沒人看到怎麼辦，先找到對的人，再讓對的人願意停下來')">
-              <span class="ti-ic">📣</span><span class="ti-text">引流怎麼做</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'biz','互動與回覆：留言和私訊要怎麼回，才會讓人願意繼續聊下去')">
-              <span class="ti-ic">💬</span><span class="ti-text">互動與回覆</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'biz','經營節奏：每天只做一件小事，比三天打魚兩天曬網更能累積')">
-              <span class="ti-ic">📅</span><span class="ti-text">經營節奏</span><span class="ti-check">✓</span>
-            </div>
-            <div class="topic-item" onclick="selectTopic(this,'biz','追蹤與檢視：每週看一次數字，知道什麼有效、什麼要調整')">
-              <span class="ti-ic">📊</span><span class="ti-text">追蹤與檢視</span><span class="ti-check">✓</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      <div class="pl-sub">主題與補充說明已在「資料收集」設定完成，按下開始即可。</div>
+      <!-- 已選主題（唯讀，由資料收集決定） -->
+      <div class="pl-picked" id="plPicked"></div>
+      <button class="pl-goto" onclick="openView('collector')"><span>🛰️</span>前往資料收集選擇主題<b>›</b></button>
       <!-- 自由輸入（選填補充） -->
-      <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
       <div id="ppHold" hidden></div>
-      <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
       <div id="pipeSteps" style="display:none"></div>
       <div id="pipePlatBar" style="display:none"></div>
       <div id="libPickBar"></div>
@@ -2401,6 +2301,10 @@
 
     </div>
 
+    <div class="coll-note">
+      <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
+      <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
+    </div>
     <button class="pl-run dark" id="collectBtn" onclick="collectNow()">🛰️ 立即收集話題 ▸</button>
     <div class="section-label" style="margin-top:18px;">已收集的話題（存檔）</div>
     <div id="collectList"></div>
@@ -2756,6 +2660,9 @@ const DEFAULTS = {
 
 /* ============ 狀態 ============ */
 let state = load();
+try{ const ps=state.pipeSel||{}; const pl=ps.labels||{};
+  ['health','concept','biz'].forEach(k=>{ if(ps[k]){ _sel[k]=ps[k]; _selLabel[k]=pl[k]||ps[k].slice(0,24); _collSel[k]=ps[k]; _collSelLabel[k]=_selLabel[k]; } });
+}catch(e){}
 let current = null;
 let pendingFiles = [];
 let cardsFiles = [];       // 教學工坊的附件
@@ -2891,6 +2798,7 @@ function openView(v){
 
 /* ============ Home ============ */
 function renderHome(){
+  renderPlPicked();
   const box=document.getElementById("chainBox");
   const node=(onclk,bg,color,emoji,name)=>`<div class="flow-node" onclick="${onclk}">
        <div class="flow-ic" style="background:${bg};color:${color}">${emoji}</div>
@@ -3717,6 +3625,8 @@ function selectCollTopic(el, cat, val){
   if(badge){ badge.textContent=_collSelLabel[cat]; badge.classList.toggle('has-val',!!_collSel[cat]); }
   // 自動收合
   setTimeout(()=>toggleCollGroup(groupId),280);
+  // 收集頁的選擇同步到一鍵流程
+  if(_collSel[cat]) setHomeTopic(cat, _collSel[cat], _collSelLabel[cat]); else clearPick(cat);
 }
 
 function getCollTopic(){
@@ -3822,8 +3732,28 @@ function renderCollector(){
 }
 function findTopic(id){ return state.collections.find(c=>String(c.id)===String(id)); }
 // 把收集到的話題設為一鍵流程的主題（會顯示在「健康／觀念／經營主題」的已選標示）
+function persistPipeSel(){
+  state.pipeSel={health:_sel.health,concept:_sel.concept,biz:_sel.biz,
+    labels:{health:_selLabel.health,concept:_selLabel.concept,biz:_selLabel.biz}};
+  save();
+}
+function renderPlPicked(){
+  const box=document.getElementById('plPicked'); if(!box) return;
+  const items=[['health','🌿','健康主題'],['concept','💡','觀念主題'],['biz','🧭','經營主題']].filter(([k])=>_sel[k]);
+  if(!items.length){ box.innerHTML='<div class="pl-empty">尚未選擇主題，請先到「資料收集」選擇</div>'; return; }
+  box.innerHTML=items.map(([k,ic,name])=>`<div class="pl-chip"><span class="pl-chip-ic">${ic}</span><div class="pl-chip-txt"><small>${name}</small><b>${esc(_selLabel[k]||_sel[k].slice(0,24))}</b></div><button class="pl-chip-x" aria-label="移除" onclick="clearPick('${k}')">×</button></div>`).join("");
+}
+function clearPick(cat){
+  _sel[cat]=''; _selLabel[cat]='未選擇';
+  const cid=cat==='health'?'collHealthSel':cat==='biz'?'collBizSel':'collConceptSel';
+  _collSel[cat]=''; _collSelLabel[cat]='未選擇';
+  const cb=document.getElementById(cid); if(cb){ cb.textContent='未選擇'; cb.classList.remove('has-val'); }
+  const gid=cat==='health'?'collHealthGroup':cat==='biz'?'collBizGroup':'collConceptGroup';
+  document.querySelectorAll('#'+gid+' .coll-item-sel').forEach(i=>i.classList.remove('selected'));
+  persistPipeSel(); renderPlPicked();
+}
 function setHomeTopic(cat, text, label){
-  _sel[cat]=text; _selLabel[cat]=label;
+  _sel[cat]=text; _selLabel[cat]=label; persistPipeSel(); renderPlPicked();
   const gid = cat==='health'?'healthGroup':cat==='biz'?'bizGroup':'conceptGroup';
   document.querySelectorAll('#'+gid+' .topic-item').forEach(i=>i.classList.remove('selected'));
   const badge=document.getElementById(cat==='health'?'healthSelected':cat==='biz'?'bizSelected':'conceptSelected');
@@ -3836,7 +3766,7 @@ function useTopic(id){
   setHomeTopic(cat, c.topic + (c.angle?("："+c.angle):""), c.topic);
   renderCollector();
   openView("home");
-  setTimeout(()=>{ const p=document.querySelector(".pipeline"); if(p) p.scrollIntoView({behavior:"smooth",block:"start"}); document.getElementById("pipeInput").focus(); },120);
+  setTimeout(()=>{ const p=document.querySelector(".pipeline"); if(p) p.scrollIntoView({behavior:"smooth",block:"start"}); },120);
   toast("已設為一鍵流程的主題");
 }
 function topicToLibrary(id){
@@ -4269,7 +4199,7 @@ async function runAllDepartments(resume){
     pipePlatform = _sel.plat || '';
     const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
-    if(!goal){ toast("請先選擇健康或觀念主題，或在下方輸入說明"); return; }
+    if(!goal){ toast("請先到資料收集選擇主題"); return; }
     const bizT = (_sel.biz && _selLabel.biz && _selLabel.biz!=='未選擇') ? _selLabel.biz : "";
     run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT };
     state.pipeRun=run; save();
