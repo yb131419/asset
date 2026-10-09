@@ -2253,6 +2253,18 @@ body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:auto;b
   font:700 12.5px/1.4 "Noto Sans TC","PingFang TC",sans-serif;color:#F6E3B4;background:rgba(6,20,14,.82);
   border:1px solid rgba(231,194,122,.5);border-radius:10px;padding:6px 10px;pointer-events:none}
 #vStatus[hidden]{display:none}
+
+/* 對話下拉選單：樣式與列表項目一致 */
+.vdd-toggle{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  border-radius:14px;border:1px solid rgba(231,194,122,.5);background:linear-gradient(170deg,#FBE9B9,#E7C27A 55%,#C79A4B);
+  color:#14201A;font:800 14.5px/1 "Noto Serif TC","Songti TC",serif;cursor:pointer;box-shadow:0 3px 0 #7A5520}
+.vdd-toggle:active{transform:translateY(2px);box-shadow:0 1px 0 #7A5520}
+.vdd-n{font-size:12px;font-weight:700;opacity:.7}
+.vdd-list{margin-top:8px;border:1px solid rgba(231,194,122,.35);border-radius:14px;overflow:hidden;background:rgba(0,0,0,.28)}
+.vdd-item{display:block;width:100%;text-align:left;min-height:46px;padding:12px 14px;border:0;border-bottom:1px solid rgba(231,194,122,.18);
+  background:transparent;color:#F3EBD3;font:700 14px/1.3 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer}
+.vdd-item:last-child{border-bottom:0}
+.vdd-item:active{background:rgba(231,194,122,.16)}
 </style>
 </head>
 <body>
@@ -5887,7 +5899,7 @@ function L(cloth,acc,kind,hair,beard){
 const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36',shoe:'#1A1210',acc:'#E7C27A',kind:'bag',beard:false,line:'#0B1A12'};
 
 /* ---------- NPC（對應原本各項功能） ---------- */
-const NPC=[
+const NPC_ALL=[
   /* 流程順序：設定 → 收集 → 素材 → 一鍵 → 五大寫作 → 成品 → 教學（名稱與原版相同） */
   {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:4,y:3,look:L('#6B4E9E','#E2D6FA','hat'),
    lines:['選好方向告訴我，我去打探消息。'],
@@ -5940,7 +5952,10 @@ const NPC=[
   {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:8,y:19,look:L('#A8782E','#FBE9B9','hat'),
    lines:['拿來教材，我幫你鍛造成卡片。'],
    acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
-];// 補充對話：原有台詞保留，另外加入幾句，村莊裡會隨機冒泡、點進去也會逐句說話
+];
+// 村莊只保留這五個角色（依流程順序）
+const NPC=NPC_ALL.filter(n=>['collector','pipeline','results','market','warmup'].includes(n.id));
+// 補充對話：原有台詞保留，另外加入幾句，村莊裡會隨機冒泡、點進去也會逐句說話
 const NPC_EXTRA={
   settings:['成品越多，村子越熱鬧。','背景設定寫清楚，之後的內容才會穩。'],
   collector:['今天想聽哪個話題？','資料每天都會更新，記得回來看。'],
@@ -6045,57 +6060,36 @@ function renderVillage(){
 
 /* ---------- 對話卡 ---------- */
 let curN=null;
-let dlgIdx=0, dlgTimer=null, dlgTyping=false, dlgFull='';
+let dlgTimer=null, dlgTyping=false;
 function openCard(n){
-  curN=n; dlgIdx=0;
+  curN=n;
   const c=document.getElementById('vCard');
+  const line=n.lines[Math.floor(Math.random()*n.lines.length)];
   c.innerHTML=
     '<div class="vc-h">'+
       '<div class="vc-ic" style="background:'+n.look.cloth+'33;border-color:'+n.look.cloth+'">'+n.ic+'</div>'+
       '<div><div class="vc-n">'+n.name+'</div><div class="vc-r">'+n.role+'</div></div>'+
       '<button class="vbtn g sm vc-x" id="vcX" type="button">✕</button>'+
     '</div>'+
-    '<div class="vc-t" id="vcT" title="點一下可立即顯示全文"></div>'+
-    '<div class="vc-btns" id="vcB"></div>';
+    '<div class="vc-t" id="vcT"></div>'+
+    '<div id="vcB"></div>';
   c.hidden=false;
   document.getElementById('vGridBox').hidden=true;
   document.getElementById('vcX').onclick=hideCard;
-  document.getElementById('vcT').onclick=()=>{ if(dlgTyping) finishType(); };
-  showLine(n);
+  document.getElementById('vcT').textContent=line;
+  renderMenu(false);
 }
-function showLine(n){
-  typeText(n.lines[dlgIdx]||'');
-}
-function typeText(txt){
-  clearInterval(dlgTimer);
-  dlgFull=txt; dlgTyping=true;
-  const el=document.getElementById('vcT');
-  if(!el){ dlgTyping=false; return; }
-  let i=0; el.textContent='';
-  renderBtns();
-  dlgTimer=setInterval(()=>{
-    i++; el.textContent=txt.slice(0,i);
-    if(i>=txt.length) finishType();
-  },28);
-}
-function finishType(){
-  clearInterval(dlgTimer); dlgTyping=false;
-  const el=document.getElementById('vcT');
-  if(el) el.textContent=dlgFull;
-  renderBtns();
-}
-function renderBtns(){
+// 下拉選單：與列表項目相同樣式，點開後選擇要執行的動作
+function renderMenu(open){
   const n=curN, box=document.getElementById('vcB');
   if(!n || !box) return;
-  if(dlgTyping){ box.innerHTML=''; return; }
-  const more = dlgIdx < n.lines.length-1;
-  const acts = more
-    ? [['下一句 ▸',()=>{ dlgIdx++; showLine(curN); }],['略過 ⏭',()=>{ dlgIdx=curN.lines.length-1; showLine(curN); }]]
-    : (typeof n.acts==='function' ? n.acts() : n.acts);
-  box.innerHTML=acts.map((a,i)=>'<button class="vbtn'+(i&&!more?' g':'')+'" data-i="'+i+'" type="button">'+a[0]+'</button>').join('');
-  box.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{
+  const acts=typeof n.acts==='function' ? n.acts() : n.acts;
+  box.innerHTML=
+    '<button class="vdd-toggle" id="vddT" type="button"><span>'+(open?'▴':'▾')+'　選擇要做的事</span><span class="vdd-n">'+acts.length+' 項</span></button>'+
+    (open ? '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>' : '');
+  document.getElementById('vddT').onclick=()=>renderMenu(!open);
+  box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
     const act=acts[+bt.dataset.i];
-    if(more){ act[1](); return; }
     hideCard(); act[1]();
   });
 }
