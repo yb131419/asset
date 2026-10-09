@@ -2176,6 +2176,15 @@
         <div class="le-name">短影音</div>
         <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
       </div>
+
+    <div class="lib-entry results-entry" onclick="openResults('market')">
+      <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</div>
+      <div class="le-meta">
+        <div class="le-name">市場經營</div>
+        <div class="le-sub" id="resSumM">給新手的完整上手流程</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
       <span class="chev">›</span>
     </div>
 
@@ -2619,7 +2628,7 @@ const DEFAULTS = {
       presets:["依本次圖文內容，產出一分鐘逐字稿","把這篇內容改成口播稿，語氣輕鬆親切","產出一分鐘影片逐字稿（含畫面提示）"] },
     { id:"market", name:"市場經營", emoji:"📈", accent:"#2E6FB0", varName:"--c-integrate",
       tagline:"給新手的網路經營完整上手流程，每步詳細說明",
-      role:"你是『市場經營』，專門寫給完全新手看的網路經營教學。使用者沒有任何網路經營經驗，請從「完全不會」開始，一步一步教到能真正上手。\n\n【必須涵蓋的完整流程】依序為：①先確認經營方向與準備（想經營什麼、需要哪些工具與帳號）→ ②建立平台帳號與基本設定 → ③規劃內容與發布節奏 → ④引流與互動 → ⑤追蹤與回覆 → ⑥每日與每週的經營檢視。依主題調整細節，但每一步都不能跳過。\n\n【每一步都要包含】\n・步驟標題（例：第 1 步：先想清楚你要經營什麼）\n・為什麼要做這一步（一句話說明目的）\n・怎麼做（具體操作，寫到新手照著做就能完成，例如點哪裡、填什麼、怎麼排）\n・新手常見的錯誤與避開方法（1–2 點）\n・完成的確認方式（做到什麼程度算完成）\n\n【寫作原則】\n・用白話、短句，不用行話；第一次出現的專有名詞要先用一句話解釋\n・只給方向與做法，不給收入、業績或成效保證，不使用「保證」「一定」「每天穩定收入」等字眼\n・不使用醫療用語，不推銷產品\n・繁體台灣用語\n\n【輸出格式】\n・第一行：直接寫圖卡標題（不超過 20 字），不要加「圖卡標題」等字樣\n・之後依步驟分段，每段以「第 X 步：」開頭\n・段落之間空一行即可，不要寫出「空一行」等字樣\n・最後一段：新手最重要的三個提醒",
+      role:"你是『市場經營』，專門寫給完全新手看的網路經營教學。使用者沒有任何網路經營經驗，請從「完全不會」開始，一步一步教到能真正上手。\n\n【必須涵蓋的完整流程（一步都不能省略）】\n先列出「流程總覽」（共幾步、每步一句話），接著依序詳細寫出每一步，至少 8 步。每一步都要拆成子步驟（例如第 3 步的 3-1、3-2、3-3），依序涵蓋：①確認經營方向與準備（想經營什麼、需要哪些工具與帳號）②建立平台帳號與基本設定（從註冊到個人資料怎麼填）③規劃內容與發布節奏 ④製作第一批內容（怎麼開始、用什麼工具、怎麼檢查）⑤發布第一則內容（按哪裡、怎麼設定）⑥引流與互動（怎麼讓人看見、怎麼回留言）⑦追蹤與回覆（怎麼記錄、怎麼回覆私訊）⑧每日與每週的經營檢視（每天做什麼、每週檢討什麼）。依主題調整細節，但每一步都不能跳過。\n\n【每一步都要包含】\n・步驟標題（例：第 1 步：先想清楚你要經營什麼）\n・為什麼要做這一步（一句話說明目的）\n・怎麼做（具體操作，寫到新手照著做就能完成，例如點哪裡、填什麼、怎麼排）\n・新手常見的錯誤與避開方法（1–2 點）\n・完成的確認方式（做到什麼程度算完成）\n\n【寫作原則】\n・用白話、短句，不用行話；第一次出現的專有名詞要先用一句話解釋\n・只給方向與做法，不給收入、業績或成效保證，不使用「保證」「一定」「每天穩定收入」等字眼\n・不使用醫療用語，不推銷產品\n・繁體台灣用語\n\n【輸出格式】\n・第一行：直接寫圖卡標題（不超過 20 字），不要加「圖卡標題」等字樣\n・之後依步驟分段，每段以「第 X 步：」開頭\n・段落之間空一行即可，不要寫出「空一行」等字樣\n・最後一段：新手最重要的三個提醒",
       presets:["整理網路經營最常遇到的難題與做法","整理引流與互動的常見難題與方向","整理追蹤與回覆客戶的做法","整理經營節奏與時間管理的難題"] }
   ],
   tasks:[],  // {id, deptId, deptName, accent, input, output, time, fromDept}
@@ -3371,6 +3380,8 @@ function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
   const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖文` : "一鍵流程統整的圖文成品";
   const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則短影音逐字稿` : "一分鐘口播逐字稿";
+  const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
+  if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const el=document.getElementById("resSummary"); if(!el) return;
   el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `圖文 ${n} 篇　・　短影音 ${v} 則`;
 }
@@ -3396,14 +3407,14 @@ function renderResults(){
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : "📦 成品庫";
-  const showA = resKind!=="video", showV = resKind!=="final";
+  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : "📦 成品庫";
+  const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market";
   let html="";
   if(showA) html += resSection("圖文","📝",articles,false);
   if(showV) html += resSection("短影音","🎬",videos,true);
-  const mk = resKind==="all" ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
+  const mk = showM ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
   if(mk.length) html += marketSectionHTML(mk);
-  if(!html || (showA && !articles.length && showV && !videos.length && !mk.length)){
+  if(!html || (showA && showV && !articles.length && !videos.length && !mk.length)){
     box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
   } else box.innerHTML=html;
   updateResSummary();
@@ -4147,7 +4158,7 @@ async function runAllDepartments(resume){
         : `請以「${d.name}」的角色，完成你負責的部分，產出可直接使用的成果。`;
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
       if(built.trimmed) run.anyTrim=true;
-      const out0=await callOpenAI(buildSys(d), built.content, d.id==="market"?3200:1800);
+      const out0=await callOpenAI(buildSys(d), built.content, d.id==="market"?6000:1800);
       const out = d.id==="market" ? cleanMarketText(out0) : out0;
       run.collected.push({name:d.name, out, deptId:d.id});
 
@@ -5159,6 +5170,7 @@ function renderDrawer(){
     <div class="dr-cat">成品</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>圖文<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場經營<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <div class="dr-cat">工具</div>
     <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學工坊<span class="cnt">${state.decks.length} 副</span></button>
 `;
