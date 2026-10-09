@@ -2141,6 +2141,33 @@
           </div>
         </div>
 
+        <!-- 經營主題列表 -->
+        <div class="topic-group">
+          <div class="topic-group-header" onclick="toggleGroup('bizGroup')">
+            <span class="tg-icon">🧭</span>
+            <span class="tg-title">經營主題</span>
+            <span class="tg-selected" id="bizSelected">未選擇</span>
+            <span class="tg-arrow" id="bizArrow">›</span>
+          </div>
+          <div class="topic-list" id="bizGroup">
+            <div class="topic-item" onclick="selectTopic(this,'biz','新手怎麼開始經營：不會經營也沒關係，先定方向、再一步步做，第一步最重要')">
+              <span class="ti-ic">🧭</span><span class="ti-text">新手怎麼開始經營</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'biz','引流怎麼做：沒人看到怎麼辦，先找到對的人，再讓對的人願意停下來')">
+              <span class="ti-ic">📣</span><span class="ti-text">引流怎麼做</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'biz','互動與回覆：留言和私訊要怎麼回，才會讓人願意繼續聊下去')">
+              <span class="ti-ic">💬</span><span class="ti-text">互動與回覆</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'biz','經營節奏：每天只做一件小事，比三天打魚兩天曬網更能累積')">
+              <span class="ti-ic">📅</span><span class="ti-text">經營節奏</span><span class="ti-check">✓</span>
+            </div>
+            <div class="topic-item" onclick="selectTopic(this,'biz','追蹤與檢視：每週看一次數字，知道什麼有效、什麼要調整')">
+              <span class="ti-ic">📊</span><span class="ti-text">追蹤與檢視</span><span class="ti-check">✓</span>
+            </div>
+          </div>
+        </div>
+
       </div>
       <!-- 自由輸入（選填補充） -->
       <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
@@ -2444,8 +2471,8 @@
 <script>
 
 /* ===== 列表式主題選擇 ===== */
-const _sel = { health:'', concept:'', story:'', plat:'' };
-const _selLabel = { health:'未選擇', concept:'未選擇', plat:'未選擇' };
+const _sel = { health:'', concept:'', biz:'', story:'', plat:'' };
+const _selLabel = { health:'未選擇', concept:'未選擇', biz:'未選擇', plat:'未選擇' };
 
 function toggleGroup(id){
   const list = document.getElementById(id);
@@ -2453,7 +2480,7 @@ function toggleGroup(id){
   const isOpen = list.classList.toggle('open');
   if(arrow) arrow.classList.toggle('open', isOpen);
   // 關閉其他組
-  ['healthGroup','conceptGroup','platGroup'].forEach(g=>{
+  ['healthGroup','conceptGroup','bizGroup','platGroup'].forEach(g=>{
     if(g!==id){
       const el=document.getElementById(g);
       const ar=document.getElementById(g.replace('Group','Arrow'));
@@ -2464,8 +2491,8 @@ function toggleGroup(id){
 }
 
 function selectTopic(el, cat, val){
-  const groupId = cat==='health'?'healthGroup':'conceptGroup';
-  const selectedId = cat==='health'?'healthSelected':'conceptSelected';
+  const groupId = cat==='health'?'healthGroup':cat==='biz'?'bizGroup':'conceptGroup';
+  const selectedId = cat==='health'?'healthSelected':cat==='biz'?'bizSelected':'conceptSelected';
   // 取消同組其他選取
   document.querySelectorAll('#'+groupId+' .topic-item').forEach(i=>i.classList.remove('selected'));
   // 切換選取
@@ -2602,6 +2629,7 @@ function buildPipeGoalFromChips(){
   const parts=[];
   if(_sel.health) parts.push('【健康主題】'+_sel.health);
   if(_sel.concept) parts.push('【觀念主題】'+_sel.concept);
+  if(_sel.biz) parts.push('【經營主題】'+_sel.biz);
   if(_sel.story) parts.push('【故事比喻】'+_sel.story);
   const free = document.getElementById('pipeInput').value.trim();
   if(free) parts.push('【補充說明】'+free);
@@ -3694,13 +3722,23 @@ function renderCollector(){
   updateCollSummary();
 }
 function findTopic(id){ return state.collections.find(c=>String(c.id)===String(id)); }
+// 把收集到的話題設為一鍵流程的主題（會顯示在「健康／觀念／經營主題」的已選標示）
+function setHomeTopic(cat, text, label){
+  _sel[cat]=text; _selLabel[cat]=label;
+  const gid = cat==='health'?'healthGroup':cat==='biz'?'bizGroup':'conceptGroup';
+  document.querySelectorAll('#'+gid+' .topic-item').forEach(i=>i.classList.remove('selected'));
+  const badge=document.getElementById(cat==='health'?'healthSelected':cat==='biz'?'bizSelected':'conceptSelected');
+  if(badge){ badge.textContent=label; badge.classList.add('has-val'); }
+}
 function useTopic(id){
   const c=findTopic(id); if(!c) return;
   c.used=true; save();
-  document.getElementById("pipeInput").value = c.topic + (c.angle?("（切入："+c.angle+"）"):"");
+  const cat = c.cat==='concept' ? 'concept' : c.cat==='biz' ? 'biz' : 'health';
+  setHomeTopic(cat, c.topic + (c.angle?("："+c.angle):""), c.topic);
+  renderCollector();
   openView("home");
   setTimeout(()=>{ const p=document.querySelector(".pipeline"); if(p) p.scrollIntoView({behavior:"smooth",block:"start"}); document.getElementById("pipeInput").focus(); },120);
-  toast("已帶入一鍵流程的主題");
+  toast("已設為一鍵流程的主題");
 }
 function topicToLibrary(id){
   const c=findTopic(id); if(!c) return;
