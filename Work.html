@@ -1893,7 +1893,7 @@
   .hi-actions .hi-btn{justify-content:center;text-align:center;border-radius:14px;min-height:46px;font-size:14px;
     background:linear-gradient(180deg,#FFFFFF,#F7F5EE);border:1px solid rgba(23,85,58,.16);color:#17553A;
     box-shadow:0 2px 8px rgba(14,40,22,.06);}
-  .hi-actions .hi-btn.del{grid-column:1 / -1;color:#9A4B3A;background:#FFF7F4;border-color:rgba(154,75,58,.2);}
+  .hi-actions .hi-btn.del{color:#9A4B3A;background:#FFF7F4;border-color:rgba(154,75,58,.25);}
 
   .cg-mode{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:4px 0 12px;}
   .cg-mode button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:40px;}
@@ -3233,10 +3233,10 @@ function resItemHTML(t, isVideo){
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${richBody(t.output, true, tag)}
     <div class="hi-actions">
+      <button class="hi-btn del" onclick="deleteResult(${t.id})">🗑 刪除</button>
       <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
       <button class="hi-btn" onclick="shareFromBtn(this)">📤 分享</button>
       <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="1" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
-      <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
     </div>
     <div class="cardwrap" id="rescw-${t.id}"></div>
   </div>`;
@@ -4192,20 +4192,22 @@ function cardSplit(text){
 function cardLayout(text, o){
   const W=CARD_W, P=CARD_PAD;
   const BODY_FS=CARD_SIZES[o.size]||26, BODY_LH=Math.round(BODY_FS*1.77);
-  const TITLE_FS=Math.round(BODY_FS*1.75), TITLE_LH=Math.round(TITLE_FS*1.2);
+  let TITLE_FS=Math.round(BODY_FS*1.75);
   const center = o.align==="center";
   const right = o.align==="right";
   const lines=(text||"").split("\n").map(x=>x.replace(/\s+$/,""));
   const firstIdx=lines.findIndex(l=>l.trim());
   let titleSrc = firstIdx>=0 ? cardSplit(lines[firstIdx]).title : "";
   titleSrc = titleSrc || (state.title||"健康智囊");
-  const titleMaxEm = (W-2*P)/TITLE_FS - 0.6;
-  let titleLines=cardWrap(titleSrc, titleMaxEm);
-  let bodyLines = firstIdx>=0 ? lines.slice(firstIdx+1) : [];
-  if(titleLines.length>2){
-    titleLines=[titleLines[0], titleLines[1].slice(0,-1)+"…"];
-    bodyLines=[lines[firstIdx].trim(), ...bodyLines];
+  let titleLines=[];
+  // 標題過長時逐步縮小字級，盡量兩行內完整顯示（不截斷、不把標題重複放進內文）
+  for(;;){
+    titleLines=cardWrap(titleSrc, (W-2*P)/TITLE_FS - 0.6);
+    if(titleLines.length<=2 || TITLE_FS<=Math.round(BODY_FS*1.15)) break;
+    TITLE_FS-=2;
   }
+  const TITLE_LH=Math.round(TITLE_FS*1.2);
+  let bodyLines = firstIdx>=0 ? lines.slice(firstIdx+1) : [];
   const blocks=[]; let lastWasGap=true;
   bodyLines.forEach(raw=>{
     const t=raw.trim();
@@ -4349,13 +4351,13 @@ function cardEditorHTML(cid){
   return `<div class="cd-panel">
     <div class="cd-head">✏️ 自己設計</div>
     <label class="cd-field"><span>名稱</span><input type="text" maxlength="30" value="${attr(st.name)}" oninput="cardEdit('${cid}','name',this.value)"></label>
-    <label class="cd-field"><span>標題</span><input type="text" value="${attr(st.title)}" oninput="cardEdit('${cid}','title',this.value)"></label>
+    <label class="cd-field"><span>標題</span><textarea rows="2" oninput="cardEdit('${cid}','title',this.value)">${attr(st.title)}</textarea></label>
     <label class="cd-field"><span>內文</span><textarea rows="5" oninput="cardEdit('${cid}','body',this.value)">${attr(st.body)}</textarea></label>
     <div class="cd-row cd-row-tight"><span class="cd-lbl">尺寸</span><select class="cd-select" onchange="cardEdit('${cid}','ratio',this.value)">${[["ig45","IG／FB 直式 4:5"],["sq","IG／FB 方形 1:1"],["story","限動 9:16"],["auto","自動（依內容高度）"]].map(([v,l])=>`<option value="${v}" ${(st.ratio||"ig45")===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row cd-row-tight"><span class="cd-lbl">配色</span><select class="cd-select" onchange="cardEdit('${cid}','theme',this.value)">${themes.map(([v,l])=>`<option value="${v}" ${st.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row"><span class="cd-lbl">字級</span><div class="cd-seg">${seg("size",[["s","小"],["m","中"],["l","大"]])}</div></div>
     <div class="cd-row"><span class="cd-lbl">對齊</span><div class="cd-seg">${seg("align",[["left","靠左"],["center","置中"],["right","靠右"]])}</div></div>
-    <label class="cd-field"><span>底層文字</span><input type="text" maxlength="60" value="${attr(st.footerText)}" oninput="cardEdit('${cid}','footerText',this.value)"></label>
+    <label class="cd-field"><span>底層文字</span><textarea rows="2" maxlength="60" oninput="cardEdit('${cid}','footerText',this.value)">${attr(st.footerText)}</textarea></label>
     <div class="cd-row"><span class="cd-lbl">底層顯示</span><button class="cd-toggle ${st.footer?"on":""}" onclick="cardToggleFooter('${cid}',this)">${st.footer?"顯示":"隱藏"}</button></div>
   </div>`;
 }
