@@ -2235,6 +2235,15 @@ body.v-mode #village{display:flex}
 #vBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto;flex:none;
   max-height:58%;overflow-y:auto;padding:0;background:none;z-index:5;pointer-events:none}
 #vCard{pointer-events:auto}
+
+/* 覆蓋層：原本的頁面疊在村莊上方，村莊仍在背後 */
+body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
+  width:min(100vw,500px);height:100%;z-index:125;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg,#F5F3EC)}
+#vSheetBack{display:none;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:140;
+  min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(243,217,163,.6);
+  background:linear-gradient(170deg,#173D2D,#0B2119);color:#F6E3B4;font:800 14px/1 "Noto Serif TC","Songti TC",serif;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);cursor:pointer}
+body.v-sheet #vSheetBack{display:block}
 </style>
 </head>
 <body>
@@ -5814,7 +5823,7 @@ setInterval(checkDailyOptimize, 30*60*1000);
    升級以「成品數量」為準：每則圖文或短影音成品 +1 點。
    ========================================================= */
 
-const VW=24, VH=16, T=16, W=VW*T, H=VH*T;
+const VW=14, VH=26, T=16, W=VW*T, H=VH*T;
 const cv=document.getElementById('vCv');
 const g=cv.getContext('2d'); g.imageSmoothingEnabled=false;
 const CAM={x:0,y:0,sw:W,sh:H,Z:1,dpr:1,cw:W,ch:H};
@@ -5824,7 +5833,8 @@ function fit(){
   cv.style.width=cw+'px'; cv.style.height=ch+'px';
   cv.width=Math.round(cw*dpr); cv.height=Math.round(ch*dpr);
   CAM.Z=Math.max(cw/W, ch/H);
-  CAM.sw=cw/CAM.Z; CAM.sh=ch/CAM.Z;
+  CAM.head=150;                       // 標題列高度（CSS px），地圖從它下方開始
+  CAM.sw=cw/CAM.Z; CAM.sh=(ch-CAM.head)/CAM.Z;
   CAM.dpr=dpr; CAM.cw=cw; CAM.ch=ch;
 }
 const bgC=document.createElement('canvas'); bgC.width=W; bgC.height=H;
@@ -5836,22 +5846,23 @@ function fillOn(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h);}
 
 /* ---------- 版面資料 ---------- */
 const BLDS=[
-  {x:2, y:2, w:4,h:2, roof:'#7A3E2A', wall:'#EADCB8', win:2},  // 大長老殿
-  {x:9, y:1, w:3,h:2, roof:'#2E5A8A', wall:'#E9E0C8', win:1},  // 城主府
-  {x:13,y:2, w:3,h:2, roof:'#5A4A8A', wall:'#E9E0C8', win:2},  // 成品館
-  {x:3, y:6, w:3,h:2, roof:'#B0701F', wall:'#EADCB8', win:1},  // 故事小屋
-  {x:8, y:6, w:3,h:2, roof:'#1F7A62', wall:'#E9E0C8', win:1},  // 核心書院
-  {x:14,y:6, w:2,h:2, roof:'#9A5424', wall:'#EADCB8', win:1},  // 影音舞台
-  {x:16,y:6, w:3,h:2, roof:'#2E6FB0', wall:'#E9E0C8', win:2},  // 市場店
-  {x:20,y:9, w:2,h:2, roof:'#6B4E9E', wall:'#D9D0C0', win:1},  // 資料塔
-  {x:10,y:10,w:3,h:2, roof:'#7A4E22', wall:'#EADCB8', win:1},  // 教學工坊
-  {x:2, y:10,w:3,h:2, roof:'#2E6A5A', wall:'#E9E0C8', win:1},  // 素材倉
+  {x:1, y:2, w:3,h:2, roof:'#2E6FB0', wall:'#E9E0C8', win:1},  // 資料塔（資料收集）
+  {x:1, y:6, w:3,h:2, roof:'#2E6A5A', wall:'#E9E0C8', win:1},  // 素材倉（素材庫）
+  {x:1, y:10,w:3,h:2, roof:'#B0701F', wall:'#EADCB8', win:1},  // 故事小屋（故事破冰）
+  {x:1, y:14,w:3,h:2, roof:'#1F7A62', wall:'#E9E0C8', win:1},  // 核心書院（核心處理）
+  {x:1, y:18,w:3,h:2, roof:'#2A67A6', wall:'#E9E0C8', win:2},  // 市場店（市場經營）
+  {x:1, y:22,w:3,h:2, roof:'#9A5424', wall:'#EADCB8', win:1},  // 暖身小屋（暖身邀約）
+  {x:9, y:2, w:3,h:2, roof:'#2E5A8A', wall:'#E9E0C8', win:1},  // 城主府（會員與設定）
+  {x:9, y:6, w:3,h:2, roof:'#7A3E2A', wall:'#EADCB8', win:2},  // 大長老殿（一鍵完成）
+  {x:9, y:10,w:3,h:2, roof:'#B5652E', wall:'#E9E0C8', win:1},  // 影音舞台（影音內容）
+  {x:9, y:14,w:3,h:2, roof:'#5A4A8A', wall:'#E9E0C8', win:2},  // 成品館（成品庫）
+  {x:9, y:18,w:3,h:2, roof:'#7A4E22', wall:'#EADCB8', win:1},  // 教學工坊
 ];
-const POND={x0:17,y0:2,x1:21,y1:4};
-const TREES=[[1,7],[22,6],[18,13],[5,14],[16,14],[22,13],[1,14],[8,14],[13,14],[21,5],[6,3]];
-const LANTERNS=[[7,5],[13,5],[7,13],[18,11],[1,4],[22,10]];
-const PAVILION={x:6,y:10};
-const isPath=(x,y)=>(y===9&&x>=1&&x<=22)||((x===11||x===12)&&y>=3&&y<=14);
+const POND={x0:9,y0:21,x1:11,y1:23};
+const TREES=[[5,5],[12,9],[5,16],[8,21],[12,24],[5,22]];
+const LANTERNS=[[5,8],[8,10],[5,18],[8,18],[5,2],[8,24]];
+const PAVILION={x:9,y:24};
+const isPath=(x,y)=>((x===6||x===7)&&y>=1&&y<=24)||((y===12||y===13)&&x>=1&&x<=12);
 
 const BLK=new Set();
 for(let x=0;x<VW;x++){BLK.add(key(x,0));BLK.add(key(x,VH-1));}
@@ -5869,54 +5880,55 @@ const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36'
 /* ---------- NPC（對應原本各項功能） ---------- */
 const NPC=[
   /* 流程順序：設定 → 收集 → 素材 → 一鍵 → 五大寫作 → 成品 → 教學（名稱與原版相同） */
-  {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:10,y:3,look:L('#7A3E2A','#E7C27A','crown'),
+  {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
    lines:['在這裡管理身分、背景設定與素材。'],
    acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
          ['👤 會員中心',()=>go(()=>openMemberCenter())],
-         ['✨ 草擬健康定位',()=>go(()=>{openView('settings');deriveBrand();})]]},
-  {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:20,y:11,look:L('#6B4E9E','#E2D6FA','hat'),
+         ['✨ 草擬健康定位',()=>bg(()=>deriveBrand())],
+         ['🔄 重新驗證',()=>bg(()=>{initMember();toast('正在重新驗證會員資格…');})]]},
+  {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:4,y:3,look:L('#6B4E9E','#E2D6FA','hat'),
    lines:['選好方向告訴我，我去打探消息。'],
-   acts:[['🛰️ 開始收集',()=>go(()=>openCollector())]]},
-  {id:'library',name:'素材庫',role:'上傳與管理備用資料',ic:'📁',x:3,y:12,look:L('#2E7A6A','#CFEFE3','bag'),
+   acts:[['🛰️ 開始收集',()=>bg(()=>collectNow())],['📋 收集設定',()=>go(()=>openCollector())]]},
+  {id:'library',name:'素材庫',role:'上傳與管理備用資料',ic:'📁',x:4,y:7,look:L('#2E7A6A','#CFEFE3','bag'),
    lines:['檔案留存一次，之後勾選即可使用。'],
    acts:[['📁 打開素材庫',()=>go(()=>openLibrary())]]},
-  {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:3,y:4,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
+  {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:8,y:7,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
    lines:['主題備妥後交給我，一次跑完整套文案。','一人一次，走完全程。'],
    acts:()=>{
      const a=[];
      const r=state.pipeRun;
      if(r && !r.done){
-       a.push(['▶ 接續上次進度',()=>go(()=>{openView('home');runAllDepartments(true);})]);
-       a.push(['✕ 放棄進度',()=>go(()=>{openView('home');discardPipeRun();})]);
+       a.push(['▶ 接續上次進度',()=>bg(()=>runAllDepartments(true))]);
+       a.push(['✕ 放棄進度',()=>bg(vzDiscardPipe)]);
      }else{
-       a.push(['▶ 一鍵自動幫我寫',()=>go(()=>{openView('home');runAllDepartments();})]);
+       a.push(['▶ 一鍵自動幫我寫',()=>bg(()=>runAllDepartments())]);
      }
-     a.push(['📋 回到列表首頁',()=>go(()=>openView('home'))]);
+     a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
    }},
-  {id:'icebreak',name:'故事破冰',role:'用比喻故事讓人停下來',ic:'📖',x:4,y:8,look:L('#C7902B','#FFF1CC','hat'),
+  {id:'icebreak',name:'故事破冰',role:'用比喻故事讓人停下來',ic:'📖',x:4,y:11,look:L('#C7902B','#FFF1CC','hat'),
    lines:['用比喻故事，讓人停下來產生共鳴。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('icebreak'))]]},
-  {id:'core',name:'核心處理',role:'把健康道理講清楚',ic:'🌿',x:9,y:8,look:L('#1F8A72','#CFEFE3','hat'),
+  {id:'core',name:'核心處理',role:'把健康道理講清楚',ic:'🌿',x:4,y:15,look:L('#1F8A72','#CFEFE3','hat'),
    lines:['道理說明白，案例只說個人感受。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('core'))]]},
-  {id:'video',name:'影音內容',role:'把圖文改寫成一分鐘口播',ic:'🎬',x:15,y:8,look:L('#B5652E','#FFD9A8','hat'),
+  {id:'video',name:'影音內容',role:'把圖文改寫成一分鐘口播',ic:'🎬',x:8,y:11,look:L('#B5652E','#FFD9A8','hat'),
    lines:['鏡頭前要有節奏，三秒內抓住人。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('video'))]]},
-  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:17,y:8,look:L('#2E6FB0','#CFE3FA','hat'),
+  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:4,y:19,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
-  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:6,y:12,look:L('#8A5A2E','#F3D9A3','hat'),
+  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:4,y:23,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
    acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
-  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:14,y:4,look:L('#3A4A8A','#F3D9A3','hat'),
+  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:15,look:L('#3A4A8A','#F3D9A3','hat'),
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['📝 圖文',()=>go(()=>openResults('final'))],
          ['🎬 短影音',()=>go(()=>openResults('video'))],
          ['📈 市場經營',()=>go(()=>openResults('market'))],
          ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
          ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
-  {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:11,y:12,look:L('#A8782E','#FBE9B9','hat'),
+  {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:8,y:19,look:L('#A8782E','#FBE9B9','hat'),
    lines:['拿來教材，我幫你鍛造成卡片。'],
    acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
 ];const npcAt=new Map();
@@ -5926,10 +5938,34 @@ NPC.forEach(n=>BLK.has(key(n.x,n.y)) && console.warn('NPC 位置被障礙佔用�
 /* ---------- 導覽：切換村莊 / 列表 ---------- */
 function setMode(m){
   document.body.classList.toggle('v-mode', m==='village');
+  if(m==='village') document.body.classList.remove('v-sheet');
   placeToggle();
   if(m==='village'){ hideCard(); renderVillage(); window.scrollTo(0,0); }
 }
-function go(fn){ setMode('list'); fn(); }
+// 頁面類功能：在村莊上方開啟原本的頁面（不切換到列表，關閉後回到村莊）
+function go(fn){ document.body.classList.add('v-sheet'); fn(); }
+// 背景功能：直接在村莊執行，不開啟頁面
+function bg(fn){ try{ fn(); }catch(e){ toast('發生錯誤：'+e.message); } }
+function closeSheet(){ document.body.classList.remove('v-sheet'); renderVillage(); }
+// 原本的 openView('home') 在覆蓋層中代表「返回」，改為關閉覆蓋層
+const _ov=openView;
+openView=function(v){
+  if(document.body.classList.contains('v-sheet') && v==='home'){ closeSheet(); return; }
+  _ov(v);
+};
+const sheetBack=document.createElement('button');
+sheetBack.id='vSheetBack'; sheetBack.type='button'; sheetBack.textContent='🏘 回村莊';
+sheetBack.onclick=closeSheet;
+document.body.appendChild(sheetBack);
+// 一鍵運轉進度顯示在村莊標題列
+let vzBusy=false;
+const _spb=setPipeBar;
+setPipeBar=function(d,t){ _spb(d,t); vzBusy=true; document.getElementById('vNext').textContent='一鍵運轉中 '+d+'/'+t; };
+const _hpb=hidePipeBar;
+hidePipeBar=function(){ _hpb(); vzBusy=false; renderVillage(); };
+function vzDiscardPipe(){
+  state.pipeRun=null; save(); renderResumeBar(); hidePipeBar(); toast('已放棄未完成流程');
+}
 
 const btn=document.createElement('button');
 btn.id='vToggle'; btn.type='button';
@@ -5966,7 +6002,7 @@ function renderVillage(){
   document.getElementById('vName').textContent=(typeof member!=='undefined' && member.lineName)||'冒險者';
   document.getElementById('vXpFill').style.width=(L2.cur/L2.need*100).toFixed(1)+'%';
   document.getElementById('vCount').textContent=pts+' 則成品';
-  document.getElementById('vNext').textContent='距 Lv.'+(L2.lv+1)+' 還需 '+(L2.need-L2.cur)+' 則';
+  if(!vzBusy) document.getElementById('vNext').textContent='距 Lv.'+(L2.lv+1)+' 還需 '+(L2.need-L2.cur)+' 則';
   const av=document.getElementById('vAv');
   const pic=(typeof member!=='undefined' && member.pic)||'';
   if(pic && av.dataset.pic!==pic){ av.dataset.pic=pic; av.innerHTML='<img src="'+pic+'" alt="">'; }
@@ -6149,7 +6185,7 @@ function human(X,Y,o,dir,step,bob,alert){
 function dirOf(dx,dy){ if(dy>0)return 0; if(dx<0)return 1; if(dx>0)return 2; return 3; }
 
 /* ---------- 玩家與移動 ---------- */
-const P={x:12,y:14,vx:12,vy:14,dir:0,path:[],after:null,last:0};
+const P={x:6,y:13,vx:6,vy:13,dir:0,path:[],after:null,last:0};
 
 function walkable(x,y){
   if(x<0||y<0||x>=VW||y>=VH) return false;
@@ -6240,7 +6276,18 @@ function isNight(){
 function bobOf(i,t){ return Math.sin(t/520+i*1.9)>0.55?-1:0; }
 
 const SPR_W=18.7, SPR_H=28;   // 人物在世界座標中的大小
-function drawChar(id,look,X,Y,dir,step,bob,alert){
+function drawName(name,cx,topY,hot){
+  g.font='700 7px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  g.textAlign='center'; g.textBaseline='middle';
+  const w=g.measureText(name).width+6, h=9, x=cx-w/2, y=topY-h-1;
+  g.fillStyle=hot?'#E7C27A':'rgba(6,20,14,.86)';
+  g.strokeStyle='#E7C27A'; g.lineWidth=.6;
+  g.beginPath(); if(g.roundRect){ g.roundRect(x,y,w,h,2.5); } else { g.rect(x,y,w,h); }
+  g.fill(); g.stroke();
+  g.fillStyle=hot?'#0B1A12':'#F6E3B4';
+  g.fillText(name,cx,y+h/2+.3);
+}
+function drawChar(id,look,X,Y,dir,step,bob,alert,name,hot){
   const im=SPR[id];
   const feet=Y+14, cx=X+8;
   if(im && im.complete && im.naturalWidth){
@@ -6250,10 +6297,11 @@ function drawChar(id,look,X,Y,dir,step,bob,alert){
   }else{
     human(X,Y,look,dir,step,bob,false);
   }
+  if(name) drawName(name,cx,feet-SPR_H+bob-1,hot);
   if(alert && Math.floor(performance.now()/380)%2===0){
     g.fillStyle='#FFD27A';
-    g.fillRect(cx-1, feet-SPR_H+bob-3, 2, 4);
-    g.fillRect(cx-1, feet-SPR_H+bob+2, 2, 1.5);
+    g.fillRect(cx-1, feet-SPR_H+bob+7, 2, 4);
+    g.fillRect(cx-1, feet-SPR_H+bob+12, 2, 1.5);
   }
 }
 function render(t){
@@ -6262,8 +6310,9 @@ function render(t){
   CAM.y=Math.max(0,Math.min(H-CAM.sh, P.vy*T+T/2-CAM.sh/2));
   g.setTransform(1,0,0,1,0,0);
   g.globalCompositeOperation='source-over';
-  g.clearRect(0,0,cv.width,cv.height);
-  g.setTransform(S,0,0,S,-CAM.x*S,-CAM.y*S);
+  g.setTransform(1,0,0,1,0,0);
+  g.fillStyle='#0E2A1E'; g.fillRect(0,0,cv.width,cv.height);
+  g.setTransform(S,0,0,S,-CAM.x*S,CAM.head*CAM.dpr-CAM.y*S);
   g.imageSmoothingEnabled=false;
   g.drawImage(bgC,0,0);
 
@@ -6277,12 +6326,12 @@ function render(t){
   const list=NPC.map((n,i)=>({y:n.y,draw:()=>{
     const near=Math.abs(n.x-P.x)+Math.abs(n.y-P.y);
     const d=near<=2 ? dirOf(P.x-n.x,P.y-n.y) : 0;
-    drawChar(n.id,n.look,n.x*T,n.y*T,d,0,bobOf(i,t)*0.6,near===1);
+    drawChar(n.id,n.look,n.x*T,n.y*T,d,0,bobOf(i,t)*0.6,near===1,n.name,near===1);
   }}));
   const walking=P.path.length>0;
   const pStep=walking ? (Math.floor(t/130)%2===0?1:2) : 0;
   list.push({y:P.vy,draw:()=>{
-    drawChar('player',PLAYER_LOOK,P.vx*T,P.vy*T,P.dir,pStep,(walking&&pStep===1)?-0.8:0,false);
+    drawChar('player',PLAYER_LOOK,P.vx*T,P.vy*T,P.dir,pStep,(walking&&pStep===1)?-0.8:0,false,'',false);
   }});
   list.sort((a,c)=>a.y-c.y).forEach(o=>o.draw());
 
@@ -6335,8 +6384,8 @@ function loop(t){
 
 cv.addEventListener('pointerdown',e=>{
   const r=cv.getBoundingClientRect();
-  const wx=CAM.x+(e.clientX-r.left)/CAM.cw*CAM.sw;
-  const wy=CAM.y+(e.clientY-r.top)/CAM.ch*CAM.sh;
+  const wx=CAM.x+(e.clientX-r.left)/CAM.Z;
+  const wy=CAM.y+(e.clientY-r.top-CAM.head)/CAM.Z;
   tapTile(Math.floor(wx/T), Math.floor(wy/T));
 });
 
