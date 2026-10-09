@@ -3182,7 +3182,7 @@ function renderResults(){
     updateResSummary(); return;
   }
   box.innerHTML=items.map(t=>{
-    const body=richBody(t.output);
+    const body=richBody(t.output, t.deptId==="video");
     return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
       <div class="res-top">
         <span class="res-plat">${esc(t.platform||"成品")}</span>
@@ -3192,7 +3192,7 @@ function renderResults(){
       ${body}
       <div class="hi-actions">
         <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
-        <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
+        <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="${t.deptId==="video"?"1":""}" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
         <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
       </div>
       <div class="cardwrap" id="rescw-${t.id}"></div>
@@ -3203,9 +3203,10 @@ function renderResults(){
 function makeCardFromResult(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
   const plat=btn.getAttribute("data-plat")||"";
+  const single=btn.getAttribute("data-single")==="1";
   const card=btn.closest(".res-item");
   const wrap=card.querySelector(".cardwrap");
-  renderCardInto(wrap, txt, plat);
+  renderCardInto(wrap, txt, plat, single);
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function copyResultWhole(btn){
@@ -3845,7 +3846,7 @@ async function runAllDepartments(resume){
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
       if(built.trimmed) run.anyTrim=true;
       const out=await callOpenAI(buildSys(d), built.content, 1800);
-      run.collected.push({name:d.name, out});
+      run.collected.push({name:d.name, out, deptId:d.id});
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
         input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(),
@@ -3864,7 +3865,7 @@ async function runAllDepartments(resume){
     setPipeRemark("🧵", "正在統整所有部門產出，優化成可直接發布的成品…");
     const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個部門的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現部門名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
-    run.collected.forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
+    run.collected.filter(c=>c.deptId!=="video").forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
     const finalOut=await callOpenAI(editorSys, comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
@@ -4007,7 +4008,17 @@ function toggleFold(btn){
     btn.innerHTML=`<span class="fold-ic">📂</span>展開查看　${btn.dataset.count} ${esc(btn.dataset.noun)}<span class="fold-chev">▾</span>`;
   }
 }
-function richBody(out){
+function singleBody(out){
+  return `<div class="card-deck seg-deck"><div class="tcard flat">
+    <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
+      <span class="tcard-num">01</span>
+      <span class="tcard-tag">影音內容部 · 一分鐘逐字稿</span>
+      <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc((out||"").replace(/^#+\s*/gm,""))}</div>
+      <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
+    </div></div></div>`;
+}
+function richBody(out, single){
+  if(single) return singleBody(out);
   const blocks=splitPlatforms(out);
   if(blocks){
     const inner=`<div class="plat-blocks">`+blocks.map(b=>{
@@ -4057,10 +4068,10 @@ function resultCard(d,out){
   const cid="dc"+Date.now()+Math.floor(Math.random()*1000);
   return `<div class="output-card">
     <div class="oc-head"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${d.emoji} ${esc(d.name)}<span class="saved-tag">已存入此部門</span></div>
-    ${richBody(out)}
+    ${richBody(out, d.id==="video")}
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製全部</button>
-      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+      <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-single="${d.id==="video"?"1":""}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
@@ -4285,19 +4296,20 @@ function cardEditorHTML(cid){
 function makeCardFromBtn(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
   const plat=btn.getAttribute("data-plat")||"";
+  const single=btn.getAttribute("data-single")==="1";
   const card=btn.closest(".output-card");
   const wrap=card.querySelector(".cardwrap");
-  renderCardInto(wrap, txt, plat);
+  renderCardInto(wrap, txt, plat, single);
   wrap.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
-function renderCardInto(wrap, txt, plat){
-  const blocks=splitPlatforms(txt);
+function renderCardInto(wrap, txt, plat, single){
+  const blocks=single?null:splitPlatforms(txt);
   const groups = blocks && blocks.length>1
     ? blocks.map(b=>({body:b.body, plat:b.label}))
     : [{body:txt, plat:plat||""}];
   const items=[];
   groups.forEach(({body, plat:itemPlat})=>{
-    const segs=segmentize(body).filter(s=>s.trim());
+    const segs=single?[body]:segmentize(body).filter(s=>s.trim());
     segs.forEach((seg,i)=> items.push({body:seg, plat:itemPlat, seg:i+1, segTotal:segs.length}));
   });
   wrap.innerHTML = items.map(({body:bodyTxt, plat:itemPlat, seg, segTotal})=>{
@@ -4386,10 +4398,10 @@ function renderOutput(out, d){
   document.getElementById("outputZone").innerHTML=
    `<div class="output-card">
      <div class="oc-head"><span class="pin" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${esc(d.name)} 產出<span class="saved-tag">已存入「${esc(d.name)}」紀錄</span></div>
-     <div id="lastOutWrap">${richBody(out)}</div>
+     <div id="lastOutWrap">${richBody(out, d.id==="video")}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
-       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
+       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-single="${d.id==="video"?"1":""}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
        <div class="handoff-title">交辦給下一個部門 ▸</div>
        ${others.map(o=>`<button class="ho-btn" style="background:${o.accent}" onclick="handoff('${d.name}', getLastOut(), '${o.id}')">${o.emoji} ${esc(o.name)}</button>`).join("")}
      </div>
