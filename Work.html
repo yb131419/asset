@@ -989,6 +989,12 @@
   .coll-item-sel:last-child{border-bottom:none;}
   .coll-item-sel:active{background:rgba(46,107,74,.05);}
   .coll-item-sel.selected{background:rgba(46,107,74,.07);}
+  .mc-note{padding:6px 14px;}
+  .mn-row{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-bottom:1px solid rgba(23,85,58,.08);}
+  .mn-row:last-child{border-bottom:none;}
+  .mn-row>span{font-size:18px;line-height:1.3;}
+  .mn-row b{display:block;font-size:14px;color:#1F3A2E;font-weight:800;margin-bottom:2px;}
+  .mn-row small{font-size:12.5px;color:#66756B;line-height:1.6;}
   .ci-sub{display:block;font-size:11.5px;font-weight:500;color:#7A8A80;line-height:1.55;margin-top:3px;white-space:normal;}
 
   .ci-ic{font-size:16px;flex-shrink:0;width:22px;text-align:center;}
@@ -2507,7 +2513,12 @@
     <div id="mcRetryWrap" style="display:none;margin-bottom:6px;">
       <button class="deck-btn" style="width:100%;" onclick="initMember()">🔄 重新驗證會員資格</button>
     </div>
-    <div class="note">🌿 本系統採 LINE 會員驗證（👑尊爵永久／💎尊爵限時／🥇黃金扣次）。AI 由後端代呼叫，成功才扣次；金鑰安全存放在後端，前端不需要任何金鑰。<br>📦 所有會員的分類紀錄、素材庫、卡組、成品都會永久保留在瀏覽器裡，重新開啟或重新驗證都不會清空。<br>⚖️ 所有 AI 產出均已內建合規提示，嚴格遵守台灣食品安全衛生管理法廣告規定。<br>⚡ 目前固定使用快速模型，確保回應速度穩定。</div>
+    <div class="note mc-note">
+      <div class="mn-row"><span>🔐</span><div><b>會員驗證</b><small>LINE 登入後使用，AI 成功才扣次，金鑰只存在後端。</small></div></div>
+      <div class="mn-row"><span>💾</span><div><b>資料保留</b><small>分類紀錄、素材庫、卡組與成品都保存在瀏覽器，重新開啟不會清空。</small></div></div>
+      <div class="mn-row"><span>⚖️</span><div><b>合規</b><small>所有產出內建合規提示，遵守台灣食品安全衛生管理法廣告規定。</small></div></div>
+      <div class="mn-row"><span>⚡</span><div><b>模型</b><small>目前固定使用快速模型，回應速度穩定。</small></div></div>
+    </div>
 
     <div class="field">
       <label>名稱（顯示在最上方標題）</label>
@@ -3840,37 +3851,62 @@ function updateCollSummary(){
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
 async function collectNow(){ await collectTopics(false); }
+// 目前在資料收集選取的方向：auto（智囊軍師判定）、health、concept、biz、net（網路行銷卡點）
+function collSelections(){
+  const out=[];
+  if(_collSel.health) out.push({k:'health', label:_collSelLabel.health||_collSel.health});
+  if(_collSel.concept) out.push({k:'concept', label:_collSelLabel.concept||_collSel.concept});
+  if(_collSel.biz) out.push({k:'biz', label:_collSelLabel.biz||_collSel.biz});
+  if(_bizPlan[0]) out.push({k:'net', label:_bizPlan[0]});
+  return out;
+}
+const COLL_DIR_TEXT={
+  health:(l)=>`health：健康主題「${l}」。用大健康原理的生活化比喻（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）切入，案例只說個人感受，不得出現療效字眼。`,
+  concept:(l)=>`concept：觀念主題「${l}」。用《康園道》風格的對比與反問帶出思考，結尾有金句。`,
+  biz:(l)=>`biz：經營主題「${l}」。寫給新手能照著做的經營方向，語氣像前輩帶新手。`,
+  net:(l)=>`net：網路行銷，目前卡點是「${l}」。每則話題都要直接解決這個卡點，說清楚怎麼做，不整合其他問題。`
+};
+const COLL_CAT_LABEL={health:"🌿 健康",concept:"💡 觀念",biz:"🧭 經營",net:"🌐 網路行銷"};
 async function collectTopics(silent){
   if(running){ if(!silent) toast("有任務進行中，請稍候"); return; }
   if(!aiReady()){ if(!silent){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); } return; }
+  const sels=collSelections();
+  if(!_collSel.auto && sels.length===0){ if(!silent) toast("請先選擇主題、網路行銷卡點，或開啟智囊軍師判定"); return; }
   running=true;
   const btn=document.getElementById("collectBtn");
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 收集中…'; }
-  const collCat = getCollCategory();
-  const collTopic = getCollTopic() || state.collector.topicHint || '';
-  let sys;
-  if(collCat==='auto'){
-    const hTopics=[...document.querySelectorAll('#collHealthGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
-    const cTopics=[...document.querySelectorAll('#collConceptGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
-    sys=`你是內容選題編輯，擅長掌握台灣近期熱門話題。請為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 挑出此刻最熱門、適合發文的話題。\n\n【每個話題必須同時符合】\n✓ 落在以下健康主題的範圍：${hTopics}\n✓ 或落在以下觀念主題的範圍：${cTopics}\n✓ 用熱門議題自然帶出上述主題，不要硬湊\n\n【合規】不得出現療效、治療、根治、保證有效等字眼；案例只說個人感受。\n\n只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）、angle（一句話切入角度）、cat（"health" 或 "concept"，表示偏向哪一類）。不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
-  } else if(collCat==='biz'){
-    sys=`你是網路經營內容選題編輯，專門為完全新手設計。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的「網路經營」話題（新手開始、引流、互動回覆、經營節奏、追蹤檢視等方向）。語氣親切、像前輩帶新手，不做收入或成效保證。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
-  } else if(collCat==='concept'){
-    sys=`你是觀念內容選題編輯，擅長《康園道》系列的文章風格。為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line，產出此刻適合發文的觀念類話題（財富觀、經營觀、市場觀、人生觀、自律、累積、選擇等方向）。風格要像《康園道》：用對比和反問帶出思考，有金句收尾。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話切入角度和金句方向），不要任何其他文字、不要 markdown。\n\n【背景設定】\n${(state.context||"").slice(0,600)}`;
-  } else {
-    sys=`你是保健內容選題編輯。依下方【背景設定】的族群與主題，為台灣的 TikTok／Instagram／Threads／YouTube／Facebook／Line 產出此刻適合發文的保健話題。每個主題優先配合大健康原理故事寶典的比喻方式（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）。只回 JSON 陣列、長度 6，每個物件含 topic（吸睛話題標題）與 angle（一句話比喻切入角度），不要任何其他文字、不要 markdown。絕對不能出現療效、治療、根治等違規字眼。\n\n【背景設定】\n${(state.context||"").slice(0,800)}`;
+  const validCats=_collSel.auto ? ['health','concept'] : sels.map(x=>x.k);
+  const hHint=[...document.querySelectorAll('#collHealthGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
+  const cHint=[...document.querySelectorAll('#collConceptGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
+  let dirs, extra;
+  if(_collSel.auto){
+    dirs=[
+      `health：健康主題，可參考範圍：${hHint}。用大健康原理的生活化比喻切入，案例只說個人感受，不得出現療效字眼。`,
+      `concept：觀念主題，可參考範圍：${cHint}。用《康園道》風格的對比與反問，結尾有金句。`
+    ].join("\n");
+    extra="由你（智囊軍師）判斷最適合近期發文的方向（health 或 concept），並在 cat 欄位標明。";
+  }else{
+    dirs=sels.map(x=>COLL_DIR_TEXT[x.k](x.label)).join("\n");
+    extra=sels.length>1
+      ? "所選方向有多個，請平均分配 6 則，每則在 cat 欄位標明所屬方向。"
+      : `6 則全部屬於「${COLL_CAT_LABEL[sels[0].k]}」方向，cat 皆填 ${sels[0].k}。`;
   }
-  const hint=collCat==='auto'?"請以近期熱門話題為主，並確保符合上述健康與觀念主題。":(collTopic?("主題方向："+collTopic+"。"):"");
+  const sys=`你是台灣的內容選題編輯，為 TikTok／Instagram／Threads／YouTube／Facebook／Line 挑出此刻適合發文的話題。\n【背景設定】\n${(state.context||"").slice(0,500)}\n\n【只能產出以下方向的話題】\n${dirs}\n\n${extra}\n每則話題要有吸睛標題（topic）與一句話切入角度（angle），並附 cat 欄位。\n只回 JSON 陣列、長度 6，不要任何其他文字、不要 markdown。`;
+  const webQ=(sels.map(x=>x.label).join(" ")||"台灣 網路行銷 健康")+" 近期 熱門 話題 最新";
   try{
-    const rs=await webSearch((collTopic||"台灣 網路經營 健康")+" 近期 熱門 話題 最新");
-    const r=await callOpenAI(sys+realDataBlock(rs), hint+"請給 6 個話題的 JSON 陣列。", 900);
+    const rs=await webSearch(webQ);
+    const r=await callOpenAI(sys+realDataBlock(rs), "請依上面的方向產出 6 則話題的 JSON 陣列。", 900);
     let arr=[]; try{ arr=JSON.parse(cleanJSON(r)); }catch(e){ arr=[]; }
     if(!Array.isArray(arr)||arr.length===0) throw new Error("回傳格式無法解析，請再試一次");
-    const batch=arr.slice(0,8).map(o=>({ id:Date.now()+Math.random(), time:Date.now(),
-      topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(),
-      cat: collCat==='auto' ? (o.cat==='concept'?'concept':'health') : collCat,
-      auto: collCat==='auto', used:false }))
-      .filter(o=>o.topic);
+    const fallback = _collSel.auto ? 'health' : sels[0].k;
+    const batch=arr.slice(0,8).map(o=>{
+      let cat=String(o.cat||"").trim();
+      if(!validCats.includes(cat)) cat = _collSel.auto ? (cat==='concept'?'concept':'health') : (validCats.length===1?validCats[0]:fallback);
+      return { id:Date.now()+Math.random(), time:Date.now(),
+        topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(),
+        cat, bottleneck: cat==='net' ? (_bizPlan[0]||"") : "",
+        auto: _collSel.auto, used:false };
+    }).filter(o=>o.topic);
     state.collections=[...batch, ...state.collections].slice(0,120);
     state.collector.lastRun=Date.now();
     save(); renderCollector(); updateCollSummary();
@@ -3881,6 +3917,10 @@ async function collectTopics(silent){
     if(btn){ btn.disabled=false; btn.innerHTML="🛰️ 立即收集話題"; }
   }
 }
+function catBadge(c){
+  const map={health:['#2E6B4A','rgba(46,107,74,.12)','🌿 健康'],concept:['#5A4A8A','rgba(90,74,138,.12)','💡 觀念'],biz:['#2E6B4A','rgba(46,107,74,.12)','🧭 經營'],net:['#1F5A7A','rgba(31,90,122,.12)','🌐 網路行銷']};
+  const m=map[c.cat]; return m?`<span class="coll-used" style="color:${m[0]};background:${m[1]}">${m[2]}</span>`:'';
+}
 function renderCollector(){
   const box=document.getElementById("collectList"); if(!box) return;
   if(state.collections.length===0){
@@ -3889,7 +3929,7 @@ function renderCollector(){
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
     <button class="coll-del" onclick="deleteTopic('${c.id}')">刪除</button>
-    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':c.cat==="biz"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🧭 經營</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${catBadge(c)} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
@@ -3972,8 +4012,12 @@ function setHomeTopic(cat, text, label){
 function useTopic(id){
   const c=findTopic(id); if(!c) return;
   c.used=true; save();
-  const cat = c.cat==='concept' ? 'concept' : c.cat==='biz' ? 'biz' : 'health';
-  setHomeTopic(cat, c.topic + (c.angle?("："+c.angle):""), c.topic);
+  if(c.cat==='net'){
+    if(c.bottleneck){ _bizPlan.length=0; _bizPlan.push(c.bottleneck); syncNetBadge(); persistPipeSel(); renderPlPicked(); }
+  }else{
+    const cat = c.cat==='concept' ? 'concept' : c.cat==='biz' ? 'biz' : 'health';
+    setHomeTopic(cat, c.topic + (c.angle?("："+c.angle):""), c.topic);
+  }
   renderCollector();
   openView("home");
   setTimeout(()=>{ const p=document.querySelector(".pipeline"); if(p) p.scrollIntoView({behavior:"smooth",block:"start"}); },120);
