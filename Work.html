@@ -1839,6 +1839,17 @@
     box-shadow:inset 0 1px 0 rgba(255,246,220,.22),inset 0 -2px 0 rgba(0,0,0,.25),0 14px 30px rgba(6,22,15,.35),0 0 22px rgba(231,194,122,.14) !important;
   }
   .pl-run.dark:disabled{background:linear-gradient(180deg,#3A5246,#2A3E35) !important;color:rgba(243,217,163,.6) !important;}
+
+  /* ===== 按鈕置中、流程進度摺疊、文字精修 ===== */
+  .oc-actions,.hi-actions{justify-content:center !important;text-align:center;flex-wrap:wrap;}
+  .pl-fold{border:1px solid rgba(231,194,122,.28);border-radius:16px;background:rgba(255,255,255,.04);overflow:hidden;margin:12px 0;}
+  .pl-fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;font-family:"Noto Serif TC","Songti TC",serif;font-weight:800;letter-spacing:1.5px;color:#F3D9A3;font-size:14px;}
+  .pl-fold>summary::-webkit-details-marker{display:none;}
+  .pl-fold>summary::after{content:"＋";font-size:16px;opacity:.8;margin-left:10px;}
+  .pl-fold[open]>summary::after{content:"－";}
+  .pl-fold-n{font-family:-apple-system,"PingFang TC",sans-serif;font-size:12px;font-weight:700;color:rgba(243,217,163,.7);margin-left:auto;margin-right:8px;}
+  .pl-steps{padding:4px 16px 12px;}
 </style>
 </head>
 <body>
@@ -2059,7 +2070,14 @@
       <span class="chev">›</span>
     </div>
 
-    <!-- 主題快選 -->
+  </section>
+
+  <!-- CARDGEN 圖卡產生器 -->
+  <section id="view-cardgen" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🖼️ 圖卡產生器</h2><p>AI 自動排版金句卡、健康卡、觀念卡，截圖即發布</p></div>
+    </div>
     <div class="section-label">選擇類型</div>
     <div class="cg-type-row">
       <button class="cg-type-btn active" onclick="selectCardType(this,'quote')">💬 金句卡</button>
@@ -2077,7 +2095,6 @@
 
     <!-- 圖卡預覽區 -->
     <div id="cardgenResult"></div>
-
   </section>
 
   <!-- CARDS 教學卡片工坊 -->
@@ -3837,8 +3854,9 @@ async function runAllDepartments(resume){
   const results=document.getElementById("pipeResults");
   if(!resume) results.innerHTML="";
   const TOTAL=order.length+1;
-  prog.innerHTML=order.map((d,i)=>`<div class="pl-step" id="plstep-${i}"><span class="st">${i+1}</span>${esc(d.name)}</div>`).join("")
-    +`<div class="pl-step" id="plstep-final"><span class="st">📄</span>統整成品文章</div>`;
+  prog.innerHTML=`<details class="pl-fold"><summary><span>流程進度</span><span class="pl-fold-n">${order.length+1} 步</span></summary><div class="pl-steps">`
+    +order.map((d,i)=>`<div class="pl-step" id="plstep-${i}"><span class="st">${i+1}</span>${esc(d.name.replace(/部$/,""))}</div>`).join("")
+    +`<div class="pl-step" id="plstep-final"><span class="st">📄</span>統整成品</div></div></details>`;
   setPipeBar(run.step, TOTAL);
   setPipeRemark(resume?"⏩":"🚀",
     resume?`從第 ${run.step+1} 步接續執行…`:"開始運轉，各部門將依序產出內容",
@@ -4112,7 +4130,8 @@ function finalCard(out, plat){
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-plat="${esc(plat||"")}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
-      <button class="mini" onclick="openResults()">📦 前往成品庫</button>
+      <button class="mini" onclick="openResults('final')">📝 前往文章部</button>
+      <button class="mini" onclick="openResults('video')">🎬 前往影音部</button>
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
