@@ -1901,6 +1901,17 @@
   .coll-item{position:relative;}
   .coll-item .coll-top{padding-right:58px;}
   .coll-del{position:absolute;top:12px;right:12px;font-size:12px;font-weight:700;font-family:inherit;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:4px 11px;line-height:1.4;cursor:pointer;}
+  .pp-box{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;}
+  .pp-chip{display:inline-flex;align-items:center;border:1px solid rgba(243,217,163,.28);border-radius:999px;background:rgba(255,255,255,.06);}
+  .pp-chip button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:rgba(243,236,220,.9);padding:7px 12px;min-height:34px;cursor:pointer;}
+  .pp-chip.on{background:linear-gradient(160deg,#E7C27A,#B8863C);border-color:transparent;}
+  .pp-chip.on button{color:#1A2A20;}
+  .pp-chip .pp-x{padding:7px 10px 7px 0;opacity:.6;font-size:15px;}
+  .pp-chip-add{border:1px dashed rgba(243,217,163,.5);border-radius:999px;background:transparent;font:inherit;font-size:13px;font-weight:700;color:#F3D9A3;padding:7px 13px;min-height:34px;cursor:pointer;}
+  .pp-add{display:flex;gap:8px;width:100%;margin:0 0 10px;}
+  .pp-add[hidden]{display:none;}
+  .pp-add input{flex:1;min-width:0;border:1px solid rgba(243,217,163,.35);border-radius:12px;padding:9px 12px;font:inherit;font-size:14px;background:rgba(255,255,255,.08);color:#F3ECDC;}
+  .pp-add button{border:0;border-radius:12px;background:linear-gradient(160deg,#F3D9A3,#C9A15A);color:#1A2A20;font-weight:700;padding:0 16px;min-height:40px;}
   .cg-ratio{margin:0 0 10px;}
   .cg-ratio button{min-height:36px;padding:7px 4px;font-size:13px;}
   .cg-ratio button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;}
@@ -2111,6 +2122,8 @@
 
       </div>
       <!-- 自由輸入（選填補充） -->
+      <div id="ppBox" class="pp-box"></div>
+      <div id="ppAdd" class="pp-add" hidden><input id="ppAddInput" maxlength="30" placeholder="輸入自訂內容，例如：加上優惠說明"><button type="button" onclick="ppAddCustom()">加入</button></div>
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
       <div id="pipeSteps" style="display:none"></div>
       <div id="pipePlatBar" style="display:none"></div>
@@ -2448,6 +2461,64 @@ function selectPlat(el, val){ return;
 
 // 保留 selectCatChip 兼容舊代碼
 function selectCatChip(el, cat, val){ selectTopic(el, cat, val); }
+
+/* ===== 補充說明：常用預設問題 + 自訂內容 ===== */
+const PP_DEFAULT=["強調客戶真實感受","加上邀約結尾","口語親切一點","加入生活情境故事","結尾附互動提問","不要誇大療效","加上行動呼籲"];
+let _ppAddOpen=false;
+function ppList(kind){ return kind==="c" ? (state.pipePresets||[]) : PP_DEFAULT; }
+function ppEscHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+function renderPipePresets(){
+  const box=document.getElementById("ppBox"); if(!box) return;
+  const v=document.getElementById("pipeInput").value||"";
+  const chip=(kind,p,i)=>{
+    const on=v.includes(p);
+    return `<span class="pp-chip ${on?"on":""}"><button type="button" onclick="ppToggle('${kind}',${i})">${ppEscHtml(p)}</button>${kind==="c"?`<button type="button" class="pp-x" onclick="ppDelCustom(${i})" aria-label="刪除">×</button>`:""}</span>`;
+  };
+  box.innerHTML = ppList("d").map((p,i)=>chip("d",p,i)).join("")
+    + ppList("c").map((p,i)=>chip("c",p,i)).join("")
+    + `<button type="button" class="pp-chip-add" onclick="ppOpenAdd()">＋ 自訂內容</button>`;
+}
+function ppToggle(kind, i){
+  const p=ppList(kind)[i]; if(!p) return;
+  const ta=document.getElementById("pipeInput");
+  let v=ta.value;
+  if(v.includes(p)){
+    v=v.split("；").map(s=>s.split(p).join("").trim()).filter(Boolean).join("；");
+  }else{
+    v = v.trim() ? v.trim().replace(/[；;]\s*$/,"") + "；" + p : p;
+  }
+  ta.value=v;
+  renderPipePresets();
+}
+function ppOpenAdd(){
+  _ppAddOpen=!_ppAddOpen;
+  const row=document.getElementById("ppAdd");
+  row.hidden=!_ppAddOpen;
+  if(_ppAddOpen) document.getElementById("ppAddInput").focus();
+}
+function ppAddCustom(){
+  const inp=document.getElementById("ppAddInput");
+  const t=(inp.value||"").trim();
+  if(!t){ toast("請輸入自訂內容"); return; }
+  state.pipePresets=state.pipePresets||[];
+  if(!state.pipePresets.includes(t)) state.pipePresets.push(t);
+  save();
+  inp.value="";
+  _ppAddOpen=false;
+  document.getElementById("ppAdd").hidden=true;
+  renderPipePresets();
+  toast("已加入自訂內容");
+}
+function ppDelCustom(i){
+  if(!state.pipePresets) return;
+  state.pipePresets.splice(i,1);
+  save();
+  renderPipePresets();
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  renderPipePresets();
+  document.getElementById("pipeInput").addEventListener("input",renderPipePresets);
+});
 
 function buildPipeGoalFromChips(){
   const parts=[];
