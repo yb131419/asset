@@ -2141,7 +2141,7 @@
   .lc-btn.primary{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;border-color:transparent;}
   .lc-btn.ghost{flex:0 0 auto;color:#9A3D25;border-color:rgba(154,61,37,.2);}
   .lib-card .li-digest{margin-top:12px;}
-/* ===== 遊戲風格覆蓋層（RPG 冒險 HUD，貼在 </style> 前） ===== */
+/* ===== 遊戲風格覆蓋層（RPG 冒險 HUD） ===== */
 :root{
   --rpg-gold:#E8B84A; --rpg-gold-d:#8F6418; --rpg-parch:#F4E7C5; --rpg-ink:#2D1E10;
   --rpg-red:#D9483B; --ink:#2D1E10; --ink-soft:#5A4524; --ink-faint:#8A7450; --line:rgba(45,30,16,.22);
@@ -2303,7 +2303,21 @@ h1,h2,h3,.ws-title h2,.dept-name,.le-name,.pl-title,.gate-title{font-family:"Pin
 
 /* 狀態頁小字 */
 .build-tag,.home-build{color:#8A7A9E!important;}
-
+/* ===== 冒險地圖 ===== */
+.map-wrap{position:relative;border:3px solid #000;border-radius:12px;overflow:hidden;box-shadow:0 5px 0 #000;margin-bottom:12px;background:#5E9E4E;}
+#mapCanvas{display:block;width:100%;height:360px;touch-action:none;}
+.map-hud{position:absolute;left:8px;top:8px;display:flex;align-items:center;gap:6px;background:rgba(20,12,24,.85);border:2px solid var(--rpg-gold-d);border-radius:8px;padding:5px 8px;font-size:11px;font-weight:900;color:var(--rpg-gold);pointer-events:none;}
+.map-hud b{color:#F4E7C5;min-width:34px;text-align:right;}
+.map-bar{width:96px;height:10px;background:#000;border:2px solid var(--rpg-gold-d);border-radius:3px;overflow:hidden;}
+.map-bar i{display:block;height:100%;width:100%;background:linear-gradient(180deg,#8FE39A,#3FA655);transition:width .5s;}
+.map-bar i.mid{background:linear-gradient(180deg,#FFE27A,#D9A21B);}
+.map-bar i.low{background:linear-gradient(180deg,#FF9A8A,var(--rpg-red));}
+.map-joy{position:absolute;left:12px;bottom:12px;width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.35);border:3px solid rgba(232,184,74,.6);touch-action:none;user-select:none;}
+.map-knob{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFE08A,#B8862C);border:2px solid #000;box-shadow:0 3px 0 #000;pointer-events:none;}
+.map-legend{font-size:12px;color:#D8C9A8;text-align:center;line-height:1.7;padding:0 6px 8px;}
+#view-map .ws-title p{color:#D8C9A8!important;}
+</style>
+</head>
 <body>
 <!-- 進場驗證頁：質感登入頁，顯示會員身分後才進入系統 -->
 <div class="gate" id="gateScreen">
@@ -2419,6 +2433,16 @@ h1,h2,h3,.ws-title h2,.dept-name,.le-name,.pl-title,.gate-title{font-family:"Pin
       <div class="le-meta">
         <div class="le-name">短影音</div>
         <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="home-cat">探索</div>
+    <div class="lib-entry" onclick="openView('map')">
+      <div class="le-ic" style="background:rgba(232,184,74,.2);color:#8F6418">🗺️</div>
+      <div class="le-meta">
+        <div class="le-name">冒險地圖</div>
+        <div class="le-sub">用搖桿走一走，看看村子裡的角落</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -2653,6 +2677,20 @@ h1,h2,h3,.ws-title h2,.dept-name,.le-name,.pl-title,.gate-title{font-family:"Pin
   </section>
 
   <!-- SETTINGS -->
+  <!-- MAP 冒險地圖 -->
+  <section id="view-map" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🗺️ 冒險地圖</h2><p>搖桿或方向鍵走動，障礙會擋住你</p></div>
+    </div>
+    <div class="map-wrap">
+      <canvas id="mapCanvas"></canvas>
+      <div class="map-hud"><span class="rpg-lv" id="mapLv">Lv</span><div class="map-bar"><i id="mapHpFill"></i></div><b id="mapHpTxt">—</b></div>
+      <div class="map-joy" id="mapJoy"><div class="map-knob" id="mapKnob"></div></div>
+    </div>
+    <div class="map-legend">🏠 房屋　🏺 陶罐　🌳 大樹<br>走動不消耗次數；HP 來自會員剩餘次數（尊爵為無限）</div>
+  </section>
+
   <section id="view-settings" class="view">
     <div class="ws-head">
       <button class="back" onclick="openView('home')">‹</button>
@@ -5834,6 +5872,7 @@ function renderDrawer(){
     <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場經營<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('warmup'))"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🤝</span>暖身邀約<span class="cnt">${state.tasks.filter(t=>t.deptId==="warmup").length} 則</span></button>
     <div class="dr-cat">工具</div>
+    <button class="dr-item" onclick="goMenu(()=>openView('map'))"><span class="ic" style="background:rgba(232,184,74,.2);color:#E8B84A">🗺️</span>冒險地圖</button>
     <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學工坊<span class="cnt">${state.decks.length} 副</span></button>
 `;
 }
@@ -5851,6 +5890,170 @@ checkAutoCollect();
 setTimeout(checkDailyOptimize, 5000);
 setInterval(checkAutoCollect, 15*60*1000);
 setInterval(checkDailyOptimize, 30*60*1000);
+
+/* ===== 冒險地圖：可走動的小地圖（色塊原型，之後可換精靈圖） ===== */
+const MAP_W=800, MAP_H=560, PR=12, MAP_SPEED=2.6;
+const MAP_OBS=[
+  {t:"house",x:90,y:70,w:150,h:110},
+  {t:"house",x:520,y:50,w:170,h:120},
+  {t:"house",x:600,y:380,w:130,h:100},
+  {t:"pot",x:300,y:150,r:14},
+  {t:"pot",x:330,y:166,r:14},
+  {t:"pot",x:470,y:330,r:14},
+  {t:"tree",x:250,y:420,r:26},
+  {t:"tree",x:690,y:230,r:26},
+  {t:"tree",x:60,y:320,r:26}
+];
+const MAP_PATHS=[{x:0,y:240,w:MAP_W,h:60},{x:360,y:0,w:60,h:MAP_H}];
+const mapState={x:400,y:300,dir:"down",walk:0,active:false,raf:0,tick:0,joy:{x:0,y:0,on:false,cx:0,cy:0},keys:{}};
+
+function mapBlocked(x,y){
+  if(x<PR||y<PR||x>MAP_W-PR||y>MAP_H-PR) return true;
+  for(const o of MAP_OBS){
+    if(o.t==="house"){
+      const nx=Math.max(o.x,Math.min(x,o.x+o.w)), ny=Math.max(o.y,Math.min(y,o.y+o.h));
+      if(Math.hypot(x-nx,y-ny)<PR) return true;
+    }else{
+      const rad=o.t==="tree"?o.r*0.5:o.r;
+      if(Math.hypot(x-o.x,y-o.y)<rad+PR*0.8) return true;
+    }
+  }
+  return false;
+}
+function mapStep(){
+  const k=mapState.keys, j=mapState.joy;
+  let ix=j.x, iy=j.y;
+  if(!ix&&!iy){
+    ix=((k.arrowright||k.d)?1:0)-((k.arrowleft||k.a)?1:0);
+    iy=((k.arrowdown||k.s)?1:0)-((k.arrowup||k.w)?1:0);
+  }
+  const len=Math.hypot(ix,iy);
+  if(len<0.12) return false;
+  const m=Math.min(1,len), ux=ix/len, uy=iy/len, sp=MAP_SPEED*m;
+  const dx=ux*sp, dy=uy*sp;
+  if(!mapBlocked(mapState.x+dx,mapState.y)) mapState.x+=dx;
+  if(!mapBlocked(mapState.x,mapState.y+dy)) mapState.y+=dy;
+  if(Math.abs(ux)>Math.abs(uy)) mapState.dir = ux>0?"right":"left";
+  else mapState.dir = uy>0?"down":"up";
+  mapState.walk+=0.25*m;
+  return true;
+}
+function mapDrawObj(g,o){
+  if(o.t==="house"){
+    const wallY=o.y+o.h*0.38, wh=o.h-(wallY-o.y);
+    g.fillStyle="rgba(0,0,0,.22)"; g.fillRect(o.x+6,o.y+o.h-4,o.w,10);
+    g.fillStyle="#E8D7B0"; g.fillRect(o.x,wallY,o.w,wh);
+    g.strokeStyle="#4A2E14"; g.lineWidth=3; g.strokeRect(o.x,wallY,o.w,wh);
+    g.fillStyle="#B5452E"; g.beginPath(); g.moveTo(o.x-10,wallY+2); g.lineTo(o.x+o.w/2,o.y); g.lineTo(o.x+o.w+10,wallY+2); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle="#6B3E1E"; g.fillRect(o.x+o.w/2-12,o.y+o.h-34,24,34);
+    g.fillStyle="#9EC9E8"; g.fillRect(o.x+16,wallY+12,22,20); g.fillRect(o.x+o.w-38,wallY+12,22,20);
+  }else if(o.t==="pot"){
+    g.fillStyle="rgba(0,0,0,.25)"; g.beginPath(); g.ellipse(o.x,o.y+o.r*0.6,o.r*0.9,o.r*0.4,0,0,Math.PI*2); g.fill();
+    g.fillStyle="#A0622E"; g.beginPath(); g.ellipse(o.x,o.y,o.r*0.8,o.r*0.95,0,0,Math.PI*2); g.fill();
+    g.strokeStyle="#3A2010"; g.lineWidth=2; g.stroke();
+    g.fillStyle="#5A3416"; g.fillRect(o.x-o.r*0.7,o.y-o.r*0.95,o.r*1.4,5);
+  }else{
+    g.fillStyle="rgba(0,0,0,.25)"; g.beginPath(); g.ellipse(o.x,o.y+4,o.r*0.9,o.r*0.4,0,0,Math.PI*2); g.fill();
+    g.fillStyle="#6B4423"; g.fillRect(o.x-5,o.y-12,10,16);
+    g.fillStyle="#2F7A3A"; g.beginPath(); g.arc(o.x,o.y-o.r*0.9,o.r,0,Math.PI*2); g.fill();
+    g.strokeStyle="#14391D"; g.lineWidth=2; g.stroke();
+    g.fillStyle="#3E9A4B"; g.beginPath(); g.arc(o.x-6,o.y-o.r*0.9-6,o.r*0.55,0,Math.PI*2); g.fill();
+  }
+}
+function mapDrawHero(g){
+  const x=mapState.x, y=mapState.y, d=mapState.dir;
+  const f=Math.floor(mapState.walk)%4, step=[0,-2,0,2][f], swing=[0,-1,0,1][f]*2;
+  const tunic = memberOK() ? (member.level==="尊爵"?"#E8B84A":"#3F7CC4") : "#8A7450";
+  g.fillStyle="rgba(0,0,0,.28)"; g.beginPath(); g.ellipse(x,y+12,11,5,0,0,Math.PI*2); g.fill();
+  g.fillStyle="#3A2A1A"; g.fillRect(x-6,y+2,5,9+step); g.fillRect(x+1,y+2,5,9-step);
+  g.fillStyle="#F2C9A0"; g.fillRect(x-11,y-8+swing,3,9); g.fillRect(x+8,y-8-swing,3,9);
+  g.fillStyle=tunic; g.fillRect(x-8,y-10,16,14);
+  g.fillStyle="#2D1E10"; g.fillRect(x-8,y+3,16,2);
+  g.strokeStyle="#2D1E10"; g.lineWidth=1.5; g.strokeRect(x-8,y-10,16,14);
+  g.fillStyle="#F2C9A0"; g.beginPath(); g.arc(x,y-17,8,0,Math.PI*2); g.fill();
+  g.fillStyle="#4A2E14"; g.beginPath();
+  if(d==="up") g.arc(x,y-17,8,0,Math.PI*2); else g.arc(x,y-17,8,Math.PI,Math.PI*2);
+  g.fill();
+  g.fillStyle="#1A1210";
+  if(d==="down"){ g.fillRect(x-4,y-17,2,2); g.fillRect(x+2,y-17,2,2); }
+  else if(d==="left"){ g.fillRect(x-5,y-17,2,2); }
+  else if(d==="right"){ g.fillRect(x+3,y-17,2,2); }
+}
+function mapDraw(){
+  const cv=document.getElementById("mapCanvas"); if(!cv) return;
+  const W=cv.clientWidth, H=cv.clientHeight; if(!W||!H) return;
+  const dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+  const g=cv.getContext("2d");
+  g.setTransform(dpr,0,0,dpr,0,0);
+  const cx=Math.max(0,Math.min(mapState.x-W/2, MAP_W-W));
+  const cy=Math.max(0,Math.min(mapState.y-H/2, MAP_H-H));
+  g.save(); g.translate(-cx,-cy);
+  for(let ty=0;ty<MAP_H;ty+=40) for(let tx=0;tx<MAP_W;tx+=40){
+    g.fillStyle=((tx+ty)/40)%2?"#6FB55E":"#64A954"; g.fillRect(tx,ty,40,40);
+  }
+  for(const p of MAP_PATHS){
+    g.fillStyle="#D9C7A0"; g.fillRect(p.x,p.y,p.w,p.h);
+    g.strokeStyle="rgba(120,90,50,.28)"; g.lineWidth=1;
+    for(let sx=p.x;sx<p.x+p.w;sx+=24) for(let sy=p.y;sy<p.y+p.h;sy+=24) g.strokeRect(sx+2,sy+2,20,20);
+  }
+  const items=MAP_OBS.map(o=>({y:o.t==="house"?o.y+o.h:o.y, draw:()=>mapDrawObj(g,o)}));
+  items.push({y:mapState.y, draw:()=>mapDrawHero(g)});
+  items.sort((a,b)=>a.y-b.y).forEach(it=>it.draw());
+  g.restore();
+}
+function mapHudSync(){
+  const lv=document.getElementById("mapLv"), fill=document.getElementById("mapHpFill"), txt=document.getElementById("mapHpTxt");
+  const sLv=document.getElementById("rpgLv"), sFill=document.getElementById("rpgHpFill"), sTxt=document.getElementById("rpgHpTxt");
+  if(!lv||!sLv) return;
+  lv.textContent=sLv.textContent; txt.textContent=sTxt.textContent;
+  fill.style.width=sFill.style.width; fill.className=sFill.className;
+}
+function mapLoop(){
+  if(!mapState.active) return;
+  mapState.tick++;
+  mapStep();
+  mapDraw();
+  if(mapState.tick%30===0) mapHudSync();
+  mapState.raf=requestAnimationFrame(mapLoop);
+}
+function mapSetActive(on){
+  if(on===mapState.active) return;
+  mapState.active=on;
+  if(on){ mapHudSync(); mapState.raf=requestAnimationFrame(mapLoop); }
+  else cancelAnimationFrame(mapState.raf);
+}
+function mapJoyInit(){
+  const base=document.getElementById("mapJoy"), knob=document.getElementById("mapKnob");
+  if(!base||!knob) return;
+  const R=40;
+  const put=(e)=>{
+    const dx=e.clientX-mapState.joy.cx, dy=e.clientY-mapState.joy.cy;
+    const d=Math.hypot(dx,dy), m=Math.min(d,R), k=d?m/d:0;
+    knob.style.transform=`translate(${dx*k}px,${dy*k}px)`;
+    let ix=dx*k/R, iy=dy*k/R;
+    if(Math.hypot(ix,iy)<0.15){ ix=0; iy=0; }
+    mapState.joy.x=ix; mapState.joy.y=iy;
+  };
+  const end=()=>{ mapState.joy.on=false; mapState.joy.x=0; mapState.joy.y=0; knob.style.transform=""; };
+  base.addEventListener("pointerdown",e=>{
+    base.setPointerCapture(e.pointerId);
+    const r=base.getBoundingClientRect();
+    mapState.joy.cx=r.left+r.width/2; mapState.joy.cy=r.top+r.height/2;
+    mapState.joy.on=true; put(e);
+  });
+  base.addEventListener("pointermove",e=>{ if(mapState.joy.on) put(e); });
+  base.addEventListener("pointerup",end);
+  base.addEventListener("pointercancel",end);
+  base.addEventListener("lostpointercapture",end);
+  const isField=t=>t && /INPUT|TEXTAREA|SELECT/.test(t.tagName);
+  window.addEventListener("keydown",e=>{
+    if(!mapState.active||isField(e.target)) return;
+    mapState.keys[e.key.toLowerCase()]=true;
+    if(e.key.startsWith("Arrow")) e.preventDefault();
+  });
+  window.addEventListener("keyup",e=>{ mapState.keys[e.key.toLowerCase()]=false; });
+}
 
 /* ===== 遊戲風格：HUD 與底部快捷列同步（不改動原有邏輯） ===== */
 const RPG_HP_FULL = 20;   // 黃金會員：20 次視為滿血，可自行調整
@@ -5875,11 +6078,12 @@ function rpgHud(){
   txt.textContent=n;
 }
 const _rpgOpenView=openView;
-openView=function(v){ _rpgOpenView(v); rpgNav(v); };
+openView=function(v){ _rpgOpenView(v); rpgNav(v); mapSetActive(v==="map"); };
 const _rpgUpdKey=updateKeyStatus;
 updateKeyStatus=function(){ _rpgUpdKey(); rpgHud(); };
 rpgNav("home");
 rpgHud();
+mapJoyInit();
 </script>
 </body>
 </html>
