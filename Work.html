@@ -2042,7 +2042,18 @@
   #view-collector .coll-note{margin:4px 0 16px;padding:16px 16px 14px;border-radius:24px;background:linear-gradient(165deg,#1F4A36 0%,#0D2A1E 100%);border:1px solid rgba(214,178,100,.35);box-shadow:0 14px 30px rgba(10,38,28,.22), inset 0 1px 0 rgba(255,236,190,.1);}
   #view-collector .coll-note .pp-panel{background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important;}
   /* ===== 素材庫：文件解析總結 ===== */
-  .li-digest{margin-top:10px;padding:14px 14px 12px;border-radius:16px;background:linear-gradient(180deg,#FFFDF8,#F6F1E5);border:1px solid rgba(176,134,70,.25);font-size:13px;line-height:1.75;color:#2B3A33;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow:auto;}
+  .li-digest{margin-top:12px;color:#2B3A33;font-size:13px;line-height:1.7;word-break:break-word;}
+  .dg-lead{padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#EEF5EF,#F9F6EC);border:1px solid rgba(23,85,58,.14);color:#1F3A2E;font-size:13.5px;font-weight:600;line-height:1.75;margin-bottom:8px;}
+  .dg-sec{padding:12px 14px;border-radius:16px;background:#FBFAF6;border:1px solid rgba(23,85,58,.1);margin-bottom:8px;}
+  .dg-sec.is-lead{background:transparent;border:none;padding:0;}
+  .dg-h{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .dg-h b{font-size:13px;color:#17553A;font-weight:800;}
+  .dg-ic{width:26px;height:26px;border-radius:9px;display:inline-grid;place-items:center;background:#fff;box-shadow:0 2px 6px rgba(40,50,40,.08);font-size:13px;}
+  .dg-list{margin:0;padding:0;list-style:none;}
+  .dg-list li{position:relative;padding:4px 0 4px 16px;color:#2B3A33;}
+  .dg-list li::before{content:"";position:absolute;left:3px;top:13px;width:6px;height:6px;border-radius:50%;background:#C9A24E;}
+  .dg-none{color:#9AA59E;font-size:12.5px;}
+  .dg-note{margin-top:8px;font-size:12px;color:#8A6D3B;background:#FFF6E0;border-radius:10px;padding:8px 10px;}
   /* ===== 每日優化 ===== */
   .coll-daily{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:20px;background:#FFFDF8;border:1px solid rgba(176,134,70,.28);margin:4px 0 14px;}
   .cd-txt{min-width:0;flex:1;}
@@ -2682,12 +2693,12 @@ function getCollTopic(){
 /* ============ 預設資料 ============ */
 const DEFAULTS = {
   schema:9,
-  contextVer:2,
+  contextVer:3,
   cardDefaults:{name:"", footer:"以上為個人感受分享，每個人狀況不同"},
   topicPick:"",
-  build:"2026.10.01-health-v6-chips",
+  build:"2026.10.09-general-v7",
   title:"智囊軍師",
-  context:"【行業／領域】大健康產業（保健食品、健康調理、生活保健諮詢）\n【品牌／個人定位】用生活化的故事，幫助對健康有困擾、想讓生活更有品質的人，找到適合自己的方向\n【目標客群】30–65 歲，有疲勞、睡眠、腸胃、體力下降等困擾，對健康有意識但還沒找到方向的人\n【合作夥伴】專業諮詢與調理服務的合作夥伴（依實際情況填寫：執照類型、服務方式）\n【語氣風格】溫暖真誠、像朋友說話、不說教不推銷、說真話、像一位有智慧的長輩在分享\n\n【寫作風格（必須嚴格遵守）】\n① 短句為主，每句話獨立成行，讓人有節奏感和停頓感\n② 段落之間空行，文字有呼吸感，不要密密麻麻\n③ 先提出一個所有人都有的困惑或現象，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 或《》強調，用 👉 ✅ 🎯 🌀 📌 分層\n⑦ 結尾一定有「金句收尾」，一句話濃縮核心觀念\n⑧ 絕對不寫「購買」「成交」「加入」等推銷字眼，讓人感覺在分享，不是在賣\n\n【說故事方式（大健康原理故事寶典）】\n用生活化比喻解釋健康道理：胃像鍋子需要火才能消化；炎症像蒼蠅垃圾不清打不完；血管像水管水髒就堵；氣血像警察薪水沒薪水不工作；魚缸的魚生病換乾淨的水才有用；體質寒濕像陰濕的房子容易發霉；身體堵塞像城市堵車養分送不進廢物清不出。\n\n【法規紅線（必須遵守）】\n✗ 不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能公開\n✓ 所有案例只說「個人感受」，結尾加：「以上是個人感受，每個人狀況不同」\n\n內容鐵則（固定）：先破冰（用故事比喻讓人停下來）→ 再講事情（解釋道理、分享感受案例）→ 最後邀約（低門檻、自然帶出下一步）。",
+  context:"【行業／領域】（依你的產業填寫，例如：餐飲、美業、教育、顧問、電商、服務業等）\n【品牌／個人定位】用生活化的故事與真實分享，幫助有需求的人找到適合自己的選擇\n【目標客群】（年齡、職業、主要需求或困擾）\n【合作夥伴】（服務或合作對象、專業資格、服務方式，依實際情況填寫）\n【語氣風格】溫暖真誠、像朋友說話、不說教不推銷、說真話\n\n【寫作風格（必須嚴格遵守）】\n① 短句為主，每句話獨立成行，讓人有節奏感和停頓感\n② 段落之間空行，文字有呼吸感，不要密密麻麻\n③ 先提出一個大家都會遇到的困惑或現象，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「你有沒有想過？」\n⑥ 重點句用 # 或《》強調，用 👉 ✅ 🎯 📌 分層\n⑦ 結尾一定有「金句收尾」，一句話濃縮核心觀念\n⑧ 絕對不寫「購買」「成交」「加入」等推銷字眼，讓人感覺在分享，不是在賣\n\n【說故事方式】用生活中的常見情境與比喻解釋道理，讓人容易理解、願意停下來看。\n\n【合規底線（必須遵守）】\n✗ 不誇大效果、不做保證或絕對化承諾（例如「一定」「保證」「100%」）\n✗ 不冒充專業意見；涉及專業領域時請註明諮詢相關專業人員\n✓ 案例只說「個人感受」，結尾加：「以上是個人感受，每個人狀況不同」\n\n內容鐵則（固定）：先破冰（用生活故事或比喻讓人停下來）→ 再講事情（說明道理、分享真實感受）→ 最後邀約（低門檻、自然帶出下一步）。",
   apiKey:"",
   gasUrl:"",
   liffId:"",
@@ -4037,6 +4048,33 @@ async function organizeMaterial(item, onProgress){
   return out;
 }
 const LIB_FINAL_SYS="你是文件總結專家。依素材內容產出結構化總結，格式：\n【文件概要】2–3 句說明這份素材是什麼、對經營有什麼用\n【核心重點】3–6 條\n【流程與步驟】有就列，沒有寫「無」\n【可用數據與事實】只列原文有的數字與事實，沒有寫「無」\n【可引用案例與金句】有就列，沒有寫「無」\n【使用注意】使用時的限制（例如不可誇大、需標註為個人感受）\n只根據素材內容，不推測，不加入素材沒有的資訊。繁體中文，台灣用語。";
+const DG_ICON={"文件概要":"📌","核心重點":"🎯","流程與步驟":"🧭","可用數據與事實":"📊","可引用案例與金句":"💬","使用注意":"⚠️"};
+const DG_STRIP=t=>esc(String(t).replace(/^([-・•*]|\d+[.、)])\s*/,""));
+function digestHTML(txt){
+  const secs=[], pre=[]; let cur=null;
+  String(txt||"").split(/\r?\n/).forEach(raw=>{
+    const line=raw.trim(); if(!line) return;
+    const m=line.match(/^【(.+?)】\s*(.*)$/);
+    if(m){ cur={title:m[1], items:[]}; secs.push(cur); if(m[2]) cur.items.push(m[2]); return; }
+    (cur?cur.items:pre).push(line);
+  });
+  if(!secs.length && !pre.length) return "";
+  const pHTML = pre.length ? `<div class="dg-lead">${pre.map(esc).join("<br>")}</div>` : "";
+  const out = secs.map(sec=>{
+    const icon=DG_ICON[sec.title]||"▫️";
+    const notes=sec.items.filter(t=>/^[（(]/.test(t));
+    const items=sec.items.filter(t=>!/^[（(]/.test(t));
+    const none=!items.length || items.every(t=>/^無[。.]?$/.test(t));
+    const isLead=sec.title==="文件概要";
+    let html;
+    if(none) html=`<div class="dg-none">沒有相關內容</div>`;
+    else if(isLead) html=`<div class="dg-lead">${items.map(esc).join("<br>")}</div>`;
+    else html=`<ul class="dg-list">${items.map(t=>`<li>${DG_STRIP(t)}</li>`).join("")}</ul>`;
+    const noteHTML=notes.map(t=>`<div class="dg-note">${esc(t)}</div>`).join("");
+    return `<section class="dg-sec${isLead?" is-lead":""}${none?" is-none":""}"><div class="dg-h"><span class="dg-ic">${icon}</span><b>${esc(sec.title)}</b></div>${html}${noteHTML}</section>`;
+  }).join("");
+  return pHTML + out;
+}
 function toggleLibDigest(id){ const k=String(id); if(LIB_OPEN.has(k)) LIB_OPEN.delete(k); else LIB_OPEN.add(k); renderLibrary(); }
 function libIcon(k){ return k==="image"?"🖼":(k==="pdf"?"📕":(k==="doc"?"📘":"📄")); }
 function fmtSize(n){ return n>1024?(n/1024).toFixed(0)+"K 字元":n+" 字元"; }
@@ -4080,7 +4118,7 @@ function renderLibrary(){
       </div>
       <label class="lc-dept"><span>分類</span><select onchange="assignLibDept('${x.id}',this.value)">${opts}</select></label>
       ${err}
-      ${open?`<div class="li-digest">${esc(x.digest)}</div>`:""}
+      ${open?`<div class="li-digest">${digestHTML(x.digest)}</div>`:""}
       <div class="lc-actions">${actions}<button class="lc-btn ghost" onclick="deleteLib('${x.id}')">🗑 刪除</button></div>
     </article>`;
   }).join("");
@@ -5204,17 +5242,14 @@ function fillSettings(){
   updateBuildTexts();
 }
 const TOPIC_TEMPLATES={
-  "疲勞體力":"【本次主題】疲勞體力\n【目標族群】容易疲倦、下午就沒力、爬樓梯會喘的人\n【推薦比喻】警察故事（氣血就像薪水，沒薪水警察不工作）\n【合規說法】「她說最近走路比較有力氣，不像以前那麼容易累」",
-  "睡眠品質":"【本次主題】睡眠品質\n【目標族群】睡不著、半夜容易醒、睡飽了還是累的人\n【推薦比喻】鍋子故事（身體的火不夠，整個系統都受影響）\n【合規說法】「他說最近睡得比較沉了，早上起來沒那麼累」",
-  "腸胃消化":"【本次主題】腸胃消化\n【目標族群】容易腹脹、消化差、吃完會不舒服的人\n【推薦比喻】鍋子故事（胃像鍋子，需要火才能消化食物）\n【合規說法】「她說吃東西比較不容易脹氣，感覺舒服多了」",
-  "反覆不適":"【本次主題】反覆不適（容易感冒、身體老是有小狀況）\n【目標族群】換季就中獎、身體總是有小毛病的人\n【推薦比喻】蒼蠅故事（垃圾不清，蒼蠅怎麼打都打不完）\n【合規說法】「她說身體感覺比較輕鬆，不像以前那麼容易有狀況」",
-  "血液循環":"【本次主題】血液循環\n【目標族群】手腳容易冰冷、臉色暗沉、整個人感覺沉重的人\n【推薦比喻】水管故事（血管像水管，水髒了管子就堵）\n【合規說法】「他說整個人比較有精神，手腳沒那麼冰了」",
-  "代謝體重":"【本次主題】代謝與體重管理\n【目標族群】節食後反彈、吃不胖的人也會覺得身體沉、想找回身體節奏的人\n【推薦比喻】堵車故事（身體像城市，堵住了養分送不進、廢物清不出）\n【禁忌】不說降血糖、降血脂、瘦身保證\n【合規說法】「她說整體感覺比較輕盈，作息也比較規律了」",
-  "女性困擾":"【本次主題】女性身體困擾（期待更好的生活品質）\n【目標族群】經常覺得氣色不好、情緒起伏、身體容易冷的女性\n【推薦比喻】房子故事（體質寒濕像陰濕的房子，容易發霉）\n【禁忌】不說更年期治療、改善荷爾蒙、調經功效\n【合規說法】「她說這陣子比較能好好過日子，感覺溫暖多了」",
-  "銀髮長輩":"【本次主題】銀髮與長輩照護（陪伴家人的角度）\n【目標族群】照顧爸媽、關心長輩體力與睡眠的家人\n【推薦比喻】魚缸故事（魚生病要換乾淨的水，身體也是整體調理）\n【禁忌】不說治病、不說取代藥物、不說改善疾病\n【合規說法】「我媽說最近走路穩了一些，心情也比較好」",
-  "生活習慣":"【本次主題】生活作息與飲食習慣\n【目標族群】作息亂、外食多、覺得自己「還好啦」的忙碌上班族\n【推薦比喻】魚缸故事（水質不乾淨，養什麼都不容易好）\n【合規說法】「他說開始早睡，感覺整個人比較穩定了」",
-  "感受案例":"【本次主題】分享真實感受案例\n【重要】把真實案例改寫成合規的個人感受版本\n【合規格式】認識一位＿＿，有＿＿的困擾→後來開始＿＿→「她說感覺比較＿＿」→「以上是個人感受，每個人狀況不同」\n【禁忌】不說病名配合療效、不說保證、不說治好了",
-  "私訊引流":"【本次主題】私訊與邀約話術\n【話術方向】第一句先了解對方狀況不推銷→用比喻引導→低壓力邀請「先聊聊看」\n【禁忌】不說買產品、不說加入直銷、不說療效、不說保證"
+  "新手入門":"【本次主題】新手入門\\n【目標族群】新手、剛開始接觸的人\\n【切入方向】從零開始的第一步、常見的迷惘與誤區\\n【說法範例】「他說原來不用一次做到最好，慢慢來就可以」",
+  "產品介紹":"【本次主題】產品介紹\\n【目標族群】正在比較、想了解內容與差異的人\\n【切入方向】用生活情境說明產品或服務能解決什麼問題\\n【說法範例】「她說用了一段時間，發現最大的差別是……」",
+  "客戶見證":"【本次主題】客戶見證\\n【目標族群】對成效有疑慮、需要真實案例參考的人\\n【切入方向】改寫成真實感受版本，不誇大\\n【說法範例】「以上是個人感受，每個人狀況不同」",
+  "痛點共鳴":"【本次主題】痛點共鳴\\n【目標族群】有相同困擾、還在找答案的人\\n【切入方向】先描述大家都會遇到的困擾，再慢慢帶出思考\\n【說法範例】「你是不是也常覺得……」",
+  "生活故事":"【本次主題】生活故事\\n【目標族群】喜歡故事、需要被理解的人\\n【切入方向】用生活化的小故事與比喻，讓人停下來\\n【說法範例】「原來問題不在那裡，而是在……」",
+  "經營方法":"【本次主題】經營方法\\n【目標族群】想學習做法、有經營需求的人\\n【切入方向】講清楚步驟與節奏，適合新手照著做\\n【說法範例】「先從一件小事開始，慢慢累積」",
+  "活動促銷":"【本次主題】活動促銷\\n【目標族群】關心優惠與時機的人\\n【切入方向】說明活動內容與期限，不製造焦慮、不誇大\\n【說法範例】「活動到＿＿為止，有興趣可以先了解」",
+  "私訊引流":"【本次主題】私訊引流\\n【目標族群】已有興趣、想進一步了解的人\\n【切入方向】第一句先了解對方狀況，不推銷，低壓力邀請「先聊聊看」\\n【說法範例】「你最近比較在意的是哪一方面？」"
 };
 function renderIndPick(){
   const box=document.getElementById("indPick"); if(!box) return;
@@ -5247,8 +5282,10 @@ async function deriveBrand(){
   running=true;
   const btn=document.getElementById("deriveBtn");
   btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='<span class="spinner" style="border-color:rgba(14,40,22,.3);border-top-color:var(--ink)"></span> 草擬中…';
-  const sys="你是大健康產業內容策略顧問。根據使用者提供的素材，幫他草擬一份共用的『背景設定』，純文字、可直接使用，依下列格式填寫：\n【行業／領域】大健康產業\n【品牌／個人定位】（一句話，我想被記得什麼）\n【合作夥伴】（執照類型、服務方式）\n【目標客群】（年齡、主要健康困擾）\n【語氣風格】（例如：溫暖真誠、像朋友說話）\n【推薦故事比喻】（從鍋子/蒼蠅/水管/魚缸/農夫/警察/房子/堵車中選最適合的）\n【合規禁忌】不得說：治療、根治、療效、保證有效、降血糖、降血壓；癌症洗腎精神科案例不公開\n\n最後固定附上：『內容鐵則（固定）：先破冰（用故事比喻）→ 再講事情（感受案例）→ 最後邀約（低門檻、自然帶出下一步）。』。用繁體台灣用語，只輸出設定本身。";
-  let user = texts? ("素材內容：\n"+texts) : "請依圖片素材判斷。";
+  const sys="你是內容策略顧問。根據使用者提供的素材（可能是任何產業：產品、服務、店家、個人品牌等），幫他草擬一份共用的『背景設定』，純文字、可直接使用，依下列格式填寫：\n【行業／領域】（從素材判斷）\n【品牌／個人定位】（一句話，想被記得什麼）\n【合作夥伴】（服務或合作對象、資格、服務方式）\n【目標客群】（年齡、職業、主要需求或困擾）\n【語氣風格】（例如：溫暖真誠、像朋友說話）\n【推薦故事比喻】（依產業選一到兩個生活化比喻）\n【合規底線】不得誇大效果、不做保證或絕對化承諾；案例只說個人感受\n\n最後固定附上：『內容鐵則（固定）：先破冰（用生活故事或比喻）→ 再講事情（說明道理、分享真實感受）→ 最後邀約（低門檻、自然帶出下一步）。』。用繁體台灣用語，只輸出設定本身。素材沒有提到的資訊請寫「（待補）」，不要編造。";
+  let user = (texts? ("素材內容（各素材的摘要或原文）：\n"+texts) : "請依圖片素材判斷。");
+  const cur0=(document.getElementById("contextSet").value||"").trim();
+  if(cur0) user += "\n\n目前背景設定（可沿用其中正確的部分，其餘依素材改寫）：\n"+cur0;
   let content = imgs.length ? [{type:"text",text:user}, ...imgs.map(f=>({type:"image_url",image_url:{url:f.url}}))] : user;
   try{
     const out=await callOpenAI(sys, content, 900);
