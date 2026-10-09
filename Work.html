@@ -1880,7 +1880,7 @@
 
     <div class="gate-rules">
       <div class="gate-rule-item">每次「產出成品」才扣次，整理與分類不扣次</div>
-      <div class="gate-rule-item">部門紀錄、素材、卡組、成品永久保存在此裝置</div>
+      <div class="gate-rule-item">部門紀錄、素材、卡組、成品都收在此裝置</div>
       <div class="gate-rule-item">流程中斷後重新開啟，會自動接續完成</div>
     </div>
 
@@ -2042,7 +2042,7 @@
       <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</div>
       <div class="le-meta">
         <div class="le-name">文章部</div>
-        <div class="le-sub" id="resSumA">一鍵流程統整的文章成品，永久收存</div>
+        <div class="le-sub" id="resSumA">一鍵流程統整的文章成品</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -2051,7 +2051,7 @@
       <div class="le-ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</div>
       <div class="le-meta">
         <div class="le-name">影音部</div>
-        <div class="le-sub" id="resSumV">一分鐘口播逐字稿，永久收存</div>
+        <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -2106,7 +2106,7 @@
   <section id="view-results" class="view">
     <div class="ws-head">
       <button class="back" onclick="openView('home')">‹</button>
-      <div class="ws-title"><h2>📦 成品庫</h2><p>一鍵流程的成品永久保存於此</p></div>
+      <div class="ws-title"><h2>📦 成品庫</h2><p>一鍵流程的成品都收在這裡</p></div>
     </div>
     <div id="resList"></div>
   </section>
@@ -3157,10 +3157,10 @@ function openResults(kind){ resKind=kind||"all"; renderResults(); openView("resu
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
-  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇文章（永久保存）` : "一鍵流程統整的文章成品，永久收存";
-  const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則影音逐字稿（永久保存）` : "一分鐘口播逐字稿，永久收存";
+  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇文章` : "一鍵流程統整的文章成品";
+  const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則影音逐字稿` : "一分鐘口播逐字稿";
   const el=document.getElementById("resSummary"); if(!el) return;
-  el.textContent = (n+v)===0 ? "一鍵流程的成品都會永久收存在這裡" : `文章 ${n} 篇　・　影音 ${v} 則（永久保存）`;
+  el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `文章 ${n} 篇　・　影音 ${v} 則`;
 }
 function renderResults(){
   const box=document.getElementById("resList");
