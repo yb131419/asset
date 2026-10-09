@@ -1822,6 +1822,13 @@
   .toast{background:rgba(10,30,22,.94) !important;border:1px solid rgba(231,194,122,.45) !important;
     box-shadow:0 14px 34px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,246,220,.12) !important;
     font-family:"Noto Serif TC","Songti TC",serif;letter-spacing:.5px;}
+
+  /* ===== 成品庫：文章部／影音部分區 ===== */
+  .res-sec{margin-bottom:22px;}
+  .res-sec-head{display:flex;align-items:center;justify-content:space-between;margin:6px 4px 12px;padding-bottom:10px;
+    border-bottom:1px solid rgba(184,134,60,.35);}
+  .res-sec-title{font-family:"Noto Serif TC","Songti TC",serif;font-size:17px;font-weight:900;letter-spacing:2px;color:var(--ink,#14402F);}
+  .res-sec-count{font-size:12px;font-weight:700;color:#8A6A2E;background:rgba(243,217,163,.28);padding:3px 10px;border-radius:999px;}
 </style>
 </head>
 <body>
@@ -3171,34 +3178,43 @@ function openResults(){ renderResults(); openView("results"); }
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
   const el=document.getElementById("resSummary"); if(!el) return;
-  const n=finalTasks().length;
-  el.textContent = n===0 ? "一鍵流程的成品都會永久收存在這裡" : `已收存 ${n} 篇成品（永久保存）`;
+  const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
+  el.textContent = (n+v)===0 ? "一鍵流程的成品都會永久收存在這裡" : `文章 ${n} 篇　・　影音 ${v} 則（永久保存）`;
 }
 function renderResults(){
   const box=document.getElementById("resList");
-  const items=finalTasks();
-  if(items.length===0){
+  const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
+  const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
+  if(articles.length===0 && videos.length===0){
     box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
     updateResSummary(); return;
   }
-  box.innerHTML=items.map(t=>{
-    const body=richBody(t.output, t.deptId==="video");
-    return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
-      <div class="res-top">
-        <span class="res-plat">${esc(t.platform||"成品")}</span>
-        <span class="res-time">${timeStr(t.time)}</span>
-      </div>
-      <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
-      ${body}
-      <div class="hi-actions">
-        <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
-        <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="${t.deptId==="video"?"1":""}" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
-        <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
-      </div>
-      <div class="cardwrap" id="rescw-${t.id}"></div>
-    </div>`;
-  }).join("");
+  box.innerHTML = resSection("文章部","📝",articles,false) + resSection("影音部","🎬",videos,true);
   updateResSummary();
+}
+function resSection(title, icon, items, isVideo){
+  const head=`<div class="res-sec-head"><span class="res-sec-title">${icon} ${title}</span><span class="res-sec-count">${items.length} 篇</span></div>`;
+  if(items.length===0) return `<div class="res-sec">${head}<div class="chain-empty">尚無${title}內容</div></div>`;
+  const first=items[0], rest=items.slice(1);
+  const more = rest.length ? foldWrap(rest.map(t=>resItemHTML(t,isVideo)).join(""), rest.length, "則較早的內容") : "";
+  return `<div class="res-sec">${head}${resItemHTML(first,isVideo)}${more}</div>`;
+}
+function resItemHTML(t, isVideo){
+  const tag = isVideo ? "影音內容部 · 一分鐘逐字稿" : "文章部 · 成品";
+  return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
+    <div class="res-top">
+      <span class="res-plat">${esc(t.platform||(isVideo?"影音":"成品"))}</span>
+      <span class="res-time">${timeStr(t.time)}</span>
+    </div>
+    <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
+    ${richBody(t.output, true, tag)}
+    <div class="hi-actions">
+      <button class="hi-btn" onclick="copyResultWhole(this)">📋 複製整篇</button>
+      <button class="hi-btn" data-txt="${encodeURIComponent(t.output)}" data-plat="${esc(t.platform||"")}" data-single="1" onclick="makeCardFromResult(this)">🖼️ 產生圖卡</button>
+      <button class="hi-btn del" onclick="deleteResult(${t.id})">刪除</button>
+    </div>
+    <div class="cardwrap" id="rescw-${t.id}"></div>
+  </div>`;
 }
 function makeCardFromResult(btn){
   const txt=decodeURIComponent(btn.getAttribute("data-txt")||"");
@@ -4008,17 +4024,17 @@ function toggleFold(btn){
     btn.innerHTML=`<span class="fold-ic">📂</span>展開查看　${btn.dataset.count} ${esc(btn.dataset.noun)}<span class="fold-chev">▾</span>`;
   }
 }
-function singleBody(out){
+function singleBody(out, tag){
   return `<div class="card-deck seg-deck"><div class="tcard flat">
     <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
       <span class="tcard-num">01</span>
-      <span class="tcard-tag">影音內容部 · 一分鐘逐字稿</span>
+      <span class="tcard-tag">${esc(tag||"影音內容部 · 一分鐘逐字稿")}</span>
       <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc((out||"").replace(/^#+\s*/gm,""))}</div>
       <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
     </div></div></div>`;
 }
-function richBody(out, single){
-  if(single) return singleBody(out);
+function richBody(out, single, tag){
+  if(single) return singleBody(out, tag);
   const blocks=splitPlatforms(out);
   if(blocks){
     const inner=`<div class="plat-blocks">`+blocks.map(b=>{
