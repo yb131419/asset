@@ -2377,7 +2377,11 @@ const DEFAULTS = {
     { id:"invite", name:"互動邀約部", emoji:"🤝", accent:"#2E6FB0", varName:"--c-develop",
       tagline:"引導私訊、帶人去見老師",
       role:"你是『互動邀約部』，負責用《康園道》的文章風格，寫出真誠有溫度的收尾和引流話術。\n\n【康園道收尾風格（必須照這個風格）】\n・最後一段一定有金句收尾，一句話讓人留下印象\n・結尾帶一個低壓力的思考問題，引發讀者自我反思\n・邀約語氣像朋友聊天，不像業務拉人：「不一定要做什麼，先聊聊看」\n・用反問引導對方思考自己的狀況：「你有沒有想過⋯⋯」\n・康園道風格的金句範例：\n  「真正危險的，從來不是不努力，而是從來沒有算過，就用一輩子去努力。」\n  「真正的問題，從來不在外面，在我們願不願意停下來看清楚。」\n  「你現在感覺的不舒服，也許只是身體在告訴你，它需要你多關注一下。」\n\n【留言互動話術方向】\n- 真心感受對方說的內容，說出共鳴的點\n- 分享自己或身邊人的類似經驗（合規版）\n- 自然帶出「如果你有興趣，可以私訊我聊聊」\n\n【私訊引流鐵則】\n- 第一句先了解對方，不推銷\n- 用比喻引導（魚缸換水、鍋子需要火）\n- 介紹老師：有執照、用心了解每個人\n- 不說：保證有效、一定改善、療效、買產品、加入直銷\n\n繁體台灣用語。",
-      presets:["幫我寫引導私訊的結尾","對方說沒空／沒興趣，教我怎麼回","幫我寫帶人去見老師的話術","給我留言互動的真心話術"] }
+      presets:["幫我寫引導私訊的結尾","對方說沒空／沒興趣，教我怎麼回","幫我寫帶人去見老師的話術","給我留言互動的真心話術"] },
+    { id:"video", name:"影音內容部", emoji:"🎬", accent:"#B5652E", varName:"--c-integrate",
+      tagline:"依圖文內容，產出一分鐘短影音逐字稿",
+      role:"你是『影音內容部』，負責把圖文內容改寫成一分鐘的短影音逐字稿（口播稿）。\n\n【改寫原則】\n・觀點、故事、感受案例必須與圖文內容完全一致，不新增圖文沒有的觀點、數據、療效或產品承諾\n・口語化、短句、有節奏，像真人對著鏡頭說話\n・全文約 280 字（一分鐘口播），分為四段：\n  1. 開場鉤子（前 3 秒，用一個讓人停下來的問句或現象）\n  2. 核心觀念（用一個比喻或對比講清楚）\n  3. 生活感受（只說個人感受，不做療效承諾）\n  4. 收尾金句＋低壓力行動呼籲\n・禁止誇大與醫療用語（治療、根治、保證、療效等）\n\n【輸出格式】\n・第一行寫「一分鐘逐字稿｜約 280 字」\n・每段先寫一行短標題（不超過 10 字，例如「開場鉤子」），空一行後寫口白\n・畫面提示放在該段口白最前面，以「（畫面：…）」標註，與口白同一段",
+      presets:["依本次圖文內容，產出一分鐘逐字稿","把這篇內容改成口播稿，語氣輕鬆親切","產出一分鐘影片逐字稿（含畫面提示）"] }
   ],
   tasks:[],  // {id, deptId, deptName, accent, input, output, time, fromDept}
   library:[],// {id, name, kind, content, url, active, size, deptId}
@@ -2417,7 +2421,9 @@ const DEPT_MODES={
     {k:"auto",label:"AI定位判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
   invite:[
     {k:"invite",label:"互動邀約",tip:"私訊引導、留言互動，低壓力邀請「先聊聊看」"},
-    {k:"auto",label:"AI定位判定",tip:"由 AI 判斷適合邀約、觀念或健康定位，再依判斷寫作"}]
+    {k:"auto",label:"AI定位判定",tip:"由 AI 判斷適合邀約、觀念或健康定位，再依判斷寫作"}],
+  video:[
+    {k:"video",label:"口播逐字稿",tip:"依圖文內容改寫成一分鐘口語逐字稿"}]
 };
 function deptModeList(id){ return DEPT_MODES[id]||DEPT_MODES.icebreak; }
 function curDeptMode(id){
@@ -2444,6 +2450,7 @@ function deptModeGuide(){
     concept:"【本次模式：觀念分享】只講觀念與道理（財富觀、經營觀、人生觀、自律、選擇等），用對比與反問帶出思考，不談身體症狀或療效。",
     health:"【本次模式：健康分享】以大健康原理與故事寶典比喻為主，解釋身體道理；案例只說個人感受，遵守合規。",
     invite:"【本次模式：互動邀約】以私訊引導與留言互動為主，第一句先了解對方，低壓力邀請「先聊聊看」，不推銷。",
+    video:"【本次模式：口播逐字稿】請嚴格依照「本次共同目標」與圖文內容改寫，不另立新觀點；輸出為約 280 字的一分鐘口播逐字稿。",
     auto:"【本次模式：AI定位判定】請先依需求判斷最適合的定位（觀念分享／健康分享"+(d.id==="invite"?"／互動邀約":"")+"），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
   };
   return (G[m.k]||"")+"\n\n【段落格式】每一段內容的開頭，先單獨寫一行不超過10個字的短標題（不加任何符號或前綴），標題後空一行再寫內文；內文不要重複標題的文字。";
@@ -2475,9 +2482,7 @@ function load(){
       if((s.contextVer||0)<DEFAULTS.contextVer){ merged.context=DEFAULTS.context; merged.contextVer=DEFAULTS.contextVer; }
       merged.model="gpt-4o-mini"; // 已取消 5.0（智慧模式）選項，固定使用快速模型
       const defDepts = structuredClone(DEFAULTS.departments);
-      const sameStructure = (s.schema===DEFAULTS.schema)
-        && Array.isArray(s.departments) && s.departments.length===defDepts.length
-        && defDepts.every(d=> s.departments.some(x=>x.id===d.id));
+      const sameStructure = (s.schema===DEFAULTS.schema) && Array.isArray(s.departments);
       if(sameStructure){
         merged.departments = defDepts.map(bd=>{
           const u = s.departments.find(x=>x.id===bd.id) || {};
@@ -3785,7 +3790,9 @@ async function runAllDepartments(resume){
         run.stepTasks[i] ? `任務：${run.stepTasks[i]}` : "依部門專長自動發揮");
       let base="";
       if(run.goal) base+=`【本次共同目標】\n${run.goal}\n\n`;
-      if(run.prev) base+=`【${run.prevName} 交辦給你的素材】\n${clip(run.prev,MAX_CHAIN_CHARS)}\n\n`;
+      if(d.id==="video" && run.collected.length){
+        base+=`【圖文內容（影片必須與以下內容一致，不得新增不同的觀點、數據或療效）】\n`+run.collected.map(c=>`【${c.name}】\n${clip(c.out,1500)}`).join("\n\n")+"\n\n";
+      }else if(run.prev) base+=`【${run.prevName} 交辦給你的素材】\n${clip(run.prev,MAX_CHAIN_CHARS)}\n\n`;
       base+= run.stepTasks[i]
         ? `【你的任務】\n${run.stepTasks[i]}\n\n請完成並產出可直接使用的成果。`
         : `請以「${d.name}」的角色，完成你負責的部分，產出可直接使用的成果。`;
