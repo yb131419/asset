@@ -3827,7 +3827,6 @@ function deriveSegTitle(seg, idx){
   let first=(seg.split("\n")[0]||"").trim();
   first=first.replace(/^[#>*\-•\d]+[\.\)、]?\s*/,"").replace(/^【([^】]{1,16})】\s*/,"$1：").trim();
   if(!first) return "重點內容 "+(idx+1);
-  if(first.length>22) first=first.slice(0,20)+"…";
   return first;
 }
 // 摺疊外框：預設收合，資料一多也不會亂；點擊展開查看
@@ -3861,7 +3860,7 @@ function richBody(out){
       const mini=pieces.map((p,i)=>`
         <div class="pb-seg">
           <div class="pb-seg-title">${esc(deriveSegTitle(p,i))}</div>
-          <div class="pb-seg-body">${esc(p)}</div>
+          <div class="pb-seg-body">${esc(p.replace(/^#+\s*/gm,""))}</div>
         </div>`).join("");
       return `
       <div class="plat-block">
@@ -3879,7 +3878,7 @@ function richBody(out){
         <span class="tcard-num">${String(i+1).padStart(2,"0")}</span>
         <span class="tcard-tag">部門產出 · 第 ${i+1} 段</span>
         <div class="tcard-q">${esc(deriveSegTitle(s,i))}</div>
-        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(s)}</div>
+        <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc(s.replace(/^#+\s*/gm,""))}</div>
         <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
       </div>
     </div>`).join("")+`</div>`;
