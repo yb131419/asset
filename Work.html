@@ -2023,6 +2023,24 @@
     </div>
     <div id="pipeResults"></div>
 
+    <div class="lib-entry results-entry" onclick="openResults('final')">
+      <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</div>
+      <div class="le-meta">
+        <div class="le-name">文章部</div>
+        <div class="le-sub" id="resSumA">一鍵流程統整的文章成品，永久收存</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="lib-entry results-entry" onclick="openResults('video')">
+      <div class="le-ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</div>
+      <div class="le-meta">
+        <div class="le-name">影音部</div>
+        <div class="le-sub" id="resSumV">一分鐘口播逐字稿，永久收存</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
     <div class="lib-entry" onclick="openView('cardgen')" style="border-left:3px solid #3A8A5E;">
       <div class="le-ic" style="background:rgba(46,107,74,.12);color:#2E6B4A;">🖼️</div>
       <div class="le-meta">
@@ -2039,40 +2057,6 @@
         <div class="le-sub" id="cardsSummary">貼上健康知識或故事寶典內容，AI 做成問答卡，可當講義</div>
       </div>
       <span class="chev">›</span>
-    </div>
-
-    <div class="lib-entry results-entry" onclick="openResults()">
-      <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📦</div>
-      <div class="le-meta">
-        <div class="le-name">成品庫</div>
-        <div class="le-sub" id="resSummary">一鍵流程的成品都會永久收存在這裡</div>
-      </div>
-      <span class="chev">›</span>
-    </div>
-
-    <div class="lib-entry" onclick="openLibrary()">
-      <div class="le-ic">📁</div>
-      <div class="le-meta">
-        <div class="le-name">素材庫</div>
-        <div class="le-sub" id="libSummary">上傳產品資料、感受見證、故事素材，各部門自動引用</div>
-      </div>
-      <span class="chev">›</span>
-    </div>
-
-    <div class="chain-wrap">
-      <div class="section-label">流程圖</div>
-      <div id="chainBox"></div>
-    </div>
-    <div class="section-label">三個小幫手</div>
-    <div id="deptList"></div>
-    <div class="home-build" id="homeBuild"></div>
-  </section>
-
-  <!-- CARDGEN 圖卡產生器 -->
-  <section id="view-cardgen" class="view">
-    <div class="ws-head">
-      <button class="back" onclick="openView('home')">‹</button>
-      <div class="ws-title"><h2>🖼️ 圖卡產生器</h2><p>AI 自動排版 1:1 SVG 圖卡，截圖即可發布</p></div>
     </div>
 
     <!-- 主題快選 -->
@@ -2594,11 +2578,13 @@ function renderHome(){
   ).join(arrow);
   const botRow = node("openCollector()","rgba(107,78,158,.14)","#6B4E9E","🛰️","資料收集")
     + arrow
-    + node("openResults()","rgba(46,111,176,.14)","#2E6FB0","📦","成品庫");
-  box.innerHTML=`<div class="flow-row top">${topRow}</div>
+    + node("openResults('final')","rgba(46,111,176,.14)","#2E6FB0","📝","文章部")
+    + arrow
+    + node("openResults('video')","rgba(181,101,46,.14)","#B5652E","🎬","影音部");
+  if(box) box.innerHTML=`<div class="flow-row top">${topRow}</div>
     <div class="flow-row bot">${botRow}</div>`;
   const list=document.getElementById("deptList");
-  list.innerHTML = state.departments.map(d=>{
+  if(list) list.innerHTML = state.departments.map(d=>{
     const cnt = state.tasks.filter(t=>t.deptId===d.id).length;
     return `<div class="dept-card" onclick="openDept('${d.id}')">
       <div class="bar" style="background:${d.accent}"></div>
@@ -3184,22 +3170,29 @@ async function parseFile(f){
 }
 
 /* ============ 成品庫 ============ */
-function openResults(){ renderResults(); openView("results"); }
+let resKind="all";
+function openResults(kind){ resKind=kind||"all"; renderResults(); openView("results"); }
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
-  const el=document.getElementById("resSummary"); if(!el) return;
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
+  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇文章（永久保存）` : "一鍵流程統整的文章成品，永久收存";
+  const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則影音逐字稿（永久保存）` : "一分鐘口播逐字稿，永久收存";
+  const el=document.getElementById("resSummary"); if(!el) return;
   el.textContent = (n+v)===0 ? "一鍵流程的成品都會永久收存在這裡" : `文章 ${n} 篇　・　影音 ${v} 則（永久保存）`;
 }
 function renderResults(){
   const box=document.getElementById("resList");
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
-  if(articles.length===0 && videos.length===0){
+  const h2=document.querySelector("#view-results .ws-title h2");
+  if(h2) h2.textContent = resKind==="final" ? "📝 文章部" : resKind==="video" ? "🎬 影音部" : "📦 成品庫";
+  const showA = resKind!=="video", showV = resKind!=="final";
+  let html="";
+  if(showA) html += resSection("文章部","📝",articles,false);
+  if(showV) html += resSection("影音部","🎬",videos,true);
+  if(!html || (showA && !articles.length && showV && !videos.length)){
     box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
-    updateResSummary(); return;
-  }
-  box.innerHTML = resSection("文章部","📝",articles,false) + resSection("影音部","🎬",videos,true);
+  } else box.innerHTML=html;
   updateResSummary();
 }
 function resSection(title, icon, items, isVideo){
