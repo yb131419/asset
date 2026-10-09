@@ -5931,7 +5931,22 @@ const NPC=[
   {id:'cards',name:'教學工坊',role:'教材做成問答卡',ic:'🎴',x:8,y:19,look:L('#A8782E','#FBE9B9','hat'),
    lines:['拿來教材，我幫你鍛造成卡片。'],
    acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
-];const npcAt=new Map();
+];// 補充對話：原有台詞保留，另外加入幾句，村莊裡會隨機冒泡、點進去也會逐句說話
+const NPC_EXTRA={
+  settings:['成品越多，村子越熱鬧。','背景設定寫清楚，之後的內容才會穩。'],
+  collector:['今天想聽哪個話題？','資料每天都會更新，記得回來看。'],
+  library:['上傳過的素材，都在這裡等你。','勾選要用的素材，產出會更貼近你。'],
+  pipeline:['一步一步來，不急。','完成的流程會自動留存。'],
+  icebreak:['先說一個故事，讓人想聽下去。','比喻比道理更容易被記住。'],
+  core:['道理要講清楚，案例只說個人感受。','不誇大、不保證，這是底線。'],
+  video:['口播前三秒最重要。','一分鐘說完，留一句金句收尾。'],
+  market:['先定方向，再一步步做。','每天只做一件小事就夠了。'],
+  warmup:['先交朋友，不急著推。','對方願意回話，就是好的開始。'],
+  results:['每則成品都是你的累積。','想換個形式呈現？試試圖卡。'],
+  cards:['教材丟進來，做成問答卡。','卡片可以拿去教別人。']
+};
+NPC.forEach(n=>{ if(NPC_EXTRA[n.id]) n.lines=n.lines.concat(NPC_EXTRA[n.id]); });
+const npcAt=new Map();
 NPC.forEach(n=>npcAt.set(key(n.x,n.y),n));
 NPC.forEach(n=>BLK.has(key(n.x,n.y)) && console.warn('NPC 位置被障礙佔用：',n.name));
 
@@ -6014,28 +6029,62 @@ function renderVillage(){
 
 /* ---------- 對話卡 ---------- */
 let curN=null;
+let dlgIdx=0, dlgTimer=null, dlgTyping=false, dlgFull='';
 function openCard(n){
-  curN=n;
+  curN=n; dlgIdx=0;
   const c=document.getElementById('vCard');
-  const line=n.lines[Math.floor(Math.random()*n.lines.length)];
-  const acts=typeof n.acts==='function'?n.acts():n.acts;
   c.innerHTML=
     '<div class="vc-h">'+
       '<div class="vc-ic" style="background:'+n.look.cloth+'33;border-color:'+n.look.cloth+'">'+n.ic+'</div>'+
       '<div><div class="vc-n">'+n.name+'</div><div class="vc-r">'+n.role+'</div></div>'+
       '<button class="vbtn g sm vc-x" id="vcX" type="button">✕</button>'+
     '</div>'+
-    '<div class="vc-t">'+line+'</div>'+
-    '<div class="vc-btns">'+acts.map((a,i)=>'<button class="vbtn'+(i?' g':'')+'" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
+    '<div class="vc-t" id="vcT" title="點一下可立即顯示全文"></div>'+
+    '<div class="vc-btns" id="vcB"></div>';
   c.hidden=false;
   document.getElementById('vGridBox').hidden=true;
   document.getElementById('vcX').onclick=hideCard;
-  c.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{
-    const act=acts[+bt.dataset.i]; hideCard(); act[1]();
+  document.getElementById('vcT').onclick=()=>{ if(dlgTyping) finishType(); };
+  showLine(n);
+}
+function showLine(n){
+  typeText(n.lines[dlgIdx]||'');
+}
+function typeText(txt){
+  clearInterval(dlgTimer);
+  dlgFull=txt; dlgTyping=true;
+  const el=document.getElementById('vcT');
+  if(!el){ dlgTyping=false; return; }
+  let i=0; el.textContent='';
+  renderBtns();
+  dlgTimer=setInterval(()=>{
+    i++; el.textContent=txt.slice(0,i);
+    if(i>=txt.length) finishType();
+  },28);
+}
+function finishType(){
+  clearInterval(dlgTimer); dlgTyping=false;
+  const el=document.getElementById('vcT');
+  if(el) el.textContent=dlgFull;
+  renderBtns();
+}
+function renderBtns(){
+  const n=curN, box=document.getElementById('vcB');
+  if(!n || !box) return;
+  if(dlgTyping){ box.innerHTML=''; return; }
+  const more = dlgIdx < n.lines.length-1;
+  const acts = more
+    ? [['下一句 ▸',()=>{ dlgIdx++; showLine(curN); }],['略過 ⏭',()=>{ dlgIdx=curN.lines.length-1; showLine(curN); }]]
+    : (typeof n.acts==='function' ? n.acts() : n.acts);
+  box.innerHTML=acts.map((a,i)=>'<button class="vbtn'+(i&&!more?' g':'')+'" data-i="'+i+'" type="button">'+a[0]+'</button>').join('');
+  box.querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>{
+    const act=acts[+bt.dataset.i];
+    if(more){ act[1](); return; }
+    hideCard(); act[1]();
   });
 }
 function hideCard(){
-  curN=null;
+  curN=null; clearInterval(dlgTimer); dlgTyping=false;
   document.getElementById('vCard').hidden=true;
   document.getElementById('vGridBox').hidden=false;
 }
@@ -6276,6 +6325,35 @@ function isNight(){
 function bobOf(i,t){ return Math.sin(t/520+i*1.9)>0.55?-1:0; }
 
 const SPR_W=18.7, SPR_H=28;   // 人物在世界座標中的大小
+function drawBubble(txt,cx,bottomY){
+  g.font='600 6.5px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+  g.textAlign='center'; g.textBaseline='middle';
+  const maxW=74, lines=[]; let cur='';
+  for(const ch of txt){ if(g.measureText(cur+ch).width>maxW){ lines.push(cur); cur=ch; } else cur+=ch; }
+  if(cur) lines.push(cur);
+  const lh=8, pad=3;
+  const w=Math.max(...lines.map(l=>g.measureText(l).width))+pad*2;
+  const h=lines.length*lh+pad*2-1;
+  const x=cx-w/2, y=bottomY-4-h;
+  g.fillStyle='#FFF8E6'; g.strokeStyle='#1B2A22'; g.lineWidth=.7;
+  g.beginPath(); if(g.roundRect){ g.roundRect(x,y,w,h,3); } else { g.rect(x,y,w,h); }
+  g.fill(); g.stroke();
+  g.beginPath(); g.moveTo(cx-2.5,bottomY-4.4); g.lineTo(cx+2.5,bottomY-4.4); g.lineTo(cx,bottomY); g.closePath();
+  g.fill();
+  g.fillStyle='#1E2A24';
+  lines.forEach((l,i)=>g.fillText(l,cx,y+pad+lh/2+i*lh));
+}
+let nextSay=0;
+function ambient(t){
+  if(t<nextSay) return;
+  nextSay=t+2600+Math.random()*2200;
+  const cands=NPC.filter(n=>Math.abs(n.x-P.x)+Math.abs(n.y-P.y)<=9 && !(n._say&&t<n._say.until));
+  if(!cands.length) return;
+  const n=cands[Math.floor(Math.random()*cands.length)];
+  const line=n.lines[Math.floor(Math.random()*n.lines.length)];
+  const short=line.split(/[。！？，]/)[0].slice(0,16);
+  n._say={text:short, until:t+4200};
+}
 function drawName(name,cx,topY,hot){
   g.font='700 7px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
   g.textAlign='center'; g.textBaseline='middle';
@@ -6287,7 +6365,7 @@ function drawName(name,cx,topY,hot){
   g.fillStyle=hot?'#0B1A12':'#F6E3B4';
   g.fillText(name,cx,y+h/2+.3);
 }
-function drawChar(id,look,X,Y,dir,step,bob,alert,name,hot){
+function drawChar(id,look,X,Y,dir,step,bob,alert,name,hot,say){
   const im=SPR[id];
   const feet=Y+14, cx=X+8;
   if(im && im.complete && im.naturalWidth){
@@ -6298,6 +6376,7 @@ function drawChar(id,look,X,Y,dir,step,bob,alert,name,hot){
     human(X,Y,look,dir,step,bob,false);
   }
   if(name) drawName(name,cx,feet-SPR_H+bob-1,hot);
+  if(say) drawBubble(say,cx,feet-SPR_H+bob-12);
   if(alert && Math.floor(performance.now()/380)%2===0){
     g.fillStyle='#FFD27A';
     g.fillRect(cx-1, feet-SPR_H+bob+7, 2, 4);
@@ -6326,7 +6405,7 @@ function render(t){
   const list=NPC.map((n,i)=>({y:n.y,draw:()=>{
     const near=Math.abs(n.x-P.x)+Math.abs(n.y-P.y);
     const d=near<=2 ? dirOf(P.x-n.x,P.y-n.y) : 0;
-    drawChar(n.id,n.look,n.x*T,n.y*T,d,0,bobOf(i,t)*0.6,near===1,n.name,near===1);
+    drawChar(n.id,n.look,n.x*T,n.y*T,d,0,bobOf(i,t)*0.6,near===1,n.name,near===1,(n._say&&t<n._say.until)?n._say.text:'');
   }}));
   const walking=P.path.length>0;
   const pStep=walking ? (Math.floor(t/130)%2===0?1:2) : 0;
@@ -6379,6 +6458,7 @@ function loop(t){
   P.vx+=(P.x-P.vx)*0.32; P.vy+=(P.y-P.vy)*0.32;
   if(Math.abs(P.x-P.vx)<0.01) P.vx=P.x;
   if(Math.abs(P.y-P.vy)<0.01) P.vy=P.y;
+  ambient(t);
   render(t);
 }
 
