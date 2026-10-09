@@ -1895,6 +1895,12 @@
     box-shadow:0 2px 8px rgba(14,40,22,.06);}
   .hi-actions .hi-btn.del{color:#9A4B3A;background:#FFF7F4;border-color:rgba(154,75,58,.25);}
 
+  #view-collector #collAutoItem.selected{background:linear-gradient(160deg,#17553A,#0A2E20);border-color:transparent;}
+  #view-collector #collAutoItem.selected .ci-txt{color:#F6E3B4;}
+  #view-collector #collAutoItem.selected .ci-ck{background:#F6E3B4;border-color:transparent;color:#17553A;}
+  .coll-item{position:relative;}
+  .coll-item .coll-top{padding-right:58px;}
+  .coll-del{position:absolute;top:12px;right:12px;font-size:12px;font-weight:700;font-family:inherit;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:4px 11px;line-height:1.4;cursor:pointer;}
   .cg-mode{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:4px 0 12px;}
   .cg-mode button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:40px;}
   .cg-mode button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;box-shadow:0 3px 10px rgba(14,40,22,.2);}
@@ -3318,7 +3324,7 @@ function resDeleteSelected(kind){
   toast(`已刪除 ${ids.length} 則`);
 }
 function resItemHTML(t, isVideo){
-  const tag = isVideo ? "影音內容 · 一分鐘逐字稿" : "圖文 · 成品";
+  const tag = isVideo ? "影音內容 · 短影音" : "圖文 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
@@ -3484,13 +3490,13 @@ function renderCollector(){
     updateCollSummary(); return;
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
+    <button class="coll-del" onclick="deleteTopic('${c.id}')">刪除</button>
     <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${c.cat==="concept"?'<span class="coll-used" style="color:#5A4A8A;background:rgba(90,74,138,.12)">💡 觀念</span>':c.cat==="health"?'<span class="coll-used" style="color:#2E6B4A;background:rgba(46,107,74,.12)">🌿 健康</span>':''} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
       <button class="hi-btn" onclick="useTopic('${c.id}')">▶ 用此主題跑流程</button>
       <button class="hi-btn" onclick="topicToLibrary('${c.id}')">📁 存入素材庫</button>
-      <button class="hi-btn del" onclick="deleteTopic('${c.id}')">刪除</button>
     </div>
   </div>`).join("");
   updateCollSummary();
@@ -4138,7 +4144,7 @@ function singleBody(out, tag){
   return `<div class="card-deck seg-deck"><div class="tcard flat">
     <div class="tcard-face tcard-front" style="position:relative;inset:auto;min-height:0;">
       <span class="tcard-num">01</span>
-      <span class="tcard-tag">${esc(tag||"影音內容 · 一分鐘逐字稿")}</span>
+      <span class="tcard-tag">${esc(tag||"影音內容 · 短影音")}</span>
       <div class="tcard-a" style="color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;">${esc((out||"").replace(/^#+\s*/gm,""))}</div>
       <button class="tcard-copy" onclick="copySeg(this)">📋 複製</button>
         <button class="tcard-share" onclick="shareFromBtn(this)">📝 文字分享</button>
