@@ -1888,6 +1888,12 @@
   .pb-acts{display:flex;gap:6px;}
 
   .cd-select{flex:1;min-width:0;border:1px solid rgba(23,85,58,.22);border-radius:12px;background:#FBFAF6;color:#17553A;font-size:14px;font-weight:700;padding:9px 12px;font-family:inherit;appearance:auto;}
+
+  .hi-actions{display:grid !important;grid-template-columns:1fr 1fr;gap:10px !important;}
+  .hi-actions .hi-btn{justify-content:center;text-align:center;border-radius:14px;min-height:46px;font-size:14px;
+    background:linear-gradient(180deg,#FFFFFF,#F7F5EE);border:1px solid rgba(23,85,58,.16);color:#17553A;
+    box-shadow:0 2px 8px rgba(14,40,22,.06);}
+  .hi-actions .hi-btn.del{grid-column:1 / -1;color:#9A4B3A;background:#FFF7F4;border-color:rgba(154,75,58,.2);}
 </style>
 </head>
 <body>
@@ -4077,36 +4083,15 @@ function richBody(out, single, tag){
     </div>`).join("")+`</div>`;
   return foldWrap(inner, segs.length, "張卡片");
 }
-// ===== 分享：LINE 好友／群組（LIFF）＋ 手機分享選單 =====
-function shareChunks(text, size){
-  const out=[]; let t=text;
-  while(t.length>size){
-    let cut=t.lastIndexOf("\n", size); if(cut<size*0.5) cut=size;
-    out.push(t.slice(0,cut).trim()); t=t.slice(cut).trim();
-  }
-  if(t) out.push(t);
-  return out;
-}
-function inLineApp(){
-  try{ return !!(window.liff && liff.isInClient && liff.isInClient() && liff.isApiAvailable && liff.isApiAvailable("shareTargetPicker")); }
-  catch(e){ return false; }
-}
+// ===== 分享：使用手機原生分享選單 =====
 function shareText(txt){
   const text=(txt||"").trim();
   if(!text){ toast("沒有可分享的內容"); return; }
-  if(inLineApp()){
-    const chunks=shareChunks(text, 4900);
-    if(chunks.length>5){ toast("內容太長，請分段分享或先複製"); return; }
-    liff.shareTargetPicker(chunks.map(c=>({type:"text", text:c})))
-      .then(res=>{ if(res) toast("已送出到 LINE"); })
-      .catch(e=>toast("LINE 分享失敗：" + ((e&&e.message)||e)));
-    return;
-  }
   if(navigator.share){
     navigator.share({ text }).catch(()=>{});
     return;
   }
-  navigator.clipboard.writeText(text).then(()=>toast("已複製，請到 LINE 或其他 App 貼上"));
+  navigator.clipboard.writeText(text).then(()=>toast("已複製，可貼到任何 App"));
 }
 function shareFromBtn(btn){
   const tc=btn.closest(".tcard"), pb=btn.closest(".plat-block"), host=btn.closest(".res-item, .output-card");
