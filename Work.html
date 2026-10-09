@@ -1901,14 +1901,24 @@
   .coll-item{position:relative;}
   .coll-item .coll-top{padding-right:58px;}
   .coll-del{position:absolute;top:12px;right:12px;font-size:12px;font-weight:700;font-family:inherit;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:4px 11px;line-height:1.4;cursor:pointer;}
-  .pp-box{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px;}
+  .pp-panel{background:linear-gradient(170deg,rgba(255,255,255,.09),rgba(255,255,255,.03));border:1px solid rgba(243,217,163,.2);border-radius:18px;padding:14px 14px 4px;margin:0 0 12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
+  .pp-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid rgba(243,217,163,.16);}
+  .pp-title{font-size:14px;font-weight:800;color:#F3D9A3;letter-spacing:.5px;}
+  .pp-title em{font-style:normal;font-size:11.5px;font-weight:600;color:rgba(243,236,220,.5);margin-left:6px;}
+  .pp-count{margin-left:auto;font-size:12px;color:#7FD3A8;font-weight:700;}
+  .pp-clear{border:0;background:transparent;color:rgba(243,236,220,.7);font:inherit;font-size:12px;text-decoration:underline;padding:4px 2px;cursor:pointer;}
+  .pp-group{padding:12px 0 10px;border-bottom:1px dashed rgba(243,217,163,.14);}
+  .pp-group:last-child{border-bottom:none;}
+  .pp-glabel{font-size:12px;font-weight:700;color:rgba(243,236,220,.6);letter-spacing:.5px;margin-bottom:8px;}
+  .pp-chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .pp-empty{font-size:12.5px;color:rgba(243,236,220,.4);padding:6px 0;}
   .pp-chip{display:inline-flex;align-items:center;border:1px solid rgba(243,217,163,.28);border-radius:999px;background:rgba(255,255,255,.06);}
   .pp-chip button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:rgba(243,236,220,.9);padding:7px 12px;min-height:34px;cursor:pointer;}
   .pp-chip.on{background:linear-gradient(160deg,#E7C27A,#B8863C);border-color:transparent;}
   .pp-chip.on button{color:#1A2A20;}
   .pp-chip .pp-x{padding:7px 10px 7px 0;opacity:.6;font-size:15px;}
   .pp-chip-add{border:1px dashed rgba(243,217,163,.5);border-radius:999px;background:transparent;font:inherit;font-size:13px;font-weight:700;color:#F3D9A3;padding:7px 13px;min-height:34px;cursor:pointer;}
-  .pp-add{display:flex;gap:8px;width:100%;margin:0 0 10px;}
+  .pp-add{display:flex;gap:8px;width:100%;margin-top:10px;}
   .pp-add[hidden]{display:none;}
   .pp-add input{flex:1;min-width:0;border:1px solid rgba(243,217,163,.35);border-radius:12px;padding:9px 12px;font:inherit;font-size:14px;background:rgba(255,255,255,.08);color:#F3ECDC;}
   .pp-add button{border:0;border-radius:12px;background:linear-gradient(160deg,#F3D9A3,#C9A15A);color:#1A2A20;font-weight:700;padding:0 16px;min-height:40px;}
@@ -2122,8 +2132,7 @@
 
       </div>
       <!-- 自由輸入（選填補充） -->
-      <div id="ppBox" class="pp-box"></div>
-      <div id="ppAdd" class="pp-add" hidden><input id="ppAddInput" maxlength="30" placeholder="輸入自訂內容，例如：加上優惠說明"><button type="button" onclick="ppAddCustom()">加入</button></div>
+      <div id="ppPanel" class="pp-panel"></div>
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
       <div id="pipeSteps" style="display:none"></div>
       <div id="pipePlatBar" style="display:none"></div>
@@ -2462,56 +2471,79 @@ function selectPlat(el, val){ return;
 // 保留 selectCatChip 兼容舊代碼
 function selectCatChip(el, cat, val){ selectTopic(el, cat, val); }
 
-/* ===== 補充說明：常用預設問題 + 自訂內容 ===== */
-const PP_DEFAULT=["強調客戶真實感受","加上邀約結尾","口語親切一點","加入生活情境故事","結尾附互動提問","不要誇大療效","加上行動呼籲"];
+/* ===== 補充說明：分類預設 + 自訂內容 ===== */
+const PP_GROUPS=[
+  {name:"語氣風格", ic:"🎙️", items:["口語親切一點","專業可信一點","輕鬆幽默一點"]},
+  {name:"內容重點", ic:"🎯", items:["強調客戶真實感受","加入生活情境故事","加入生活比喻"]},
+  {name:"結尾行動", ic:"📣", items:["加上邀約結尾","結尾附互動提問","加上行動呼籲"]},
+  {name:"安全規範", ic:"🛡️", items:["不要誇大療效","不使用醫療用語","不做絕對保證"]}
+];
 let _ppAddOpen=false;
-function ppList(kind){ return kind==="c" ? (state.pipePresets||[]) : PP_DEFAULT; }
+function ppAllItems(){
+  const out=[];
+  PP_GROUPS.forEach((g,gi)=>g.items.forEach(t=>out.push({t, g:gi, custom:false})));
+  (state.pipePresets||[]).forEach((t,ci)=>out.push({t, g:PP_GROUPS.length, custom:true, ci}));
+  return out.map((x,idx)=>({...x, idx}));
+}
 function ppEscHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 function renderPipePresets(){
-  const box=document.getElementById("ppBox"); if(!box) return;
+  const box=document.getElementById("ppPanel"); if(!box) return;
   const v=document.getElementById("pipeInput").value||"";
-  const chip=(kind,p,i)=>{
-    const on=v.includes(p);
-    return `<span class="pp-chip ${on?"on":""}"><button type="button" onclick="ppToggle('${kind}',${i})">${ppEscHtml(p)}</button>${kind==="c"?`<button type="button" class="pp-x" onclick="ppDelCustom(${i})" aria-label="刪除">×</button>`:""}</span>`;
+  const all=ppAllItems();
+  const cnt=all.filter(x=>v.includes(x.t)).length;
+  const chip=x=>{
+    const on=v.includes(x.t);
+    return `<span class="pp-chip ${on?"on":""}"><button type="button" onclick="ppToggle(${x.idx})">${ppEscHtml(x.t)}</button>${x.custom?`<button type="button" class="pp-x" onclick="ppDelCustom(${x.ci})" aria-label="刪除">×</button>`:""}</span>`;
   };
-  box.innerHTML = ppList("d").map((p,i)=>chip("d",p,i)).join("")
-    + ppList("c").map((p,i)=>chip("c",p,i)).join("")
-    + `<button type="button" class="pp-chip-add" onclick="ppOpenAdd()">＋ 自訂內容</button>`;
+  const groups=PP_GROUPS.map((g,gi)=>({name:g.name, ic:g.ic, gi}));
+  groups.push({name:"我的自訂", ic:"✨", gi:PP_GROUPS.length});
+  const html=groups.map(g=>{
+    const items=all.filter(x=>x.g===g.gi);
+    const isCustom=g.gi===PP_GROUPS.length;
+    const body=items.length ? items.map(chip).join("") : (isCustom ? `<span class="pp-empty">尚無自訂內容，可自行新增常用句</span>` : "");
+    const extra=isCustom ? `<button type="button" class="pp-chip-add" onclick="ppOpenAdd()">＋ 新增</button>` : "";
+    const addRow=isCustom ? `<div id="ppAdd" class="pp-add" ${_ppAddOpen?"":"hidden"}><input id="ppAddInput" maxlength="30" placeholder="輸入自訂內容，例如：加上優惠說明"><button type="button" onclick="ppAddCustom()">加入</button></div>` : "";
+    return `<div class="pp-group"><div class="pp-glabel">${g.ic} ${g.name}</div><div class="pp-chips">${body}${extra}</div>${addRow}</div>`;
+  }).join("");
+  box.innerHTML=`<div class="pp-head"><span class="pp-title">補充說明<em>選填</em></span>${cnt?`<span class="pp-count">已選 ${cnt} 項</span><button type="button" class="pp-clear" onclick="ppClearPicks()">清除選取</button>`:""}</div>${html}`;
 }
-function ppToggle(kind, i){
-  const p=ppList(kind)[i]; if(!p) return;
+function ppToggle(idx){
+  const it=ppAllItems().find(x=>x.idx===idx); if(!it) return;
   const ta=document.getElementById("pipeInput");
   let v=ta.value;
-  if(v.includes(p)){
-    v=v.split("；").map(s=>s.split(p).join("").trim()).filter(Boolean).join("；");
+  if(v.includes(it.t)){
+    v=v.split("；").map(s=>s.split(it.t).join("").trim()).filter(Boolean).join("；");
   }else{
-    v = v.trim() ? v.trim().replace(/[；;]\s*$/,"") + "；" + p : p;
+    v = v.trim() ? v.trim().replace(/[；;]\s*$/,"") + "；" + it.t : it.t;
   }
   ta.value=v;
+  renderPipePresets();
+}
+function ppClearPicks(){
+  const phrases=ppAllItems().map(x=>x.t);
+  const ta=document.getElementById("pipeInput");
+  ta.value=ta.value.split("；").map(s=>{ let r=s; phrases.forEach(p=>{ r=r.split(p).join(""); }); return r.trim(); }).filter(Boolean).join("；");
   renderPipePresets();
 }
 function ppOpenAdd(){
   _ppAddOpen=!_ppAddOpen;
   const row=document.getElementById("ppAdd");
-  row.hidden=!_ppAddOpen;
-  if(_ppAddOpen) document.getElementById("ppAddInput").focus();
+  if(row){ row.hidden=!_ppAddOpen; if(_ppAddOpen) document.getElementById("ppAddInput").focus(); }
 }
 function ppAddCustom(){
   const inp=document.getElementById("ppAddInput");
-  const t=(inp.value||"").trim();
+  const t=((inp && inp.value)||"").trim();
   if(!t){ toast("請輸入自訂內容"); return; }
   state.pipePresets=state.pipePresets||[];
   if(!state.pipePresets.includes(t)) state.pipePresets.push(t);
   save();
-  inp.value="";
   _ppAddOpen=false;
-  document.getElementById("ppAdd").hidden=true;
   renderPipePresets();
   toast("已加入自訂內容");
 }
-function ppDelCustom(i){
+function ppDelCustom(ci){
   if(!state.pipePresets) return;
-  state.pipePresets.splice(i,1);
+  state.pipePresets.splice(ci,1);
   save();
   renderPipePresets();
 }
