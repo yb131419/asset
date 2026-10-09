@@ -2725,10 +2725,8 @@ const DEFAULTS = {
 
 /* ============ 狀態 ============ */
 let state = load();
-try{ const ps=state.pipeSel||{}; const pl=ps.labels||{};
-  (ps.plan||[]).forEach(v=>{ if(!_bizPlan.includes(v)) _bizPlan.push(v); });
-  ['health','concept','biz'].forEach(k=>{ if(ps[k]){ _sel[k]=ps[k]; _selLabel[k]=pl[k]||ps[k].slice(0,24); _collSel[k]=ps[k]; _collSelLabel[k]=_selLabel[k]; } });
-}catch(e){}
+// 每次開啟（含 LINE 登入後重新載入）都回到預設值，不還原上一次的主題選擇
+try{ if(state.pipeSel){ state.pipeSel=null; save(); } }catch(e){}
 let current = null;
 let pendingFiles = [];
 let cardsFiles = [];       // 教學工坊的附件
@@ -4005,9 +4003,20 @@ async function organizeMaterial(item, onProgress){
     let url=item.url||"";
     if(!/^data:image\/(jpeg|png|webp);/.test(url)){ item.err="圖片格式不支援，請改用 JPG 或 PNG 再上傳"; return ""; }
     if(url.length>1200000){ url=await compressImage(url, 896, 0.75); }   // 過大的圖先縮小，避免送出失敗
-    const user=[{type:"text",text:"請讀懂這張圖片（含文字與圖表），依下列格式整理成結構化總結。"},{type:"image_url",image_url:{url:url}}];
-    try{ return (await callOpenAI(LIB_FINAL_SYS, user, 1200)).trim(); }
-    catch(e){ item.err="圖片解析失敗：" + (e.message||"未知錯誤"); return ""; }
+    const REFUSE=/無法(直接)?(讀取|解讀|解釋|分析|辨識|看到|查看)|抱歉.{0,12}(圖片|圖中|影像)|無法.{0,6}圖/;
+    const imgSys="你是文件辨識與整理助理。使用者上傳的是一張文件、表格或截圖，圖片已附在訊息中，你可以看到它。請逐字辨識圖中所有文字、標題、數字與圖表資訊，不要回覆無法讀取。\n\n"+LIB_FINAL_SYS;
+    const prompts=["請辨識這張圖片中的文字與圖表，依格式整理成結構化總結。","這是一張文件截圖，請把圖中文字辨識出來並依格式整理。"];
+    let out="";
+    try{
+      for(const q of prompts){
+        const user=[{type:"text",text:q},{type:"image_url",image_url:{url:url}}];
+        out=(await callOpenAI(imgSys, user, 1200)).trim();
+        if(out && !REFUSE.test(out.slice(0,120))) break;
+        out="";
+      }
+    }catch(e){ item.err="圖片解析失敗：" + (e.message||"未知錯誤"); return ""; }
+    if(!out){ item.err="AI 無法辨識這張圖片的文字，請換成清晰、正向的截圖（JPG／PNG），或把內容複製成文字檔上傳"; return ""; }
+    return out;
   }
   const full=(item.content||"").trim();
   if(!full) return "";
