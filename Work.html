@@ -1902,6 +1902,8 @@
 
   .cg-group{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:12px 0 4px;}
   .cg-seg{flex:1;border:0;background:transparent;border-radius:999px;padding:10px 6px;font-size:13px;font-weight:700;color:#5A6B60;font-family:inherit;min-height:42px;white-space:nowrap;}
+  .cg-group[data-open="0"] .cg-seg[data-m]{display:none;}
+  .cg-group[data-open="0"] .cg-gen{flex:1;}
   .cg-seg.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;box-shadow:0 3px 10px rgba(14,40,22,.2);}
   button.cd-head.cd-fold{display:inline-flex;align-items:center;gap:6px;background:#FBFAF6;border:1px solid rgba(23,85,58,.2);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;color:#17553A;font-family:inherit;margin:0 0 4px;}
   .cd-fold .cd-arrow{font-size:12px;opacity:.7;}
@@ -4471,14 +4473,15 @@ function cardEditorHTML(cid, open){
 }
 function cgGroupHTML(txt, plat, single){
   const mode="multi";
-  return `<div class="cg-group" data-txt="${encodeURIComponent(txt||"")}" data-plat="${esc(plat||"")}" data-single="${single?"1":""}" data-mode="${mode}">
-    <button class="cg-seg" onclick="cgGenerate(this)">🖼️ 產生圖卡</button>
+  return `<div class="cg-group" data-open="0" data-txt="${encodeURIComponent(txt||"")}" data-plat="${esc(plat||"")}" data-single="${single?"1":""}" data-mode="${mode}">
+    <button class="cg-seg cg-gen" onclick="cgGenerate(this)">🖼️ 產生圖卡</button>
     <button class="cg-seg" data-m="single" onclick="cgGenerate(this,'single')">一張長圖</button>
-    <button class="cg-seg on" data-m="multi" onclick="cgGenerate(this,'multi')">多張（4:5）</button>
+    <button class="cg-seg" data-m="multi" onclick="cgGenerate(this,'multi')">多張（4:5）</button>
   </div>`;
 }
 function cgGenerate(btn, mode){
   const g=btn.closest(".cg-group"); if(!g) return;
+  g.dataset.open="1";  // 第一次按下「產生圖卡」後才顯示版面選項
   if(mode) g.dataset.mode=mode;
   const m=g.dataset.mode||"multi";
   const card=g.closest(".res-item, .output-card, .hist-item");
