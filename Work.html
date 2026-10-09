@@ -1922,6 +1922,17 @@
   .pp-add[hidden]{display:none;}
   .pp-add input{flex:1;min-width:0;border:1px solid rgba(243,217,163,.35);border-radius:12px;padding:9px 12px;font:inherit;font-size:14px;background:rgba(255,255,255,.08);color:#F3ECDC;}
   .pp-add button{border:0;border-radius:12px;background:linear-gradient(160deg,#F3D9A3,#C9A15A);color:#1A2A20;font-weight:700;padding:0 16px;min-height:40px;}
+  .pp-head{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;width:100%;cursor:pointer;padding:4px 0;}
+  .pp-head .pp-title{font-size:14px;font-weight:800;color:#F3D9A3;letter-spacing:.5px;}
+  .pp-head .pp-count{margin-left:auto;font-size:12px;color:#7FD3A8;font-weight:700;}
+  .pp-arrow{font-size:12px;color:#F3D9A3;margin-left:4px;}
+  .pp-head .pp-count + .pp-arrow{margin-left:0;}
+  .pp-body{border-top:1px solid rgba(243,217,163,.16);margin-top:8px;padding-top:2px;}
+  .pp-body[hidden]{display:none;}
+  .pp-tools{display:flex;justify-content:flex-end;padding:8px 0 0;}
+  .pp-ta{margin-top:12px;}
+  .pp-ta textarea{width:100%;box-sizing:border-box;}
+  .pp-panel{padding:12px 14px;}
   .cg-ratio{margin:0 0 10px;}
   .cg-ratio button{min-height:36px;padding:7px 4px;font-size:13px;}
   .cg-ratio button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;}
@@ -2132,7 +2143,8 @@
 
       </div>
       <!-- 自由輸入（選填補充） -->
-      <div id="ppPanel" class="pp-panel"></div>
+      <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
+      <div id="ppHold" hidden></div>
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
       <div id="pipeSteps" style="display:none"></div>
       <div id="pipePlatBar" style="display:none"></div>
@@ -2475,6 +2487,7 @@ function selectCatChip(el, cat, val){ selectTopic(el, cat, val); }
 const PP_GROUPS=[
   {name:"語氣風格", ic:"🎙️", items:["口語親切一點","專業可信一點","輕鬆幽默一點"]},
   {name:"內容重點", ic:"🎯", items:["強調客戶真實感受","加入生活情境故事","加入生活比喻"]},
+  {name:"市場經營", ic:"📈", items:["只說明經營方向與做法","拆解成具體步驟，每步怎麼做","從零開始的執行順序與時程","列出每日可執行的行動清單","不提收入或成效保證"]},
   {name:"結尾行動", ic:"📣", items:["加上邀約結尾","結尾附互動提問","加上行動呼籲"]},
   {name:"安全規範", ic:"🛡️", items:["不要誇大療效","不使用醫療用語","不做絕對保證"]}
 ];
@@ -2486,9 +2499,12 @@ function ppAllItems(){
   return out.map((x,idx)=>({...x, idx}));
 }
 function ppEscHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
+let _ppOpen=false;
 function renderPipePresets(){
-  const box=document.getElementById("ppPanel"); if(!box) return;
-  const v=document.getElementById("pipeInput").value||"";
+  const box=document.getElementById("ppInner"); if(!box) return;
+  const ta=document.getElementById("pipeInput");
+  document.getElementById("ppHold").appendChild(ta);   // 先把輸入框移出，避免被覆寫
+  const v=ta.value||"";
   const all=ppAllItems();
   const cnt=all.filter(x=>v.includes(x.t)).length;
   const chip=x=>{
@@ -2505,7 +2521,13 @@ function renderPipePresets(){
     const addRow=isCustom ? `<div id="ppAdd" class="pp-add" ${_ppAddOpen?"":"hidden"}><input id="ppAddInput" maxlength="30" placeholder="輸入自訂內容，例如：加上優惠說明"><button type="button" onclick="ppAddCustom()">加入</button></div>` : "";
     return `<div class="pp-group"><div class="pp-glabel">${g.ic} ${g.name}</div><div class="pp-chips">${body}${extra}</div>${addRow}</div>`;
   }).join("");
-  box.innerHTML=`<div class="pp-head"><span class="pp-title">補充說明<em>選填</em></span>${cnt?`<span class="pp-count">已選 ${cnt} 項</span><button type="button" class="pp-clear" onclick="ppClearPicks()">清除選取</button>`:""}</div>${html}`;
+  box.innerHTML=`<button type="button" class="pp-head" onclick="ppTogglePanel()" aria-expanded="${_ppOpen}"><span class="pp-title">補充說明<em>選填</em></span>${cnt?`<span class="pp-count">已選 ${cnt} 項</span>`:""}<span class="pp-arrow">${_ppOpen?"▴":"▾"}</span></button>`
+    + `<div class="pp-body" ${_ppOpen?"":"hidden"}>${cnt?`<div class="pp-tools"><button type="button" class="pp-clear" onclick="ppClearPicks()">清除選取</button></div>`:""}${html}<div class="pp-ta"></div></div>`;
+  box.querySelector(".pp-ta").appendChild(ta);
+}
+function ppTogglePanel(){
+  _ppOpen=!_ppOpen;
+  renderPipePresets();
 }
 function ppToggle(idx){
   const it=ppAllItems().find(x=>x.idx===idx); if(!it) return;
