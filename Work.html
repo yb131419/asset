@@ -1877,6 +1877,9 @@
   #view-collector #collAutoItem .ci-txt{font-size:16px;font-weight:800;color:#17553A;}
   #view-collector #collAutoItem:not(.selected){border:1.5px dashed rgba(46,107,74,.4);}
   #view-collector #collectBtn{min-height:68px;font-size:18px;letter-spacing:4px;border:1.5px solid #D9B56A !important;box-shadow:0 0 0 3px rgba(243,217,163,.25),0 10px 24px rgba(14,40,22,.28);}
+
+  .home-cat{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--accent);opacity:.8;margin:16px 6px 8px;display:flex;align-items:center;gap:8px;}
+  .home-cat::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(26,122,94,.25),transparent);}
 </style>
 </head>
 <body>
@@ -1943,6 +1946,7 @@
 
   <!-- HOME -->
   <section id="view-home" class="view active">
+    <div class="home-cat">收集</div>
     <div class="lib-entry" onclick="openCollector()">
       <div class="le-ic" style="background:rgba(107,78,158,.14);color:#6B4E9E">🛰️</div>
       <div class="le-meta">
@@ -1954,6 +1958,7 @@
 
     <div class="home-divider"></div>
 
+    <div class="home-cat">寫作</div>
     <div class="pipeline">
       <div class="pl-title">🚀 一鍵自動完成</div>
       <div class="pl-sub">點選主題 + 故事比喻，按下開始，AI 自動完成全套內容。</div>
@@ -2061,11 +2066,12 @@
     </div>
     <div id="pipeResults"></div>
 
+    <div class="home-cat">成品</div>
     <div class="lib-entry results-entry" onclick="openResults('final')">
       <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</div>
       <div class="le-meta">
-        <div class="le-name">文章</div>
-        <div class="le-sub" id="resSumA">一鍵流程統整的文章成品</div>
+        <div class="le-name">圖文</div>
+        <div class="le-sub" id="resSumA">一鍵流程統整的圖文成品</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -2073,12 +2079,20 @@
     <div class="lib-entry results-entry" onclick="openResults('video')">
       <div class="le-ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</div>
       <div class="le-meta">
-        <div class="le-name">影音</div>
+        <div class="le-name">短影音</div>
         <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
       </div>
       <span class="chev">›</span>
     </div>
 
+  </section>
+
+  <!-- CARDS 教學工坊 -->
+  <section id="view-cards" class="view">
+    <div class="ws-head">
+      <button class="back" onclick="openView('home')">‹</button>
+      <div class="ws-title"><h2>🎴 教學工坊</h2><p>教材 → 互動問答卡 → 一鍵複製</p></div>
+    </div>
 
     <div class="input-card">
       <textarea id="cardsInput" placeholder="貼上教材內容…（也可只上傳檔案）"></textarea>
@@ -2566,9 +2580,9 @@ function renderHome(){
   ).join(arrow);
   const botRow = node("openCollector()","rgba(107,78,158,.14)","#6B4E9E","🛰️","資料收集")
     + arrow
-    + node("openResults('final')","rgba(46,111,176,.14)","#2E6FB0","📝","文章")
+    + node("openResults('final')","rgba(46,111,176,.14)","#2E6FB0","📝","圖文")
     + arrow
-    + node("openResults('video')","rgba(181,101,46,.14)","#B5652E","🎬","影音");
+    + node("openResults('video')","rgba(181,101,46,.14)","#B5652E","🎬","短影音");
   if(box) box.innerHTML=`<div class="flow-row top">${topRow}</div>
     <div class="flow-row bot">${botRow}</div>`;
   const list=document.getElementById("deptList");
@@ -3163,21 +3177,21 @@ function openResults(kind){ resKind=kind||"all"; renderResults(); openView("resu
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
-  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇文章` : "一鍵流程統整的文章成品";
-  const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則影音逐字稿` : "一分鐘口播逐字稿";
+  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖文` : "一鍵流程統整的圖文成品";
+  const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則短影音逐字稿` : "一分鐘口播逐字稿";
   const el=document.getElementById("resSummary"); if(!el) return;
-  el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `文章 ${n} 篇　・　影音 ${v} 則`;
+  el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `圖文 ${n} 篇　・　短影音 ${v} 則`;
 }
 function renderResults(){
   const box=document.getElementById("resList");
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "📝 文章" : resKind==="video" ? "🎬 影音" : "📦 成品庫";
+  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : "📦 成品庫";
   const showA = resKind!=="video", showV = resKind!=="final";
   let html="";
-  if(showA) html += resSection("文章","📝",articles,false);
-  if(showV) html += resSection("影音","🎬",videos,true);
+  if(showA) html += resSection("圖文","📝",articles,false);
+  if(showV) html += resSection("短影音","🎬",videos,true);
   if(!html || (showA && !articles.length && showV && !videos.length)){
     box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
   } else box.innerHTML=html;
@@ -3191,10 +3205,10 @@ function resSection(title, icon, items, isVideo){
   return `<div class="res-sec">${head}${resItemHTML(first,isVideo)}${more}</div>`;
 }
 function resItemHTML(t, isVideo){
-  const tag = isVideo ? "影音內容 · 一分鐘逐字稿" : "文章 · 成品";
+  const tag = isVideo ? "影音內容 · 一分鐘逐字稿" : "圖文 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
     <div class="res-top">
-      <span class="res-plat">${esc(t.platform||(isVideo?"影音":"成品"))}</span>
+      <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
       <span class="res-time">${timeStr(t.time)}</span>
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
@@ -4095,8 +4109,8 @@ function finalCard(out, plat){
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
       <button class="mini card-btn" data-txt="${encodeURIComponent(out)}" data-plat="${esc(plat||"")}" onclick="makeCardFromBtn(this)">🖼️ 產生圖卡</button>
-      <button class="mini" onclick="openResults('final')">📝 前往文章</button>
-      <button class="mini" onclick="openResults('video')">🎬 前往影音</button>
+      <button class="mini" onclick="openResults('final')">📝 前往圖文</button>
+      <button class="mini" onclick="openResults('video')">🎬 前往短影音</button>
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
   </div>`;
@@ -4669,8 +4683,8 @@ function renderDrawer(){
     <div class="dr-cat">寫作</div>
     ${depts}
     <div class="dr-cat">成品</div>
-    <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>文章<span class="cnt">${finalTasks().length} 篇</span></button>
-    <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>圖文<span class="cnt">${finalTasks().length} 篇</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
     <div class="dr-cat">工具</div>
     <button class="dr-item" onclick="goMenu(openCards)"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🎴</span>教學工坊<span class="cnt">${state.decks.length} 副</span></button>
 `;
