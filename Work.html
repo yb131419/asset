@@ -1901,6 +1901,9 @@
   .coll-item{position:relative;}
   .coll-item .coll-top{padding-right:58px;}
   .coll-del{position:absolute;top:12px;right:12px;font-size:12px;font-weight:700;font-family:inherit;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:4px 11px;line-height:1.4;cursor:pointer;}
+  .cg-ratio{margin:0 0 10px;}
+  .cg-ratio button{min-height:36px;padding:7px 4px;font-size:13px;}
+  .cg-ratio button.on{background:linear-gradient(160deg,#17553A,#0A2E20);color:#F6E3B4;}
   .sb-acts{display:flex;justify-content:center;gap:10px;margin-top:14px;flex-wrap:wrap;}
   .tcard-front .sb-acts .tcard-copy,.tcard-front .sb-acts .tcard-share{position:static;right:auto;bottom:auto;}
   .cg-mode{display:flex;gap:4px;background:#EFEDE5;border-radius:999px;padding:4px;margin:4px 0 12px;}
@@ -4586,7 +4589,14 @@ function renderCardItems(wrap, items, mode, ratio, style, openIdx){
       </div>
     </div>`;
   }).join("");
-  wrap.innerHTML = shareAll + cards;
+  const ratioRow = mode==="multi"
+    ? `<div class="cg-mode cg-ratio">${[["ig45","4:5"],["sq","1:1"],["story","9:16"],["auto","自動"]].map(([v,l])=>`<button class="${ratio===v?"on":""}" onclick="cardRatioAll(this,'${v}')">${l}</button>`).join("")}</div>` : "";
+  wrap.innerHTML = ratioRow + shareAll + cards;
+}
+// 多張圖片：一次改全部圖卡的比例（會依新比例重新分頁）
+function cardRatioAll(btn, val){
+  const wrap=btn.closest(".cardwrap"); const pv=wrap && wrap.querySelector(".svg-card-preview"); if(!pv) return;
+  applyCardShared(pv.id, "ratio", val);
 }
 // 變更比例後，依新比例重新分頁（多張模式），文字會跟著比例重新排版
 function repaginateWrap(wrap, ratio, openIdx){
