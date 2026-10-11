@@ -5983,7 +5983,7 @@ const NPC_ALL=[
   /* 流程順序：設定 → 收集 → 素材 → 一鍵 → 五大寫作 → 成品 → 教學（名稱與原版相同） */
   {id:'collector',name:'資料收集',role:'每日收集話題並存檔',ic:'🛰️',x:5,y:5,look:L('#6B4E9E','#E2D6FA','hat'),
    lines:['選好方向告訴我，我去打探消息。'],
-   acts:[['🛰️ 開始收集',()=>bg(()=>collectNow(),'資料收集')],['📋 收集設定',()=>go(()=>openCollector())]]},
+   acts:[['🛰️ 開始收集',()=>bg(()=>collectNow(),'資料收集')],['📋 收集設定',null,buildTopicSub]]},
   {id:'pipeline',name:'大長老',role:'一鍵自動完成整套文案',ic:'🧙',x:8,y:8,look:L('#5C4A8A','#E7C27A','crown','#D8D8DE',true),
    lines:['主題備妥後交給我，一次跑完整套文案。','一人一次，走完全程。'],
    acts:()=>{
@@ -5995,6 +5995,7 @@ const NPC_ALL=[
      }else{
        a.push(['▶ 一鍵自動幫我寫',()=>bg(()=>runAllDepartments(),'一鍵自動完成')]);
      }
+     a.push(['📌 選擇一鍵主題',null,buildTopicSub]);
      a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
    }},
@@ -6156,8 +6157,41 @@ const OPT_REPLY={
   '🖼 做圖卡':'挑一則成品，我幫你排成圖卡。',
   '✍️ 進入工坊':'好，我們開始寫，先告訴我你想講什麼。'
 };
+let curSub=null;
+(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{font-size:12px;color:#8A6A2E;padding:8px 6px 2px;font-weight:700}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}';document.head.appendChild(st);})();
+// 主題選擇：直接讀取資料收集裡的所有主題（不跳頁），點一下勾選、再點取消
+function buildTopicSub(){
+  const out=[];
+  const auto=document.querySelector('[onclick*="toggleCollAuto"]');
+  if(auto) out.push({group:'智囊軍師', label:'🤖 智囊軍師判定', on:()=>auto.classList.contains('selected'), toggle:()=>auto.click()});
+  [['🌿 健康','collHealthGroup'],['💡 觀念','collConceptGroup'],['🧭 經營','collBizGroup'],['🌱 火山草本','collHerbGroup'],['🌐 網路行銷','collNetGroup']].forEach(([g,id])=>{
+    const els=[...document.querySelectorAll('#'+id+' .coll-item-sel')];
+    if(!els.length) return;
+    out.push({group:g});
+    els.forEach(el=>{
+      const t=el.querySelector('.ci-txt');
+      const lab=((t&&t.firstChild&&t.firstChild.nodeType===3)?t.firstChild.textContent:(t?t.textContent:'')).trim();
+      out.push({label:lab, on:()=>el.classList.contains('selected'), toggle:()=>el.click()});
+    });
+  });
+  return out;
+}
+function renderSub(){
+  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
+  if(!box || !curSub) return;
+  const items=curSub.build();
+  const now=items.filter(x=>x.label && x.on()).map(x=>x.label);
+  tEl.textContent='點一下主題就勾選，再點一次取消。每個分類只能選一個，選好後按返回。';
+  box.innerHTML='<div class="vdd-head">'+curSub.title+'</div>'+
+    '<div class="vdd-list vsub">'+items.map((it,i)=> it.group ? '<div class="vsub-g">'+it.group+'</div>' :
+      '<button class="vdd-item'+(it.on()?' on':'')+'" data-k="'+i+'" type="button">'+(it.on()?'✓ ':'')+it.label+'</button>').join('')+'</div>'+
+    '<div class="vsub-now">目前已選：'+(now.length?now.join('、'):'尚未選擇')+'</div>'+
+    '<div class="vdd-btns"><button class="vbtn g" id="vsubBack" type="button">← 返回選單</button></div>';
+  box.querySelectorAll('[data-k]').forEach(bt=>bt.onclick=()=>{ items[+bt.dataset.k].toggle(); renderSub(); });
+  document.getElementById('vsubBack').onclick=()=>{ curSub=null; renderMenu(); };
+}
 function openCard(n){
-  curN=n; dlgSel=null;
+  curN=n; dlgSel=null; curSub=null;
   const c=document.getElementById('vCard');
   n._greet=n.lines[Math.floor(Math.random()*n.lines.length)];
   c.innerHTML=
@@ -6177,6 +6211,7 @@ function openCard(n){
 function renderMenu(){
   const n=curN, box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!n || !box) return;
+  if(curSub){ renderSub(); return; }
   const acts=typeof n.acts==='function' ? n.acts() : n.acts;
   if(!dlgSel){
     tEl.textContent=n._greet;
@@ -6184,6 +6219,7 @@ function renderMenu(){
       '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
     box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
       const i=+bt.dataset.i;
+      if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; renderMenu(); return; }
       dlgSel={i, reply:OPT_REPLY[acts[i][0]] || n._greet};
       renderMenu();
     });
@@ -6196,7 +6232,7 @@ function renderMenu(){
   }
 }
 function hideCard(){
-  curN=null; clearInterval(dlgTimer); dlgTyping=false;
+  curN=null; curSub=null; clearInterval(dlgTimer); dlgTyping=false;
   document.getElementById('vCard').hidden=true;
   document.getElementById('vGridBox').hidden=false;
 }
