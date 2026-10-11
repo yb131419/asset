@@ -2260,6 +2260,8 @@ body.v-mode #village{display:flex}
 .vn-body h4{margin:0 0 6px;font:800 14.5px/1.4 "Noto Serif TC","Songti TC",serif;color:#2E1F12}
 .vn-body ul{margin:0;padding-left:18px}
 .vn-body li{margin:6px 0}
+.vn-body.vn-c{text-align:center}
+.vn-body.vn-c ul{list-style:none;padding-left:0}
 /* 反骨金句：紫紅底、粗體、左側色條，與村莊的綠金配色明顯區隔 */
 .gr-line{display:block;margin:12px 0;padding:12px 14px 12px 16px;border-radius:14px;background:linear-gradient(135deg,#2B0F4D 0%,#6A1E86 100%);color:#FCE8FF;font-weight:700;letter-spacing:.02em;box-shadow:0 8px 18px rgba(106,30,134,.32);border-left:4px solid #FF8FD6;white-space:pre-wrap}
 .gr-line::before{content:'🔥';display:block;font-size:11px;letter-spacing:.14em;color:#FFB3E6;margin-bottom:5px;font-weight:800}
@@ -6085,10 +6087,10 @@ const NPC_ALL=[
          ['📈 市場經營',()=>go(()=>openResults('market'))],
          ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
          ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
-  {id:'market',name:'成品庫 市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
+  {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
    acts:[['📈 查看成品',()=>go(()=>openResults('market'))],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
-  {id:'warmup',name:'成品庫 暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
+  {id:'warmup',name:'暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
    acts:[['🤝 查看成品',()=>go(()=>openResults('warmup'))],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
@@ -6747,7 +6749,7 @@ function buildGrid(){
   });
 }
 
-const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明', ic:'📢', look:L('#B8862E','#FFF1CC','hat'), lines:['這是村莊的說明。'], acts:[], html:`<div class="vn-body">
+const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明', ic:'📢', look:L('#B8862E','#FFF1CC','hat'), lines:['這是村莊的說明。'], acts:[], html:`<div class="vn-body vn-c">
 <h4>大長老 AI Agent 是什麼？</h4>
 <ul>
 <li>大長老會依你選好的主題，依序寫好各分類的內容，最後整合成一篇可直接發布的成品。</li>
