@@ -2254,10 +2254,20 @@ body.v-mode #village{display:flex}
   background:linear-gradient(170deg,#173D2D,#0B2119);color:#F6E3B4;font:800 11px/1 "Noto Serif TC","Songti TC",serif;
   box-shadow:0 0 0 1px rgba(231,194,122,.6),0 2px 4px rgba(0,0,0,.25)}
 #vCorner .vc-ic{flex:none;width:auto !important;height:auto !important;font-size:14px;line-height:1;background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;margin:0 !important}
+#vCorner .vc-notice{margin-top:4px !important;border-top:1px solid rgba(185,146,98,.3) !important;border-radius:0 0 11px 11px !important}
+#vCorner .vc-notice .vc-num{font-size:11px}
+.vn-body{background:#FBF6E9;border:1px solid rgba(185,146,98,.4);border-radius:14px;padding:12px 14px;color:#4A3626;font:500 13px/1.7 "Noto Sans TC","PingFang TC",sans-serif}
+.vn-body h4{margin:0 0 6px;font:800 14.5px/1.4 "Noto Serif TC","Songti TC",serif;color:#2E1F12}
+.vn-body ul{margin:0;padding-left:18px}
+.vn-body li{margin:6px 0}
 #vCorner .vc-nm{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 !important;margin:0 !important;background:none !important;border:0 !important}
 #vBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto;flex:none;
   max-height:58%;overflow-y:auto;padding:0;background:none;z-index:5;pointer-events:none}
 #vCard{pointer-events:auto}
+#vCard{max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#vBottom .vdd-btns .vbtn{white-space:nowrap}
+body.v-planning #vQuick{display:none !important}
+#vCard .vp-steps{line-height:1.9;font-size:12.5px;padding:0 4px}
 
 /* 覆蓋層：原本的頁面疊在村莊上方，村莊仍在背後 */
 body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
@@ -6318,13 +6328,12 @@ function renderPlan(){
   const goal=(typeof buildPipeGoalFromChips==='function') ? buildPipeGoalFromChips() : '';
   const caps=[...new Set([1,2,3].filter(k=>k<N).concat([N]))];
   const chosen=planCap||N;
-  tEl.textContent='確認計畫後會整批自動跑。可以先選上限，跑到上限就暫停，進度會保存。';
+  tEl.textContent='確認後會整批自動跑，可先選上限。';
   box.innerHTML='<div class="vdd-head">📋 一鍵計畫</div>'+
     '<div class="vsub-now">主題：'+(goal?esc(goal):'尚未選擇（請先到資料收集選主題）')+'</div>'+
-    '<div class="vdd-list">'+depts.map((d,i)=>'<div class="vdd-item">'+(i+1)+'. '+esc(d.name)+'</div>').join('')+
-      '<div class="vdd-item">'+(N+1)+'. 統整成品</div></div>'+
+    '<div class="vsub-now vp-steps">'+depts.map((d,i)=>(i+1)+'. '+esc(d.name)).concat([(N+1)+'. 統整成品']).join('　›　')+'</div>'+
     '<div class="vsub-now">上限（最多執行幾個分類）</div>'+
-    '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部 '+N+' 個':k+' 個')+'</button>').join('')+'</div>'+
+    '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部':k+' 個')+'</button>').join('')+'</div>'+
     '<div class="vsub-now">'+(chosen<N?'跑到 '+chosen+' 個分類就暫停，不會產生統整成品。':'會跑完全部分類，並產生統整成品。')+'</div>'+
     '<div class="vdd-btns"><button class="vbtn" id="planGo" type="button">▶ 確認，整批自動跑</button>'+
     '<button class="vbtn g" id="planBack" type="button">← 返回</button></div>';
@@ -6368,8 +6377,10 @@ function openCard(n){
 // 多選單：先列出所有選項；點選後角色回應，再決定執行或返回
 function renderMenu(){
   if(!curSub && !curPlan) leaveFull();
+  document.body.classList.toggle('v-planning', !!curPlan); // 計畫面板時隱藏下方 NPC 快捷列
   const n=curN, box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!n || !box) return;
+  if(n.notice){ tEl.textContent='這是村莊的說明，看完按 ✕ 關閉。'; box.innerHTML=n.html; return; }
   if(curSub){ renderSub(); return; }
   if(curPlan){ renderPlan(); return; }
   const acts=typeof n.acts==='function' ? n.acts() : n.acts;
@@ -6694,14 +6705,24 @@ function buildGrid(){
   });
 }
 
+const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明', ic:'📢', look:L('#B8862E','#FFF1CC','hat'), lines:['這是村莊的說明。'], acts:[], html:`<div class="vn-body">
+<h4>大長老 AI Agent 是什麼？</h4>
+<ul>
+<li>大長老會依你選好的主題，依序寫好各分類的內容，最後整合成一篇可直接發布的成品。</li>
+<li>使用方式：先到資料收集選主題 → 點大長老的「一鍵自動幫我寫」→ 看計畫、選上限 → 確認後自動跑。</li>
+<li>跑到上限會暫停，也可以按「停止運轉」。進度會保存，之後可以「接續上次進度」。</li>
+<li>目前不會自己選主題，也不會每天自動跑。只有統整成品那一步會扣次。</li>
+</ul>
+</div>`};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
 function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }catch(e){} }
 function buildCorner(){
   const open=cornerOpen();
   vCorner.innerHTML='<button class="vc-cap" type="button" id="vcCap">'+(open?'▾':'▸')+' 角色列表</button>'+
-    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('') : '');
+    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('')+'<button class="vc-item vc-notice" type="button" data-notice="1"><span class="vc-num">📢</span><span class="vc-nm">公告</span></button>' : '');
   vCorner.querySelector('#vcCap').onclick=()=>{ setCornerOpen(!open); buildCorner(); };
   vCorner.querySelectorAll('.vc-item').forEach(bt=>bt.onclick=()=>{
+    if(bt.dataset.notice){ openCard(NOTICE); return; }
     const n=NPC.find(x=>x.id===bt.dataset.id); if(n) walkNear(n);
   });
 }
