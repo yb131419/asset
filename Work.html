@@ -6035,7 +6035,7 @@ BLK.add(key(PAVILION.x,PAVILION.y)); BLK.add(key(PAVILION.x+1,PAVILION.y));
 function L(cloth,acc,kind,hair,beard){
   return {skin:'#F2C9A0',hair:hair||'#3A2A1E',cloth,pants:'#2A2A36',shoe:'#1A1210',acc,kind:kind||'hat',beard:!!beard,line:'#0B1A12'};
 }
-let vzNick='冒險者', vzLv=1; // 目前暱稱與村莊等級（renderVillage 更新）
+let vzNick='冒險者', vzLv=1, vzTitle=''; // 目前暱稱、村莊等級與階級（renderVillage 更新）
 const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36',shoe:'#1A1210',acc:'#E7C27A',kind:'bag',beard:false,line:'#0B1A12'};
 
 /* ---------- NPC（對應原本各項功能） ---------- */
@@ -6237,6 +6237,7 @@ function renderVillage(){
   const pts=countResults();
   const L2=levelOf(pts);
   vzLv=L2.lv;
+  vzTitle=TITLES[Math.min(L2.lv-1,TITLES.length-1)];
   vzNick=(typeof member!=='undefined' && member.lineName)||'冒險者';
   document.getElementById('vLv').textContent='Lv.'+L2.lv;
   document.getElementById('vTitle').textContent=TITLES[Math.min(L2.lv-1,TITLES.length-1)];
@@ -6859,6 +6860,16 @@ function makeWatercolorBG(){
   bgImg=new Image();
   bgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
+// 階級標籤：金底、深字，位於等級標籤上方
+function drawRankTag(text,cx,topY){
+  g.font='800 6.5px "Noto Serif TC","Songti TC",serif';
+  g.textAlign='center'; g.textBaseline='middle';
+  const w=g.measureText(text).width+7, h=9, x=cx-w/2, y=topY-h-1;
+  g.fillStyle='#E7C27A'; g.strokeStyle='#8A6A2E'; g.lineWidth=.7;
+  g.beginPath(); if(g.roundRect){ g.roundRect(x,y,w,h,4.5); } else { g.rect(x,y,w,h); }
+  g.fill(); g.stroke();
+  g.fillStyle='#2E1F12'; g.fillText(text,cx,y+h/2+.3);
+}
 // 等級標籤：深綠底、金框，與村莊配色一致
 function drawLvTag(text,cx,topY){
   g.font='800 6.5px "Noto Sans TC","PingFang TC",sans-serif';
@@ -6932,6 +6943,7 @@ function render(t){
     const feet=P.vy*T+14, cx=P.vx*T+8, topY=feet-SPR_H+bob-1;
     drawName(vzNick.slice(0,8),cx,topY,false);   // 暱稱
     drawLvTag('Lv.'+vzLv,cx,topY-11);            // 村莊等級（暱稱上方）
+    if(vzTitle) drawRankTag(vzTitle,cx,topY-22); // 階級（等級上方）
   }});
   list.sort((a,c)=>a.y-c.y).forEach(o=>o.draw());
 
