@@ -2246,6 +2246,10 @@ body.v-mode #village{display:flex}
   background:transparent !important;box-shadow:none !important;cursor:pointer;text-align:left;font:700 12.5px/1 "Noto Sans TC","PingFang TC",sans-serif;color:#4A3626;
   transition:background .15s}
 #vCorner .vc-item:hover,#vCorner .vc-item:active{background:rgba(231,194,122,.24)}
+#vCorner .vc-cap{display:block !important;width:100% !important;height:auto !important;min-height:0 !important;margin:0 0 4px !important;
+  padding:2px 4px 7px !important;background:none !important;border:0 !important;border-bottom:1px solid rgba(185,146,98,.38) !important;
+  border-radius:0 !important;box-shadow:none !important;text-align:left;cursor:pointer;
+  font:700 10.5px/1 "Noto Serif TC","Songti TC",serif;letter-spacing:.2em;color:#8A6A2E}
 #vCorner .vc-num{flex:none;width:22px;height:22px;margin:0 !important;padding:0 !important;border-radius:50%;display:grid;place-items:center;
   background:linear-gradient(170deg,#173D2D,#0B2119);color:#F6E3B4;font:800 11px/1 "Noto Serif TC","Songti TC",serif;
   box-shadow:0 0 0 1px rgba(231,194,122,.6),0 2px 4px rgba(0,0,0,.25)}
@@ -6020,6 +6024,7 @@ BLK.add(key(PAVILION.x,PAVILION.y)); BLK.add(key(PAVILION.x+1,PAVILION.y));
 function L(cloth,acc,kind,hair,beard){
   return {skin:'#F2C9A0',hair:hair||'#3A2A1E',cloth,pants:'#2A2A36',shoe:'#1A1210',acc,kind:kind||'hat',beard:!!beard,line:'#0B1A12'};
 }
+let vzNick='冒險者', vzLv=1; // 目前暱稱與村莊等級（renderVillage 更新）
 const PLAYER_LOOK={skin:'#F2C9A0',hair:'#3A2A1E',cloth:'#2F7A52',pants:'#2A2A36',shoe:'#1A1210',acc:'#E7C27A',kind:'bag',beard:false,line:'#0B1A12'};
 
 /* ---------- NPC（對應原本各項功能） ---------- */
@@ -6081,7 +6086,7 @@ const NPC_ALL=[
    acts:[['🎴 打開工坊',()=>go(()=>openCards())]]},
 ];
 // 村莊只保留這五個角色（依流程順序）
-const NPC=NPC_ALL.filter(n=>['collector','pipeline','results','market','warmup'].includes(n.id));
+const NPC=['pipeline','collector','results','market','warmup'].map(id=>NPC_ALL.find(n=>n.id===id));
 // 補充對話：原有台詞保留，另外加入幾句，村莊裡會隨機冒泡、點進去也會逐句說話
 const NPC_EXTRA={
   settings:['成品越多，村子越熱鬧。','背景設定寫清楚，之後的內容才會穩。'],
@@ -6220,6 +6225,8 @@ function renderVillage(){
   placeBottom();
   const pts=countResults();
   const L2=levelOf(pts);
+  vzLv=L2.lv;
+  vzNick=(typeof member!=='undefined' && member.lineName)||'冒險者';
   document.getElementById('vLv').textContent='Lv.'+L2.lv;
   document.getElementById('vTitle').textContent=TITLES[Math.min(L2.lv-1,TITLES.length-1)];
   document.getElementById('vName').textContent=(typeof member!=='undefined' && member.lineName)||'冒險者';
@@ -6687,9 +6694,13 @@ function buildGrid(){
   });
 }
 
+function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
+function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }catch(e){} }
 function buildCorner(){
-  vCorner.innerHTML='<div class="vc-cap">角色列表</div>'+NPC.map((n,i)=>
-    '<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('');
+  const open=cornerOpen();
+  vCorner.innerHTML='<button class="vc-cap" type="button" id="vcCap">'+(open?'▾':'▸')+' 角色列表</button>'+
+    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('') : '');
+  vCorner.querySelector('#vcCap').onclick=()=>{ setCornerOpen(!open); buildCorner(); };
   vCorner.querySelectorAll('.vc-item').forEach(bt=>bt.onclick=()=>{
     const n=NPC.find(x=>x.id===bt.dataset.id); if(n) walkNear(n);
   });
@@ -6826,6 +6837,16 @@ function makeWatercolorBG(){
   bgImg=new Image();
   bgImg.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
+// 等級標籤：深綠底、金框，與村莊配色一致
+function drawLvTag(text,cx,topY){
+  g.font='800 6.5px "Noto Sans TC","PingFang TC",sans-serif';
+  g.textAlign='center'; g.textBaseline='middle';
+  const w=g.measureText(text).width+7, h=9, x=cx-w/2, y=topY-h-1;
+  g.fillStyle='#173D2D'; g.strokeStyle='#E7C27A'; g.lineWidth=.7;
+  g.beginPath(); if(g.roundRect){ g.roundRect(x,y,w,h,4.5); } else { g.rect(x,y,w,h); }
+  g.fill(); g.stroke();
+  g.fillStyle='#F6E3B4'; g.fillText(text,cx,y+h/2+.3);
+}
 function drawName(name,cx,topY,hot){
   g.font='700 7px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
   g.textAlign='center'; g.textBaseline='middle';
@@ -6884,7 +6905,11 @@ function render(t){
   const walking=P.path.length>0;
   const pStep=walking ? (Math.floor(t/130)%2===0?1:2) : 0;
   list.push({y:P.vy,draw:()=>{
-    drawChar('player',PLAYER_LOOK,P.vx*T,P.vy*T,P.dir,pStep,(walking&&pStep===1)?-0.8:0,false,'',false);
+    const bob=(walking&&pStep===1)?-0.8:0;
+    drawChar('player',PLAYER_LOOK,P.vx*T,P.vy*T,P.dir,pStep,bob,false,'',false);
+    const feet=P.vy*T+14, cx=P.vx*T+8, topY=feet-SPR_H+bob-1;
+    drawName(vzNick.slice(0,8),cx,topY,false);   // 暱稱
+    drawLvTag('Lv.'+vzLv,cx,topY-11);            // 村莊等級（暱稱上方）
   }});
   list.sort((a,c)=>a.y-c.y).forEach(o=>o.draw());
 
