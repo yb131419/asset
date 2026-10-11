@@ -2560,6 +2560,21 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       </div>
 
       <div class="coll-group">
+        <div class="coll-group-hd" onclick="toggleCollGroup('collHerbGroup')">
+          <span class="cg-ic">🌱</span>
+          <span class="cg-title">火山草本</span>
+          <span class="cg-sel" id="collHerbSel">未選擇</span>
+          <span class="cg-arr" id="collHerbArr">›</span>
+        </div>
+        <div class="coll-list" id="collHerbGroup">
+          <div class="coll-item-sel" onclick="selectHerbTopic(this,'薑黃：廚房裡很常見的一味香料，很多人只知道它的顏色，卻很少想過它是怎麼被使用的')"><span class="ci-ic">🟡</span><span class="ci-txt">薑黃</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectHerbTopic(this,'穿心蓮：傳統草本中常被提到的一味，很多人聽過名字，卻不知道它在生活裡是怎麼被看待的')"><span class="ci-ic">🌿</span><span class="ci-txt">穿心蓮</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectHerbTopic(this,'山奈：南方料理與民間飲食中常見的香草，很多人聞過味道，卻說不出它的來歷')"><span class="ci-ic">🌾</span><span class="ci-txt">山奈</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectHerbTopic(this,'雷公根：常長在田邊與路邊的小草，很多人踩過卻從沒注意過它')"><span class="ci-ic">🍀</span><span class="ci-txt">雷公根</span><span class="ci-ck">✓</span></div>
+          <div class="coll-item-sel" onclick="selectHerbTopic(this,'山竹果：熱帶水果，很多人只知道好吃，卻很少認真了解它的產地與吃法')"><span class="ci-ic">🍇</span><span class="ci-txt">山竹果</span><span class="ci-ck">✓</span></div>
+        </div>
+      </div>
+      <div class="coll-group">
         <div class="coll-group-hd" onclick="toggleCollGroup('collConceptGroup')">
           <span class="cg-ic">💡</span>
           <span class="cg-title">觀念主題</span>
@@ -3968,10 +3983,10 @@ function deleteResult(id){
 
 
 /* ===== 資料收集分類選擇 ===== */
-const _collSel = { health:'', concept:'', biz:'', auto:false };
-const _collSelLabel = { health:'未選擇', concept:'未選擇', biz:'未選擇' };
+const _collSel = { health:'', concept:'', biz:'', herb:'', auto:false };
+const _collSelLabel = { health:'未選擇', concept:'未選擇', biz:'未選擇', herb:'未選擇' };
 
-const COLL_GROUPS=['collHealthGroup','collConceptGroup','collBizGroup','collNetGroup'];
+const COLL_GROUPS=['collHealthGroup','collConceptGroup','collBizGroup','collHerbGroup','collNetGroup'];
 function toggleCollGroup(id){
   const list = document.getElementById(id);
   if(!list) return;
@@ -4005,11 +4020,24 @@ function selectCollTopic(el, cat, val){
   if(_collSel[cat]) setHomeTopic(cat, _collSel[cat], _collSelLabel[cat]); else clearPick(cat);
 }
 
+function selectHerbTopic(el,val){
+  const prevLabel=_collSelLabel.herb;
+  document.querySelectorAll('#collHerbGroup .coll-item-sel').forEach(i=>i.classList.remove('selected'));
+  if(_collSel.herb===val){ _collSel.herb=''; _collSelLabel.herb='未選擇'; }
+  else { el.classList.add('selected'); _collSel.herb=val; _collSelLabel.herb=el.querySelector('.ci-txt').textContent; }
+  const badge=document.getElementById('collHerbSel');
+  if(badge){ badge.textContent=_collSelLabel.herb; badge.classList.toggle('has-val',!!_collSel.herb); }
+  setTimeout(()=>toggleCollGroup('collHerbGroup'),280);
+  // 首頁一鍵流程的「健康主題」槽位：火山草本視為健康方向
+  if(_collSel.herb) setHomeTopic('health', _collSel.herb, _collSelLabel.herb);
+  else if(_selLabel.health===prevLabel){ _sel.health=''; _selLabel.health='未選擇'; persistPipeSel(); renderPlPicked(); }
+}
 function getCollTopic(){
   // 優先用選取的分類，沒有就用舊的 topicHint
   if(_collSel.health) return _collSel.health;
   if(_collSel.concept) return _collSel.concept;
   if(_collSel.biz) return _collSel.biz;
+  if(_collSel.herb) return _collSel.herb;
   return state.collector.topicHint||'';
 }
 
@@ -4023,6 +4051,7 @@ function getCollCategory(){
   if(_collSel.health) return 'health';
   if(_collSel.concept) return 'concept';
   if(_collSel.biz) return 'biz';
+  if(_collSel.herb) return 'herb';
   return '';
 }
 
@@ -4043,7 +4072,7 @@ function saveCollectorCfg(){
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  const catLabel = _collSel.auto?'🤖 智囊軍師判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:'';
+  const catLabel = _collSel.auto?'🤖 智囊軍師判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:_collSel.herb?'🌱 '+_collSelLabel.herb:'';
   el.textContent = (catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
@@ -4054,6 +4083,7 @@ function collSelections(){
   if(_collSel.health) out.push({k:'health', label:_collSelLabel.health||_collSel.health});
   if(_collSel.concept) out.push({k:'concept', label:_collSelLabel.concept||_collSel.concept});
   if(_collSel.biz) out.push({k:'biz', label:_collSelLabel.biz||_collSel.biz});
+  if(_collSel.herb) out.push({k:'herb', label:_collSelLabel.herb||_collSel.herb});
   if(_bizPlan[0]) out.push({k:'net', label:_bizPlan[0]});
   return out;
 }
@@ -4061,9 +4091,10 @@ const COLL_DIR_TEXT={
   health:(l)=>`health：健康主題「${l}」。用大健康原理的生活化比喻（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）切入，案例只說個人感受，不得出現療效字眼。`,
   concept:(l)=>`concept：觀念主題「${l}」。用《康園道》風格的對比與反問帶出思考，結尾有金句。`,
   biz:(l)=>`biz：經營主題「${l}」。寫給新手能照著做的經營方向，語氣像前輩帶新手。`,
+  herb:(l)=>`herb：火山草本主題「${l}」。用生活化的故事與比喻介紹這味草本的來歷、日常的生活情境與個人感受，案例只說個人感受，每個人狀況不同。嚴禁任何療效字眼：不得寫治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎，不得暗示功效，只談文化、生活與感受。`,
   net:(l)=>`net：網路行銷，目前卡點是「${l}」。每則話題都要直接解決這個卡點，說清楚怎麼做，不整合其他問題。`
 };
-const COLL_CAT_LABEL={health:"🌿 健康",concept:"💡 觀念",biz:"🧭 經營",net:"🌐 網路行銷"};
+const COLL_CAT_LABEL={health:"🌿 健康",herb:"🌱 火山草本",concept:"💡 觀念",biz:"🧭 經營",net:"🌐 網路行銷"};
 async function collectTopics(silent){
   if(running){ if(!silent) toast("有任務進行中，請稍候"); return; }
   if(!aiReady()){ if(!silent){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); } return; }
@@ -4115,7 +4146,7 @@ async function collectTopics(silent){
   }
 }
 function catBadge(c){
-  const map={health:['#2E6B4A','rgba(46,107,74,.12)','🌿 健康'],concept:['#5A4A8A','rgba(90,74,138,.12)','💡 觀念'],biz:['#2E6B4A','rgba(46,107,74,.12)','🧭 經營'],net:['#1F5A7A','rgba(31,90,122,.12)','🌐 網路行銷']};
+  const map={herb:['#2E6B4A','rgba(46,107,74,.12)','🌱 火山草本'],health:['#2E6B4A','rgba(46,107,74,.12)','🌿 健康'],concept:['#5A4A8A','rgba(90,74,138,.12)','💡 觀念'],biz:['#2E6B4A','rgba(46,107,74,.12)','🧭 經營'],net:['#1F5A7A','rgba(31,90,122,.12)','🌐 網路行銷']};
   const m=map[c.cat]; return m?`<span class="coll-used" style="color:${m[0]};background:${m[1]}">${m[2]}</span>`:'';
 }
 function renderCollector(){
@@ -4178,8 +4209,8 @@ function clearPlan(){
 // 一鍵完成後：清空主題、卡點與補充說明，回到預設狀態（素材庫與成品不受影響）
 function resetPipeDefaults(){
   ['health','concept','biz'].forEach(k=>{ _sel[k]=''; _selLabel[k]='未選擇'; _collSel[k]=''; _collSelLabel[k]='未選擇'; });
-  _collSel.auto=false;
-  ['healthSelected','bizSelected','conceptSelected','collHealthSel','collBizSel','collConceptSel'].forEach(id=>{
+  _collSel.auto=false; _collSel.herb=''; _collSelLabel.herb='未選擇';
+  ['healthSelected','bizSelected','conceptSelected','collHealthSel','collBizSel','collConceptSel','collHerbSel'].forEach(id=>{
     const el=document.getElementById(id); if(el){ el.textContent='未選擇'; el.classList.remove('has-val'); } });
   document.querySelectorAll('.topic-item.selected, .coll-item-sel.selected').forEach(i=>i.classList.remove('selected'));
   _bizPlan.length=0; syncNetBadge();
