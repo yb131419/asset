@@ -2255,6 +2255,20 @@ body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:auto;b
   border:1px solid rgba(231,194,122,.5);border-radius:10px;padding:6px 10px;pointer-events:none}
 #vStatus[hidden]{display:none}
 
+
+/* 頁面功能：展開在人物介面之下（與角色對話同一個面板） */
+#vInline{pointer-events:auto;margin:8px 0 0;border-radius:16px;overflow:hidden;background:#F6F0DF;
+  border:1px solid rgba(185,146,98,.55);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#vInlineBar{position:sticky;top:0;z-index:2;padding:8px 10px;background:#F1EBD6;border-bottom:1px solid rgba(185,146,98,.45)}
+#vInlineBack{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(185,146,98,.7);
+  background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;font:800 13px/1 "Noto Serif TC","Songti TC",serif;cursor:pointer}
+body.v-inline #vSheetBack{display:none !important}
+body.v-inline #vGridBox{display:none !important}
+body.v-mode.v-inline .app{position:static !important;visibility:visible !important;pointer-events:auto !important;
+  width:100% !important;max-width:none !important;height:auto !important;min-height:0 !important;transform:none !important;
+  box-shadow:none !important;border-radius:0 !important;overflow:visible !important;background:#F6F0DF !important;
+  z-index:auto !important;top:auto !important;bottom:auto !important;left:auto !important}
+
 /* 對話下拉選單：樣式與列表項目一致 */
 .vdd-toggle{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-radius:14px;border:1px solid rgba(231,194,122,.5);background:linear-gradient(170deg,#FBE9B9,#E7C27A 55%,#C79A4B);
@@ -6064,20 +6078,53 @@ function setMode(m){
   if(m==='village'){ hideCard(); renderVillage(); window.scrollTo(0,0); }
 }
 // 頁面類功能：在村莊上方開啟原本的頁面（不切換到列表，關閉後回到村莊）
-function go(fn){ hideCard(); document.body.classList.add('v-sheet'); fn(); }
+// 展開區：放在人物面板之下，角色名稱與台詞保留，頁面接在後面
+const vInline=document.createElement('div');
+vInline.id='vInline'; vInline.hidden=true;
+vInline.innerHTML='<div id="vInlineBar"><button type="button" id="vInlineBack">▲ 收起，回到人物</button></div>';
+document.getElementById('vBottom').insertBefore(vInline, document.getElementById('vGridBox'));
+document.getElementById('vInlineBack').onclick=()=>closeSheet();
+let appHome=null, vzGoing=false;
+function isInline(){ return document.body.classList.contains('v-inline'); }
+// 把原本的頁面（.app）搬回原位
+function restoreApp(){
+  const app=document.querySelector('.app');
+  if(appHome && app){ appHome.parent.insertBefore(app, appHome.next); }
+  appHome=null;
+  document.body.classList.remove('v-sheet','v-inline');
+  vInline.hidden=true;
+}
+function go(fn){
+  const app=document.querySelector('.app');
+  if(!isInline() && app){
+    appHome={parent:app.parentNode, next:app.nextSibling};
+    vInline.appendChild(app);
+  }
+  document.body.classList.add('v-sheet','v-inline');
+  const box=document.getElementById('vcB'); if(box) box.hidden=true;
+  const t=document.getElementById('vcT'); if(t && curN) t.textContent='以下是'+curN.name+'的內容，看完點「收起」回到人物。';
+  vInline.hidden=false;
+  vzGoing=true;
+  try{ fn(); } finally{ vzGoing=false; }
+}
 // 背景功能：直接在村莊執行，不開啟頁面
 function vzStatus(t){ const el=document.getElementById('vStatus'); if(el){ el.textContent=t; el.hidden=!t; } }
 function bg(fn,label){
   vzStatus('⏳ 執行中：'+(label||'')+'…');
   Promise.resolve().then(fn).then(()=>vzStatus('✅ 已完成：'+(label||'')), e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
 }
-function closeSheet(){ document.body.classList.remove('v-sheet'); renderVillage(); }
+function closeSheet(){
+  restoreApp();
+  dlgSel=null;
+  const box=document.getElementById('vcB'); if(box) box.hidden=false;
+  if(curN){ renderMenu(); } else { renderVillage(); }
+}
 const vzStatusEl=document.createElement('div'); vzStatusEl.id='vStatus'; vzStatusEl.hidden=true;
 document.getElementById('vTop').appendChild(vzStatusEl);
 // 原本的 openView('home') 在覆蓋層中代表「返回」，改為關閉覆蓋層
 const _ov=openView;
 openView=function(v){
-  if(document.body.classList.contains('v-sheet') && v==='home'){ closeSheet(); return; }
+  if(!vzGoing && document.body.classList.contains('v-sheet') && v==='home'){ closeSheet(); return; }
   _ov(v);
 };
 const sheetBack=document.createElement('button');
@@ -6158,20 +6205,21 @@ const OPT_REPLY={
   '✍️ 進入工坊':'好，我們開始寫，先告訴我你想講什麼。'
 };
 let curSub=null;
-(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{font-size:12px;color:#8A6A2E;padding:8px 6px 2px;font-weight:700}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}';document.head.appendChild(st);})();
+let subOpen={};
+(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(185,146,98,.3);font:700 13.5px/1.3 "Noto Sans TC","PingFang TC",sans-serif;color:#6B4E24;padding:10px 6px;cursor:pointer}.vsub-g.open{color:#3F2E14;background:rgba(231,194,122,.16)}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}';document.head.appendChild(st);})();
 // 主題選擇：直接讀取資料收集裡的所有主題（不跳頁），點一下勾選、再點取消
 function buildTopicSub(){
   const out=[];
   const auto=document.querySelector('[onclick*="toggleCollAuto"]');
-  if(auto) out.push({group:'智囊軍師', label:'🤖 智囊軍師判定', on:()=>auto.classList.contains('selected'), toggle:()=>auto.click()});
+  if(auto){ out.push({head:true, group:'🤖 智囊軍師'}); out.push({group:'🤖 智囊軍師', label:'智囊軍師判定', on:()=>auto.classList.contains('selected'), toggle:()=>auto.click()}); }
   [['🌿 健康','collHealthGroup'],['💡 觀念','collConceptGroup'],['🧭 經營','collBizGroup'],['🌱 火山草本','collHerbGroup'],['🌐 網路行銷','collNetGroup']].forEach(([g,id])=>{
     const els=[...document.querySelectorAll('#'+id+' .coll-item-sel')];
     if(!els.length) return;
-    out.push({group:g});
+    out.push({head:true, group:g});
     els.forEach(el=>{
       const t=el.querySelector('.ci-txt');
       const lab=((t&&t.firstChild&&t.firstChild.nodeType===3)?t.firstChild.textContent:(t?t.textContent:'')).trim();
-      out.push({label:lab, on:()=>el.classList.contains('selected'), toggle:()=>el.click()});
+      out.push({group:g, label:lab, on:()=>el.classList.contains('selected'), toggle:()=>el.click()});
     });
   });
   return out;
@@ -6181,16 +6229,28 @@ function renderSub(){
   if(!box || !curSub) return;
   const items=curSub.build();
   const now=items.filter(x=>x.label && x.on()).map(x=>x.label);
-  tEl.textContent='點一下主題就勾選，再點一次取消。每個分類只能選一個，選好後按返回。';
+  tEl.textContent='點分類展開，點主題即可勾選或取消。每個分類只能選一個。';
+  let html='';
+  items.forEach((it,i)=>{
+    if(it.head){
+      const n=items.filter(x=>x.group===it.group && x.label && x.on()).length;
+      const open=!!subOpen[it.group];
+      html+='<button class="vsub-g'+(open?' open':'')+'" data-h="'+i+'" type="button">'+(open?'▾ ':'▸ ')+it.group+(n?'（已選 '+n+'）':'')+'</button>';
+      return;
+    }
+    if(!subOpen[it.group]) return;
+    html+='<button class="vdd-item'+(it.on()?' on':'')+'" data-k="'+i+'" type="button">'+(it.on()?'✓ ':'')+it.label+'</button>';
+  });
   box.innerHTML='<div class="vdd-head">'+curSub.title+'</div>'+
-    '<div class="vdd-list vsub">'+items.map((it,i)=> it.group ? '<div class="vsub-g">'+it.group+'</div>' :
-      '<button class="vdd-item'+(it.on()?' on':'')+'" data-k="'+i+'" type="button">'+(it.on()?'✓ ':'')+it.label+'</button>').join('')+'</div>'+
+    '<div class="vdd-list vsub">'+html+'</div>'+
     '<div class="vsub-now">目前已選：'+(now.length?now.join('、'):'尚未選擇')+'</div>'+
     '<div class="vdd-btns"><button class="vbtn g" id="vsubBack" type="button">← 返回選單</button></div>';
   box.querySelectorAll('[data-k]').forEach(bt=>bt.onclick=()=>{ items[+bt.dataset.k].toggle(); renderSub(); });
+  box.querySelectorAll('[data-h]').forEach(bt=>bt.onclick=()=>{ const g=items[+bt.dataset.h].group; subOpen[g]=!subOpen[g]; renderSub(); });
   document.getElementById('vsubBack').onclick=()=>{ curSub=null; renderMenu(); };
 }
 function openCard(n){
+  if(isInline()) restoreApp();
   curN=n; dlgSel=null; curSub=null;
   const c=document.getElementById('vCard');
   n._greet=n.lines[Math.floor(Math.random()*n.lines.length)];
@@ -6219,7 +6279,9 @@ function renderMenu(){
       '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
     box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
       const i=+bt.dataset.i;
-      if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; renderMenu(); return; }
+      if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; subOpen={}; renderMenu(); return; }
+      // 頁面功能：一點就開（不再經過台詞與執行兩步）
+      if(/\bgo\(/.test(String(acts[i][1]))){ acts[i][1](); return; }
       dlgSel={i, reply:OPT_REPLY[acts[i][0]] || n._greet};
       renderMenu();
     });
@@ -6227,11 +6289,17 @@ function renderMenu(){
     tEl.textContent=dlgSel.reply;
     box.innerHTML='<div class="vdd-btns"><button class="vbtn" id="vddGo" type="button">▶ 執行</button>'+
       '<button class="vbtn g" id="vddBack" type="button">← 返回選單</button></div>';
-    document.getElementById('vddGo').onclick=()=>{ const act=acts[dlgSel.i]; hideCard(); act[1](); };
+    document.getElementById('vddGo').onclick=()=>{
+      const act=acts[dlgSel.i];
+      const isPage=/\bgo\(/.test(String(act[1]));   // 頁面功能：留在人物面板下方展開
+      if(!isPage) hideCard();
+      act[1]();
+    };
     document.getElementById('vddBack').onclick=()=>{ dlgSel=null; renderMenu(); };
   }
 }
 function hideCard(){
+  if(isInline()) restoreApp();
   curN=null; curSub=null; clearInterval(dlgTimer); dlgTyping=false;
   document.getElementById('vCard').hidden=true;
   document.getElementById('vGridBox').hidden=false;
