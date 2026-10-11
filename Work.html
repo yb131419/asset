@@ -6206,7 +6206,7 @@ const OPT_REPLY={
 };
 let curSub=null;
 let subOpen={};
-(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(185,146,98,.3);font:700 13.5px/1.3 "Noto Sans TC","PingFang TC",sans-serif;color:#6B4E24;padding:10px 6px;cursor:pointer}.vsub-g.open{color:#3F2E14;background:rgba(231,194,122,.16)}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}';document.head.appendChild(st);})();
+(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(185,146,98,.3);font:700 13.5px/1.3 "Noto Sans TC","PingFang TC",sans-serif;color:#6B4E24;padding:10px 6px;cursor:pointer}.vsub-g.open{color:#3F2E14;background:rgba(231,194,122,.16)}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}#vQuick{display:flex;gap:6px;overflow-x:auto;padding:10px 2px 2px;margin-top:8px;border-top:1px solid rgba(185,146,98,.35);-webkit-overflow-scrolling:touch;scrollbar-width:none}#vQuick::-webkit-scrollbar{display:none}.vq{flex:none;min-height:34px;padding:0 11px;border-radius:999px;border:1px solid rgba(185,146,98,.55);background:#FBF6E9;color:#4A3626;font:700 12.5px/1 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer;white-space:nowrap}.vq.on{background:#E7C27A;border-color:#B8862E;color:#3F2E14}';document.head.appendChild(st);})();
 // 主題選擇：直接讀取資料收集裡的所有主題（不跳頁），點一下勾選、再點取消
 function buildTopicSub(){
   const out=[];
@@ -6262,6 +6262,14 @@ function openCard(n){
     '</div>'+
     '<div class="vc-t" id="vcT"></div>'+
     '<div id="vcB"></div>';
+  // 人物面板下方的 NPC 快捷列：只列出地圖上的 5 位角色，可直接切換
+  const q=document.createElement('div'); q.id='vQuick';
+  q.innerHTML=NPC.map(x=>'<button type="button" class="vq'+(x.id===n.id?' on':'')+'" data-id="'+x.id+'">'+x.ic+' '+x.name+'</button>').join('');
+  c.appendChild(q);
+  q.querySelectorAll('.vq').forEach(b=>b.onclick=()=>{
+    const t=NPC.find(x=>x.id===b.dataset.id);
+    if(t && t!==curN) openCard(t);
+  });
   c.hidden=false;
   document.getElementById('vGridBox').hidden=true;
   document.getElementById('vcX').onclick=hideCard;
