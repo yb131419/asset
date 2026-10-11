@@ -3373,7 +3373,7 @@ async function generateCards(){
     : userText;
   try{
     const budget=1400+n*300; // 依張數放大回覆額度，避免 JSON 被截斷只剩幾張
-    const r=await callOpenAI(sys,user,budget,true);
+    const r=await callOpenAI(withCopyRule(sys),user,budget,true);
     let obj=parseCardsJSON(r);
     let cards=(obj.cards||[]).filter(c=>c.q&&c.a).slice(0,n);
     // 張數不足：自動補齊一輪
@@ -3381,7 +3381,7 @@ async function generateCards(){
       const need=n-cards.length;
       const sys2=sys+`\n【補卡】已有 ${cards.length} 張（主題：${cards.map(c=>c.q).join("；").slice(0,600)}）。請再產出「剛好 ${need} 張」不重複的新卡，只回 {"cards":[...]}。`;
       try{
-        const r2=await callOpenAI(sys2,user,900+need*300);
+        const r2=await callOpenAI(withCopyRule(sys2),user,900+need*300);
         const obj2=parseCardsJSON(r2);
         cards=[...cards, ...(obj2.cards||[]).filter(c=>c.q&&c.a)].slice(0,n);
       }catch(e){}
@@ -3567,7 +3567,7 @@ ${input || '請依照類型自動產出一個保健或觀念類的圖卡內容'}
 請直接輸出完整的 SVG 代碼，不要加任何說明。`;
 
   try {
-    const raw = await callOpenAI(sys, userMsg, 2400, true);
+    const raw = await callOpenAI(withCopyRule(sys), userMsg, 2400, true);
     // 擷取 SVG
     let svgCode = raw.trim();
     const svgStart = svgCode.indexOf('<svg');
@@ -4362,7 +4362,7 @@ async function dailyOptimizeTask(t){
       +"3. 口語親切、台灣用語、不誇大、不使用醫療用語、不做收入或療效保證\n"
       +"4. 只輸出改寫後的成品本文，第一行為標題";
     const user=`【原成品】\n${t.output}\n\n【使用者回饋】\n${fb||"（無，依效果自行優化）"}${realDataBlock(rs)}`;
-    const out=await callOpenAI(sys,user,2000,true);
+    const out=await callOpenAI(withCopyRule(sys),user,2000,true);
     if(!out) throw new Error("AI 沒有回覆");
     state.tasks.push({id:Date.now(), deptId:"final", deptName:"每日優化", accent:"#0A2A1C",
       input:`[成品] ${goal}`, output:out, time:Date.now(), topic:t.topic||"", optFrom:t.id,
@@ -4647,7 +4647,7 @@ async function runTask(){
   const userContent=built.content;
 
   try{
-    let out=await callOpenAI(sys,userContent,1800,true);
+    let out=await callOpenAI(withCopyRule(sys),userContent,1800,true);
     const jm=out.match(/^\s*【定位判定[：:]\s*([^】]+)】\s*/);
     if(jm){ out=out.slice(jm[0].length); toast(`AI 判定為：${jm[1]}`); }
     const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
@@ -4769,7 +4769,10 @@ function canRun(){
   }
   return true;
 }
-function buildSys(d){ return `你是「${state.title}」的分類 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的分類定位】\n${d.role}\n\n【寫作風格硬性規定（參考《康園道》系列文章，必須照這個風格寫）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，絕對不要密密麻麻\n③ 先提出所有人都有的困惑或現象，讓讀者對號入座（開頭不要直接講產品）\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 標示，例如：#真正的問題從來不是這裡\n⑦ 用 👉 ✅ 🎯 🌀 📌 符號分層，讓結構清晰\n⑧ 結尾必須有「金句收尾」——一句話濃縮整篇核心（金句寫法見第⑪條）\n⑨ 語氣像有智慧的長輩在跟你說真話：不說教、不推銷、真誠分享\n⑩ 絕對不寫「購買」「成交」「加入」等推銷字眼\n⑪ 金句天生愛反駁：先順著大家以為的常識說一句，再用反轉句把它推翻，格式如「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。句型可用「真正的……，從不……」「真正……的人，從不……」，每篇只用一句，放在結尾，讓人停下來想一想\n\n【合規硬性規定（不得違反）】\n✗ 絕對不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能出現在公開內容\n✓ 所有案例只說「個人感受」，例如「她說感覺比較有精神」\n✓ 案例結尾必加：「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
+function buildSys(d){ return `你是「${state.title}」的分類 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的分類定位】\n${d.role}\n\n【寫作風格硬性規定（參考《康園道》系列文章，必須照這個風格寫）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，絕對不要密密麻麻\n③ 先提出所有人都有的困惑或現象，讓讀者對號入座（開頭不要直接講產品）\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 標示，例如：#真正的問題從來不是這裡\n⑦ 用 👉 ✅ 🎯 🌀 📌 符號分層，讓結構清晰\n⑧ 結尾必須有「金句收尾」——一句話濃縮整篇核心（金句寫法見第⑪條）\n⑨ 語氣像有智慧的長輩在跟你說真話：不說教、不推銷、真誠分享\n⑩ 絕對不寫「購買」「成交」「加入」等推銷字眼\n⑪ 金句天生愛反駁：先順著大家以為的常識說一句，再用反轉句把它推翻，格式如「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。句型可用「真正的……，從不……」「真正……的人，從不……」，每篇文案都必須有一句，放在結尾，讓人停下來想一想\n\n【合規硬性規定（不得違反）】\n✗ 絕對不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能出現在公開內容\n✓ 所有案例只說「個人感受」，例如「她說感覺比較有精神」\n✓ 案例結尾必加：「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
+// 所有產生文案的提示詞都要求「反骨金句」；已經有這條規則的提示詞不重複加
+const COPY_RULE_TXT="\n\n【反骨金句（所有文案必須遵守）】\n每篇文案的結尾都必須有一句「反骨金句」：先順著大家以為的常識說一句，再用「真正的……，從不……」或「真正……的人，從不……」反轉推翻。例如：「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。只給一句，放在結尾，不加解釋。";
+function withCopyRule(sys){ return /反骨金句|金句天生愛反駁/.test(sys) ? sys : sys+COPY_RULE_TXT; }
 async function callOpenAI(sys,userContent,maxTokens,charge){
   // 會員版：走 GAS 後端（金鑰在後端、成功才扣次）
   if(usingBackend()){
@@ -6068,12 +6071,12 @@ const NPC_ALL=[
          ['📈 市場經營',()=>go(()=>openResults('market'))],
          ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
          ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
-  {id:'market',name:'市場經營',role:'給新手的完整上手流程',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
+  {id:'market',name:'成品庫 市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
-   acts:[['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
-  {id:'warmup',name:'暖身邀約',role:'從暖身到自然邀約',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
+   acts:[['📈 查看成品',()=>go(()=>openResults('market'))],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+  {id:'warmup',name:'成品庫 暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
-   acts:[['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+   acts:[['🤝 查看成品',()=>go(()=>openResults('warmup'))],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
    lines:['在這裡管理身分、背景設定與素材。'],
    acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
