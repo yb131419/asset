@@ -5279,13 +5279,15 @@ function cardLayout(text, o){
   bodyLines.forEach(raw=>{
     const t=raw.trim();
     if(!t){ if(!lastWasGap){ blocks.push({gap:true}); lastWasGap=true; } return; }
+    const gm=t.match(/^【反骨金句】\s*(.*)$/);
+    if(gm){ blocks.push({text:gm[1], golden:true}); lastWasGap=false; return; }
     blocks.push({text:t.replace(/^#+\s*/,""), head:/^[#👉✅🎯🌀📌]/.test(t)});
     lastWasGap=false;
   });
   while(blocks.length && blocks[blocks.length-1].gap) blocks.pop();
   for(let i=blocks.length-1;i>=0;i--){
     if(blocks[i].gap) continue;
-    if(cardEm(blocks[i].text)<=34 && !blocks[i].head) blocks[i].quote=true;
+    if(cardEm(blocks[i].text)<=34 && !blocks[i].head && !blocks[i].golden) blocks[i].quote=true;
     break;
   }
   const items=[];
@@ -5300,7 +5302,7 @@ function cardLayout(text, o){
     const maxEm = ((W-P*2)/BODY_FS) - (b.quote?QUOTE_IND/BODY_FS+0.4:0);
     const wrapped=cardWrap(b.text, maxEm);
     wrapped.forEach((ln,i)=>{
-      items.push({kind: b.quote?"quote":(b.head?"head":"body"), t:ln, y, first:i===0, last:i===wrapped.length-1});
+      items.push({kind: b.golden?"golden":(b.quote?"quote":(b.head?"head":"body")), t:ln, y, first:i===0, last:i===wrapped.length-1});
       y+=BODY_LH;
     });
   });
@@ -5330,6 +5332,9 @@ function buildCardSVG(text, o, uid){
     if(i.kind==="quote"){
       const qx = L.center ? W/2 : (L.right ? W-P-L.QUOTE_IND : P+L.QUOTE_IND);
       return `<text x="${qx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="600" fill="${T.quote}">${cardEscape(i.t)}</text>`;
+    }
+    if(i.kind==="golden"){
+      return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="800" fill="#E0479E">${cardEscape(i.t)}</text>`;
     }
     if(i.kind==="head"){
       return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="700" fill="${T.head}">${cardEscape(i.t)}</text>`;
@@ -6788,8 +6793,7 @@ buildCorner(); // 右上角編號列表（點名稱會走過去與他對話）
         if(k>=0){
           const pre=line.slice(0,k);
           if(pre) frag.appendChild(document.createTextNode(pre));
-          const sp=document.createElement('span'); sp.className='gr-line'; sp.textContent=line.slice(k+TAG.length).trim();
-          frag.appendChild(sp);
+          frag.appendChild(document.createTextNode(line.slice(k+TAG.length).trim()));
         } else frag.appendChild(document.createTextNode(line));
         if(i<arr.length-1) frag.appendChild(document.createTextNode('\n'));
       });
