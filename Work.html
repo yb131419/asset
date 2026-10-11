@@ -4833,6 +4833,8 @@ function setPipeRemark(ic,txt,sub){
   box.style.display="flex";
   box.innerHTML=`<span class="rk-ic">${ic}</span><span class="rk-txt">${esc(txt)}${sub?`<span class="rk-sub">${esc(sub)}</span>`:""}</span>`;
 }
+// Agent P0：上限（最多執行幾個分類步驟，0 = 不限）與停止旗標；由村莊的計畫面板設定
+let pipeCap=0, pipeStopReq=false;
 async function runAllDepartments(resume){
   if(running) return;
   if(!aiReady()){ toast("請先到設定填入金鑰或 GAS 網址"); openView("settings"); return; }
@@ -4855,7 +4857,7 @@ async function runAllDepartments(resume){
     if(!document.getElementById("pipeInput").value) document.getElementById("pipeInput").value=run.goal||"";
   }
 
-  running=true;
+  running=true; pipeStopReq=false;
   const btn=document.getElementById("pipeBtn");
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span>運轉中…';
   const prog=document.getElementById("pipeProgress");
@@ -4874,8 +4876,11 @@ async function runAllDepartments(resume){
     const st=document.getElementById("plstep-"+i); if(st){ st.classList.add("done"); st.querySelector(".st").textContent="✓"; }
   }
 
+  let stepsThisRun=0, haltFlag=false;
   try{
     for(let i=run.step;i<order.length;i++){
+      // 上限或停止：在本步開始前停下，進度已保存，之後可接續
+      if(pipeStopReq || (pipeCap && stepsThisRun>=pipeCap)){ haltFlag=true; break; }
       const d=order[i];
       document.getElementById("plstep-"+i).classList.add("run");
       setPipeRemark("✍️", `正在生成「${d.name}」的內容…`,
@@ -4900,13 +4905,20 @@ async function runAllDepartments(resume){
 
       const step=document.getElementById("plstep-"+i);
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
-      run.prev=out; run.prevName=d.name; run.step=i+1;
+      run.prev=out; run.prevName=d.name; run.step=i+1; stepsThisRun++;
       state.pipeRun=run; save();   // ← 每步存檔，關掉也能續跑
       setPipeBar(run.step, TOTAL);
       setPipeRemark("✅", `「${d.name}」已完成`, `已完成 ${run.step}/${TOTAL} 步`);
       await new Promise(r=>setTimeout(r,1200));
     }
 
+    if(haltFlag || pipeStopReq){
+      save();
+      setPipeRemark("⏸️", "已暫停，進度已保存", `已完成 ${run.step}/${TOTAL} 步，可按「接續上次進度」繼續`);
+      renderResumeBar();
+      toast("已暫停，進度已保存");
+      return;
+    }
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有產出，優化成可直接發布的成品…");
     const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
@@ -6003,11 +6015,13 @@ const NPC_ALL=[
    acts:()=>{
      const a=[];
      const r=state.pipeRun;
-     if(r && !r.done){
-       a.push(['▶ 接續上次進度',()=>bg(()=>runAllDepartments(true),'一鍵自動完成')]);
+     if(typeof running!=='undefined' && running){
+       a.push(['⏹ 停止運轉',()=>{ pipeStopReq=true; vzStatus('⏸ 本步完成後暫停，進度會保存'); }]);
+     }else if(r && !r.done){
+       a.push(['▶ 接續上次進度',()=>{ pipeCap=0; bg(()=>runAllDepartments(true),'一鍵自動完成'); }]);
        a.push(['✕ 放棄進度',()=>bg(vzDiscardPipe,'放棄進度')]);
      }else{
-       a.push(['▶ 一鍵自動幫我寫',()=>bg(()=>runAllDepartments(),'一鍵自動完成')]);
+       a.push(['▶ 一鍵自動幫我寫',null,null,'plan']);
      }
      a.push(['📌 選擇一鍵主題',null,buildTopicSub]);
      a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
@@ -6083,6 +6097,10 @@ const vInline=document.createElement('div');
 vInline.id='vInline'; vInline.hidden=true;
 vInline.innerHTML='<div id="vInlineBar"><button type="button" id="vInlineBack">▲ 收起，回到人物</button></div>';
 document.getElementById('vBottom').insertBefore(vInline, document.getElementById('vGridBox'));
+// 全螢幕選單區：資料收集的主題列表放在這裡，人物面板仍留在下方
+const vFull=document.createElement('div'); vFull.id='vFull';
+document.getElementById('vBottom').insertBefore(vFull, vInline);
+function leaveFull(){ document.body.classList.remove('v-fullpick'); vFull.innerHTML=''; }
 document.getElementById('vInlineBack').onclick=()=>closeSheet();
 let appHome=null, vzGoing=false;
 function isInline(){ return document.body.classList.contains('v-inline'); }
@@ -6111,7 +6129,7 @@ function go(fn){
 function vzStatus(t){ const el=document.getElementById('vStatus'); if(el){ el.textContent=t; el.hidden=!t; } }
 function bg(fn,label){
   vzStatus('⏳ 執行中：'+(label||'')+'…');
-  Promise.resolve().then(fn).then(()=>vzStatus('✅ 已完成：'+(label||'')), e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
+  Promise.resolve().then(fn).then(()=>{ const r=state.pipeRun; vzStatus((label==='一鍵自動完成' && r && !r.done) ? '⏸ 已暫停，進度已保存，可按「接續上次進度」' : '✅ 已完成：'+(label||'')); }, e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
 }
 function closeSheet(){
   restoreApp();
@@ -6135,6 +6153,8 @@ document.body.appendChild(sheetBack);
 let vzBusy=false;
 const _spb=setPipeBar;
 setPipeBar=function(d,t){ _spb(d,t); vzBusy=true; vzStatus('⏳ 一鍵運轉中 '+d+'/'+t); };
+const _spr=setPipeRemark;
+setPipeRemark=function(ic,txt,sub){ _spr(ic,txt,sub); if(vzBusy || (typeof running!=='undefined' && running)) vzStatus(ic+' '+txt+(sub?'｜'+sub:'')); };
 const _hpb=hidePipeBar;
 hidePipeBar=function(){ _hpb(); vzBusy=false; renderVillage(); };
 function vzDiscardPipe(){
@@ -6206,7 +6226,7 @@ const OPT_REPLY={
 };
 let curSub=null;
 let subOpen={};
-(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(185,146,98,.3);font:700 13.5px/1.3 "Noto Sans TC","PingFang TC",sans-serif;color:#6B4E24;padding:10px 6px;cursor:pointer}.vsub-g.open{color:#3F2E14;background:rgba(231,194,122,.16)}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}#vQuick{display:flex;gap:6px;overflow-x:auto;padding:10px 2px 2px;margin-top:8px;border-top:1px solid rgba(185,146,98,.35);-webkit-overflow-scrolling:touch;scrollbar-width:none}#vQuick::-webkit-scrollbar{display:none}.vq{flex:none;min-height:34px;padding:0 11px;border-radius:999px;border:1px solid rgba(185,146,98,.55);background:#FBF6E9;color:#4A3626;font:700 12.5px/1 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer;white-space:nowrap}.vq.on{background:#E7C27A;border-color:#B8862E;color:#3F2E14}';document.head.appendChild(st);})();
+(function(){const st=document.createElement('style');st.textContent='.vdd-item.on{border-color:#B8862E;background:rgba(231,194,122,.28);font-weight:700}.vsub-g{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(185,146,98,.3);font:700 13.5px/1.3 "Noto Sans TC","PingFang TC",sans-serif;color:#6B4E24;padding:10px 6px;cursor:pointer}.vsub-g.open{color:#3F2E14;background:rgba(231,194,122,.16)}.vsub-now{font-size:12px;opacity:.85;margin:8px 4px}.vsub{max-height:52vh;overflow:auto}#vQuick{display:flex;gap:6px;overflow-x:auto;padding:10px 2px 2px;margin-top:8px;border-top:1px solid rgba(185,146,98,.35);-webkit-overflow-scrolling:touch;scrollbar-width:none}#vQuick::-webkit-scrollbar{display:none}.vq{flex:none;min-height:34px;padding:0 11px;border-radius:999px;border:1px solid rgba(185,146,98,.55);background:#FBF6E9;color:#4A3626;font:700 12.5px/1 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer;white-space:nowrap}.vq.on{background:#E7C27A;border-color:#B8862E;color:#3F2E14}#vFull{display:none} body.v-fullpick #vTop{display:none !important} body.v-fullpick #vBottom{top:0 !important;bottom:0 !important;left:0 !important;right:0 !important;max-height:none !important;display:flex !important;flex-direction:column-reverse;padding:0 !important;background:#F6F0DF} body.v-fullpick #vFull{display:block !important;flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 4px 8px} body.v-fullpick #vCard{flex:none;margin:0 0 10px} body.v-fullpick #vcB{display:none !important} body.v-fullpick #vInline{display:none !important}';document.head.appendChild(st);})();
 // 主題選擇：直接讀取資料收集裡的所有主題（不跳頁），點一下勾選、再點取消
 function buildTopicSub(){
   const out=[];
@@ -6225,7 +6245,9 @@ function buildTopicSub(){
   return out;
 }
 function renderSub(){
-  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
+  const full=!!(curN && curN.id==='collector');
+  document.body.classList.toggle('v-fullpick', full);
+  const box=full ? vFull : document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!box || !curSub) return;
   const items=curSub.build();
   const now=items.filter(x=>x.label && x.on()).map(x=>x.label);
@@ -6249,9 +6271,40 @@ function renderSub(){
   box.querySelectorAll('[data-h]').forEach(bt=>bt.onclick=()=>{ const g=items[+bt.dataset.h].group; subOpen[g]=!subOpen[g]; renderSub(); });
   document.getElementById('vsubBack').onclick=()=>{ curSub=null; renderMenu(); };
 }
+// Agent P0：一鍵計畫面板 → 確認後整批自動跑；可選上限（最多執行幾個分類）
+let curPlan=null, planCap=0;
+function renderPlan(){
+  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
+  if(!box || !curPlan) return;
+  const depts=state.departments||[];
+  const N=depts.length;
+  const goal=(typeof buildPipeGoalFromChips==='function') ? buildPipeGoalFromChips() : '';
+  const caps=[...new Set([1,2,3].filter(k=>k<N).concat([N]))];
+  const chosen=planCap||N;
+  tEl.textContent='確認計畫後會整批自動跑。可以先選上限，跑到上限就暫停，進度會保存。';
+  box.innerHTML='<div class="vdd-head">📋 一鍵計畫</div>'+
+    '<div class="vsub-now">主題：'+(goal?esc(goal):'尚未選擇（請先到資料收集選主題）')+'</div>'+
+    '<div class="vdd-list">'+depts.map((d,i)=>'<div class="vdd-item">'+(i+1)+'. '+esc(d.name)+'</div>').join('')+
+      '<div class="vdd-item">'+(N+1)+'. 統整成品</div></div>'+
+    '<div class="vsub-now">上限（最多執行幾個分類）</div>'+
+    '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部 '+N+' 個':k+' 個')+'</button>').join('')+'</div>'+
+    '<div class="vsub-now">'+(chosen<N?'跑到 '+chosen+' 個分類就暫停，不會產生統整成品。':'會跑完全部分類，並產生統整成品。')+'</div>'+
+    '<div class="vdd-btns"><button class="vbtn" id="planGo" type="button">▶ 確認，整批自動跑</button>'+
+    '<button class="vbtn g" id="planBack" type="button">← 返回</button></div>';
+  box.querySelectorAll('[data-cap]').forEach(bt=>bt.onclick=()=>{ planCap=+bt.dataset.cap; renderPlan(); });
+  document.getElementById('planBack').onclick=()=>{ curPlan=null; renderMenu(); };
+  document.getElementById('planGo').onclick=()=>{
+    if(!goal){ toast('請先到資料收集選擇主題'); return; }
+    if(typeof running!=='undefined' && running){ toast('一鍵正在執行中'); return; }
+    pipeCap=chosen<N ? chosen : 0;
+    curPlan=null; hideCard();
+    bg(()=>runAllDepartments(), '一鍵自動完成');
+  };
+}
 function openCard(n){
+  leaveFull();
   if(isInline()) restoreApp();
-  curN=n; dlgSel=null; curSub=null;
+  curN=n; dlgSel=null; curSub=null; curPlan=null;
   const c=document.getElementById('vCard');
   n._greet=n.lines[Math.floor(Math.random()*n.lines.length)];
   c.innerHTML=
@@ -6277,9 +6330,11 @@ function openCard(n){
 }
 // 多選單：先列出所有選項；點選後角色回應，再決定執行或返回
 function renderMenu(){
+  if(!curSub && !curPlan) leaveFull();
   const n=curN, box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!n || !box) return;
   if(curSub){ renderSub(); return; }
+  if(curPlan){ renderPlan(); return; }
   const acts=typeof n.acts==='function' ? n.acts() : n.acts;
   if(!dlgSel){
     tEl.textContent=n._greet;
@@ -6287,6 +6342,7 @@ function renderMenu(){
       '<div class="vdd-list">'+acts.map((a,i)=>'<button class="vdd-item" data-i="'+i+'" type="button">'+a[0]+'</button>').join('')+'</div>';
     box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
       const i=+bt.dataset.i;
+      if(acts[i][3]==='plan'){ curPlan={}; planCap=0; renderMenu(); return; }
       if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; subOpen={}; renderMenu(); return; }
       // 頁面功能：一點就開（不再經過台詞與執行兩步）
       if(/\bgo\(/.test(String(acts[i][1]))){ acts[i][1](); return; }
@@ -6307,8 +6363,9 @@ function renderMenu(){
   }
 }
 function hideCard(){
+  leaveFull();
   if(isInline()) restoreApp();
-  curN=null; curSub=null; clearInterval(dlgTimer); dlgTyping=false;
+  curN=null; curSub=null; curPlan=null; clearInterval(dlgTimer); dlgTyping=false;
   document.getElementById('vCard').hidden=true;
   document.getElementById('vGridBox').hidden=false;
 }
