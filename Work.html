@@ -2260,6 +2260,19 @@ body.v-mode #village{display:flex}
 .vn-body h4{margin:0 0 6px;font:800 14.5px/1.4 "Noto Serif TC","Songti TC",serif;color:#2E1F12}
 .vn-body ul{margin:0;padding-left:18px}
 .vn-body li{margin:6px 0}
+/* 反骨金句：紫紅底、粗體、左側色條，與村莊的綠金配色明顯區隔 */
+.gr-line{display:block;margin:12px 0;padding:12px 14px 12px 16px;border-radius:14px;background:linear-gradient(135deg,#2B0F4D 0%,#6A1E86 100%);color:#FCE8FF;font-weight:700;letter-spacing:.02em;box-shadow:0 8px 18px rgba(106,30,134,.32);border-left:4px solid #FF8FD6;white-space:pre-wrap}
+.gr-line::before{content:'🔥 反骨金句';display:block;font-size:11px;letter-spacing:.14em;color:#FFB3E6;margin-bottom:5px;font-weight:800}
+/* 流程進度列表 */
+.vp-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid rgba(185,146,98,.25);font:600 13.5px/1.2 "Noto Sans TC","PingFang TC",sans-serif;color:#4A3626}
+.vp-row:last-child{border-bottom:0}
+.vp-ic{width:22px;text-align:center}
+.vp-nm{flex:1 1 auto}
+.vp-st{font-size:11.5px;color:#8A6A2E;white-space:nowrap}
+.vp-done .vp-st{color:#2E6B4A}
+.vp-run{background:rgba(231,194,122,.28)}
+.vp-run .vp-st{color:#B8862E;font-weight:800}
+.vp-todo{opacity:.72}
 #vCorner .vc-nm{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 !important;margin:0 !important;background:none !important;border:0 !important}
 #vBottom{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));top:auto;flex:none;
   max-height:58%;overflow-y:auto;padding:0;background:none;z-index:5;pointer-events:none}
@@ -4769,9 +4782,9 @@ function canRun(){
   }
   return true;
 }
-function buildSys(d){ return `你是「${state.title}」的分類 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的分類定位】\n${d.role}\n\n【寫作風格硬性規定（參考《康園道》系列文章，必須照這個風格寫）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，絕對不要密密麻麻\n③ 先提出所有人都有的困惑或現象，讓讀者對號入座（開頭不要直接講產品）\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 標示，例如：#真正的問題從來不是這裡\n⑦ 用 👉 ✅ 🎯 🌀 📌 符號分層，讓結構清晰\n⑧ 結尾必須有「金句收尾」——一句話濃縮整篇核心（金句寫法見第⑪條）\n⑨ 語氣像有智慧的長輩在跟你說真話：不說教、不推銷、真誠分享\n⑩ 絕對不寫「購買」「成交」「加入」等推銷字眼\n⑪ 金句天生愛反駁：先順著大家以為的常識說一句，再用反轉句把它推翻，格式如「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。句型可用「真正的……，從不……」「真正……的人，從不……」，每篇文案都必須有一句，放在結尾，讓人停下來想一想\n\n【合規硬性規定（不得違反）】\n✗ 絕對不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能出現在公開內容\n✓ 所有案例只說「個人感受」，例如「她說感覺比較有精神」\n✓ 案例結尾必加：「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
+function buildSys(d){ return `你是「${state.title}」的分類 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的分類定位】\n${d.role}\n\n【寫作風格硬性規定（參考《康園道》系列文章，必須照這個風格寫）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，絕對不要密密麻麻\n③ 先提出所有人都有的困惑或現象，讓讀者對號入座（開頭不要直接講產品）\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 標示，例如：#真正的問題從來不是這裡\n⑦ 用 👉 ✅ 🎯 🌀 📌 符號分層，讓結構清晰\n⑧ 結尾必須有「金句收尾」——一句話濃縮整篇核心（金句寫法見第⑪條）\n⑨ 語氣像有智慧的長輩在跟你說真話：不說教、不推銷、真誠分享\n⑩ 絕對不寫「購買」「成交」「加入」等推銷字眼\n⑪ 金句天生愛反駁：先順著大家以為的常識說一句，再用反轉句把它推翻，格式如「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。句型可用「真正的……，從不……」「真正……的人，從不……」，每篇文案都必須有一句，放在結尾，讓人停下來想一想；這句必須獨立成一行，行首固定寫「【反骨金句】」，例如：【反骨金句】真正的經典，從不追趕經典\n\n【合規硬性規定（不得違反）】\n✗ 絕對不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能出現在公開內容\n✓ 所有案例只說「個人感受」，例如「她說感覺比較有精神」\n✓ 案例結尾必加：「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
 // 所有產生文案的提示詞都要求「反骨金句」；已經有這條規則的提示詞不重複加
-const COPY_RULE_TXT="\n\n【反骨金句（所有文案必須遵守）】\n每篇文案的結尾都必須有一句「反骨金句」：先順著大家以為的常識說一句，再用「真正的……，從不……」或「真正……的人，從不……」反轉推翻。例如：「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。只給一句，放在結尾，不加解釋。";
+const COPY_RULE_TXT="\n\n【反骨金句（所有文案必須遵守）】\n每篇文案的結尾都必須有一句「反骨金句」：先順著大家以為的常識說一句，再用「真正的……，從不……」或「真正……的人，從不……」反轉推翻。例如：「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。只給一句，放在結尾，獨立成一行，行首固定寫「【反骨金句】」，例如：【反骨金句】真正的經典，從不追趕經典。不加解釋。";
 function withCopyRule(sys){ return /反骨金句|金句天生愛反駁/.test(sys) ? sys : sys+COPY_RULE_TXT; }
 async function callOpenAI(sys,userContent,maxTokens,charge){
   // 會員版：走 GAS 後端（金鑰在後端、成功才扣次）
@@ -4957,7 +4970,7 @@ async function runAllDepartments(resume){
     }
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有產出，優化成可直接發布的成品…");
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.filter(c=>c.deptId!=="video"&&!GUIDE_DEPTS.includes(c.deptId)).forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
@@ -6060,6 +6073,7 @@ const NPC_ALL=[
      }else{
        a.push(['▶ 一鍵自動幫我寫',null,null,'plan']);
      }
+     if(state.pipeRun || (typeof running!=='undefined' && running)) a.push(['📊 流程進度',null,null,'progress']);
      a.push(['📌 選擇一鍵主題',null,buildTopicSub]);
      a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
@@ -6324,7 +6338,28 @@ function renderSub(){
   document.getElementById('vsubBack').onclick=()=>{ curSub=null; renderMenu(); };
 }
 // Agent P0：一鍵計畫面板 → 確認後整批自動跑；可選上限（最多執行幾個分類）
-let curPlan=null, planCap=0;
+let curPlan=null, planCap=0, curProg=null;
+// 流程進度：列出每一步的狀態；執行中會自動更新
+function renderProgress(){
+  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
+  if(!box || !curProg) return;
+  const depts=state.departments||[], r=state.pipeRun;
+  const isRun=(typeof running!=='undefined' && running);
+  const N=depts.length;
+  const done=r ? Math.min(r.step||0,N) : 0;
+  const rows=depts.map((d,i)=>({name:d.name, st: i<done ? 'done' : (isRun && i===done ? 'run' : 'todo')}));
+  rows.push({name:'統整成品', st: (r && r.done) ? 'done' : (isRun && done>=N ? 'run' : 'todo')});
+  const doneCount=rows.filter(x=>x.st==='done').length;
+  const ic={done:'✅', run:'⏳', todo:'○'}, lb={done:'完成', run:'進行中', todo:'等待'};
+  tEl.textContent = isRun ? '正在執行中，這裡會自動更新。' : (r ? '有一個未完成的流程，可在大長老選單接續。' : '目前沒有進行中的流程。');
+  box.innerHTML='<div class="vdd-head">📊 流程進度・已完成 '+doneCount+'/'+rows.length+'</div>'+
+    '<div class="vsub-now">主題：'+(r && r.goal ? esc(r.goal) : '尚未設定')+'</div>'+
+    '<div class="vdd-list">'+rows.map(x=>'<div class="vp-row vp-'+x.st+'"><span class="vp-ic">'+ic[x.st]+'</span><span class="vp-nm">'+esc(x.name)+'</span><span class="vp-st">'+lb[x.st]+'</span></div>').join('')+'</div>'+
+    '<div class="vdd-btns"><button class="vbtn" id="progRefresh" type="button">🔄 更新</button><button class="vbtn g" id="progBack" type="button">← 返回選單</button></div>';
+  document.getElementById('progRefresh').onclick=()=>renderProgress();
+  document.getElementById('progBack').onclick=()=>{ curProg=null; renderMenu(); };
+}
+setInterval(()=>{ if(curProg && curN && curN.id==='pipeline') renderProgress(); }, 1500);
 function renderPlan(){
   const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!box || !curPlan) return;
@@ -6355,7 +6390,7 @@ function renderPlan(){
 function openCard(n){
   leaveFull(); placeBottom(); vCorner.hidden=true;
   if(isInline()) restoreApp();
-  curN=n; dlgSel=null; curSub=null; curPlan=null;
+  curN=n; dlgSel=null; curSub=null; curPlan=null; curProg=null;
   const c=document.getElementById('vCard');
   n._greet=n.lines[Math.floor(Math.random()*n.lines.length)];
   c.innerHTML=
@@ -6388,6 +6423,7 @@ function renderMenu(){
   if(n.notice){ tEl.textContent='這是村莊的說明，看完按 ✕ 關閉。'; box.innerHTML=n.html; return; }
   if(curSub){ renderSub(); return; }
   if(curPlan){ renderPlan(); return; }
+  if(curProg){ renderProgress(); return; }
   const acts=typeof n.acts==='function' ? n.acts() : n.acts;
   if(!dlgSel){
     tEl.textContent=n._greet;
@@ -6396,6 +6432,7 @@ function renderMenu(){
     box.querySelectorAll('.vdd-item').forEach(bt=>bt.onclick=()=>{
       const i=+bt.dataset.i;
       if(acts[i][3]==='plan'){ curPlan={}; planCap=0; renderMenu(); return; }
+      if(acts[i][3]==='progress'){ curProg={}; renderMenu(); return; }
       if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; subOpen={}; renderMenu(); return; }
       // 頁面功能：一點就開（不再經過台詞與執行兩步）
       if(/\bgo\(/.test(String(acts[i][1]))){ acts[i][1](); return; }
@@ -6418,7 +6455,7 @@ function renderMenu(){
 function hideCard(){
   leaveFull();
   if(isInline()) restoreApp();
-  curN=null; curSub=null; curPlan=null; clearInterval(dlgTimer); dlgTyping=false;
+  curN=null; curSub=null; curPlan=null; curProg=null; clearInterval(dlgTimer); dlgTyping=false;
   document.getElementById('vCard').hidden=true;
   document.getElementById('vGridBox').hidden=false;
   vCorner.hidden=false;
@@ -6732,6 +6769,36 @@ function buildCorner(){
   });
 }
 buildCorner(); // 右上角編號列表（點名稱會走過去與他對話）
+
+/* ---------- 反骨金句標示：只要畫面上出現「【反骨金句】」開頭的行，就改成特殊樣式 ---------- */
+(function(){
+  const TAG='【反骨金句】';
+  function markNode(root){
+    if(!root || root.nodeType!==1 || root.textContent.indexOf(TAG)<0) return;
+    const w=document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const list=[]; while(w.nextNode()) list.push(w.currentNode);
+    list.forEach(tn=>{
+      const v=tn.nodeValue;
+      if(v.indexOf(TAG)<0 || (tn.parentElement && tn.parentElement.closest('.gr-line'))) return;
+      const frag=document.createDocumentFragment();
+      v.split('\n').forEach((line,i,arr)=>{
+        const k=line.indexOf(TAG);
+        if(k>=0){
+          const pre=line.slice(0,k);
+          if(pre) frag.appendChild(document.createTextNode(pre));
+          const sp=document.createElement('span'); sp.className='gr-line'; sp.textContent=line.slice(k+TAG.length).trim();
+          frag.appendChild(sp);
+        } else frag.appendChild(document.createTextNode(line));
+        if(i<arr.length-1) frag.appendChild(document.createTextNode('\n'));
+      });
+      tn.parentNode.replaceChild(frag, tn);
+    });
+  }
+  let queued=false;
+  function schedule(){ if(queued) return; queued=true; requestAnimationFrame(()=>{ queued=false; markNode(document.body); }); }
+  new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,characterData:true});
+  markNode(document.body);
+})();
 
 /* ---------- 光影與動態 ---------- */
 function isNight(){ return false; // 村莊固定白天
