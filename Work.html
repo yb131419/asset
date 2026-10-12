@@ -6195,10 +6195,10 @@ const NPC_ALL=[
          ['🖼 做圖卡',()=>vzResults('final')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
-   acts:[['📈 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+   acts:[['📈 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>vzWorkshop('market')]]},
   {id:'warmup',name:'暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
-   acts:[['🤝 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+   acts:[['🤝 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>vzWorkshop('warmup')]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
    lines:['在這裡管理身分、背景設定與素材。'],
    acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
@@ -6595,6 +6595,20 @@ function vzResults(kind){
   renderResults();
   document.getElementById('vResBack').onclick=()=>{ RES_HOST=null; renderMenu(); };
 }
+// 工坊（市場經營、暖身邀約）：和查看成品一樣直接在人物卡片內展開，上方有返回鍵，不再開整頁
+function vzWorkshop(dept){
+  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT'), app=document.querySelector('.app');
+  if(!box || !app){ go(()=>openDept(dept)); return; }
+  const n=curN;
+  if(!appHome) appHome={parent:app.parentNode, next:app.nextSibling};
+  box.hidden=false;
+  box.innerHTML='<div class="vdd-btns"><button class="vbtn g" id="vWsBack" type="button">← 返回'+(n?n.name:'')+'</button></div><div id="vWsHost"></div>';
+  if(tEl) tEl.textContent='在這裡直接寫作，完成的成品會存到成品庫。';
+  document.getElementById('vWsHost').appendChild(app);
+  document.body.classList.add('v-inline');
+  openDept(dept);
+  document.getElementById('vWsBack').onclick=()=>{ restoreApp(); renderMenu(); };
+}
 function renderMenu(){
   if(!curSub && !curPlan) leaveFull();
   document.body.classList.toggle('v-planning', !!curPlan); // 計畫面板時隱藏下方 NPC 快捷列
@@ -6615,7 +6629,7 @@ function renderMenu(){
       if(acts[i][3]==='progress'){ curProg={}; renderMenu(); return; }
       if(acts[i][2]){ curSub={title:acts[i][0], build:acts[i][2]}; subOpen={}; renderMenu(); return; }
       // 頁面功能：一點就開（不再經過台詞與執行兩步）
-      if(/\bgo\(|vzResults\(/.test(String(acts[i][1]))){ acts[i][1](); return; }
+      if(/\bgo\(|vzResults\(|vzWorkshop\(/.test(String(acts[i][1]))){ acts[i][1](); return; }
       dlgSel={i, reply:OPT_REPLY[acts[i][0]] || n._greet};
       renderMenu();
     });
@@ -6625,7 +6639,7 @@ function renderMenu(){
       '<button class="vbtn" id="vddGo" type="button">▶ 執行</button></div>';
     document.getElementById('vddGo').onclick=()=>{
       const act=acts[dlgSel.i];
-      const isPage=/\bgo\(|vzResults\(/.test(String(act[1]));   // 頁面功能：留在人物面板下方展開
+      const isPage=/\bgo\(|vzResults\(|vzWorkshop\(/.test(String(act[1]));   // 頁面功能：留在人物面板下方展開
       if(!isPage) hideCard();
       act[1]();
     };
