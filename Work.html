@@ -3807,7 +3807,7 @@ function renderHistory(){
   box.innerHTML=items.map(t=>`<div class="hist-item output-card" data-id="${t.id}">
     <div class="hi-top">${t.fromDept?`<span class="tag">↩ 來自 ${esc(t.fromDept)}</span>`:""}<span>${timeStr(t.time)}</span></div>
     <div class="hi-in">📝 ${esc(t.input)}</div>
-    ${richBody(t.output)}
+    ${t.copy ? richBody(finishCopy(t.output), true) : richBody(t.output)}
     <div class="hi-actions">
       <button class="hi-btn" onclick="reuseTask(${t.id})">沿用</button>
       <button class="hi-btn" onclick="copyWhole(this)">複製</button>
@@ -4039,7 +4039,7 @@ function renderResultsInner(){
     if(inner) html += `<div style="border:1px solid rgba(184,134,60,.5);background:linear-gradient(180deg,#FFFBF1,#F6EBD2);border-radius:18px;padding:10px 10px 4px;margin-bottom:14px;"><div style="font-weight:900;color:#6B4E24;font-size:15px;margin:2px 4px 8px;">⚡ 最新一鍵完成<span style="font-weight:600;font-size:12px;color:#8A7A5E;margin-left:8px;">${when}</span></div>${inner}</div>`;
   }
   if(showA) html += resSection("圖卡","🖼",articles,false);
-  const copies = showC ? state.tasks.filter(t=>t.copy && !isLatest(t)).slice().reverse() : [];
+  const copies = showC ? onePerRun(state.tasks.filter(t=>t.copy && !isLatest(t)).slice().reverse()) : [];
   if(showC) html += resSection("文章","✍️",copies,false,"copy");
   if(showV) html += resSection("短影音","🎬",videos,true);
   const mk = showM ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
@@ -4178,6 +4178,11 @@ function resTitleOf(t){
   }
   const sp=cardSplit((t.output||"").replace(/^#+\s*/gm,""));
   return (sp.title || (t.input||"").replace(/^\[成品\]\s*/,"") || "（未命名）").slice(0,60);
+}
+// 同一次一鍵運轉只留一則文章（舊資料中同 runId 的多則只顯示最新的一則）
+function onePerRun(list){
+  const seen=new Set();
+  return list.filter(t=>{ if(!t.runId) return true; if(seen.has(t.runId)) return false; seen.add(t.runId); return true; });
 }
 function resSection(title, icon, items, isVideo, kindOv){
   const kind = kindOv || (isVideo ? "video" : "final");
@@ -4984,7 +4989,7 @@ async function runTask(){
       input:input||"(附件處理)", output:out, time:Date.now(),
       fromDept:handoffFrom?handoffFrom.deptName:null, copy: curDeptMode(current).k==="copy", ...(judgedCat?{cat:judgedCat}:{}) };
     state.tasks.push(task); save();
-    renderOutput(out, d);
+    renderOutput(out, d, curDeptMode(current).k==="copy");
     renderHistory();
     clearHandoff();
     pendingFiles=[]; renderFiles();
@@ -5304,6 +5309,8 @@ async function runAllDepartments(resume){
     const st=document.getElementById("plstep-"+i); if(st){ st.classList.add("done"); st.querySelector(".st").textContent="✓"; }
   }
 
+  // 一次運轉只在成品庫的「文章」區留一則：取最後一個文案型步驟（其餘步驟仍存在各分類紀錄）
+  const copyIdx = order.reduce((a,d,i)=> (d.id!=="video" && !GUIDE_DEPTS.includes(d.id)) ? i : a, -1);
   const coveredCats=new Set();   // 本次已產出內容的五大主題（上限以此計算）
   let haltFlag=false;
   try{
@@ -5337,7 +5344,7 @@ async function runAllDepartments(resume){
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
         input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnly?"herb":pickCatFor(out, run.bizCats)),
         fromDept: i>0?run.prevName:null, runId: run.startedAt,
-        copy: d.id!=="video" && !GUIDE_DEPTS.includes(d.id) });
+        copy: i===copyIdx });
 
       const step=document.getElementById("plstep-"+i);
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
@@ -6066,13 +6073,14 @@ async function shareCardImage(cid){
   }
 }
 
-function renderOutput(out, d){
+function renderOutput(out, d, isCopy){
   const others=state.departments.filter(x=>x.id!==d.id);
   const cid="dc"+Date.now();
+  // 文章模式整篇顯示為一張卡，不拆成平台或「標題：」小卡，避免看起來像兩篇
   document.getElementById("outputZone").innerHTML=
    `<div class="output-card">
      <div class="oc-head"><span class="pin" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${d.accent}"></span>${esc(d.name)} 產出<span class="saved-tag">已存入「${esc(d.name)}」紀錄</span></div>
-     <div id="lastOutWrap">${richBody(out, d.id==="video")}</div>
+     <div id="lastOutWrap">${richBody(out, d.id==="video" || !!isCopy)}</div>
      <div class="oc-actions">
        <button class="mini" onclick="copyWhole(this)">📋 複製</button>
        ${cgGroupHTML(out, "", d.id==="video", false)}
@@ -6362,7 +6370,7 @@ function renderDrawer(){
     <div class="dr-cat">成品</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">🖼</span>圖卡<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
-    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文章<span class="cnt">${state.tasks.filter(t=>t.copy).length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文章<span class="cnt">${onePerRun(state.tasks.filter(t=>t.copy).slice().reverse()).length} 則</span></button>
     <div class="dr-cat">如何改善</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場上手指南<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('warmup'))"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🤝</span>暖身上手指南<span class="cnt">${state.tasks.filter(t=>t.deptId==="warmup").length} 則</span></button>
