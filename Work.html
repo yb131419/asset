@@ -2570,7 +2570,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div class="lib-entry results-entry" onclick="openResults('final')">
       <div class="le-ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</div>
       <div class="le-meta">
-        <div class="le-name">圖文</div>
+        <div class="le-name">圖卡</div>
         <div class="le-sub" id="resSumA">一鍵流程統整的圖文成品</div>
       </div>
       <span class="chev">›</span>
@@ -2588,8 +2588,8 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div class="lib-entry results-entry" onclick="openResults('copy')">
       <div class="le-ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</div>
       <div class="le-meta">
-        <div class="le-name">文案</div>
-        <div class="le-sub" id="resSumC">依圖卡邏輯寫的短文案</div>
+        <div class="le-name">文章</div>
+        <div class="le-sub" id="resSumC">依圖卡邏輯寫的短文章</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -3300,7 +3300,7 @@ function renderHome(){
   ).join(arrow);
   const botRow = node("openCollector()","rgba(107,78,158,.14)","#6B4E9E","🛰️","資料收集")
     + arrow
-    + node("openResults('final')","rgba(46,111,176,.14)","#2E6FB0","📝","圖文")
+    + node("openResults('final')","rgba(46,111,176,.14)","#2E6FB0","🖼","圖卡")
     + arrow
     + node("openResults('video')","rgba(181,101,46,.14)","#B5652E","🎬","短影音");
   if(box) box.innerHTML=`<div class="flow-row top">${topRow}</div>
@@ -3947,16 +3947,16 @@ function openResults(kind){ resKind=kind||"all"; RES_HOST=null; renderResults();
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
-  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖文` : "一鍵流程統整的圖文成品";
+  const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖卡` : "一鍵流程統整的圖文成品";
   const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則短影音逐字稿` : "一分鐘口播逐字稿";
   const cEl=document.getElementById("resSumC"); const cc=state.tasks.filter(t=>t.copy).length;
-  if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文案` : "依圖卡邏輯寫的短文案";
+  if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文章` : "依圖卡邏輯寫的短文章";
   const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
   if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const wEl=document.getElementById("resSumW"); const wc=state.tasks.filter(t=>t.deptId==="warmup").length;
   if(wEl) wEl.textContent = wc ? `已收存 ${wc} 則流程` : "給新手的暖身與邀約流程";
   const el=document.getElementById("resSummary"); if(!el) return;
-  el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `圖文 ${n} 篇　・　短影音 ${v} 則`;
+  el.textContent = (n+v)===0 ? "一鍵流程的成品都會收存在這裡" : `圖卡 ${n} 篇　・　短影音 ${v} 則`;
 }
 // 清理市場經營輸出：去掉版型標記字樣、合併多餘空行
 const GUIDE_DEPTS=["market","warmup"];
@@ -3982,13 +3982,13 @@ function renderResults(){
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="copy" ? "✍️ 文案" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
+  if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   let html="";
-  if(showA) html += resSection("圖文","📝",articles,false);
+  if(showA) html += resSection("圖卡","🖼",articles,false);
   const copies = showC ? state.tasks.filter(t=>t.copy).slice().reverse() : [];
-  if(showC) html += resSection("文案","✍️",copies,false,"copy");
+  if(showC) html += resSection("文章","✍️",copies,false,"copy");
   if(showV) html += resSection("短影音","🎬",videos,true);
   const mk = showM ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
   if(mk.length) html += marketSectionHTML(mk, "market");
@@ -4153,7 +4153,7 @@ function resRowHTML(t, isVideo, kind, manage){
     ${manage?`<label class="res-check"><input type="checkbox" ${sel?"checked":""} onchange="resCheck(this,'${kind}')"></label>`:""}
     <div class="res-row-main" onclick="resExpand(this,${isVideo?1:0})">
       <div class="res-row-title">${esc(resTitleOf(t))}</div>
-      <div class="res-row-meta">${kind==="copy"?"文案":(isVideo?"短影音":"圖文")}・${timeStr(t.time)}</div>
+      <div class="res-row-meta">${kind==="copy"?"文章":(isVideo?"短影音":"圖卡")}・${timeStr(t.time)}</div>
     </div>
     <span class="res-row-arrow">›</span>
     <div class="res-row-detail" hidden></div>
@@ -4204,7 +4204,7 @@ function resToggleCopy(id){
 }
 function resItemHTML(t, isVideo){
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
-  const tag = t.deptId==="market" ? "市場經營 · 上手流程" : t.deptId==="warmup" ? "暖身邀約 · 流程" : isVideo ? "影音內容 · 短影音" : "圖文 · 成品";
+  const tag = t.deptId==="market" ? "市場經營 · 上手流程" : t.deptId==="warmup" ? "暖身邀約 · 流程" : isVideo ? "影音內容 · 短影音" : "圖卡 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
@@ -5259,7 +5259,7 @@ async function runAllDepartments(resume){
     }
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有產出，優化成可直接發布的成品…");
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 內容精簡、不冗長：每篇約 200～300 字，只寫與本次主題直接相關的重點，不重複、不繞遠路、不寫長篇大論；段落短、留白多，讀完即懂\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），結尾一句自然的行動呼籲。不要寫任何 # 主題標籤\n- 內容精簡、不冗長：每篇約 100 到 130 字，只寫與本次主題直接相關的重點，不重複、不繞遠路、不寫長篇大論；段落短、留白多，讀完即懂\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.filter(c=>c.deptId!=="video"&&!GUIDE_DEPTS.includes(c.deptId)).forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
@@ -5504,7 +5504,7 @@ function finalCard(out, plat){
     <div class="oc-actions">
       <button class="mini" onclick="copyWhole(this)">📋 複製整篇</button>
       ${cgGroupHTML(out, plat, false)}
-      <button class="mini" onclick="openResults('final')">📝 前往圖文</button>
+      <button class="mini" onclick="openResults('final')">🖼 前往圖卡</button>
       <button class="mini" onclick="openResults('video')">🎬 前往短影音</button>
     </div>
     <div class="cardwrap" id="cw-${cid}"></div>
@@ -6256,9 +6256,9 @@ function renderDrawer(){
     <div class="dr-cat">寫作</div>
     ${depts}
     <div class="dr-cat">成品</div>
-    <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>圖文<span class="cnt">${finalTasks().length} 篇</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">🖼</span>圖卡<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
-    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文案<span class="cnt">${state.tasks.filter(t=>t.copy).length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文章<span class="cnt">${state.tasks.filter(t=>t.copy).length} 則</span></button>
     <div class="dr-cat">如何改善</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場經營<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('warmup'))"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🤝</span>暖身邀約<span class="cnt">${state.tasks.filter(t=>t.deptId==="warmup").length} 則</span></button>
@@ -6373,11 +6373,11 @@ const NPC_ALL=[
      if(state.pipeRun || (typeof running!=='undefined' && running)) a.push(['📊 流程進度',null,null,'progress']);
      return a;
    }},
-  {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
+  {id:'results',name:'成品庫',role:'圖卡、短影音與文章都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
    lines:['每產出一則成品，你的等級就會提升。'],
-   acts:[['📝 圖文',()=>vzResults('final')],
+   acts:[['🖼 圖卡',()=>vzResults('final')],
          ['🎬 短影音',()=>vzResults('video')],
-         ['✍️ 文案',()=>vzResults('copy')]]},
+         ['✍️ 文章',()=>vzResults('copy')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
    acts:[['📈 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>vzWorkshop('market')]]},
@@ -6596,7 +6596,7 @@ const OPT_REPLY={
   '▶ 接續上次進度':'上次做到一半，我們從那裡接著寫。',
   '✕ 放棄進度':'放棄的話，已完成的產出仍會保留在各分類。',
   '📋 成品清單':'這裡是你所有的成品，點進去可以複製或做圖卡。',
-  '📝 圖文':'圖文成品都在這裡，可以逐篇查看與複製。',
+  '🖼 圖卡':'圖卡成品都在這裡，可以逐篇查看與複製。',
   '🎬 短影音':'短影音的口播稿都在這裡。',
   '📈 市場經營':'市場經營的成品，一步一步照著做就好。',
   '🤝 暖身邀約':'暖身邀約的成品，先交朋友，不急著推。',
@@ -6774,7 +6774,7 @@ function openCard(n){
 function vzResults(kind){
   const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!box) return;
-  const title = kind==='final'?'📝 圖文':kind==='video'?'🎬 短影音':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
+  const title = kind==='final'?'🖼 圖卡':kind==='video'?'🎬 短影音':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
   box.hidden=false;
   box.innerHTML='<div class="vdd-btns"><button class="vbtn g" id="vResBack" type="button">← 返回成品庫</button></div><div id="vResHost"></div>';
   if(tEl) tEl.textContent='成品都在這裡，點開可以查看與複製。';
@@ -7136,7 +7136,7 @@ const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明'
 <li>使用方式：點大長老的「一鍵自動幫我寫」→ 第 1 步選擇主題（可從收集好的話題挑）→ 選上限 → 確認，整批自動跑。</li>
 <li>確認後會自動切到「📊 流程進度」，可以看每個分類的完成狀況。</li>
 <li>跑到上限會暫停，也可以按「停止運轉」。進度會保存，之後可以「接續上次進度」，或按「放棄進度」重來。</li>
-<li>資料收集、成品庫都在村莊裡：收集設定與開始收集在同一處，圖文、短影音、市場・暖身成品都在成品庫查看。</li>
+<li>資料收集、成品庫都在村莊裡：收集設定與開始收集在同一處，圖卡、短影音、文章、市場・暖身成品都在成品庫查看。</li>
 <li>目前不會自己選主題，也不會每天自動跑。只有統整成品那一步會扣次。</li>
 </ul>
 </div>`};
