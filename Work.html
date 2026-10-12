@@ -3915,6 +3915,15 @@ function pipeTopicLabel(){
   }
   return '';
 }
+// 成品庫分類標題的符號：沿用資料收集該主題項目的圖示（找不到就用 🧭）
+function topicIconOf(label){
+  if(!label) return '🧭';
+  const hit=[...document.querySelectorAll('.coll-item-sel, .topic-item')].find(el=>{
+    const t=el.querySelector('.ci-txt'); return t && t.textContent.trim()===String(label).trim();
+  });
+  const ic=hit && hit.querySelector('.ci-ic');
+  return ic && ic.textContent.trim() ? ic.textContent.trim() : '🧭';
+}
 function topicOf(t){
   if(t.topic) return String(t.topic).trim();
   const m=String(t.input||"").match(/【(?:經營|健康|觀念)主題】([^\n【]+)/);
@@ -3951,7 +3960,7 @@ function resSection(title, icon, items, isVideo){
   }else{
     const groups=new Map();
     items.forEach(t=>{ const k=topicOf(t); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); });
-    rows=[...groups.entries()].map(([k,arr])=>`<div class="res-topic-group"><div class="res-topic-head"><span>🧭 ${esc(k||"未指定經營主題")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`).join("");
+    rows=[...groups.entries()].map(([k,arr])=>`<div class="res-topic-group"><div class="res-topic-head"><span>${esc(topicIconOf(k))} ${esc(k||"未指定經營主題")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`).join("");
   }
   return `<div class="res-sec" data-kind-sec="${kind}">${head}${bar}<div class="res-list">${rows}</div></div>`;
 }
