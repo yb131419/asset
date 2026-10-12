@@ -1856,6 +1856,11 @@
   .toast{background:rgba(10,30,22,.94) !important;border:1px solid rgba(231,194,122,.45) !important;
     box-shadow:0 14px 34px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,246,220,.12) !important;
     font-family:"Noto Serif TC","Songti TC",serif;letter-spacing:.5px;}
+  /* 升級提示：質感按鈕樣式，單行不換行 */
+  .toast.toast-lv{white-space:nowrap !important;border-radius:999px !important;padding:10px 26px !important;
+    background:linear-gradient(180deg,#FFFBF1 0%,#F4E7C8 58%,#E6D0A0 100%) !important;color:#3E2A18 !important;
+    border:1px solid rgba(176,132,70,.55) !important;font-weight:800 !important;letter-spacing:.1em !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 8px 22px rgba(120,80,30,.28) !important;}
 
   /* ===== 成品庫：文章／影音部分區 ===== */
   .res-sec{margin-bottom:22px;}
@@ -6331,6 +6336,12 @@ function levelOf(p){
 }
 const TITLES=['見習冒險者','初階軍師','中階謀士','高階智囊','名家軍師','大師軍師'];
 function vzFlash(){ const f=document.getElementById('vFlash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+// 升級提示：沿用 toast，但加上質感按鈕樣式（單行），顯示完自動還原
+function vzLvToast(msg){
+  const t=document.getElementById('toast'); if(!t) return;
+  t.classList.add('toast-lv'); toast(msg);
+  clearTimeout(window._lvt); window._lvt=setTimeout(()=>t.classList.remove('toast-lv'),2000);
+}
 
 // 對話與各介面都從「幾則成品」標題列下方開始，不再從底部往上疊
 const vCorner=document.createElement('div'); vCorner.id='vCorner';
@@ -6359,9 +6370,12 @@ function renderVillage(){
   const pic=(typeof member!=='undefined' && member.pic)||'';
   if(pic && av.dataset.pic!==pic){ av.dataset.pic=pic; av.innerHTML='<img src="'+pic+'" alt="">'; }
   else if(!pic && av.dataset.pic!=='none'){ av.dataset.pic='none'; av.innerHTML='<span>👤</span>'; }
-  const prev=+localStorage.getItem('vz_lv')||1;
-  if(L2.lv>prev){ toast('🎉 升級！Lv.'+L2.lv+'　'+TITLES[Math.min(L2.lv-1,TITLES.length-1)]); vzFlash(); }
-  localStorage.setItem('vz_lv', String(L2.lv));
+  // 升級提示只在「等級真的提高」時顯示一次：記在記憶體與 localStorage，每 3 秒刷新時不重複跳出
+  let stored=null; try{ stored=localStorage.getItem('vz_lv'); }catch(e){}
+  const lastLv=(window._vzLastLv!=null) ? window._vzLastLv : (stored!=null ? +stored : null);
+  if(lastLv!=null && L2.lv>lastLv){ vzLvToast('🎉 升級！Lv.'+L2.lv+'　'+TITLES[Math.min(L2.lv-1,TITLES.length-1)]); vzFlash(); }
+  window._vzLastLv=L2.lv;
+  try{ localStorage.setItem('vz_lv', String(L2.lv)); }catch(e){}
 }
 
 /* ---------- 對話卡 ---------- */
