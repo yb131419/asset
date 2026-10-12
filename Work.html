@@ -5028,6 +5028,8 @@ function canRun(){
 function buildSys(d){ return `你是「${state.title}」的分類 AI 助理。\n\n【背景設定】\n${ctxFull()}\n\n【你的分類定位】\n${d.role}\n\n【寫作風格硬性規定（參考《康園道》系列文章，必須照這個風格寫）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，絕對不要密密麻麻\n③ 先提出所有人都有的困惑或現象，讓讀者對號入座（開頭不要直接講產品）\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」「真正的問題是什麼？」\n⑥ 重點句用 # 標示，例如：#真正的問題從來不是這裡\n⑦ 用 👉 ✅ 🎯 🌀 📌 符號分層，讓結構清晰\n⑧ 結尾必須有「金句收尾」——一句話濃縮整篇核心（金句寫法見第⑪條）\n⑨ 語氣像有智慧的長輩在跟你說真話：不說教、不推銷、真誠分享\n⑩ 絕對不寫「購買」「成交」「加入」等推銷字眼\n⑪ 金句天生愛反駁：先順著大家以為的常識說一句，再用反轉句把它推翻，格式如「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。句型可用「真正的……，從不……」「真正……的人，從不……」，每篇文案都必須有一句，放在結尾，讓人停下來想一想；這句必須獨立成一行，行首固定寫「【反骨金句】」，例如：【反骨金句】真正的經典，從不追趕經典\n\n【合規硬性規定（不得違反）】\n✗ 絕對不能說：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎\n✗ 癌症、洗腎、精神科案例不能出現在公開內容\n✓ 所有案例只說「個人感受」，例如「她說感覺比較有精神」\n✓ 案例結尾必加：「以上是個人感受，每個人狀況不同」\n✗ 不說「買產品」「加入直銷」「賺錢機會」\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。`; }
 // 所有產生文案的提示詞都要求「反骨金句」；已經有這條規則的提示詞不重複加
 const COPY_RULE_TXT="\n\n【反骨金句（所有文案必須遵守）】\n每篇文案的結尾都必須有一句「反骨金句」：先順著大家以為的常識說一句，再用「真正的……，從不……」或「真正……的人，從不……」反轉推翻。例如：「真正的經典，從不追趕經典」「真正從容的人，從不急著依靠」。只給一句，放在結尾，獨立成一行，行首固定寫「【反骨金句】」，例如：【反骨金句】真正的經典，從不追趕經典。不加解釋。";
+// 火山草本一鍵：整條流程（每一步＋統整）都套用的規則，並把分類固定為火山草本
+const HERB_FLOW_TXT="\n\n【火山草本（硬性規定）】只寫產品的理念、生活場景與包裝故事，不寫任何功效、療效、治療、改善疾病、保證有效等字眼，不做前後對比。全文最後一行必須是「以上是個人感受」。";
 // 一鍵流程中屬於「文案」的步驟：硬性限制字數，避免比文案模式長出數倍
 const COPY_LEN_TXT="\n\n【文案字數與結尾（硬性規定）】只寫一篇，不要寫第二篇或任何說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字。只寫一行 10 字內的標題，接著 2 到 3 段內文（每段 1 到 2 句），內文最後一句是反骨金句（直接寫，不加【反骨金句】等任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。不條列、不寫步驟與案例、不寫長段落，不要任何額外說明。";
 const CONCEPT_ONLY_TXT="\n\n【觀念主題（硬性規定）】只談觀念與生活道理，嚴禁出現身體、毒素、排毒、清理身體、保健、療效等字眼。";
@@ -5229,15 +5231,16 @@ async function runAllDepartments(resume){
       const built=buildUserContent(base, [], {totalChars:4000, fileChars:4000, deptId:d.id});
       if(built.trimmed) run.anyTrim=true;
       const isCopyStep = d.id!=="video" && !GUIDE_DEPTS.includes(d.id);
-      const stepSys = isCopyStep ? buildSys(d)+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d);
+      const herbOnly = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
+      const stepSys = (isCopyStep ? buildSys(d)+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (herbOnly?HERB_FLOW_TXT:"");
       const raw0=await callOpenAI(stepSys, built.content, GUIDE_DEPTS.includes(d.id)?6000:(isCopyStep?500:1800));
       const out0 = isCopyStep ? finishCopy(await fitCopy(raw0, stepSys, built.content)) : raw0;
       const out = GUIDE_DEPTS.includes(d.id) ? cleanMarketText(out0) : out0;
       run.collected.push({name:d.name, out, deptId:d.id});
-      coveredCats.add(pickCatFor(out, run.bizCats));
+      coveredCats.add(herbOnly?"herb":pickCatFor(out, run.bizCats));
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
-        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(out, run.bizCats),
+        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnly?"herb":pickCatFor(out, run.bizCats)),
         fromDept: i>0?run.prevName:null,
         copy: d.id!=="video" && !GUIDE_DEPTS.includes(d.id) });
 
@@ -5264,9 +5267,10 @@ async function runAllDepartments(resume){
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.filter(c=>c.deptId!=="video"&&!GUIDE_DEPTS.includes(c.deptId)).forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
-    const finalOut=await callOpenAI(editorSys, comp, 2600,true);
+    const herbOnlyFinal = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
+    const finalOut=await callOpenAI(editorSys + (herbOnlyFinal?HERB_FLOW_TXT:""), comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
-      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(finalOut, run.bizCats),
+      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnlyFinal?"herb":pickCatFor(finalOut, run.bizCats)),
       fromDept:"三分類", platform:"" });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut, ""));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
