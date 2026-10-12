@@ -1998,6 +1998,12 @@
   .cd-body[hidden]{display:none;}
 
   .res-top{justify-content:space-between;}
+  .res-jump{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;}
+  .res-jump::-webkit-scrollbar{display:none;}
+  .res-jump-btn{flex:0 0 auto;border:1px solid rgba(176,132,70,.45);background:linear-gradient(180deg,#FFFDF6,#F5EAD2);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800;color:#6B4E24;font-family:inherit;white-space:nowrap;cursor:pointer;}
+  .res-jump-btn b{color:#2E6B4A;margin-left:6px;font-weight:800;}
+  .res-jump-btn:active{transform:scale(.96);}
+  .res-topic-group[data-cat]{scroll-margin-top:96px;}
   .res-del{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;letter-spacing:.5px;color:#8A4A36;background:linear-gradient(180deg,#FFFDF8,#F6EEE2);border:1px solid rgba(138,74,54,.28);border-radius:999px;padding:6px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 6px rgba(90,60,30,.08);font-family:"Noto Serif TC","Songti TC",serif;cursor:pointer;transition:transform .12s ease;}
   .res-del:active{transform:scale(.95);}
 
@@ -3977,6 +3983,13 @@ function marketSectionHTML(items, kind){
   const title = kind==="warmup" ? "🤝 暖身邀約" : "📈 市場經營";
   return `<div class="res-sec" data-kind-sec="${kind}"><div class="res-sec-head"><span class="res-sec-title">${title}</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${items.map(t=>`<div class="res-row" data-id="${t.id}"><div class="res-row-main" onclick="resExpand(this,0)"><div class="res-row-title">${esc(resTitleOf(t))}</div><div class="res-row-meta">上手流程・${timeStr(t.time)}</div></div><span class="res-row-arrow">›</span><div class="res-row-detail" hidden></div></div>`).join("")}</div></div>`;
 }
+// 快捷鍵：跳到該分類的第一個群組
+function resJump(k){
+  const root=RES_HOST||document.getElementById("resList");
+  const el=root && root.querySelector(`[data-cat="${k}"]`);
+  if(!el){ toast("這個分類目前沒有成品"); return; }
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
 // 成品庫顯示：若某一則產出讓畫面出錯，改為顯示錯誤訊息，避免整個清單空白
 function renderResults(){
   try{ renderResultsInner(); }
@@ -3998,6 +4011,12 @@ function renderResultsInner(){
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   let html="";
+  // 六大分類快捷鍵：點一下直接跳到該分類，不用一直滑動
+  {
+    const keys=['auto','health','herb','concept','biz','net'];
+    const btns=keys.map(k=>{ const n=state.tasks.filter(t=>catOfTask(t)===k).length; return `<button class="res-jump-btn" style="${n?"":"opacity:.45;"}" onclick="resJump('${k}')">${TOPIC_ICON_BY_CAT[k]} ${TOPIC_NAME_BY_CAT[k]}<b>${n}</b></button>`; }).join("");
+    html += `<div class="res-jump">${btns}</div>`;
+  }
   // 最新一鍵完成：獨立放在最上面（圖卡、文章、短影音）
   if(latestId && (resKind==="all"||resKind==="final"||resKind==="copy"||resKind==="video")){
     const lf=state.tasks.filter(t=>isLatest(t)&&t.deptId==="final").slice().reverse();
@@ -4167,7 +4186,7 @@ function resSection(title, icon, items, isVideo, kindOv){
   items.forEach(t=>{ const k=catOfTask(t); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); });
   const rows=RES_CAT_ORDER.filter(k=>groups.has(k)).map(k=>{
     const arr=groups.get(k);
-    return `<div class="res-topic-group"><div class="res-topic-head"><span>${TOPIC_ICON_BY_CAT[k]||"📁"} ${esc(TOPIC_NAME_BY_CAT[k]||"未分類")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`;
+    return `<div class="res-topic-group" data-cat="${k}"><div class="res-topic-head"><span>${TOPIC_ICON_BY_CAT[k]||"📁"} ${esc(TOPIC_NAME_BY_CAT[k]||"未分類")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`;
   }).join("");
   return `<div class="res-sec" data-kind-sec="${kind}">${head}${bar}<div class="res-list">${rows}</div></div>`;
 }
