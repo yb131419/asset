@@ -2387,6 +2387,14 @@ body.v-mode.v-inline .app{position:static !important;visibility:visible !importa
 #vCorner .vc-item:active,.vdd-list .vdd-item:active{transform:translateY(1px);}
 .vm-title{font:800 12px/1 "Noto Serif TC","Songti TC",serif;letter-spacing:.12em;color:#8A5A2E;white-space:nowrap;padding:0 2px 0 4px;}
 .vdd-item:active{background:rgba(185,146,98,.18)}
+/* 對話表選項：全部改為純文字列（不再像按鈕） */
+.vdd-list{background:transparent !important;border:0 !important;box-shadow:none !important;}
+.vdd-list .vdd-item{background:transparent !important;border:0 !important;border-bottom:1px solid rgba(185,146,98,.22) !important;
+  border-radius:0 !important;box-shadow:none !important;transform:none !important;min-height:0 !important;
+  padding:10px 6px !important;color:#4A3626 !important;font-weight:600 !important;}
+.vdd-list .vdd-item:last-child{border-bottom:0 !important;}
+.vdd-list .vdd-item:hover{color:#8A5A2E !important;background:rgba(185,146,98,.08) !important;}
+.vdd-list .vdd-item.on{color:#8A5A2E !important;font-weight:800 !important;}
 #vStatus{color:#4A3626;background:rgba(251,246,233,.92);border-color:rgba(185,146,98,.6)}
 #vSheetBack{background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border-color:rgba(185,146,98,.7)}
 body.v-mode.v-sheet .app{background:#F6F0DF}
@@ -2409,6 +2417,8 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
   box-shadow:0 3px 8px rgba(90,70,40,.2);min-height:38px;padding:0 12px;font-size:12.5px}
 #vTop #vLv{margin-left:auto}
 #vToggle{white-space:nowrap}
+#vNoticeBtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:999px;cursor:pointer;flex:0 0 auto;white-space:nowrap;font:800 12.5px/1 "Noto Serif TC","Songti TC",serif;background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border:1px solid rgba(160,120,70,.6);box-shadow:0 3px 8px rgba(90,70,40,.2);margin-right:6px}
+#vNoticeBtn:active{transform:scale(.94)}
 </style>
 
 </head>
@@ -6313,12 +6323,19 @@ function vzDiscardPipe(){
 const btn=document.createElement('button');
 btn.id='vToggle'; btn.type='button';
 btn.onclick=()=>setMode(document.body.classList.contains('v-mode')?'list':'village');
+// 公告按鈕：放在「返回列表」左邊（只在村莊模式顯示）
+const noticeBtn=document.createElement('button');
+noticeBtn.id='vNoticeBtn'; noticeBtn.type='button'; noticeBtn.textContent='📢 公告';
+noticeBtn.onclick=()=>openCard(NOTICE);
 function placeToggle(){
   const isV=document.body.classList.contains('v-mode');
   btn.textContent = isV ? '☰ 返回列表' : '🏘 返回仙界';
   if(isV){
-    document.getElementById('vHead').insertBefore(btn, document.getElementById('vLv'));
+    const head=document.getElementById('vHead');
+    head.insertBefore(btn, document.getElementById('vLv'));
+    head.insertBefore(noticeBtn, btn);
   }else{
+    noticeBtn.remove();
     const row=document.querySelector('.topbar .row');
     if(row) row.insertBefore(btn, row.querySelector('.gear'));
   }
@@ -6914,8 +6931,10 @@ const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明'
 <h4>大長老 AI Agent 是什麼？</h4>
 <ul>
 <li>大長老會依你選好的主題，依序寫好各分類的內容，最後整合成一篇可直接發布的成品。</li>
-<li>使用方式：先到資料收集選主題 → 點大長老的「一鍵自動幫我寫」→ 看計畫、選上限 → 確認後自動跑。</li>
-<li>跑到上限會暫停，也可以按「停止運轉」。進度會保存，之後可以「接續上次進度」。</li>
+<li>使用方式：點大長老的「一鍵自動幫我寫」→ 第 1 步選擇主題（可從收集好的話題挑）→ 選上限 → 確認，整批自動跑。</li>
+<li>確認後會自動切到「📊 流程進度」，可以看每個分類的完成狀況。</li>
+<li>跑到上限會暫停，也可以按「停止運轉」。進度會保存，之後可以「接續上次進度」，或按「放棄進度」重來。</li>
+<li>資料收集、成品庫都在村莊裡：收集設定與開始收集在同一處，圖文、短影音、市場・暖身成品都在成品庫查看。</li>
 <li>目前不會自己選主題，也不會每天自動跑。只有統整成品那一步會扣次。</li>
 </ul>
 </div>`};
@@ -6955,7 +6974,7 @@ function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }c
 function buildCorner(){
   const open=cornerOpen();
   vCorner.innerHTML='<button class="vc-cap" type="button" id="vcCap">'+(open?'▾':'▸')+' 角色列表</button>'+
-    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('')+'<button class="vc-item vc-notice" type="button" data-notice="1"><span class="vc-num">📢</span><span class="vc-nm">公告</span></button>' : '');
+    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('')+'' : '');
   vCorner.querySelector('#vcCap').onclick=()=>{ setCornerOpen(!open); buildCorner(); };
   vCorner.querySelectorAll('.vc-item').forEach(bt=>bt.onclick=()=>{
     if(bt.dataset.notice){ openCard(NOTICE); return; }
