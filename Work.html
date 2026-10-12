@@ -5102,7 +5102,7 @@ const COPY_RULE_TXT="\n\n【反骨金句（所有文案必須遵守）】\n每�
 // 火山草本一鍵：整條流程（每一步＋統整）都套用的規則，並把分類固定為火山草本
 const HERB_FLOW_TXT="\n\n【火山草本（硬性規定）】只寫產品的理念、生活場景與包裝故事，不寫任何功效、療效、治療、改善疾病、保證有效等字眼，不做前後對比。全文最後一行必須是「以上是個人感受」。";
 // 一鍵流程中屬於「文案」的步驟：硬性限制字數，避免比文案模式長出數倍
-const COPY_LEN_TXT="\n\n【文案字數與結尾（硬性規定）】只寫一篇，不要寫第二篇或任何說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字。只寫一行 10 字內的標題，接著 2 到 3 段內文（每段 1 到 2 句），內文最後一句是反骨金句（直接寫，不加【反骨金句】等任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。不條列、不寫步驟與案例、不寫長段落，不要任何額外說明。";
+const COPY_LEN_TXT="\n\n【文案字數與結尾（硬性規定）】只寫一篇，不要寫第二篇、不要重複標題、不要第二個反骨金句或第二組標籤，也不要任何說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字。只寫一行 10 字內的標題，接著 2 到 3 段內文（每段 1 到 2 句），內文最後一句是反骨金句（直接寫，不加【反骨金句】等任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。不條列、不寫步驟與案例、不寫長段落，不要任何額外說明。";
 const CONCEPT_ONLY_TXT="\n\n【觀念主題（硬性規定）】只談觀念與生活道理，嚴禁出現身體、毒素、排毒、清理身體、保健、療效等字眼。";
 // 文案超過 125 字（不含空白）時，自動請 AI 改寫一次，確保落在 115–125 字
 function copyLen(t){ return String(t||"").replace(/\n\s*(#\S+\s*)+$/,"").replace(/\s/g,"").length; }
@@ -5120,11 +5120,29 @@ function finishCopy(t){
 }
 // 只保留第一篇：遇到分隔線、「第二篇」或第一組 # 標籤後，後面的內容一律捨棄
 function pickOneCopy(t){
-  const s=String(t||"").replace(/\r/g,"");
-  const first=s.split(/\n\s*(?:-{3,}|\*{3,}|第[二三2]篇.*|篇[二三2].*)\s*\n/)[0];
-  const lines=first.split("\n");
-  const idx=lines.findIndex(l=>/^(#\S+\s*){5}$/.test(l.trim()));
-  return (idx>=0 ? lines.slice(0,idx+1) : lines).join("\n").trim();
+  const lines=String(t||"").replace(/\r/g,"").split("\n");
+  const isSep=l=>/^(-{3,}|\*{3,}|_{3,}|={3,})$/.test(l.trim()) || /^[#\s]*第[二三2][篇則]|^[【\[]?第[二三2][篇則]/.test(l.trim());
+  const isTag=l=>/^(#\S+\s*){3,}$/.test(l.trim());
+  const isJin=l=>/反骨金句/.test(l);
+  const sep=lines.findIndex((l,i)=>i>0 && isSep(l));
+  const tag=lines.findIndex(isTag);
+  const jins=[]; lines.forEach((l,i)=>{ if(isJin(l)) jins.push(i); });
+  let end=lines.length;
+  if(sep>=0) end=sep;                                   // 有分隔線或「第二篇」：後面全捨棄
+  else if(jins.length>=2 && (tag<0 || jins[1]<tag)){    // 第二次出現反骨金句 → 第二篇開始了，第一篇到第一句金句為止
+    end=jins[0]+1;
+    let k=end; while(k<lines.length && !lines[k].trim()) k++;
+    if(k<lines.length && isTag(lines[k])) end=k+1;      // 金句後緊接的標籤行保留
+  }
+  else if(jins.length>=1 && tag>jins[0] && lines.slice(jins[0]+1,tag).some(l=>l.trim() && !isTag(l))){
+    // 金句與標籤之間又出現正文 → 金句之後已是第二篇，第一篇到金句為止，標籤若緊接則保留
+    end=jins[0]+1;
+    let k=end; while(k<lines.length && !lines[k].trim()) k++;
+    if(k<lines.length && isTag(lines[k])) end=k+1;
+  }
+  else if(tag>=0) end=tag+1;                            // 第一組 5 個標籤即是第一篇結尾
+  else if(jins.length>=1) end=jins[0]+1;                // 沒有標籤：金句即結尾（finishCopy 會補標籤）
+  return lines.slice(0,end).join("\n").trim();
 }
 // 只留一篇，字數不在 115–125 時請 AI 改寫（最多兩次）
 async function fitCopy(out, sys, user){
