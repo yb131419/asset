@@ -4262,6 +4262,7 @@ function resToggleCopy(id){
 }
 function resItemHTML(t, isVideo){
   if(t.copy) t={...t, output:finishCopy(t.output)};   // 文章只顯示一則（舊資料也一併處理）
+  if(t.deptId==="final") t={...t, output:noDM(t.output)};   // 圖卡不出現「私訊」
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   const tag = t.deptId==="market" ? "市場上手指南 · 流程" : t.deptId==="warmup" ? "暖身上手指南 · 流程" : isVideo ? "影音內容 · 短影音" : "圖卡 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
@@ -4300,7 +4301,7 @@ function toggleResExpand(id,btn){
 }
 function copyResult(id){
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
-  const txt=t.copy ? finishCopy(t.output) : t.output;
+  const txt=t.copy ? finishCopy(t.output) : (t.deptId==="final" ? noDM(t.output) : t.output);
   navigator.clipboard.writeText(txt).then(()=>toast("已複製，可直接貼文"));
 }
 function deleteResult(id){
@@ -5117,6 +5118,8 @@ const CONCEPT_ONLY_TXT="\n\n【觀念主題（硬性規定）】只談觀念與�
 function copyLen(t){ return String(t||"").replace(/\n\s*(#\S+\s*)+$/,"").replace(/\s/g,"").length; }
 // 文案收尾：移除「【反骨金句】」標籤（金句本身保留），並確保最後一行是 5 個 # 主題標籤
 const COPY_TAG_FALLBACK="#觀念 #生活智慧 #自我成長 #理解 #人生態度";
+// 圖卡不出現「私訊」：統一換成「留言」（新產出與舊資料顯示都套用）
+function noDM(t){ return String(t||"").replace(/私訊我|私訊/g,"留言"); }
 function finishCopy(t){
   let s=pickOneCopy(t).replace(/【反骨金句】/g,"").replace(/[ \t]+$/gm,"").replace(/\n{3,}/g,"\n\n").trim();
   const lines=s.split("\n");
@@ -5391,12 +5394,12 @@ async function runAllDepartments(resume){
     }
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有產出，優化成可直接發布的成品…");
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），結尾一句自然的行動呼籲。不要寫任何 # 主題標籤\n- 內容精簡、不冗長：每篇約 100 到 130 字，只寫與本次主題直接相關的重點，不重複、不繞遠路、不寫長篇大論；段落短、留白多，讀完即懂\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然的行動呼籲，低門檻，例如「想聊聊的話歡迎留言」）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），結尾一句自然的行動呼籲。不要寫任何 # 主題標籤\n- 內容精簡、不冗長：每篇約 100 到 130 字，只寫與本次主題直接相關的重點，不重複、不繞遠路、不寫長篇大論；段落短、留白多，讀完即懂\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.filter(c=>c.deptId!=="video"&&!GUIDE_DEPTS.includes(c.deptId)).forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
     const herbOnlyFinal = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
-    const finalOut=await callOpenAI(editorSys + (herbOnlyFinal?HERB_FLOW_TXT:""), comp, 2600,true);
+    const finalOut=noDM(await callOpenAI(editorSys + (herbOnlyFinal?HERB_FLOW_TXT:""), comp, 2600,true));
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
       input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnlyFinal?"herb":pickCatFor(finalOut, run.bizCats)),
       fromDept:"三分類", platform:"", runId: run.startedAt });
