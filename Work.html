@@ -6135,6 +6135,7 @@ const NPC_ALL=[
    acts:()=>{
      const a=[];
      const r=state.pipeRun;
+     a.push(['📌 選擇一鍵主題',null,buildTopicSub]);
      if(typeof running!=='undefined' && running){
        a.push(['⏹ 停止運轉',()=>{ pipeStopReq=true; vzStatus('⏸ 本步完成後暫停，進度會保存'); }]);
      }else if(r && !r.done){
@@ -6144,8 +6145,6 @@ const NPC_ALL=[
        a.push(['▶ 一鍵自動幫我寫',null,null,'plan']);
      }
      if(state.pipeRun || (typeof running!=='undefined' && running)) a.push(['📊 流程進度',null,null,'progress']);
-     a.push(['📌 選擇一鍵主題',null,buildTopicSub]);
-     a.push(['📋 成品清單',()=>go(()=>openView('home'))]);
      return a;
    }},
   {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
@@ -6385,10 +6384,16 @@ function buildTopicSub(){
       const k=c.cat==='concept'?'concept':c.cat==='biz'?'biz':'health';
       out.push({group:'📚 已收集的話題', label:lab,
         on:()=> c.cat==='net' ? (_bizPlan[0]===c.bottleneck) : (_selLabel[k]===lab),
-        toggle:()=>vzUseCollected(c.id)});
+        toggle:()=>{ const sel=(c.cat==='net') ? (_bizPlan[0]===c.bottleneck) : (_selLabel[k]===lab); if(sel) vzClearCollected(c); else vzUseCollected(c.id); }});
     });
   }
   return out;
+}
+function vzClearCollected(c){
+  if(c.cat==='net'){ _bizPlan.length=0; if(typeof syncNetBadge==='function') syncNetBadge(); }
+  else { const k=c.cat==='concept'?'concept':c.cat==='biz'?'biz':'health'; clearPick(k); }
+  persistPipeSel(); renderPlPicked();
+  if(curSub) renderSub();
 }
 function vzUseCollected(id){
   const c=findTopic(id); if(!c) return;
