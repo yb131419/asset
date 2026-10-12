@@ -2283,6 +2283,9 @@ body.v-mode #village{display:flex}
 #vBottom .vdd-btns .vbtn{white-space:nowrap}
 body.v-planning #vQuick{display:none !important}
 #vCard .vp-steps{line-height:1.9;font-size:12.5px;padding:0 4px}
+#vCard .vp-stepList{display:flex;flex-direction:column;gap:4px;margin:6px 0 10px}
+#vCard .vp-si{font-size:12.5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 10px;border-radius:10px;background:rgba(185,146,98,.08);color:#4A3626}
+#vCard .vp-si b{color:#8A5A2E;margin-right:6px}
 
 /* 覆蓋層：原本的頁面疊在村莊上方，村莊仍在背後 */
 body.v-mode.v-sheet .app{visibility:visible !important;position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
@@ -2364,6 +2367,8 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
 #vTop #vHead::after{display:none}
 #vTop #vXp{position:relative;top:auto;left:auto;right:auto;margin:0 14px 8px;z-index:auto}
 #vTop #vMeta{position:relative;top:auto;left:auto;right:auto;margin:0 16px 8px;z-index:auto}
+.vmeta-r{display:inline-flex;align-items:center;gap:8px}
+#vMusicBtn{pointer-events:auto;border:1px solid rgba(185,146,98,.5);background:#FBF6E9;color:#4A3626;border-radius:999px;padding:3px 10px;font:700 12px/1.4 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer}
 #vTop #vStatus{position:relative;top:auto;left:auto;right:auto;margin:0 14px 10px;z-index:auto}
 #vToggle{background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border-color:rgba(160,120,70,.6);
   box-shadow:0 3px 8px rgba(90,70,40,.2);min-height:38px;padding:0 12px;font-size:12.5px}
@@ -2419,7 +2424,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div id="vLv">Lv.1</div>
   </div>
   <div id="vXp"><div id="vXpFill"></div></div>
-  <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
+  <div id="vMeta"><span id="vCount">0 則成品</span><span class="vmeta-r"><span id="vNext"></span><button id="vMusicBtn" type="button">🎵 音樂</button></span></div>
   </div>
   <div id="vMapBox">
     <div id="vWrap">
@@ -6405,7 +6410,7 @@ function renderPlan(){
   tEl.textContent='確認後會整批自動跑，可先選上限。';
   box.innerHTML='<div class="vdd-head">📋 一鍵計畫</div>'+
     '<div class="vsub-now">主題：'+(goal?esc(goal):'尚未選擇（請先到資料收集選主題）')+'</div>'+
-    '<div class="vsub-now vp-steps">'+depts.map((d,i)=>(i+1)+'. '+esc(d.name)).concat([(N+1)+'. 統整成品']).join('　›　')+'</div>'+
+    '<div class="vp-stepList">'+depts.map((d,i)=>'<div class="vp-si"><b>'+(i+1)+'</b>'+esc(d.name)+'</div>').concat(['<div class="vp-si"><b>'+(N+1)+'</b>統整成品</div>']).join('')+'</div>'+
     '<div class="vsub-now">上限（最多執行幾個分類）</div>'+
     '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部':k+' 個')+'</button>').join('')+'</div>'+
     '<div class="vsub-now">'+(chosen<N?'跑到 '+chosen+' 個分類就暫停，不會產生統整成品。':'會跑完全部分類，並產生統整成品。')+'</div>'+
@@ -6808,6 +6813,7 @@ function vzPlaySong(id){
   const box=document.getElementById('vcB');
   if(box && typeof curN!=='undefined' && curN && curN.id==='music') box.innerHTML=musicHTML();
 }
+document.getElementById('vMusicBtn') && (document.getElementById('vMusicBtn').onclick=()=>openCard(MUSIC));
 window.vzPlaySong=vzPlaySong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
@@ -6815,11 +6821,10 @@ function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }c
 function buildCorner(){
   const open=cornerOpen();
   vCorner.innerHTML='<button class="vc-cap" type="button" id="vcCap">'+(open?'▾':'▸')+' 角色列表</button>'+
-    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('')+'<button class="vc-item vc-notice" type="button" data-notice="1"><span class="vc-num">📢</span><span class="vc-nm">公告</span></button><button class="vc-item vc-notice" type="button" data-music="1"><span class="vc-num">🎵</span><span class="vc-nm">背景音樂</span></button>' : '');
+    (open ? NPC.map((n,i)=>'<button class="vc-item" type="button" data-id="'+n.id+'"><span class="vc-num">'+(i+1)+'</span><span class="vc-ic">'+n.ic+'</span><span class="vc-nm">'+n.name+'</span></button>').join('')+'<button class="vc-item vc-notice" type="button" data-notice="1"><span class="vc-num">📢</span><span class="vc-nm">公告</span></button>' : '');
   vCorner.querySelector('#vcCap').onclick=()=>{ setCornerOpen(!open); buildCorner(); };
   vCorner.querySelectorAll('.vc-item').forEach(bt=>bt.onclick=()=>{
     if(bt.dataset.notice){ openCard(NOTICE); return; }
-    if(bt.dataset.music){ openCard(MUSIC); return; }
     const n=NPC.find(x=>x.id===bt.dataset.id); if(n) walkNear(n);
   });
 }
