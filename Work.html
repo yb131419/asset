@@ -2425,9 +2425,10 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     </div>
     <div id="vLv">Lv.1</div>
   </div>
+  <div id="vMusicRow"><button type="button" id="vMusicPlay">🎵 播放</button><button type="button" id="vMusicSwitch">⇄ 曲一</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div>
   <div id="vXp"><div id="vXpFill"></div></div>
   <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
-  <div id="vMusicRow"><button type="button" id="vMusicTog">🎵 曲一</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div>
+  
   </div>
   <div id="vMapBox">
     <div id="vWrap">
@@ -3898,8 +3899,8 @@ function renderResults(){
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : "📦 成品庫";
-  const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market", showW = resKind==="all"||resKind==="warmup";
+  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
+  const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   let html="";
   if(showA) html += resSection("圖文","📝",articles,false);
   if(showV) html += resSection("短影音","🎬",videos,true);
@@ -6126,15 +6127,14 @@ const NPC_ALL=[
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['📝 圖文',()=>go(()=>openResults('final'))],
          ['🎬 短影音',()=>go(()=>openResults('video'))],
-         ['📈 市場經營',()=>go(()=>openResults('market'))],
-         ['🤝 暖身邀約',()=>go(()=>openResults('warmup'))],
+         ['📈 市場・暖身成品',()=>go(()=>openResults('mw'))],
          ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
-   acts:[['📈 查看成品',()=>go(()=>openResults('market'))],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+   acts:[['📈 查看成品',()=>go(()=>openResults('mw'))],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
   {id:'warmup',name:'暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
-   acts:[['🤝 查看成品',()=>go(()=>openResults('warmup'))],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+   acts:[['🤝 查看成品',()=>go(()=>openResults('mw'))],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
    lines:['在這裡管理身分、背景設定與素材。'],
    acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
@@ -6404,10 +6404,18 @@ function renderSub(){
     '<div class="vdd-btns"><button class="vbtn g" id="vsubBack" type="button">← 返回選單</button></div>';
   box.querySelectorAll('[data-k]').forEach(bt=>bt.onclick=()=>{ items[+bt.dataset.k].toggle(); renderSub(); });
   box.querySelectorAll('[data-h]').forEach(bt=>bt.onclick=()=>{ const g=items[+bt.dataset.h].group; subOpen[g]=!subOpen[g]; renderSub(); });
-  document.getElementById('vsubBack').onclick=()=>{ curSub=null; renderMenu(); };
+  document.getElementById('vsubBack').onclick=()=>{ curSub=null; if(subFromPlan){ subFromPlan=false; curPlan={}; renderPlan(); } else renderMenu(); };
 }
 // Agent P0：一鍵計畫面板 → 確認後整批自動跑；可選上限（最多執行幾個分類）
 let curPlan=null, planCap=0, curProg=null;
+let subFromPlan=false;
+// 一鍵計畫第 1 步顯示目前選到的主題（經營／健康／觀念；智囊軍師判定；已收集的話題）
+function planTopicShort(){
+  const parts=['biz','health','concept'].filter(k=>_sel[k]).map(k=>_selLabel[k]||_sel[k]);
+  if(_bizPlan[0]) parts.push('網路行銷：'+_bizPlan[0]);
+  if(!parts.length && typeof _collSel!=='undefined' && _collSel.auto) parts.push('智囊軍師判定');
+  return parts.join('、').slice(0,40);
+}
 // 流程進度：列出每一步的狀態；執行中會自動更新
 function renderProgress(){
   const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
@@ -6440,16 +6448,18 @@ function renderPlan(){
   tEl.textContent='確認後會整批自動跑，可先選上限。';
   box.innerHTML='<div class="vdd-head">📋 一鍵計畫</div>'+
     '<div class="vsub-now">主題：'+(goal?esc(goal):'尚未選擇（請先到資料收集選主題）')+'</div>'+
-    '<div class="vp-stepList">'+depts.map((d,i)=>'<div class="vp-si"><b>'+(i+1)+'</b>'+esc(d.name)+'</div>').concat(['<div class="vp-si"><b>'+(N+1)+'</b>統整成品</div>']).join('')+'</div>'+
+    '<div class="vp-stepList"><button type="button" class="vp-si vp-pick" id="planPick"><b>1</b>選擇主題：'+(planTopicShort()?esc(planTopicShort()):'點此選擇（必選）')+'</button>'+depts.map((d,i)=>'<div class="vp-si"><b>'+(i+2)+'</b>'+esc(d.name)+'</div>').join('')+'<div class="vp-si"><b>'+(N+2)+'</b>統整成品</div></div>'+
     '<div class="vsub-now">上限（最多執行幾個分類）</div>'+
     '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部':k+' 個')+'</button>').join('')+'</div>'+
     '<div class="vsub-now">'+(chosen<N?'跑到 '+chosen+' 個分類就暫停，不會產生統整成品。':'會跑完全部分類，並產生統整成品。')+'</div>'+
     '<div class="vdd-btns"><button class="vbtn" id="planGo" type="button">▶ 確認，整批自動跑</button>'+
     '<button class="vbtn g" id="planBack" type="button">← 返回</button></div>';
+  const pk=document.getElementById('planPick');
+  if(pk) pk.onclick=()=>{ subFromPlan=true; curPlan=null; curSub={title:'📌 選擇一鍵主題（第 1 步）', build:buildTopicSub}; subOpen={}; renderSub(); };
   box.querySelectorAll('[data-cap]').forEach(bt=>bt.onclick=()=>{ planCap=+bt.dataset.cap; renderPlan(); });
   document.getElementById('planBack').onclick=()=>{ curPlan=null; renderMenu(); };
   document.getElementById('planGo').onclick=()=>{
-    if(!goal){ toast('請先到資料收集選擇主題'); return; }
+    if(!goal){ toast('請先到第 1 步選擇主題'); return; }
     if(typeof running!=='undefined' && running){ toast('一鍵正在執行中'); return; }
     pipeCap=chosen<N ? chosen : 0;
     curPlan=null; hideCard();
@@ -6844,16 +6854,20 @@ function vzPlaySong(id){
   if(box && typeof curN!=='undefined' && curN && curN.id==='music') box.innerHTML=musicHTML();
 }
 let MUSIC_IDX=0, MUSIC_ON=false;
-function vzMusicRender(){ const b=document.getElementById('vMusicTog'); if(b) b.textContent='🎵 '+(MUSIC_IDX?'曲二':'曲一')+(MUSIC_ON?' ▶':''); }
-function vzMusicToggle(){
-  if(!MUSIC_ON){ MUSIC_ON=true; } else { MUSIC_IDX=1-MUSIC_IDX; }
+function vzMusicPlaySrc(){
   const f=document.getElementById('musicFrame');
-  if(f) f.src=musicEmbed(MUSIC_SONGS[MUSIC_IDX].id)+'&autoplay=1';
-  vzMusicRender();
+  if(!f) return;
+  f.src = MUSIC_ON ? musicEmbed(MUSIC_SONGS[MUSIC_IDX].id)+'&autoplay=1' : 'about:blank';
 }
-const _mt=document.getElementById('vMusicTog'); if(_mt) _mt.onclick=vzMusicToggle;
-vzMusicRender();
-window.vzPlaySong=vzPlaySong;
+function vzMusicRender(){
+  const p=document.getElementById('vMusicPlay'), s=document.getElementById('vMusicSwitch');
+  if(p) p.textContent = MUSIC_ON ? '⏹ 停止' : '🎵 播放';
+  if(s) s.textContent = '⇄ '+(MUSIC_IDX?'曲二':'曲一');
+}
+function vzMusicPlayToggle(){ MUSIC_ON=!MUSIC_ON; vzMusicPlaySrc(); vzMusicRender(); }
+function vzMusicSwitchSong(){ MUSIC_IDX=1-MUSIC_IDX; vzMusicPlaySrc(); vzMusicRender(); }
+const _mp=document.getElementById('vMusicPlay'); if(_mp) _mp.onclick=vzMusicPlayToggle;
+const _ms=document.getElementById('vMusicSwitch'); if(_ms) _ms.onclick=vzMusicSwitchSong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
 function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }catch(e){} }
