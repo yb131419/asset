@@ -2367,8 +2367,10 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
 #vTop #vHead::after{display:none}
 #vTop #vXp{position:relative;top:auto;left:auto;right:auto;margin:0 14px 8px;z-index:auto}
 #vTop #vMeta{position:relative;top:auto;left:auto;right:auto;margin:0 16px 8px;z-index:auto}
-.vmeta-r{display:inline-flex;align-items:center;gap:8px}
-#vMusicBtn{pointer-events:auto;border:1px solid rgba(185,146,98,.5);background:#FBF6E9;color:#4A3626;border-radius:999px;padding:3px 10px;font:700 12px/1.4 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer}
+#vMusicRow{display:flex;justify-content:center;gap:8px;margin:0 14px 8px;pointer-events:auto}
+#vMusicRow .vm-lbl{align-self:center;font:700 12px/1.4 "Noto Sans TC","PingFang TC",sans-serif;color:#8A5A2E}
+#vMusicRow button{border:1px solid rgba(185,146,98,.5);background:#FBF6E9;color:#4A3626;border-radius:999px;padding:4px 14px;font:700 12px/1.4 "Noto Sans TC","PingFang TC",sans-serif;cursor:pointer}
+#vMusicRow button.on{background:#8A5A2E;color:#FBF6E9;border-color:transparent}
 #vTop #vStatus{position:relative;top:auto;left:auto;right:auto;margin:0 14px 10px;z-index:auto}
 #vToggle{background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border-color:rgba(160,120,70,.6);
   box-shadow:0 3px 8px rgba(90,70,40,.2);min-height:38px;padding:0 12px;font-size:12.5px}
@@ -2424,7 +2426,8 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div id="vLv">Lv.1</div>
   </div>
   <div id="vXp"><div id="vXpFill"></div></div>
-  <div id="vMeta"><span id="vCount">0 則成品</span><span class="vmeta-r"><span id="vNext"></span><button id="vMusicBtn" type="button">🎵 音樂</button></span></div>
+  <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
+  <div id="vMusicRow"><span class="vm-lbl">🎵 背景音樂</span><button type="button" data-song="Q6ibybw_ZYE">曲目一</button><button type="button" data-song="uAfPDrAiKWY">曲目二</button></div>
   </div>
   <div id="vMapBox">
     <div id="vWrap">
@@ -6813,7 +6816,7 @@ function vzPlaySong(id){
   const box=document.getElementById('vcB');
   if(box && typeof curN!=='undefined' && curN && curN.id==='music') box.innerHTML=musicHTML();
 }
-document.getElementById('vMusicBtn') && (document.getElementById('vMusicBtn').onclick=()=>openCard(MUSIC));
+document.querySelectorAll('#vMusicRow [data-song]').forEach(b=>b.onclick=()=>{ MUSIC_CUR=b.dataset.song; openCard(MUSIC); });
 window.vzPlaySong=vzPlaySong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
