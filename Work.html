@@ -3977,7 +3977,16 @@ function marketSectionHTML(items, kind){
   const title = kind==="warmup" ? "🤝 暖身邀約" : "📈 市場經營";
   return `<div class="res-sec" data-kind-sec="${kind}"><div class="res-sec-head"><span class="res-sec-title">${title}</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${items.map(t=>`<div class="res-row" data-id="${t.id}"><div class="res-row-main" onclick="resExpand(this,0)"><div class="res-row-title">${esc(resTitleOf(t))}</div><div class="res-row-meta">上手流程・${timeStr(t.time)}</div></div><span class="res-row-arrow">›</span><div class="res-row-detail" hidden></div></div>`).join("")}</div></div>`;
 }
+// 成品庫顯示：若某一則產出讓畫面出錯，改為顯示錯誤訊息，避免整個清單空白
 function renderResults(){
+  try{ renderResultsInner(); }
+  catch(e){
+    const box=RES_HOST||document.getElementById("resList");
+    if(box) box.innerHTML=`<div class="chain-empty">成品庫顯示時發生錯誤：${esc(String((e&&e.message)||e))}</div>`;
+    console.error("成品庫顯示錯誤", e);
+  }
+}
+function renderResultsInner(){
   const box=RES_HOST||document.getElementById("resList");
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
@@ -3986,6 +3995,12 @@ function renderResults(){
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   let html="";
+  // 暫時診斷列：顯示每一類實際有幾則，方便對照
+  {
+    const depts=[...new Set(state.tasks.map(t=>t.deptId))].join("、");
+    const catsN=[...new Set(state.tasks.map(t=>catOfTask(t)))].join("、");
+    html += `<div style="font-size:12px;line-height:1.6;color:#6B5B3E;background:#F6EFDF;border-radius:10px;padding:8px 10px;margin-bottom:10px;">🔍 診斷｜圖卡(final) ${state.tasks.filter(t=>t.deptId==="final").length}・文章(copy) ${state.tasks.filter(t=>t.copy).length}・短影音(video) ${state.tasks.filter(t=>t.deptId==="video").length}・市場 ${state.tasks.filter(t=>t.deptId==="market").length}・暖身 ${state.tasks.filter(t=>t.deptId==="warmup").length}｜全部 ${state.tasks.length} 則<br>部門代號：${esc(depts)}<br>分類：${esc(catsN)}</div>`;
+  }
   if(showA) html += resSection("圖卡","🖼",articles,false);
   const copies = showC ? state.tasks.filter(t=>t.copy).slice().reverse() : [];
   if(showC) html += resSection("文章","✍️",copies,false,"copy");
