@@ -2584,6 +2584,15 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       <span class="chev">›</span>
     </div>
 
+    <div class="lib-entry results-entry" onclick="openResults('copy')">
+      <div class="le-ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</div>
+      <div class="le-meta">
+        <div class="le-name">文案</div>
+        <div class="le-sub" id="resSumC">依圖卡邏輯寫的短文案</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
     <div class="home-cat">如何改善</div>
     <div class="lib-entry results-entry guide-entry" onclick="openResults('market')">
       <div class="le-ic">📈</div>
@@ -3939,6 +3948,8 @@ function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
   const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖文` : "一鍵流程統整的圖文成品";
   const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則短影音逐字稿` : "一分鐘口播逐字稿";
+  const cEl=document.getElementById("resSumC"); const cc=state.tasks.filter(t=>t.copy).length;
+  if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文案` : "依圖卡邏輯寫的短文案";
   const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
   if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const wEl=document.getElementById("resSumW"); const wc=state.tasks.filter(t=>t.deptId==="warmup").length;
@@ -6172,6 +6183,7 @@ function renderDrawer(){
     <div class="dr-cat">成品</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>圖文<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文案<span class="cnt">${state.tasks.filter(t=>t.copy).length} 則</span></button>
     <div class="dr-cat">如何改善</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場經營<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('warmup'))"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🤝</span>暖身邀約<span class="cnt">${state.tasks.filter(t=>t.deptId==="warmup").length} 則</span></button>
