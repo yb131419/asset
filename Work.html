@@ -2429,7 +2429,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div id="vLv">Lv.1</div>
   </div>
   <div id="vXp"><div id="vXpFill"></div></div>
-  <div id="vMeta"><span class="vmeta-l"><span id="vCount">0 則成品</span><div id="vMusicRow"><button type="button" id="vMusicPlay">🎵 播放</button><button type="button" id="vMusicSwitch">⇄ 曲一</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div></span><span id="vNext"></span></div>
+  <div id="vMeta"><span class="vmeta-l"><span id="vCount">0 則成品</span><div id="vMusicRow"><button type="button" id="vMusicPlay">🎵 播放</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div></span><span id="vNext"></span></div>
   
   </div>
   <div id="vMapBox">
@@ -6873,7 +6873,7 @@ const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明'
 <li>目前不會自己選主題，也不會每天自動跑。只有統整成品那一步會扣次。</li>
 </ul>
 </div>`};
-const MUSIC_SONGS=[{id:'Q6ibybw_ZYE',title:'曲目 1'},{id:'uAfPDrAiKWY',title:'曲目 2'}];
+const MUSIC_SONGS=[{id:'N-CnSr0ri7A',title:'背景音樂'}];
 let MUSIC_CUR=MUSIC_SONGS[0].id;
 function musicEmbed(id){ return 'https://www.youtube.com/embed/'+id+'?loop=1&playlist='+id+'&rel=0'; }
 function musicHTML(){
@@ -6898,14 +6898,11 @@ function vzMusicPlaySrc(){
   f.src = MUSIC_ON ? musicEmbed(MUSIC_SONGS[MUSIC_IDX].id)+'&autoplay=1' : 'about:blank';
 }
 function vzMusicRender(){
-  const p=document.getElementById('vMusicPlay'), s=document.getElementById('vMusicSwitch');
+  const p=document.getElementById('vMusicPlay');
   if(p) p.textContent = MUSIC_ON ? '⏹ 停止' : '🎵 播放';
-  if(s) s.textContent = '⇄ '+(MUSIC_IDX?'曲二':'曲一');
 }
 function vzMusicPlayToggle(){ MUSIC_ON=!MUSIC_ON; vzMusicPlaySrc(); vzMusicRender(); }
-function vzMusicSwitchSong(){ MUSIC_IDX=1-MUSIC_IDX; vzMusicPlaySrc(); vzMusicRender(); }
 const _mp=document.getElementById('vMusicPlay'); if(_mp) _mp.onclick=vzMusicPlayToggle;
-const _ms=document.getElementById('vMusicSwitch'); if(_ms) _ms.onclick=vzMusicSwitchSong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
 function setCornerOpen(v){ try{ localStorage.setItem('vz_corner', v?'1':'0'); }catch(e){} }
