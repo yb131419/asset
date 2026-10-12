@@ -3151,14 +3151,16 @@ const DEPT_MODES={
     {k:"concept",label:"觀念分享",tip:"只講觀念與道理，用對比與反問帶出思考"},
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
     {k:"herb",label:"火山草本",tip:"只寫產品理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」"},
+    {k:"copy",label:"文案",tip:"依圖卡排版寫：第一行標題、短段落分段、結尾一句反骨金句"},
     {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
   core:[
     {k:"concept",label:"觀念分享",tip:"只講觀念與道理，用對比與反問帶出思考"},
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
     {k:"herb",label:"火山草本",tip:"只寫產品理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」"},
+    {k:"copy",label:"文案",tip:"依圖卡排版寫：第一行標題、短段落分段、結尾一句反骨金句"},
     {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
   video:[
-    {k:"video",label:"口播逐字稿",tip:"依圖文內容改寫成一分鐘口語逐字稿"}],
+    {k:"video",label:"短片腳本",tip:"依圖文內容寫成鏡頭式腳本：畫面、台詞、字幕與秒數"}],
   market:[
     {k:"netplan",label:"網路經營",tip:"發文頻率、每日內容規劃與製作流程，新手全解析"},
     {k:"guide",label:"經營方向",tip:"寫給完全新手的完整上手流程，每一步詳細說明"},
@@ -3198,7 +3200,8 @@ function deptModeGuide(){
     guide:"【本次模式：經營方向】請寫給完全新手看的網路經營完整上手流程，從準備到每日經營，每一步都要詳細說明怎麼做。只給方向與做法，不提收入或成效保證。",
     herb:"【本次模式：火山草本】只寫產品的理念、日常使用的生活場景與包裝故事（例如一天中怎麼使用、為什麼選擇它、包裝上想傳達的心意）。不寫功效、成分的療效描述，不使用治療、改善疾病、藥效等字眼，不做前後對比。文章最後一行必須是「以上是個人感受」。語氣像朋友分享，繁體台灣用語。",
     netbiz:"【本次模式：網路行銷】只寫經營技巧，例如如何讓人停留（開頭的鉤子、前三秒、段落節奏）、如何回留言（回覆的語氣、步驟與引導互動的方式）等實用做法。不寫業績、收入、獲利或任何成效保證，不提具體金額。白話、短句、繁體台灣用語。",
-    video:"【本次模式：口播逐字稿】請嚴格依照「本次共同目標」與圖文內容改寫，不另立新觀點；輸出為約 280 字的一分鐘口播逐字稿。",
+    video:"【本次模式：短片腳本】請嚴格依照「本次共同目標」與圖文內容，寫成一支約 60 秒的短影音腳本，不另立新觀點、不加入圖文沒有的療效字眼。格式：每個鏡頭一組，依序列出「鏡頭編號」「畫面（拍什麼）」「台詞或旁白（口語、白話）」「字幕（一句）」「秒數」。最後一組鏡頭的台詞要帶出一句收尾的觀點。",
+    copy:"【本次模式：文案】請依圖卡的排版寫，讓內容可以直接做成一張圖卡：第一行是標題（10 到 20 字，一句話點出主題）；內文用空白行分段，每段 2 到 3 句、約 40 到 60 字；全文約 120 到 130 字（含標點，約 4 段，含標題與金句），不要條列、不要長段落。最後一段是一句反骨金句，單獨成段，行首寫「【反骨金句】」。",
     auto:"【本次模式：智囊軍師判定】請先依需求判斷最適合的定位（觀念分享／健康分享），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
   };
   const END_GOLD="\n\n【結尾】全文最後一行必須是一句反骨金句：行首固定寫「【反骨金句】」，獨立成一行，先順著大家以為的常識說一句，再用「真正的……，從不……」反轉推翻，不加解釋。";
@@ -3967,23 +3970,26 @@ function renderResults(){
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
+  if(h2) h2.textContent = resKind==="final" ? "📝 圖文" : resKind==="copy" ? "✍️ 文案" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場經營" : resKind==="warmup" ? "🤝 暖身邀約" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
+  const showC = resKind==="all"||resKind==="copy";
   let html="";
   if(showA) html += resSection("圖文","📝",articles,false);
+  const copies = showC ? state.tasks.filter(t=>t.copy).slice().reverse() : [];
+  if(showC) html += resSection("文案","✍️",copies,false,"copy");
   if(showV) html += resSection("短影音","🎬",videos,true);
   const mk = showM ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
   if(mk.length) html += marketSectionHTML(mk, "market");
   const wu = showW ? state.tasks.filter(t=>t.deptId==="warmup").slice().reverse() : [];
   if(wu.length) html += marketSectionHTML(wu, "warmup");
-  if(!html || (showA && showV && !articles.length && !videos.length && !mk.length && !wu.length)){
+  if(!html || (showA && showV && !articles.length && !videos.length && !mk.length && !wu.length && !copies.length)){
     box.innerHTML='<div class="chain-empty">這裡還是空的。到首頁按「開始自動幫我寫」，寫好的內容會自動存在這裡，關掉手機也不會不見喔。</div>';
   } else box.innerHTML=html;
   updateResSummary();
 }
 // ===== 成品列表：標題預覽 + 多筆選取刪除 =====
-const RES_MANAGE={final:false, video:false};
-const RES_SEL={final:new Set(), video:new Set()};
+const RES_MANAGE={final:false, video:false, copy:false};
+const RES_SEL={final:new Set(), video:new Set(), copy:new Set()};
 // 取得成品所屬的經營主題：新存的用 t.topic；舊成品從 input 內的【經營主題】還原
 // 一鍵流程的分類主題＝資料收集選到的主題名稱（經營優先，其次健康／火山草本，再觀念）
 function pipeTopicLabel(){
@@ -4108,8 +4114,8 @@ function resTitleOf(t){
   const sp=cardSplit((t.output||"").replace(/^#+\s*/gm,""));
   return (sp.title || (t.input||"").replace(/^\[成品\]\s*/,"") || "（未命名）").slice(0,60);
 }
-function resSection(title, icon, items, isVideo){
-  const kind = isVideo ? "video" : "final";
+function resSection(title, icon, items, isVideo, kindOv){
+  const kind = kindOv || (isVideo ? "video" : "final");
   const manage = RES_MANAGE[kind];
   const head=`<div class="res-sec-head"><span class="res-sec-title">${icon} ${title}</span><span class="res-sec-count">${items.length} 則</span></div>`;
   if(items.length===0) return `<div class="res-sec" data-kind-sec="${kind}">${head}<div class="chain-empty">尚無${title}內容</div></div>`;
@@ -4135,7 +4141,7 @@ function resRowHTML(t, isVideo, kind, manage){
     ${manage?`<label class="res-check"><input type="checkbox" ${sel?"checked":""} onchange="resCheck(this,'${kind}')"></label>`:""}
     <div class="res-row-main" onclick="resExpand(this,${isVideo?1:0})">
       <div class="res-row-title">${esc(resTitleOf(t))}</div>
-      <div class="res-row-meta">${isVideo?"短影音":"圖文"}・${timeStr(t.time)}</div>
+      <div class="res-row-meta">${kind==="copy"?"文案":(isVideo?"短影音":"圖文")}・${timeStr(t.time)}</div>
     </div>
     <span class="res-row-arrow">›</span>
     <div class="res-row-detail" hidden></div>
@@ -4859,7 +4865,7 @@ async function runTask(){
     if(jm){ out=out.slice(jm[0].length); toast(`AI 判定為：${jm[1]}`); }
     const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
       input:input||"(附件處理)", output:out, time:Date.now(),
-      fromDept:handoffFrom?handoffFrom.deptName:null };
+      fromDept:handoffFrom?handoffFrom.deptName:null, copy: curDeptMode(current).k==="copy" };
     state.tasks.push(task); save();
     renderOutput(out, d);
     renderHistory();
@@ -6285,7 +6291,8 @@ const NPC_ALL=[
    acts:[['📝 圖文',()=>vzResults('final')],
          ['🎬 短影音',()=>vzResults('video')],
          ['📈 市場・暖身成品',()=>vzResults('mw')],
-         ['🖼 做圖卡',()=>vzResults('final')]]},
+         ['🖼 做圖卡',()=>vzResults('final')],
+         ['✍️ 文案',()=>vzResults('copy')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
    acts:[['📈 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>vzWorkshop('market')]]},
