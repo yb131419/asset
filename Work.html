@@ -3131,7 +3131,7 @@ const DEFAULTS = {
       presets:["用比喻說明道理，分享一個感受案例","把這個健康觀念講得讓人有感","幫我把客戶感受寫成合規的貼文內容","說明老師能幫什麼（合規版）"] },
     { id:"video", name:"影音內容", emoji:"🎬", accent:"#B5652E", varName:"--c-integrate",
       tagline:"依圖文內容，產出一分鐘短影音逐字稿",
-      role:"你是『影音內容』，負責把圖文內容改寫成一分鐘的短影音逐字稿（口播稿）。\n\n【改寫原則】\n・觀點、故事、感受案例必須與圖文內容完全一致，不新增圖文沒有的觀點、數據、療效或產品承諾\n・口語化、短句、有節奏，像真人對著鏡頭說話\n・全文約 280 字（一分鐘口播），分為四段：\n  1. 開場鉤子（前 3 秒，用一個讓人停下來的問句或現象）\n  2. 核心觀念（用一個比喻或對比講清楚）\n  3. 生活感受（只說個人感受，不做療效承諾）\n  4. 收尾金句＋低壓力行動呼籲\n・禁止誇大與醫療用語（治療、根治、保證、療效等）\n\n【輸出格式】\n・第一行寫「一分鐘逐字稿｜約 280 字」\n・每段先寫一行短標題（不超過 10 字，例如「開場鉤子」），空一行後寫口白\n・畫面提示放在該段口白最前面，以「（畫面：…）」標註，與口白同一段",
+      role:"你是『影音內容』，負責把圖文內容改寫成一分鐘的短影音逐字稿（口播稿）。\n\n【改寫原則】\n・觀點、故事、感受案例必須與圖文內容完全一致，不新增圖文沒有的觀點、數據、療效或產品承諾\n・口語化、短句、有節奏，像真人對著鏡頭說話\n・口白（台詞）合計 240 到 270 字（約一分鐘口播，不含標題與畫面提示），分為四段：\n  1. 開場鉤子（前 3 秒，用一個讓人停下來的問句或現象）\n  2. 核心觀念（用一個比喻或對比講清楚）\n  3. 生活感受（只說個人感受，不做療效承諾）\n  4. 收尾金句＋低壓力行動呼籲\n・禁止誇大與醫療用語（治療、根治、保證、療效等）\n\n【輸出格式】\n・第一行寫「一分鐘逐字稿｜約 255 字」\n・每段先寫一行短標題（不超過 10 字，例如「開場鉤子」），空一行後寫口白\n・畫面提示放在該段口白最前面，以「（畫面：…）」標註，與口白同一段",
       presets:["依本次圖文內容，產出一分鐘逐字稿","把這篇內容改成口播稿，語氣輕鬆親切","產出一分鐘影片逐字稿（含畫面提示）"] },
     { id:"market", name:"市場經營", emoji:"📈", accent:"#2E6FB0", varName:"--c-integrate",
       tagline:"給新手的網路經營完整上手流程，每步詳細說明",
@@ -4985,6 +4985,7 @@ async function runTask(){
       judgedCat = /火山草本/.test(L)?"herb" : /網路行銷/.test(L)?"net" : /經營/.test(L)?"biz" : /健康/.test(L)?"health" : /觀念/.test(L)?"concept" : "";
     }
     if(curDeptMode(current).k==="copy") out=finishCopy(await fitCopy(out, withCopyRule(sys), userContent));
+    if(curDeptMode(current).k==="video") out=await fitVideo(out, sys+VIDEO_LEN_TXT, userContent);
     const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
       input:input||"(附件處理)", output:out, time:Date.now(),
       fromDept:handoffFrom?handoffFrom.deptName:null, copy: curDeptMode(current).k==="copy", ...(judgedCat?{cat:judgedCat}:{}) };
@@ -5170,6 +5171,30 @@ async function fitCopy(out, sys, user){
   return cur;
 }
 function withCopyRule(sys){ return /反骨金句|金句天生愛反駁/.test(sys) ? sys : sys+COPY_RULE_TXT; }
+// 短影音：約一分鐘口播。只計算「口白／台詞」字數，不計標題、畫面提示、字幕與秒數
+const VIDEO_LEN_TXT="\n\n【一分鐘長度（硬性規定）】口白（台詞、旁白）合計 240 到 270 字（含標點），約 60 秒口播。不含標題、畫面提示、字幕與秒數等標註。不可超過 280 字，也不可少於 220 字。";
+function videoSpokenLen(t){
+  return String(t||"").replace(/\r/g,"").split("\n").map(l=>l.trim())
+    .filter(l=>l && !/^(一分鐘逐字稿|鏡頭\s*\d|畫面|字幕|秒數|#)/.test(l))
+    .map(l=>l.replace(/[（(]畫面[^）)]*[）)]/g,"").replace(/^(台詞|口白|旁白)[^：:]*[：:]\s*/,""))
+    .filter(l=>l && !(l.length<=10 && !/[。？！?!，,]$/.test(l)))   // 段落小標不計
+    .join("").replace(/\s/g,"").length;
+}
+// 短影音字數不在 220–280 時請 AI 改寫（最多兩次），結構與鏡頭順序保留
+async function fitVideo(out, sys, user){
+  let cur=String(out||"").trim();
+  for(let i=0;i<2;i++){
+    const n=videoSpokenLen(cur);
+    if(n>=220 && n<=280) break;
+    try{
+      const r=await callOpenAI(sys+`\n\n【改寫規定】上一版口白共 ${n} 字（${n>280?"超過":"不足"}一分鐘）。請保留原有結構與鏡頭順序，只把口白調整為 240 到 270 字；畫面提示與標題格式不變，只輸出改寫後的完整內容。`, "原文：\n"+cur, 1800);
+      const t=String(r||"").trim();
+      const m=videoSpokenLen(t);
+      if(t && m>=200 && m<=300) cur=t; else break;
+    }catch(e){ break; }
+  }
+  return cur;
+}
 async function callOpenAI(sys,userContent,maxTokens,charge){
   // 會員版：走 GAS 後端（金鑰在後端、成功才扣次）
   if(usingBackend()){
@@ -5334,9 +5359,10 @@ async function runAllDepartments(resume){
       if(built.trimmed) run.anyTrim=true;
       const isCopyStep = d.id!=="video" && !GUIDE_DEPTS.includes(d.id);
       const herbOnly = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
-      const stepSys = (isCopyStep ? buildSys(d)+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (herbOnly?HERB_FLOW_TXT:"");
+      const isVideoStep = d.id==="video";
+      const stepSys = (isCopyStep ? buildSys(d)+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (isVideoStep?VIDEO_LEN_TXT:"") + (herbOnly?HERB_FLOW_TXT:"");
       const raw0=await callOpenAI(stepSys, built.content, GUIDE_DEPTS.includes(d.id)?6000:(isCopyStep?500:1800));
-      const out0 = isCopyStep ? finishCopy(await fitCopy(raw0, stepSys, built.content)) : raw0;
+      const out0 = isCopyStep ? finishCopy(await fitCopy(raw0, stepSys, built.content)) : (isVideoStep ? await fitVideo(raw0, stepSys, built.content) : raw0);
       const out = GUIDE_DEPTS.includes(d.id) ? cleanMarketText(out0) : out0;
       run.collected.push({name:d.name, out, deptId:d.id});
       coveredCats.add(herbOnly?"herb":pickCatFor(out, run.bizCats));
