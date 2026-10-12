@@ -4044,6 +4044,13 @@ function topicOf(t){
 // 成品分類：固定順序（健康、觀念在前）；無法判斷者歸入「未分類」
 const RES_CAT_ORDER=['concept','health','herb','biz','net','auto','other'];
 // 一鍵流程本次選了哪些主題（五大主題＋智囊軍師判定）
+// 內容範圍：只允許產出本次選到的主題，不得混入其他主題
+function pipeScopeText(){
+  const cats=pipeCatsOf().filter(c=>c!=='auto');
+  if(!cats.length) return '';
+  const names=cats.map(c=>TOPIC_NAME_BY_CAT[c]||c).join('、');
+  return `【內容範圍（嚴格遵守）】本次只可產出以下主題的內容：${names}。不得加入未被選到的主題；若某分類的寫作模式與本次主題不符，請改依本次主題寫作。`;
+}
 function pipeCatsOf(){
   const c=[];
   if(_sel.health) c.push('health');
@@ -5086,7 +5093,7 @@ async function runAllDepartments(resume){
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
     if(!goal){ toast("請先到資料收集選擇主題"); return; }
     const bizT = pipeTopicLabel();
-    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT, bizCats:pipeCatsOf() };
+    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT, bizCats:pipeCatsOf(), scope:pipeScopeText() };
     state.pipeRun=run; save();
   }else{
     pipePlatform=run.plat||"";
@@ -5112,17 +5119,19 @@ async function runAllDepartments(resume){
     const st=document.getElementById("plstep-"+i); if(st){ st.classList.add("done"); st.querySelector(".st").textContent="✓"; }
   }
 
-  let stepsThisRun=0, haltFlag=false;
+  const coveredCats=new Set();   // 本次已產出內容的五大主題（上限以此計算）
+  let haltFlag=false;
   try{
     for(let i=run.step;i<order.length;i++){
       // 上限或停止：在本步開始前停下，進度已保存，之後可接續
-      if(pipeStopReq || (pipeCap && stepsThisRun>=pipeCap)){ haltFlag=true; break; }
+      if(pipeStopReq || (pipeCap && coveredCats.size>=pipeCap)){ haltFlag=true; break; }
       const d=order[i];
       document.getElementById("plstep-"+i).classList.add("run");
       setPipeRemark("✍️", `正在生成「${d.name}」的內容…`,
         run.stepTasks[i] ? `任務：${run.stepTasks[i]}` : "依分類專長自動發揮");
       let base="";
       if(run.goal) base+=`【本次共同目標】\n${run.goal}\n\n`;
+      if(run.scope) base+=run.scope+"\n\n";
       if(d.id==="video" && run.collected.length){
         base+=`【圖文內容（影片必須與以下內容一致，不得新增不同的觀點、數據或療效）】\n`+run.collected.map(c=>`【${c.name}】\n${clip(c.out,1500)}`).join("\n\n")+"\n\n";
       }else if(run.prev && !GUIDE_DEPTS.includes(d.id)) base+=`【${run.prevName} 交辦給你的素材】\n${clip(run.prev,MAX_CHAIN_CHARS)}\n\n`;
@@ -5134,6 +5143,7 @@ async function runAllDepartments(resume){
       const out0=await callOpenAI(buildSys(d), built.content, GUIDE_DEPTS.includes(d.id)?6000:1800);
       const out = GUIDE_DEPTS.includes(d.id) ? cleanMarketText(out0) : out0;
       run.collected.push({name:d.name, out, deptId:d.id});
+      coveredCats.add(pickCatFor(out, run.bizCats));
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
         input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(out, run.bizCats),
@@ -5141,7 +5151,7 @@ async function runAllDepartments(resume){
 
       const step=document.getElementById("plstep-"+i);
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
-      run.prev=out; run.prevName=d.name; run.step=i+1; stepsThisRun++;
+      run.prev=out; run.prevName=d.name; run.step=i+1;
       state.pipeRun=run; save();   // ← 每步存檔，關掉也能續跑
       setPipeBar(run.step, TOTAL);
       setPipeRemark("✅", `「${d.name}」已完成`, `已完成 ${run.step}/${TOTAL} 步`);
@@ -6622,24 +6632,19 @@ function renderPlan(){
   const depts=state.departments||[];
   const N=depts.length;
   const goal=(typeof buildPipeGoalFromChips==='function') ? buildPipeGoalFromChips() : '';
-  const caps=[...new Set([1,2,3].filter(k=>k<N).concat([N]))];
-  const chosen=planCap||N;
-  tEl.textContent='確認後會整批自動跑，可先選上限。';
+  tEl.textContent='確認後會依你選的主題整批自動跑。';
   box.innerHTML='<div class="vdd-btns"><button class="vbtn g" id="planBack" type="button">← 返回</button></div>'+'<div class="vdd-head">📋 一鍵計畫</div>'+
     '<div class="vsub-now">主題：'+(goal?esc(goal):'尚未選擇（請先到資料收集選主題）')+'</div>'+
     '<div class="vp-stepList"><button type="button" class="vp-si vp-pick" id="planPick"><b>1</b>選擇主題：'+(planTopicShort()?esc(planTopicShort()):'點此選擇（必選）')+'</button>'+depts.map((d,i)=>'<div class="vp-si"><b>'+(i+2)+'</b>'+esc(d.name)+'</div>').join('')+'<div class="vp-si"><b>'+(N+2)+'</b>統整成品</div></div>'+
-    '<div class="vsub-now">上限（最多執行幾個分類）</div>'+
-    '<div class="vdd-btns">'+caps.map(k=>'<button class="vbtn'+(k===chosen?'':' g')+'" data-cap="'+k+'" type="button">'+(k===N?'全部':k+' 個')+'</button>').join('')+'</div>'+
-    '<div class="vsub-now">'+(chosen<N?'跑到 '+chosen+' 個分類就暫停，不會產生統整成品。':'會跑完全部分類，並產生統整成品。')+'</div>'+
+    '<div class="vsub-now">會依你選的主題，產出對應的內容並整合成品。</div>'+
     '<div class="vdd-btns"><button class="vbtn" id="planGo" type="button">▶ 確認，整批自動跑</button></div>';
   const pk=document.getElementById('planPick');
   if(pk) pk.onclick=()=>{ subFromPlan=true; curPlan=null; curSub={title:'📌 選擇一鍵主題（第 1 步）', build:buildTopicSub}; subOpen={}; renderSub(); };
-  box.querySelectorAll('[data-cap]').forEach(bt=>bt.onclick=()=>{ planCap=+bt.dataset.cap; renderPlan(); });
   document.getElementById('planBack').onclick=()=>{ curPlan=null; renderMenu(); };
   document.getElementById('planGo').onclick=()=>{
     if(!goal){ toast('請先到第 1 步選擇主題'); return; }
     if(typeof running!=='undefined' && running){ toast('一鍵正在執行中'); return; }
-    pipeCap=chosen<N ? chosen : 0;
+    pipeCap=0;   // 已取消上限：一律跑完所選主題
     window._vzRunGoal=goal; window._vzRunFinished=false;
     curPlan=null; curProg={}; renderMenu();   // 確認後直接切到流程進度畫面
     bg(()=>runAllDepartments(), '一鍵自動完成');
