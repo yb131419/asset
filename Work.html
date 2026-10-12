@@ -3988,21 +3988,30 @@ function renderResults(){
 }
 function renderResultsInner(){
   const box=RES_HOST||document.getElementById("resList");
-  const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
-  const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
+  // 最新一次一鍵的編號（同一次一鍵的所有產出共用一個編號）
+  const latestId = state.tasks.reduce((m,t)=>Math.max(m, Number(t.runId)||0), 0);
+  const isLatest = t => latestId && Number(t.runId)===latestId;
+  const articles=state.tasks.filter(t=>t.deptId==="final" && !isLatest(t)).slice().reverse();
+  const videos=state.tasks.filter(t=>t.deptId==="video" && !isLatest(t)).slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
   if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 短影音" : resKind==="market" ? "📈 市場上手指南" : resKind==="warmup" ? "🤝 暖身上手指南" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   let html="";
-  // 暫時診斷列：顯示每一類實際有幾則，方便對照
-  {
-    const depts=[...new Set(state.tasks.map(t=>t.deptId))].join("、");
-    const catsN=[...new Set(state.tasks.map(t=>catOfTask(t)))].join("、");
-    html += `<div style="font-size:12px;line-height:1.6;color:#6B5B3E;background:#F6EFDF;border-radius:10px;padding:8px 10px;margin-bottom:10px;">🔍 診斷｜圖卡(final) ${state.tasks.filter(t=>t.deptId==="final").length}・文章(copy) ${state.tasks.filter(t=>t.copy).length}・短影音(video) ${state.tasks.filter(t=>t.deptId==="video").length}・市場 ${state.tasks.filter(t=>t.deptId==="market").length}・暖身 ${state.tasks.filter(t=>t.deptId==="warmup").length}｜全部 ${state.tasks.length} 則<br>部門代號：${esc(depts)}<br>分類：${esc(catsN)}</div>`;
+  // 最新一鍵完成：獨立放在最上面（圖卡、文章、短影音）
+  if(latestId && (resKind==="all"||resKind==="final"||resKind==="copy"||resKind==="video")){
+    const lf=state.tasks.filter(t=>isLatest(t)&&t.deptId==="final").slice().reverse();
+    const lc=state.tasks.filter(t=>isLatest(t)&&t.copy).slice().reverse();
+    const lv=state.tasks.filter(t=>isLatest(t)&&t.deptId==="video").slice().reverse();
+    const when=timeStr(latestId);
+    let inner="";
+    if(lf.length && (resKind==="all"||resKind==="final")) inner+=resSection("圖卡","🖼",lf,false);
+    if(lc.length && (resKind==="all"||resKind==="copy")) inner+=resSection("文章","✍️",lc,false,"copy");
+    if(lv.length && (resKind==="all"||resKind==="video")) inner+=resSection("短影音","🎬",lv,true);
+    if(inner) html += `<div style="border:1px solid rgba(184,134,60,.5);background:linear-gradient(180deg,#FFFBF1,#F6EBD2);border-radius:18px;padding:10px 10px 4px;margin-bottom:14px;"><div style="font-weight:900;color:#6B4E24;font-size:15px;margin:2px 4px 8px;">⚡ 最新一鍵完成<span style="font-weight:600;font-size:12px;color:#8A7A5E;margin-left:8px;">${when}</span></div>${inner}</div>`;
   }
   if(showA) html += resSection("圖卡","🖼",articles,false);
-  const copies = showC ? state.tasks.filter(t=>t.copy).slice().reverse() : [];
+  const copies = showC ? state.tasks.filter(t=>t.copy && !isLatest(t)).slice().reverse() : [];
   if(showC) html += resSection("文章","✍️",copies,false,"copy");
   if(showV) html += resSection("短影音","🎬",videos,true);
   const mk = showM ? state.tasks.filter(t=>t.deptId==="market").slice().reverse() : [];
@@ -5256,7 +5265,7 @@ async function runAllDepartments(resume){
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
         input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnly?"herb":pickCatFor(out, run.bizCats)),
-        fromDept: i>0?run.prevName:null,
+        fromDept: i>0?run.prevName:null, runId: run.startedAt,
         copy: d.id!=="video" && !GUIDE_DEPTS.includes(d.id) });
 
       const step=document.getElementById("plstep-"+i);
@@ -5286,7 +5295,7 @@ async function runAllDepartments(resume){
     const finalOut=await callOpenAI(editorSys + (herbOnlyFinal?HERB_FLOW_TXT:""), comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
       input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"", cat:(herbOnlyFinal?"herb":pickCatFor(finalOut, run.bizCats)),
-      fromDept:"三分類", platform:"" });
+      fromDept:"三分類", platform:"", runId: run.startedAt });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut, ""));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
     setPipeBar(TOTAL, TOTAL);
