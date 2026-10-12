@@ -3186,9 +3186,12 @@ function setDeptMode(k){
   state.deptMode[d.id]=k; save(); renderModeBar();
 }
 function deptModeGuide(){
-  const d=dept(current); const m=curDeptMode(d.id);
+  const d=dept(current); const m0=curDeptMode(d.id);
+  // 只選了觀念主題（沒有健康主題）時，即使寫作模式是健康分享，也依觀念寫，避免產出健康類文章
+  const mk=(m0.k==='health' && !_sel.health && _sel.concept) ? 'concept' : m0.k;
+  const m={k:mk};
   const G={
-    concept:"【本次模式：觀念分享】只講觀念與道理（財富觀、經營觀、人生觀、自律、選擇等），用對比與反問帶出思考，不談身體症狀或療效。",
+    concept:"【本次模式：觀念分享】只講觀念與道理（財富觀、經營觀、人生觀、自律、選擇等），用對比與反問帶出思考。嚴禁出現身體、毒素、排毒、清理身體、保健、療效、健康功效等字眼，全文只談觀念與生活道理，不寫成健康文章。",
     health:"【本次模式：健康分享】以大健康原理與故事寶典比喻為主，解釋身體道理；案例只說個人感受，遵守合規。",
     warmup:"【本次模式：暖身流程】請寫給完全新手看的暖身與自然邀約完整流程，從認識對象到自然邀約、被拒絕後的處理與每日檢視，每一步都要詳細說明怎麼做。語氣像朋友分享，不推銷，不提收入或成效保證。",
     netplan:"【本次模式：網路經營】請寫給完全沒有經驗的新手，做一份可以直接照著執行的網路經營完整規劃，必須全部解析、不可省略，依序包含：\n第一部分｜經營前準備：平台怎麼選、帳號定位一句話、需要的工具與帳號。\n第二部分｜發文頻率：一天發文幾次（依平台給出建議次數與理由）、每天建議的發文時段、一週的發文節奏表（週一到週日各發幾則）。\n第三部分｜內容規劃：請依本次選定的主題（健康或觀念）規劃一週內容表，每天寫出「主題、內容類型、目的」；並給出內容比例（例如教學、分享、互動、推薦各佔多少）與為什麼這樣排。\n第四部分｜每則貼文的製作流程：選題、寫文案、準備圖片或影片、檢查、發布、回覆留言，每一步都寫出「怎麼做、點哪裡、常見錯誤、完成的確認方式」。\n第五部分｜每日與每週檢視：每天要做的 3 件小事、每週怎麼看數據與調整內容。\n寫作原則：白話、短句、第一次出現的專有名詞先用一句話解釋；只給方向與做法，不提收入或成效保證；涉及健康內容時不使用醫療用語、不做療效或前後對比誇大的描述、不推銷產品；繁體台灣用語。",
@@ -4040,7 +4043,35 @@ function topicOf(t){
 }
 // 成品分類：固定順序（健康、觀念在前）；無法判斷者歸入「未分類」
 const RES_CAT_ORDER=['concept','health','herb','biz','net','auto','other'];
+// 一鍵流程本次選了哪些主題（五大主題＋智囊軍師判定）
+function pipeCatsOf(){
+  const c=[];
+  if(_sel.health) c.push('health');
+  if(_sel.herb) c.push('herb');
+  if(_sel.concept) c.push('concept');
+  if(_sel.biz) c.push('biz');
+  if(_bizPlan[0]) c.push('net');
+  if(!c.length) c.push('auto');
+  return c;
+}
+// 依文字內容的關鍵字，從本次選到的主題中挑出最相符的一個（只有一個時直接用它）
+const CAT_KEYWORDS={
+  health:/健康|身體|養生|保健|營養|睡眠|體質|調理/g,
+  herb:/火山草本|草本|穿心蓮|雷公根|山竹|生活場景|包裝|產品理念/g,
+  concept:/觀念|選擇|習慣|人生|自律|思考|財富觀|對比|反問/g,
+  biz:/經營|引流|粉絲|發文|流量|客戶|團隊|節奏/g,
+  net:/網路行銷|留言|回覆|私訊|停留|互動|貼文/g
+};
+function pickCatFor(text, cats){
+  const list=(cats&&cats.length)?cats:['auto'];
+  if(list.length===1) return list[0];
+  const s=String(text||'');
+  let best=list[0], bestN=-1;
+  list.forEach(k=>{ const re=CAT_KEYWORDS[k]; const n=re ? (s.match(re)||[]).length : 0; if(n>bestN){ bestN=n; best=k; } });
+  return best;
+}
 function catOfTask(t){
+  if(t.cat) return t.cat;
   const tp=topicOf(t);
   const byTopic=tp ? topicCatKeyOf(tp) : '';
   if(byTopic) return byTopic;
@@ -4301,7 +4332,7 @@ function collSelections(){
 }
 const COLL_DIR_TEXT={
   health:(l)=>`health：健康主題「${l}」。用大健康原理的生活化比喻（鍋子／蒼蠅／水管／魚缸／農夫／警察／房子／堵車）切入，案例只說個人感受，不得出現療效字眼。`,
-  concept:(l)=>`concept：觀念主題「${l}」。用《康園道》風格的對比與反問帶出思考，結尾有金句。`,
+  concept:(l)=>`concept：觀念主題「${l}」。用《康園道》風格的對比與反問帶出思考，結尾有金句。嚴禁出現身體、毒素、排毒、清理身體、保健、療效等健康字眼，只談觀念與生活道理。`,
   biz:(l)=>`biz：經營主題「${l}」。寫給新手能照著做的經營方向，語氣像前輩帶新手。`,
   herb:(l)=>`herb：火山草本主題「${l}」。用生活化的故事與比喻介紹這味草本的來歷、日常的生活情境與個人感受，案例只說個人感受，每個人狀況不同。嚴禁任何療效字眼：不得寫治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎，不得暗示功效，只談文化、生活與感受。`,
   net:(l)=>`net：網路行銷，目前卡點是「${l}」。每則話題都要直接解決這個卡點，說清楚怎麼做，不整合其他問題。`
@@ -5055,7 +5086,7 @@ async function runAllDepartments(resume){
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
     if(!goal){ toast("請先到資料收集選擇主題"); return; }
     const bizT = pipeTopicLabel();
-    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT };
+    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT, bizCats:pipeCatsOf() };
     state.pipeRun=run; save();
   }else{
     pipePlatform=run.plat||"";
@@ -5105,7 +5136,7 @@ async function runAllDepartments(resume){
       run.collected.push({name:d.name, out, deptId:d.id});
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
-        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"",
+        input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(out, run.bizCats),
         fromDept: i>0?run.prevName:null });
 
       const step=document.getElementById("plstep-"+i);
@@ -5132,7 +5163,7 @@ async function runAllDepartments(resume){
     comp+="請統整並優化成可直接發布的最終成品貼文。";
     const finalOut=await callOpenAI(editorSys, comp, 2600,true);
     state.tasks.push({ id:Date.now()+99, deptId:"final", deptName:"統整成品", accent:"#0A2A1C",
-      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"",
+      input:`[成品] ${run.goal||"一鍵運轉"}`, output:finalOut, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(finalOut, run.bizCats),
       fromDept:"三分類", platform:"" });
     results.insertAdjacentHTML("afterbegin", finalCard(finalOut, ""));
     fstep.classList.remove("run"); fstep.classList.add("done"); fstep.querySelector(".st").textContent="✓";
