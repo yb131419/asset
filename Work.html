@@ -3907,9 +3907,17 @@ function renderResults(){
 const RES_MANAGE={final:false, video:false};
 const RES_SEL={final:new Set(), video:new Set()};
 // 取得成品所屬的經營主題：新存的用 t.topic；舊成品從 input 內的【經營主題】還原
+// 一鍵流程的分類主題＝資料收集選到的主題名稱（經營優先，其次健康／火山草本，再觀念）
+function pipeTopicLabel(){
+  for(const c of ['biz','health','concept']){
+    const lb=_selLabel[c];
+    if(_sel[c] && lb && lb!=='未選擇') return lb;
+  }
+  return '';
+}
 function topicOf(t){
   if(t.topic) return String(t.topic).trim();
-  const m=String(t.input||"").match(/【經營主題】([^\n【]+)/);
+  const m=String(t.input||"").match(/【(?:經營|健康|觀念)主題】([^\n【]+)/);
   return m ? m[1].trim() : "";
 }
 function resTitleOf(t){
@@ -4165,16 +4173,15 @@ async function collectTopics(silent){
   running=true;
   const btn=document.getElementById("collectBtn");
   if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> 收集中…'; }
-  const validCats=_collSel.auto ? ['health','concept'] : sels.map(x=>x.k);
-  const hHint=[...document.querySelectorAll('#collHealthGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
-  const cHint=[...document.querySelectorAll('#collConceptGroup .ci-txt')].map(e=>e.textContent.trim()).join("、");
+  const hintOf=(gid)=>[...document.querySelectorAll('#'+gid+' .ci-txt')].map(e=>e.textContent.trim()).join("、");
+  const hHint=hintOf('collHealthGroup'), cHint=hintOf('collConceptGroup'), bHint=hintOf('collBizGroup'), herbHint=hintOf('collHerbGroup');
+  const autoCats=['health','herb','concept','biz'].concat(_bizPlan[0]?['net']:[]);
+  const validCats=_collSel.auto ? autoCats : sels.map(x=>x.k);
   let dirs, extra;
   if(_collSel.auto){
-    dirs=[
-      `health：健康主題，可參考範圍：${hHint}。用大健康原理的生活化比喻切入，案例只說個人感受，不得出現療效字眼。`,
-      `concept：觀念主題，可參考範圍：${cHint}。用《康園道》風格的對比與反問，結尾有金句。`
-    ].join("\n");
-    extra="由你（智囊軍師）判斷最適合近期發文的方向（health 或 concept），並在 cat 欄位標明。";
+    // 智囊軍師判定：只能從使用者的五大分類中選，主題必須取自該分類的項目
+    dirs=autoCats.map(k=>COLL_DIR_TEXT[k](k==='health'?hHint:k==='herb'?herbHint:k==='concept'?cHint:k==='biz'?bHint:_bizPlan[0])).join("\n");
+    extra=`由你（智囊軍師）判斷最適合近期發文的方向，cat 欄位必須是 ${autoCats.join('、')} 其中之一，且 topic 必須取自該方向的可參考範圍，不可自行新增分類。`;
   }else{
     dirs=sels.map(x=>COLL_DIR_TEXT[x.k](x.label)).join("\n");
     extra=sels.length>1
@@ -4191,7 +4198,7 @@ async function collectTopics(silent){
     const fallback = _collSel.auto ? 'health' : sels[0].k;
     const batch=arr.slice(0,8).map(o=>{
       let cat=String(o.cat||"").trim();
-      if(!validCats.includes(cat)) cat = _collSel.auto ? (cat==='concept'?'concept':'health') : (validCats.length===1?validCats[0]:fallback);
+      if(!validCats.includes(cat)) cat = _collSel.auto ? 'health' : (validCats.length===1?validCats[0]:fallback);
       return { id:Date.now()+Math.random(), time:Date.now(),
         topic:(o.topic||o.title||"").toString().trim(), angle:(o.angle||o.desc||"").toString().trim(),
         cat, bottleneck: cat==='net' ? (_bizPlan[0]||"") : "",
@@ -4900,7 +4907,7 @@ async function runAllDepartments(resume){
     const goal = buildPipeGoalFromChips();
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
     if(!goal){ toast("請先到資料收集選擇主題"); return; }
-    const bizT = (_sel.biz && _selLabel.biz && _selLabel.biz!=='未選擇') ? _selLabel.biz : "";
+    const bizT = pipeTopicLabel();
     run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT };
     state.pipeRun=run; save();
   }else{
@@ -4972,7 +4979,7 @@ async function runAllDepartments(resume){
     }
     const fstep=document.getElementById("plstep-final"); fstep.classList.add("run");
     setPipeRemark("🧵", "正在統整所有產出，優化成可直接發布的成品…");
-    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
+    const editorSys=`你是「${state.title}」的社群主編與合規審查師，同時是《康園道》系列文章風格的執行者。請把以下 ${order.length} 個分類的產出，統整＋優化成『可以直接複製貼上、馬上發布』的成品貼文。\n\n【鐵則：固定順序】每篇成品：①先破冰（用故事寶典比喻讓人停下來對號入座）→ ②再講事情（說道理＋合規感受案例）→ ③最後邀約（自然引導私訊，低門檻）。\n\n【《康園道》寫作風格（必須照這個風格統整輸出）】\n① 短句為主，每句話獨立成一行，讓人讀起來有節奏感和停頓感\n② 大量使用留白——段落之間空行，讓文字有呼吸感，不要密密麻麻\n③ 先描述所有人都有的現象或困惑，讓讀者對號入座\n④ 用「對比」帶出思考：一般人 vs 真正懂的人、知道 vs 理解\n⑤ 反問句貫穿全文：「可是很奇怪⋯⋯」「你有沒有想過？」\n⑥ 重點句用 # 強調，用 👉 ✅ 🎯 🌀 📌 符號分層\n⑦ 結尾必須有「金句收尾」——一句話濃縮整篇核心觀念，讓人印象深刻；金句天生愛反駁：先順著常識，再用「真正的……，從不……」「真正……的人，從不……」反轉推翻；這句獨立成一行，行首固定寫「【反骨金句】」\n⑧ 語氣像有智慧的長輩在說真話：不說教、不推銷、真誠分享\n⑨ 絕對不寫「購買」「成交」「加入」「賺錢」等推銷字眼\n\n【合規硬性規定】絕對不能出現：治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎。所有案例只說「個人感受」，結尾加「以上是個人感受，每個人狀況不同」。\n\n【輸出要求】\n- 每篇都要可直接貼：開頭是比喻故事鉤子，易讀分段（適量換行），自然的行動呼籲，平台適合的主題標籤\n- 內容精簡、不冗長：每篇約 200～300 字，只寫與本次主題直接相關的重點，不重複、不繞遠路、不寫長篇大論；段落短、留白多，讀完即懂\n- 只輸出成品本身，不要出現分類名稱、平台名稱或過程說明`;
     let comp=`【本次主題】\n${run.goal||"（依下方素材判斷）"}\n\n`;
     run.collected.filter(c=>c.deptId!=="video"&&!GUIDE_DEPTS.includes(c.deptId)).forEach(c=> comp+=`【${c.name} 的產出】\n${clip(c.out,1600)}\n\n`);
     comp+="請統整並優化成可直接發布的最終成品貼文。";
