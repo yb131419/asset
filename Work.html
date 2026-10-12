@@ -3864,7 +3864,8 @@ async function parseFile(f){
 
 /* ============ 成品庫 ============ */
 let resKind="all";
-function openResults(kind){ resKind=kind||"all"; renderResults(); openView("results"); }
+let RES_HOST=null;
+function openResults(kind){ resKind=kind||"all"; RES_HOST=null; renderResults(); openView("results"); }
 function finalTasks(){ return state.tasks.filter(t=>t.deptId==="final").slice().reverse(); }
 function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
@@ -3897,7 +3898,7 @@ function marketSectionHTML(items, kind){
   return `<div class="res-sec" data-kind-sec="${kind}"><div class="res-sec-head"><span class="res-sec-title">${title}</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${items.map(t=>`<div class="res-row" data-id="${t.id}"><div class="res-row-main" onclick="resExpand(this,0)"><div class="res-row-title">${esc(resTitleOf(t))}</div><div class="res-row-meta">上手流程・${timeStr(t.time)}</div></div><span class="res-row-arrow">›</span><div class="res-row-detail" hidden></div></div>`).join("")}</div></div>`;
 }
 function renderResults(){
-  const box=document.getElementById("resList");
+  const box=RES_HOST||document.getElementById("resList");
   const articles=state.tasks.filter(t=>t.deptId==="final").slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video").slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
@@ -3948,6 +3949,28 @@ function topicIconOf(label){
   if(c){ return c.auto ? '🪶' : (TOPIC_ICON_BY_CAT[c.cat]||'🧭'); }
   return '🧭';
 }
+// 六大主題名稱（與資料收集的分類對應），接在符號後面顯示
+const TOPIC_NAME_BY_CAT={auto:'智囊軍師',health:'健康主題',herb:'火山草本',concept:'觀念主題',biz:'經營主題',net:'網路行銷'};
+const TOPIC_CAT_BY_GROUP={collAutoItem:'auto',collHealthGroup:'health',collHerbGroup:'herb',collConceptGroup:'concept',collBizGroup:'biz',collNetGroup:'net'};
+function topicCatKeyOf(label){
+  const name=String(label||'').trim();
+  if(!name) return '';
+  const hit=[...document.querySelectorAll('.coll-item-sel, .topic-item')].find(el=>{
+    const t=el.querySelector('.ci-txt'); return t && t.textContent.trim()===name;
+  });
+  if(hit){
+    const grp=hit.closest('.coll-list');
+    const gid=grp?grp.id:(hit.id||'');
+    if(TOPIC_CAT_BY_GROUP[gid]) return TOPIC_CAT_BY_GROUP[gid];
+  }
+  const c=(state.collections||[]).find(x=>String(x.topic||'').trim()===name);
+  if(c) return c.auto ? 'auto' : (c.cat||'');
+  return '';
+}
+function topicCatNameOf(label){
+  const k=topicCatKeyOf(label);
+  return TOPIC_NAME_BY_CAT[k] || '未分類';
+}
 function topicOf(t){
   if(t.topic) return String(t.topic).trim();
   const m=String(t.input||"").match(/【(?:經營|健康|觀念)主題】([^\n【]+)/);
@@ -3984,7 +4007,7 @@ function resSection(title, icon, items, isVideo){
   }else{
     const groups=new Map();
     items.forEach(t=>{ const k=topicOf(t); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); });
-    rows=[...groups.entries()].map(([k,arr])=>`<div class="res-topic-group"><div class="res-topic-head"><span>${esc(topicIconOf(k))} ${esc(k||"未指定經營主題")}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`).join("");
+    rows=[...groups.entries()].map(([k,arr])=>`<div class="res-topic-group"><div class="res-topic-head"><span>${esc(topicIconOf(k))} ${esc(topicCatNameOf(k))}${k?"・"+esc(k):""}</span><b>${arr.length} 則</b></div>${arr.map(t=>resRowHTML(t,isVideo,kind,manage)).join("")}</div>`).join("");
   }
   return `<div class="res-sec" data-kind-sec="${kind}">${head}${bar}<div class="res-list">${rows}</div></div>`;
 }
@@ -5267,10 +5290,10 @@ function finalCard(out, plat){
 /* ---- 圖卡排版引擎（可自訂設計） ---- */
 const CARD_W=720, CARD_PAD=64;
 const CARD_THEMES={
-  forest:{accent:"#FF8FB1",bg:["#14402F","#0A2620","#05140F"],glow:"#F3D9A3",glowOp:".26",gold:["#FBE9B9","#E7C27A","#B8863C"],frame:"rgba(243,217,163,.32)",frame2:"rgba(243,217,163,.10)",body:"#E9EEE9",head:"#F3D9A3",quote:"#F6E3B4",footText:"rgba(233,238,233,.66)",footBg:"rgba(243,217,163,.10)",footLine:"rgba(243,217,163,.38)",footGold:"#F3E2B5",mark:"rgba(243,217,163,.12)",grain:"0.10",nameColor:"#8FE3C0"},
-  ivory:{accent:"#9E2A5B",bg:["#FBF8F0","#F4EEDC","#EADFC4"],glow:"#C9994A",glowOp:".18",gold:["#A8782E","#C9994A","#7A5520"],frame:"rgba(122,85,32,.38)",frame2:"rgba(122,85,32,.14)",body:"#2B2A22",head:"#7A5520",quote:"#5C4116",footText:"rgba(43,42,34,.66)",footBg:"rgba(122,85,32,.08)",footLine:"rgba(122,85,32,.4)",footGold:"#5C4116",mark:"rgba(122,85,32,.12)",grain:"0.04",nameColor:"#A8472A"},
-  ink:{accent:"#F7A8D0",bg:["#24272A","#131516","#070808"],glow:"#D9DEE3",glowOp:".16",gold:["#F5F7F6","#CDD3D0","#8E9691"],frame:"rgba(230,235,230,.26)",frame2:"rgba(230,235,230,.10)",body:"#E7EAE7",head:"#FFFFFF",quote:"#FFFFFF",footText:"rgba(231,234,231,.62)",footBg:"rgba(255,255,255,.07)",footLine:"rgba(255,255,255,.30)",footGold:"#E7EAE7",mark:"rgba(255,255,255,.10)",grain:"0.08",nameColor:"#8EC5FF"},
-  warm:{accent:"#FF9A7A",bg:["#5A3420","#341E12","#1A0E08"],glow:"#F7D9A0",glowOp:".24",gold:["#FBE7BC","#E9B977","#B87A3A"],frame:"rgba(247,217,160,.34)",frame2:"rgba(247,217,160,.10)",body:"#F6EBDD",head:"#F7D9A0",quote:"#FBE7BC",footText:"rgba(246,235,221,.66)",footBg:"rgba(247,217,160,.10)",footLine:"rgba(247,217,160,.38)",footGold:"#F7D9A0",mark:"rgba(247,217,160,.12)",grain:"0.10"}
+  forest:{accent:"#C8843A",bg:["#14402F","#0A2620","#05140F"],glow:"#F3D9A3",glowOp:".26",gold:["#FBE9B9","#E7C27A","#B8863C"],frame:"rgba(243,217,163,.32)",frame2:"rgba(243,217,163,.10)",body:"#E9EEE9",head:"#F3D9A3",quote:"#F6E3B4",footText:"rgba(233,238,233,.66)",footBg:"rgba(243,217,163,.10)",footLine:"rgba(243,217,163,.38)",footGold:"#F3E2B5",mark:"rgba(243,217,163,.12)",grain:"0.10",nameColor:"#8FE3C0"},
+  ivory:{accent:"#C8843A",bg:["#FBF8F0","#F4EEDC","#EADFC4"],glow:"#C9994A",glowOp:".18",gold:["#A8782E","#C9994A","#7A5520"],frame:"rgba(122,85,32,.38)",frame2:"rgba(122,85,32,.14)",body:"#2B2A22",head:"#7A5520",quote:"#5C4116",footText:"rgba(43,42,34,.66)",footBg:"rgba(122,85,32,.08)",footLine:"rgba(122,85,32,.4)",footGold:"#5C4116",mark:"rgba(122,85,32,.12)",grain:"0.04",nameColor:"#A8472A"},
+  ink:{accent:"#C8843A",bg:["#24272A","#131516","#070808"],glow:"#D9DEE3",glowOp:".16",gold:["#F5F7F6","#CDD3D0","#8E9691"],frame:"rgba(230,235,230,.26)",frame2:"rgba(230,235,230,.10)",body:"#E7EAE7",head:"#FFFFFF",quote:"#FFFFFF",footText:"rgba(231,234,231,.62)",footBg:"rgba(255,255,255,.07)",footLine:"rgba(255,255,255,.30)",footGold:"#E7EAE7",mark:"rgba(255,255,255,.10)",grain:"0.08",nameColor:"#8EC5FF"},
+  warm:{accent:"#C8843A",bg:["#5A3420","#341E12","#1A0E08"],glow:"#F7D9A0",glowOp:".24",gold:["#FBE7BC","#E9B977","#B87A3A"],frame:"rgba(247,217,160,.34)",frame2:"rgba(247,217,160,.10)",body:"#F6EBDD",head:"#F7D9A0",quote:"#FBE7BC",footText:"rgba(246,235,221,.66)",footBg:"rgba(247,217,160,.10)",footLine:"rgba(247,217,160,.38)",footGold:"#F7D9A0",mark:"rgba(247,217,160,.12)",grain:"0.10"}
 };
 const CARD_SIZES={s:22,m:26,l:30};
 // 平台比例（高 ÷ 寬）：IG／FB 貼文用 4:5 或 1:1，限動用 9:16
@@ -5374,7 +5397,7 @@ function buildCardSVG(text, o, uid){
       return `<text x="${qx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="600" fill="${T.quote}">${cardEscape(i.t)}</text>`;
     }
     if(i.kind==="golden"){
-      return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="800" fill="${T.accent||'#FF8FB1'}">${cardEscape(i.t)}</text>`;
+      return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SERIF}" font-size="${L.BODY_FS+1}" font-weight="800" fill="${T.accent||'#C8843A'}">${cardEscape(i.t)}</text>`;
     }
     if(i.kind==="head"){
       return `<text x="${bx}" y="${i.y}" text-anchor="${anchor}" font-family="${F_SANS}" font-size="${L.BODY_FS}" font-weight="700" fill="${T.head}">${cardEscape(i.t)}</text>`;
@@ -6127,16 +6150,16 @@ const NPC_ALL=[
    }},
   {id:'results',name:'成品庫',role:'圖文與短影音都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
    lines:['每產出一則成品，你的等級就會提升。'],
-   acts:[['📝 圖文',()=>go(()=>openResults('final'))],
-         ['🎬 短影音',()=>go(()=>openResults('video'))],
-         ['📈 市場・暖身成品',()=>go(()=>openResults('mw'))],
-         ['🖼 做圖卡',()=>go(()=>openResults('final'))]]},
+   acts:[['📝 圖文',()=>vzResults('final')],
+         ['🎬 短影音',()=>vzResults('video')],
+         ['📈 市場・暖身成品',()=>vzResults('mw')],
+         ['🖼 做圖卡',()=>vzResults('final')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
-   acts:[['📈 查看成品',()=>go(()=>openResults('mw'))],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
+   acts:[['📈 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>go(()=>openDept('market'))]]},
   {id:'warmup',name:'暖身邀約',role:'暖身邀約的成品與工坊',ic:'🤝',x:8,y:22,look:L('#8A5A2E','#F3D9A3','hat'),
    lines:['不推銷，先交朋友。'],
-   acts:[['🤝 查看成品',()=>go(()=>openResults('mw'))],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
+   acts:[['🤝 查看成品',()=>vzResults('mw')],['✍️ 進入工坊',()=>go(()=>openDept('warmup'))]]},
   {id:'settings',name:'城主',role:'會員中心與系統設定',ic:'👑',x:8,y:4,look:L('#7A3E2A','#E7C27A','crown'),
    lines:['在這裡管理身分、背景設定與素材。'],
    acts:[['⚙️ 打開設定',()=>go(()=>openView('settings'))],
@@ -6496,6 +6519,19 @@ function openCard(n){
   renderMenu();
 }
 // 多選單：先列出所有選項；點選後角色回應，再決定執行或返回
+// 成品庫：結果直接寫在上方成品庫卡片裡（不再另外開一整頁）
+function vzResults(kind){
+  const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
+  if(!box) return;
+  const title = kind==='final'?'📝 圖文':kind==='video'?'🎬 短影音':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
+  box.hidden=false;
+  box.innerHTML='<div id="vResHost"></div><div class="vdd-btns"><button class="vbtn g" id="vResBack" type="button">← 返回成品庫</button></div>';
+  if(tEl) tEl.textContent='成品都在這裡，點開可以查看與複製。';
+  resKind=kind||'all';
+  RES_HOST=document.getElementById('vResHost');
+  renderResults();
+  document.getElementById('vResBack').onclick=()=>{ RES_HOST=null; renderMenu(); };
+}
 function renderMenu(){
   if(!curSub && !curPlan) leaveFull();
   document.body.classList.toggle('v-planning', !!curPlan); // 計畫面板時隱藏下方 NPC 快捷列
@@ -6526,7 +6562,7 @@ function renderMenu(){
       '<button class="vbtn g" id="vddBack" type="button">← 返回選單</button></div>';
     document.getElementById('vddGo').onclick=()=>{
       const act=acts[dlgSel.i];
-      const isPage=/\bgo\(/.test(String(act[1]));   // 頁面功能：留在人物面板下方展開
+      const isPage=/\bgo\(|vzResults\(/.test(String(act[1]));   // 頁面功能：留在人物面板下方展開
       if(!isPage) hideCard();
       act[1]();
     };
