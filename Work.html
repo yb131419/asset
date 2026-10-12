@@ -5093,7 +5093,8 @@ async function runAllDepartments(resume){
     resetPipeDefaults();  // 完成後清空主題與補充說明，回到預設
     save(); renderHome();
     if(anyTrim) toast("素材過長已自動截取；成品已存入成品庫，各產出已存入分類"); else toast("成品已存入成品庫，各產出已存入分類");
-    results.scrollIntoView({behavior:"smooth",block:"start"});
+    // 村莊模式下不捲動頁面（否則村莊與流程進度卡片會被捲走）
+    if(!document.body.classList.contains("v-mode")) results.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){
     // 保留進度，之後可續跑
     save();
@@ -6288,7 +6289,12 @@ function go(fn){
 function vzStatus(t){ const el=document.getElementById('vStatus'); if(el){ el.textContent=t; el.hidden=!t; } }
 function bg(fn,label){
   vzStatus('⏳ 執行中：'+(label||'')+'…');
-  Promise.resolve().then(fn).then(()=>{ const r=state.pipeRun; vzStatus((label==='一鍵自動完成' && r && !r.done) ? '⏸ 已暫停，進度已保存，可按「接續上次進度」' : '✅ 已完成：'+(label||'')); }, e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
+  Promise.resolve().then(fn).then(()=>{ const r=state.pipeRun; if(label==='一鍵自動完成') window._vzRunFinished=!(r && !r.done); if(document.body.classList.contains('v-mode')) window.scrollTo(0,0);
+    // 跑完：自動關閉流程進度，回到大長老選單，並在底部浮窗提醒
+    if(label==='一鍵自動完成' && window._vzRunFinished){
+      if(curProg){ curProg=null; if(curN && curN.id==='pipeline') renderMenu(); }
+      toast('🎉 一鍵自動完成，成品已存入成品庫');
+    } vzStatus((label==='一鍵自動完成' && r && !r.done) ? '⏸ 已暫停，進度已保存，可按「接續上次進度」' : '✅ 已完成：'+(label||'')); }, e=>{ vzStatus('⚠️ '+(label||'')+'失敗'); toast('發生錯誤：'+((e&&e.message)||e)); });
 }
 function closeSheet(){
   restoreApp();
@@ -6512,14 +6518,16 @@ function renderProgress(){
   const depts=state.departments||[], r=state.pipeRun;
   const isRun=(typeof running!=='undefined' && running);
   const N=depts.length;
-  const done=r ? Math.min(r.step||0,N) : 0;
+  // 跑完後 pipeRun 會被清除，這裡改用記住的完成狀態，避免又全部顯示「等待」
+  const finished=!r && !isRun && !!window._vzRunFinished;
+  const done=finished ? N : (r ? Math.min(r.step||0,N) : 0);
   const rows=depts.map((d,i)=>({name:d.name, st: i<done ? 'done' : (isRun && i===done ? 'run' : 'todo')}));
-  rows.push({name:'統整成品', st: (r && r.done) ? 'done' : (isRun && done>=N ? 'run' : 'todo')});
+  rows.push({name:'統整成品', st: ((r && r.done) || finished) ? 'done' : (isRun && done>=N ? 'run' : 'todo')});
   const doneCount=rows.filter(x=>x.st==='done').length;
   const ic={done:'✅', run:'⏳', todo:'○'}, lb={done:'完成', run:'進行中', todo:'等待'};
   tEl.textContent = isRun ? '正在執行中，這裡會自動更新。' : (r ? '有一個未完成的流程，可在大長老選單接續。' : '目前沒有進行中的流程。');
   box.innerHTML='<div class="vdd-head">📊 流程進度・已完成 '+doneCount+'/'+rows.length+'</div>'+
-    '<div class="vsub-now">主題：'+(r && r.goal ? esc(r.goal) : '尚未設定')+'</div>'+
+    '<div class="vsub-now">主題：'+((r && r.goal) || window._vzRunGoal ? esc((r && r.goal) || window._vzRunGoal) : '尚未設定')+'</div>'+
     '<div class="vdd-list">'+rows.map(x=>'<div class="vp-row vp-'+x.st+'"><span class="vp-ic">'+ic[x.st]+'</span><span class="vp-nm">'+esc(x.name)+'</span><span class="vp-st">'+lb[x.st]+'</span></div>').join('')+'</div>'+
     '<div class="vdd-btns"><button class="vbtn g" id="progBack" type="button">← 返回選單</button><button class="vbtn" id="progRefresh" type="button">🔄 更新</button></div>';
   document.getElementById('progRefresh').onclick=()=>renderProgress();
@@ -6550,6 +6558,7 @@ function renderPlan(){
     if(!goal){ toast('請先到第 1 步選擇主題'); return; }
     if(typeof running!=='undefined' && running){ toast('一鍵正在執行中'); return; }
     pipeCap=chosen<N ? chosen : 0;
+    window._vzRunGoal=goal; window._vzRunFinished=false;
     curPlan=null; curProg={}; renderMenu();   // 確認後直接切到流程進度畫面
     bg(()=>runAllDepartments(), '一鍵自動完成');
   };
