@@ -5181,7 +5181,7 @@ async function runAllDepartments(resume){
     const stepTasks=order.map(()=>""); // 任務由 goal（主題+故事+補充）統一驅動，各分類依職責自行發揮
     if(!goal){ toast("請先到資料收集選擇主題"); return; }
     const bizT = pipeTopicLabel();
-    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT, bizCats:pipeCatsOf(), scope:pipeScopeText() };
+    run={ goal, stepTasks, plat:pipePlatform, step:0, collected:[], prev:"", prevName:"", anyTrim:false, done:false, bizTopic:bizT, bizCats:pipeCatsOf(), scope:pipeScopeText(), startedAt:Date.now() };
     state.pipeRun=run; save();
   }else{
     pipePlatform=run.plat||"";
@@ -5274,6 +5274,9 @@ async function runAllDepartments(resume){
     setPipeRemark("🎉", "全部完成！成品已存入成品庫", "各產出也已分別存入分類紀錄");
 
     const anyTrim=run.anyTrim;
+    // 診斷：列出本次實際存入成品庫的分類（時間不早於本次開始）
+    const savedNames=[...new Set(state.tasks.filter(t=>t.time>=(run.startedAt||0)).map(t=>t.deptName||t.deptId))];
+    setPipeRemark("🧾", "本次已存入", savedNames.length ? savedNames.join("、") : "（沒有任何產出被存入）");
     state.pipeRun=null;   // 完成，清除進度
     resetPipeDefaults();  // 完成後清空主題與補充說明，回到預設
     save(); renderHome();
