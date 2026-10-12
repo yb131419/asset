@@ -2427,7 +2427,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
   </div>
   <div id="vXp"><div id="vXpFill"></div></div>
   <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
-  <div id="vMusicRow"><button type="button" data-song="Q6ibybw_ZYE">🎵 曲目一</button><button type="button" data-song="uAfPDrAiKWY">🎵 曲目二</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div>
+  <div id="vMusicRow"><button type="button" id="vMusicTog">🎵 曲一</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div>
   </div>
   <div id="vMapBox">
     <div id="vWrap">
@@ -6351,7 +6351,32 @@ function buildTopicSub(){
       out.push({group:g, label:lab, on:()=>el.classList.contains('selected'), toggle:()=>el.click()});
     });
   });
+  // 已收集的話題（資料收集存的話題）：可直接在大長老選來跑流程
+  const cols=(state.collections||[]).slice(0,30);
+  if(cols.length){
+    out.push({head:true, group:'📚 已收集的話題'});
+    cols.forEach(c=>{
+      const lab=String(c.topic||'').trim(); if(!lab) return;
+      const k=c.cat==='concept'?'concept':c.cat==='biz'?'biz':'health';
+      out.push({group:'📚 已收集的話題', label:lab,
+        on:()=> c.cat==='net' ? (_bizPlan[0]===c.bottleneck) : (_selLabel[k]===lab),
+        toggle:()=>vzUseCollected(c.id)});
+    });
+  }
   return out;
+}
+function vzUseCollected(id){
+  const c=findTopic(id); if(!c) return;
+  c.used=true; save();
+  if(c.cat==='net'){
+    if(c.bottleneck){ _bizPlan.length=0; _bizPlan.push(c.bottleneck); if(typeof syncNetBadge==='function') syncNetBadge(); }
+  }else{
+    const k=c.cat==='concept'?'concept':c.cat==='biz'?'biz':'health';
+    setHomeTopic(k, c.topic+(c.angle?("："+c.angle):""), c.topic);
+  }
+  persistPipeSel(); renderPlPicked();
+  toast('已設為一鍵流程的主題');
+  if(curSub) renderSub();
 }
 function renderSub(){
   // 所有村莊介面都顯示在人物面板之下（不再全螢幕）
@@ -6818,13 +6843,16 @@ function vzPlaySong(id){
   const box=document.getElementById('vcB');
   if(box && typeof curN!=='undefined' && curN && curN.id==='music') box.innerHTML=musicHTML();
 }
-function vzPlayMusic(id){
-  MUSIC_CUR=id;
+let MUSIC_IDX=0, MUSIC_ON=false;
+function vzMusicRender(){ const b=document.getElementById('vMusicTog'); if(b) b.textContent='🎵 '+(MUSIC_IDX?'曲二':'曲一')+(MUSIC_ON?' ▶':''); }
+function vzMusicToggle(){
+  if(!MUSIC_ON){ MUSIC_ON=true; } else { MUSIC_IDX=1-MUSIC_IDX; }
   const f=document.getElementById('musicFrame');
-  if(f) f.src=musicEmbed(id)+'&autoplay=1';
-  document.querySelectorAll('#vMusicRow [data-song]').forEach(x=>x.classList.toggle('on', x.dataset.song===id));
+  if(f) f.src=musicEmbed(MUSIC_SONGS[MUSIC_IDX].id)+'&autoplay=1';
+  vzMusicRender();
 }
-document.querySelectorAll('#vMusicRow [data-song]').forEach(b=>b.onclick=()=>vzPlayMusic(b.dataset.song));
+const _mt=document.getElementById('vMusicTog'); if(_mt) _mt.onclick=vzMusicToggle;
+vzMusicRender();
 window.vzPlaySong=vzPlaySong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
