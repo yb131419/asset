@@ -2602,7 +2602,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div class="coll-topic-ui">
 
       <div class="coll-group">
-        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🤖</span><span class="ci-txt">智囊軍師判定<small class="ci-sub">由智囊軍師依素材與需求，判斷該用「觀念分享」或「健康分享」的方向寫作，並決定語氣與合規重點。判定結果會寫在成品第一行，方便你確認。</small></span><span class="ci-ck">✓</span></div>
+        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🪶</span><span class="ci-txt">智囊軍師判定<small class="ci-sub">由智囊軍師依素材與需求，判斷該用「觀念分享」或「健康分享」的方向寫作，並決定語氣與合規重點。判定結果會寫在成品第一行，方便你確認。</small></span><span class="ci-ck">✓</span></div>
       </div>
 
       <div class="coll-group">
@@ -3915,14 +3915,25 @@ function pipeTopicLabel(){
   }
   return '';
 }
-// 成品庫分類標題的符號：沿用資料收集該主題項目的圖示（找不到就用 🧭）
+// 成品庫分類標題的符號：對齊資料收集的六大主題（智囊軍師判定／健康／火山草本／觀念／經營／網路行銷）
+const TOPIC_ICON_BY_GROUP={collAutoItem:'🪶',collHealthGroup:'🌿',collHerbGroup:'🌱',collConceptGroup:'💡',collBizGroup:'🧭',collNetGroup:'🌐'};
+const TOPIC_ICON_BY_CAT={auto:'🪶',health:'🌿',herb:'🌱',concept:'💡',biz:'🧭',net:'🌐'};
 function topicIconOf(label){
-  if(!label) return '🧭';
+  const name=String(label||'').trim();
+  if(!name) return '🧭';
+  // 1) 資料收集的項目：依所在分類決定符號
   const hit=[...document.querySelectorAll('.coll-item-sel, .topic-item')].find(el=>{
-    const t=el.querySelector('.ci-txt'); return t && t.textContent.trim()===String(label).trim();
+    const t=el.querySelector('.ci-txt'); return t && t.textContent.trim()===name;
   });
-  const ic=hit && hit.querySelector('.ci-ic');
-  return ic && ic.textContent.trim() ? ic.textContent.trim() : '🧭';
+  if(hit){
+    const grp=hit.closest('.coll-list');
+    const gid = grp ? grp.id : (hit.id||'');
+    if(TOPIC_ICON_BY_GROUP[gid]) return TOPIC_ICON_BY_GROUP[gid];
+  }
+  // 2) 智囊軍師判定收集到的話題：依其分類
+  const c=(state.collections||[]).find(x=>String(x.topic||'').trim()===name);
+  if(c){ return c.auto ? '🪶' : (TOPIC_ICON_BY_CAT[c.cat]||'🧭'); }
+  return '🧭';
 }
 function topicOf(t){
   if(t.topic) return String(t.topic).trim();
@@ -4151,7 +4162,7 @@ function saveCollectorCfg(){
 function updateCollSummary(){
   const el=document.getElementById("collSummary"); if(!el) return;
   const n=state.collections.length;
-  const catLabel = _collSel.auto?'🤖 智囊軍師判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:_collSel.herb?'🌱 '+_collSelLabel.herb:'';
+  const catLabel = _collSel.auto?'🪶 智囊軍師判定':_collSel.health?'🌿 '+_collSelLabel.health:_collSel.concept?'💡 '+_collSelLabel.concept:_collSel.biz?'🧭 '+_collSelLabel.biz:_collSel.herb?'🌱 '+_collSelLabel.herb:'';
   el.textContent = (catLabel?catLabel+" · ":"")+(n?`已存 ${n} 則話題`:"選擇主題分類，立即收集");
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
@@ -4235,7 +4246,7 @@ function renderCollector(){
   }
   box.innerHTML=state.collections.map(c=>`<div class="coll-item ${c.used?'used':''}">
     <button class="coll-del" onclick="deleteTopic('${c.id}')">刪除</button>
-    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🤖 AI定位</span>':''}${catBadge(c)} ${c.used?'<span class="coll-used">已用</span>':''}</div>
+    <div class="coll-top"><span class="coll-time">${timeStr(c.time)}</span>${c.auto?'<span class="coll-used" style="color:#8A5A2E;background:rgba(184,134,60,.14)">🪶 AI定位</span>':''}${catBadge(c)} ${c.used?'<span class="coll-used">已用</span>':''}</div>
     <div class="coll-topic">${esc(c.topic)}</div>
     ${c.angle?`<div class="coll-angle">${esc(c.angle)}</div>`:''}
     <div class="hi-actions">
@@ -6319,7 +6330,7 @@ let subOpen={};
 function buildTopicSub(){
   const out=[];
   const auto=document.querySelector('[onclick*="toggleCollAuto"]');
-  if(auto){ out.push({head:true, group:'🤖 智囊軍師'}); out.push({group:'🤖 智囊軍師', label:'智囊軍師判定', on:()=>auto.classList.contains('selected'), toggle:()=>auto.click()}); }
+  if(auto){ out.push({head:true, group:'🪶 智囊軍師'}); out.push({group:'🪶 智囊軍師', label:'智囊軍師判定', on:()=>auto.classList.contains('selected'), toggle:()=>auto.click()}); }
   [['🌿 健康','collHealthGroup'],['💡 觀念','collConceptGroup'],['🧭 經營','collBizGroup'],['🌱 火山草本','collHerbGroup'],['🌐 網路行銷','collNetGroup']].forEach(([g,id])=>{
     const els=[...document.querySelectorAll('#'+id+' .coll-item-sel')];
     if(!els.length) return;
