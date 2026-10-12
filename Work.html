@@ -1998,6 +1998,10 @@
   .cd-body[hidden]{display:none;}
 
   .res-top{justify-content:space-between;}
+  .coll-fold{margin-bottom:12px;}
+  .coll-fold-hd{display:flex;align-items:center;gap:8px;width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgba(176,132,70,.45);background:linear-gradient(180deg,#FFFDF6,#F5EAD2);font-weight:800;color:#6B4E24;font-family:inherit;text-align:left;cursor:pointer;}
+  .coll-fold-sum{flex:1;min-width:0;font-size:12px;font-weight:700;color:#2E6B4A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .coll-fold-body{margin-top:10px;}
   .res-jump{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;}
   .res-jump::-webkit-scrollbar{display:none;}
   .res-jump-btn{flex:0 0 auto;border:1px solid rgba(176,132,70,.45);background:linear-gradient(180deg,#FFFDF6,#F5EAD2);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800;color:#6B4E24;font-family:inherit;white-space:nowrap;cursor:pointer;}
@@ -2679,10 +2683,13 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     </div>
 
     <!-- 主題分類選擇 -->
+    <div class="coll-fold">
+    <button class="coll-fold-hd" type="button" onclick="toggleCollFold()"><span>⚙️ 收集設定</span><span class="coll-fold-sum" id="collFoldSum">未選擇</span><span id="collFoldArr">▾</span></button>
+    <div class="coll-fold-body" id="collFoldBody" hidden>
     <div class="coll-topic-ui">
 
       <div class="coll-group">
-        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🪶</span><span class="ci-txt">智囊軍師判定<small class="ci-sub">由智囊軍師依素材與需求，判斷該用「觀念分享」或「健康分享」的方向寫作，並決定語氣與合規重點。判定結果會寫在成品第一行，方便你確認。</small></span><span class="ci-ck">✓</span></div>
+        <div class="coll-item-sel" id="collAutoItem" onclick="toggleCollAuto(this)"><span class="ci-ic">🪶</span><span class="ci-txt">智囊軍師判定<small class="ci-sub">由智囊軍師參考近期網路話題與你選的分類範圍，判斷最適合發文的方向，只會從健康、火山草本、觀念、經營、網路行銷（已選卡點時）之中挑選。每則話題都取自該分類的項目，並標示所屬分類，方便你確認。</small></span><span class="ci-ck">✓</span></div>
       </div>
 
       <div class="coll-group">
@@ -2777,6 +2784,8 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
     <div class="coll-note">
       <div id="ppPanel" class="pp-panel"><div id="ppInner"></div></div>
       <textarea id="pipeInput" placeholder="補充說明（選填）：例如「強調客戶真實感受」「加上邀約結尾」，不填也沒關係"></textarea>
+    </div>
+    </div>
     </div>
     <button class="pl-run dark" id="collectBtn" onclick="collectNow()">🛰️ 立即收集話題 ▸</button>
     <div class="section-label" style="margin-top:18px;">已收集的話題（存檔）</div>
@@ -3168,13 +3177,13 @@ const DEPT_MODES={
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
     {k:"herb",label:"火山草本",tip:"只寫產品理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」"},
     {k:"copy",label:"文案",tip:"依圖卡排版寫：第一行標題、短段落分段、結尾一句反骨金句"},
-    {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
+    {k:"auto",label:"智囊軍師判定",tip:"由 AI 在五大分類中判斷方向，再依該分類寫作"}],
   core:[
     {k:"concept",label:"觀念分享",tip:"只講觀念與道理，用對比與反問帶出思考"},
     {k:"health",label:"健康分享",tip:"以大健康原理與故事比喻為主，案例只說個人感受"},
     {k:"herb",label:"火山草本",tip:"只寫產品理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」"},
     {k:"copy",label:"文案",tip:"依圖卡排版寫：第一行標題、短段落分段、結尾一句反骨金句"},
-    {k:"auto",label:"智囊軍師判定",tip:"由 AI 先判斷用觀念或健康定位，再依判斷寫作"}],
+    {k:"auto",label:"智囊軍師判定",tip:"由 AI 在五大分類中判斷方向，再依該分類寫作"}],
   video:[
     {k:"video",label:"短片腳本",tip:"依圖文內容寫成鏡頭式腳本：畫面、台詞、字幕與秒數"}],
   market:[
@@ -3218,7 +3227,7 @@ function deptModeGuide(){
     netbiz:"【本次模式：網路行銷】只寫經營技巧，例如如何讓人停留（開頭的鉤子、前三秒、段落節奏）、如何回留言（回覆的語氣、步驟與引導互動的方式）等實用做法。不寫業績、收入、獲利或任何成效保證，不提具體金額。白話、短句、繁體台灣用語。",
     video:"【本次模式：短片腳本】請嚴格依照「本次共同目標」與圖文內容，寫成一支約 60 秒的短影音腳本，不另立新觀點、不加入圖文沒有的療效字眼。格式：每個鏡頭一組，依序列出「鏡頭編號」「畫面（拍什麼）」「台詞或旁白（口語、白話）」「字幕（一句）」「秒數」。最後一組鏡頭的台詞要帶出一句收尾的觀點。",
     copy:"【本次模式：文案】只寫「一篇」文案，不要寫第二篇、不要寫說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字，也不可少於 115 字。第一行是標題（10 字內，一句話點出主題）；內文 2 到 3 段，每段 1 到 2 句，用空白行分段；內文最後一句是一句反骨金句（直接寫，不加任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。不條列、不寫步驟與案例、不寫長段落。",
-    auto:"【本次模式：智囊軍師判定】請先依需求判斷最適合的定位（觀念分享／健康分享），再依該定位寫作。回答的第一行必須是【定位判定：所選定位】，之後才是內容。"
+    auto:"【本次模式：智囊軍師判定】請先依需求與近期素材，在五大分類中判斷最適合的方向：觀念、健康、火山草本、經營、網路行銷。回答的第一行必須是【定位判定：所選分類】（只寫分類名稱），之後再依該分類寫作：觀念只談觀念與生活道理，不寫身體、毒素、排毒；健康用大健康原理的比喻切入，案例只說個人感受、不寫療效；火山草本只寫理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」；經營寫給新手能照著做的方向，不提收入或成效保證；網路行銷只寫經營技巧，不寫業績。"
   };
   const END_GOLD="\n\n【結尾】全文最後一行必須是一句反骨金句：行首固定寫「【反骨金句】」，獨立成一行，先順著大家以為的常識說一句，再用「真正的……，從不……」反轉推翻，不加解釋。";
   const END_HERB="\n\n【結尾】全文最後先寫一句反骨金句（行首固定寫「【反骨金句】」，獨立成一行，用「真正的……，從不……」反轉推翻，不加解釋），再另起一行寫「以上是個人感受」。";
@@ -4013,7 +4022,7 @@ function renderResultsInner(){
   let html="";
   // 六大分類快捷鍵：點一下直接跳到該分類，不用一直滑動
   {
-    const keys=['auto','health','herb','concept','biz','net'];
+    const keys=['auto','concept','health','herb','biz','net'];
     const btns=keys.map(k=>{ const n=state.tasks.filter(t=>catOfTask(t)===k).length; return `<button class="res-jump-btn" style="${n?"":"opacity:.45;"}" onclick="resJump('${k}')">${TOPIC_ICON_BY_CAT[k]} ${TOPIC_NAME_BY_CAT[k]}<b>${n}</b></button>`; }).join("");
     html += `<div class="res-jump">${btns}</div>`;
   }
@@ -4394,6 +4403,20 @@ function updateCollSummary(){
 }
 function cleanJSON(s){ return (s||"").replace(/```json/gi,"").replace(/```/g,"").trim(); }
 async function collectNow(){ await collectTopics(false); }
+// 收集設定折疊：收起時顯示已選主題摘要，讓已收集的話題離得近
+function updateCollFoldSum(){
+  const el=document.getElementById("collFoldSum"); if(!el) return;
+  const picked=[...document.querySelectorAll("#view-collector .cg-sel")].map(e=>e.textContent.trim()).filter(t=>t && t!=="未選擇");
+  if(_collSel.auto) picked.unshift("智囊軍師判定");
+  el.textContent = picked.length ? picked.join("、") : "未選擇";
+}
+function toggleCollFold(){
+  const body=document.getElementById("collFoldBody"); const arr=document.getElementById("collFoldArr");
+  if(!body) return;
+  body.hidden = !body.hidden;
+  if(arr) arr.textContent = body.hidden ? "▾" : "▴";
+  updateCollFoldSum();
+}
 // 目前在資料收集選取的方向：auto（智囊軍師判定）、health、concept、biz、net（網路行銷卡點）
 function collSelections(){
   const out=[];
@@ -4947,11 +4970,16 @@ async function runTask(){
   try{
     let out=await callOpenAI(withCopyRule(sys),userContent,1800,true);
     const jm=out.match(/^\s*【定位判定[：:]\s*([^】]+)】\s*/);
-    if(jm){ out=out.slice(jm[0].length); toast(`AI 判定為：${jm[1]}`); }
+    let judgedCat="";
+    if(jm){
+      out=out.slice(jm[0].length); toast(`AI 判定為：${jm[1]}`);
+      const L=jm[1].trim();
+      judgedCat = /火山草本/.test(L)?"herb" : /網路行銷/.test(L)?"net" : /經營/.test(L)?"biz" : /健康/.test(L)?"health" : /觀念/.test(L)?"concept" : "";
+    }
     if(curDeptMode(current).k==="copy") out=finishCopy(await fitCopy(out, withCopyRule(sys), userContent));
     const task={ id:Date.now(), deptId:current, deptName:d.name, accent:d.accent,
       input:input||"(附件處理)", output:out, time:Date.now(),
-      fromDept:handoffFrom?handoffFrom.deptName:null, copy: curDeptMode(current).k==="copy" };
+      fromDept:handoffFrom?handoffFrom.deptName:null, copy: curDeptMode(current).k==="copy", ...(judgedCat?{cat:judgedCat}:{}) };
     state.tasks.push(task); save();
     renderOutput(out, d);
     renderHistory();
