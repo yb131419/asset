@@ -5297,7 +5297,7 @@ const CARD_THEMES={
 };
 const CARD_SIZES={s:22,m:26,l:30};
 // 平台比例（高 ÷ 寬）：IG／FB 貼文用 4:5 或 1:1，限動用 9:16
-const CARD_RATIOS={auto:0, ig45:1.25, sq:1, story:16/9};
+const CARD_RATIOS={auto:0, ig45:1.25, r34:4/3, sq:1, story:16/9};
 function cardEm(str){ let w=0; for(const ch of str){ const c=ch.codePointAt(0); w+= c<128 ? (ch===" "?0.32:0.56) : 1; } return w; }
 function cardWrap(text, maxEm){
   const out=[]; let cur="", w=0;
@@ -5513,7 +5513,7 @@ function cardEditorHTML(cid, open){
     <label class="cd-field"><span>名稱</span><input type="text" maxlength="30" value="${attr(st.name)}" oninput="cardEdit('${cid}','name',this.value)"></label>
     <label class="cd-field"><span>標題</span><textarea rows="2" oninput="cardEdit('${cid}','title',this.value)">${attr(st.title)}</textarea></label>
     <label class="cd-field"><span>內文</span><textarea rows="5" oninput="cardEdit('${cid}','body',this.value)">${attr(st.body)}</textarea></label>
-    <div class="cd-row cd-row-tight"><span class="cd-lbl">尺寸</span><select class="cd-select" onchange="cardEdit('${cid}','ratio',this.value)">${[["ig45","IG／FB 直式 4:5"],["sq","IG／FB 方形 1:1"],["story","限動 9:16"],["auto","自動（依內容高度）"]].map(([v,l])=>`<option value="${v}" ${(st.ratio||"ig45")===v?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="cd-row cd-row-tight"><span class="cd-lbl">尺寸</span><select class="cd-select" onchange="cardEdit('${cid}','ratio',this.value)">${[["ig45","IG／FB 直式 4:5"],["r34","直式 3:4"],["sq","IG／FB 方形 1:1"],["story","限動 9:16"],["auto","自動（依內容高度）"]].map(([v,l])=>`<option value="${v}" ${(st.ratio||"ig45")===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row cd-row-tight"><span class="cd-lbl">配色</span><select class="cd-select" onchange="cardEdit('${cid}','theme',this.value)">${themes.map(([v,l])=>`<option value="${v}" ${st.theme===v?"selected":""}>${l}</option>`).join("")}</select></div>
     <div class="cd-row"><span class="cd-lbl">字級</span><div class="cd-seg">${seg("size",[["s","小"],["m","中"],["l","大"]])}</div></div>
     <div class="cd-row"><span class="cd-lbl">對齊</span><div class="cd-seg">${seg("align",[["left","靠左"],["center","置中"],["right","靠右"]])}</div></div>
@@ -5620,7 +5620,7 @@ function renderCardItems(wrap, items, mode, ratio, style, openIdx){
     </div>`;
   }).join("");
   const ratioRow = mode==="multi"
-    ? `<div class="cg-mode cg-ratio">${[["ig45","4:5"],["sq","1:1"],["story","9:16"]].map(([v,l])=>`<button class="${ratio===v?"on":""}" onclick="cardRatioAll(this,'${v}')">${l}</button>`).join("")}</div>` : "";
+    ? `<div class="cg-mode cg-ratio">${[["ig45","4:5"],["r34","3:4"],["sq","1:1"],["story","9:16"]].map(([v,l])=>`<button class="${ratio===v?"on":""}" onclick="cardRatioAll(this,'${v}')">${l}</button>`).join("")}</div>` : "";
   wrap.innerHTML = ratioRow + shareAll + cards;
 }
 // 多張圖片：一次改全部圖卡的比例（會依新比例重新分頁）
