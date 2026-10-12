@@ -4168,6 +4168,7 @@ function catOfTask(t){
 }
 function resTitleOf(t){
   const tp=topicOf(t); if(tp) return tp.slice(0,60);
+  if(t.copy) t={...t, output:finishCopy(t.output)};
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   if(t.deptId==="video"){
     // 短影音：略過「一分鐘逐字稿」標頭與段落小標，取第一句口白當標題
@@ -4255,6 +4256,7 @@ function resToggleCopy(id){
   toast(t.copy ? "已收進文案" : "已移出文案");
 }
 function resItemHTML(t, isVideo){
+  if(t.copy) t={...t, output:finishCopy(t.output)};   // 文章只顯示一則（舊資料也一併處理）
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   const tag = t.deptId==="market" ? "市場上手指南 · 流程" : t.deptId==="warmup" ? "暖身上手指南 · 流程" : isVideo ? "影音內容 · 短影音" : "圖卡 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
@@ -4293,7 +4295,8 @@ function toggleResExpand(id,btn){
 }
 function copyResult(id){
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
-  navigator.clipboard.writeText(t.output).then(()=>toast("已複製，可直接貼文"));
+  const txt=t.copy ? finishCopy(t.output) : t.output;
+  navigator.clipboard.writeText(txt).then(()=>toast("已複製，可直接貼文"));
 }
 function deleteResult(id){
   if(!confirm("刪除這篇成品？")) return;
@@ -5124,18 +5127,21 @@ function pickOneCopy(t){
   const isSep=l=>/^(-{3,}|\*{3,}|_{3,}|={3,})$/.test(l.trim()) || /^[#\s]*第[二三2][篇則]|^[【\[]?第[二三2][篇則]/.test(l.trim());
   const isTag=l=>/^(#\S+\s*){3,}$/.test(l.trim());
   const isJin=l=>/反骨金句/.test(l);
-  const sep=lines.findIndex((l,i)=>i>0 && isSep(l));
+  const isDisc=l=>/以上是個人感受/.test(l);            // 火山草本的結尾聲明，屬於同一篇
+  // 第一篇的金句或標籤出現後，又出現 Markdown 標題或粗體標題 → 那是第二篇的開頭
+  const isHead=l=>/^#{1,6}\s/.test(l.trim()) || /^\*\*[^*]+\*\*$/.test(l.trim());
+  const sep=lines.findIndex((l,i)=>i>0 && (isSep(l) || (isHead(l) && lines.slice(0,i).some(x=>isJin(x)||isTag(x)))));
   const tag=lines.findIndex(isTag);
   const jins=[]; lines.forEach((l,i)=>{ if(isJin(l)) jins.push(i); });
   let end=lines.length;
-  if(sep>=0) end=sep;                                   // 有分隔線或「第二篇」：後面全捨棄
-  else if(jins.length>=2 && (tag<0 || jins[1]<tag)){    // 第二次出現反骨金句 → 第二篇開始了，第一篇到第一句金句為止
+  if(sep>=0) end=sep;                                   // 有分隔線、「第二篇」或新標題：後面全捨棄
+  else if(jins.length>=1 && tag>jins[0] && lines.slice(jins[0]+1,tag).some(l=>l.trim() && !isTag(l) && !isDisc(l))){
+    // 金句之後、標籤之前又出現正文 → 第二篇已開始，第一篇到金句為止；標籤若緊接則保留
     end=jins[0]+1;
     let k=end; while(k<lines.length && !lines[k].trim()) k++;
-    if(k<lines.length && isTag(lines[k])) end=k+1;      // 金句後緊接的標籤行保留
+    if(k<lines.length && isTag(lines[k])) end=k+1;
   }
-  else if(jins.length>=1 && tag>jins[0] && lines.slice(jins[0]+1,tag).some(l=>l.trim() && !isTag(l))){
-    // 金句與標籤之間又出現正文 → 金句之後已是第二篇，第一篇到金句為止，標籤若緊接則保留
+  else if(jins.length>=2 && (tag<0 || jins[1]<tag)){    // 第二次出現反骨金句 → 第二篇開始了
     end=jins[0]+1;
     let k=end; while(k<lines.length && !lines[k].trim()) k++;
     if(k<lines.length && isTag(lines[k])) end=k+1;
