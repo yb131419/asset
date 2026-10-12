@@ -2427,7 +2427,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
   </div>
   <div id="vXp"><div id="vXpFill"></div></div>
   <div id="vMeta"><span id="vCount">0 則成品</span><span id="vNext"></span></div>
-  <div id="vMusicRow"><span class="vm-lbl">🎵 背景音樂</span><button type="button" data-song="Q6ibybw_ZYE">曲目一</button><button type="button" data-song="uAfPDrAiKWY">曲目二</button></div>
+  <div id="vMusicRow"><button type="button" data-song="Q6ibybw_ZYE">🎵 曲目一</button><button type="button" data-song="uAfPDrAiKWY">🎵 曲目二</button><iframe id="musicFrame" title="背景音樂" allow="autoplay; encrypted-media" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0"></iframe></div>
   </div>
   <div id="vMapBox">
     <div id="vWrap">
@@ -3010,6 +3010,7 @@ function buildPipeGoalFromChips(){
   if(_sel.health) parts.push('【健康主題】'+_sel.health);
   if(_sel.concept) parts.push('【觀念主題】'+_sel.concept);
   if(_sel.biz) parts.push('【經營主題】'+_sel.biz);
+  if(typeof _collSel!=='undefined' && _collSel.auto) parts.push('【智囊軍師判定】請由智囊軍師依近期素材與各分類現況，自行判斷最適合的主題方向（只能在健康、火山草本、觀念、經營、網路行銷中擇定），並在成品中標示所選方向。');
   if(_bizPlan.length) parts.push('【網路行銷卡點】'+_bizPlan[0]+'（只先解決這個卡點，不整合其他問題）');
   if(_sel.story) parts.push('【故事比喻】'+_sel.story);
   const free = document.getElementById('pipeInput').value.trim();
@@ -3921,6 +3922,7 @@ function pipeTopicLabel(){
     const lb=_selLabel[c];
     if(_sel[c] && lb && lb!=='未選擇') return lb;
   }
+  if(typeof _collSel!=='undefined' && _collSel.auto) return '智囊軍師判定';
   return '';
 }
 // 成品庫分類標題的符號：對齊資料收集的六大主題（智囊軍師判定／健康／火山草本／觀念／經營／網路行銷）
@@ -6816,7 +6818,13 @@ function vzPlaySong(id){
   const box=document.getElementById('vcB');
   if(box && typeof curN!=='undefined' && curN && curN.id==='music') box.innerHTML=musicHTML();
 }
-document.querySelectorAll('#vMusicRow [data-song]').forEach(b=>b.onclick=()=>{ MUSIC_CUR=b.dataset.song; openCard(MUSIC); });
+function vzPlayMusic(id){
+  MUSIC_CUR=id;
+  const f=document.getElementById('musicFrame');
+  if(f) f.src=musicEmbed(id)+'&autoplay=1';
+  document.querySelectorAll('#vMusicRow [data-song]').forEach(x=>x.classList.toggle('on', x.dataset.song===id));
+}
+document.querySelectorAll('#vMusicRow [data-song]').forEach(b=>b.onclick=()=>vzPlayMusic(b.dataset.song));
 window.vzPlaySong=vzPlaySong;
 const MUSIC={id:'music', notice:true, name:'背景音樂', role:'單曲循環播放', ic:'🎵', look:L('#7A5A9A','#EFE3FF','hat'), lines:['可以邊逛村莊邊聽。'], acts:[], get html(){ return musicHTML(); }};
 function cornerOpen(){ try{ return localStorage.getItem('vz_corner')!=='0'; }catch(e){ return true; } }
