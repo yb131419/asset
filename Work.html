@@ -1999,6 +1999,8 @@
 
   .res-top{justify-content:space-between;}
   .res-del{margin-left:auto;font-size:12px;font-weight:700;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:5px 12px;font-family:inherit;}
+  .res-copy-tog{margin-left:auto;font-size:12px;font-weight:800;color:#6B4E24;background:linear-gradient(180deg,#FFFBF1,#F4E7C8);border:1px solid rgba(176,132,70,.55);border-radius:999px;padding:6px 12px;cursor:pointer;font-family:"Noto Serif TC","Songti TC",serif;}
+  .res-copy-tog + .res-del{margin-left:6px;}
 
   .res-bulk{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 10px;flex-wrap:wrap;}
   .res-bulk-toggle{font-size:12.5px;font-weight:700;color:#17553A;background:#FBFAF6;border:1px solid rgba(23,85,58,.2);border-radius:999px;padding:6px 13px;font-family:inherit;}
@@ -2580,6 +2582,15 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       <div class="le-meta">
         <div class="le-name">短影音</div>
         <div class="le-sub" id="resSumV">一分鐘口播逐字稿</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
+    <div class="lib-entry results-entry" onclick="openResults('copy')">
+      <div class="le-ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</div>
+      <div class="le-meta">
+        <div class="le-name">文案</div>
+        <div class="le-sub" id="resSumC">依圖卡邏輯寫的短文案</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -3939,6 +3950,8 @@ function updateResSummary(){
   const n=finalTasks().length, v=state.tasks.filter(t=>t.deptId==="video").length;
   const a=document.getElementById("resSumA"); if(a) a.textContent = n ? `已收存 ${n} 篇圖文` : "一鍵流程統整的圖文成品";
   const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則短影音逐字稿` : "一分鐘口播逐字稿";
+  const cEl=document.getElementById("resSumC"); const cc=state.tasks.filter(t=>t.copy).length;
+  if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文案` : "依圖卡邏輯寫的短文案";
   const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
   if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const wEl=document.getElementById("resSumW"); const wc=state.tasks.filter(t=>t.deptId==="warmup").length;
@@ -4184,6 +4197,12 @@ function resDeleteSelected(kind){
   save(); renderResults(); renderHome();
   toast(`已刪除 ${ids.length} 則`);
 }
+// 手動把任一則成品收進（或移出）「文案」分類
+function resToggleCopy(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  t.copy=!t.copy; save(); renderResults(); renderHome && renderHome();
+  toast(t.copy ? "已收進文案" : "已移出文案");
+}
 function resItemHTML(t, isVideo){
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   const tag = t.deptId==="market" ? "市場經營 · 上手流程" : t.deptId==="warmup" ? "暖身邀約 · 流程" : isVideo ? "影音內容 · 短影音" : "圖文 · 成品";
@@ -4191,6 +4210,7 @@ function resItemHTML(t, isVideo){
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
       <span class="res-time">${timeStr(t.time)}</span>
+      <button class="res-copy-tog" onclick="resToggleCopy(${t.id})">${t.copy?"✂ 移出文案":"✍️ 收進文案"}</button>
       <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button>
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
@@ -5153,7 +5173,8 @@ async function runAllDepartments(resume){
 
       state.tasks.push({ id:Date.now()+i, deptId:d.id, deptName:d.name, accent:d.accent,
         input:`[一鍵運轉] ${run.stepTasks[i]||run.goal}`, output:out, time:Date.now(), topic:run.bizTopic||"", cat:pickCatFor(out, run.bizCats),
-        fromDept: i>0?run.prevName:null });
+        fromDept: i>0?run.prevName:null,
+        copy: d.id!=="video" && !GUIDE_DEPTS.includes(d.id) });
 
       const step=document.getElementById("plstep-"+i);
       step.classList.remove("run"); step.classList.add("done"); step.querySelector(".st").textContent="✓";
@@ -6172,6 +6193,7 @@ function renderDrawer(){
     <div class="dr-cat">成品</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('final'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📝</span>圖文<span class="cnt">${finalTasks().length} 篇</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('video'))"><span class="ic" style="background:rgba(181,101,46,.14);color:#B5652E">🎬</span>短影音<span class="cnt">${state.tasks.filter(t=>t.deptId==="video").length} 則</span></button>
+    <button class="dr-item" onclick="goMenu(()=>openResults('copy'))"><span class="ic" style="background:rgba(199,144,43,.16);color:#B8862E">✍️</span>文案<span class="cnt">${state.tasks.filter(t=>t.copy).length} 則</span></button>
     <div class="dr-cat">如何改善</div>
     <button class="dr-item" onclick="goMenu(()=>openResults('market'))"><span class="ic" style="background:rgba(46,111,176,.14);color:#2E6FB0">📈</span>市場經營<span class="cnt">${state.tasks.filter(t=>t.deptId==="market").length} 則</span></button>
     <button class="dr-item" onclick="goMenu(()=>openResults('warmup'))"><span class="ic" style="background:rgba(138,90,46,.14);color:#8A5A2E">🤝</span>暖身邀約<span class="cnt">${state.tasks.filter(t=>t.deptId==="warmup").length} 則</span></button>
