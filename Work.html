@@ -1998,9 +1998,8 @@
   .cd-body[hidden]{display:none;}
 
   .res-top{justify-content:space-between;}
-  .res-del{margin-left:auto;font-size:12px;font-weight:700;color:#9A4B3A;background:#FFF7F4;border:1px solid rgba(154,75,58,.25);border-radius:999px;padding:5px 12px;font-family:inherit;}
-  .res-copy-tog{margin-left:auto;font-size:12px;font-weight:800;color:#6B4E24;background:linear-gradient(180deg,#FFFBF1,#F4E7C8);border:1px solid rgba(176,132,70,.55);border-radius:999px;padding:6px 12px;cursor:pointer;font-family:"Noto Serif TC","Songti TC",serif;}
-  .res-copy-tog + .res-del{margin-left:6px;}
+  .res-del{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;letter-spacing:.5px;color:#8A4A36;background:linear-gradient(180deg,#FFFDF8,#F6EEE2);border:1px solid rgba(138,74,54,.28);border-radius:999px;padding:6px 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 2px 6px rgba(90,60,30,.08);font-family:"Noto Serif TC","Songti TC",serif;cursor:pointer;transition:transform .12s ease;}
+  .res-del:active{transform:scale(.95);}
 
   .res-bulk{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 10px;flex-wrap:wrap;}
   .res-bulk-toggle{font-size:12.5px;font-weight:700;color:#17553A;background:#FBFAF6;border:1px solid rgba(23,85,58,.2);border-radius:999px;padding:6px 13px;font-family:inherit;}
@@ -4210,7 +4209,6 @@ function resItemHTML(t, isVideo){
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"短影音":"成品"))}</span>
       <span class="res-time">${timeStr(t.time)}</span>
-      <button class="res-copy-tog" onclick="resToggleCopy(${t.id})">${t.copy?"✂ 移出文案":"✍️ 收進文案"}</button>
       <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button>
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
@@ -6379,8 +6377,6 @@ const NPC_ALL=[
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['📝 圖文',()=>vzResults('final')],
          ['🎬 短影音',()=>vzResults('video')],
-         ['📈 市場・暖身成品',()=>vzResults('mw')],
-         ['🖼 做圖卡',()=>vzResults('final')],
          ['✍️ 文案',()=>vzResults('copy')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
