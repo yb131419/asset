@@ -2179,6 +2179,9 @@
 .clip-acts{display:flex;gap:8px;margin:6px 0}
 .clip-dl{padding:8px 12px;border-radius:10px;border:1px solid rgba(184,134,60,.6);background:#FFF6E3;color:#6B4E24;font-weight:800;font-size:13px}
 .clip-lines{font-size:13px;line-height:1.7;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:8px;margin-top:6px}
+.clip-bar{height:6px;border-radius:99px;background:rgba(184,134,60,.18);overflow:hidden;margin-bottom:8px}
+.clip-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#D9A44F,#B8862E);transition:width .2s}
+.clip-in{resize:vertical;font-family:inherit}
 </style>
 
 <style id="vz-style">
@@ -2617,7 +2620,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       <div class="le-ic" style="background:rgba(184,134,60,.16);color:#B5652E">🎞</div>
       <div class="le-meta">
         <div class="le-name">短影片</div>
-        <div class="le-sub" id="resSumK">依主題生成 60 秒影片</div>
+        <div class="le-sub" id="resSumK">依主題產出 12 句反骨金句</div>
       </div>
       <span class="chev">›</span>
     </div>
@@ -3985,7 +3988,7 @@ function updateResSummary(){
   const cEl=document.getElementById("resSumC"); const cc=state.tasks.filter(t=>t.copy).length;
   if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文章` : "依圖卡邏輯寫的短文章";
   const kEl=document.getElementById("resSumK"); const kc=state.tasks.filter(t=>t.deptId==="clip").length;
-  if(kEl) kEl.textContent = kc ? `已收存 ${kc} 則短影片` : "依主題生成 60 秒影片";
+  if(kEl) kEl.textContent = kc ? `已收存 ${kc} 組反骨金句` : "依主題產出 12 句反骨金句";
   const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
   if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const wEl=document.getElementById("resSumW"); const wc=state.tasks.filter(t=>t.deptId==="warmup").length;
@@ -4042,7 +4045,7 @@ function renderResultsInner(){
   const articles=state.tasks.filter(t=>t.deptId==="final" && !isLatest(t)).slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video" && !isLatest(t)).slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 逐字稿" : resKind==="clip" ? "🎞 短影片／短影音" : resKind==="market" ? "📈 市場上手指南" : resKind==="warmup" ? "🤝 暖身上手指南" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
+  if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 逐字稿" : resKind==="clip" ? "🎞 短影片" : resKind==="market" ? "📈 市場上手指南" : resKind==="warmup" ? "🤝 暖身上手指南" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   const showK = resKind==="all"||resKind==="clip";
@@ -4223,136 +4226,80 @@ function resTitleOf(t){
   const sp=cardSplit((t.output||"").replace(/^#+\s*/gm,""));
   return (sp.title || (t.input||"").replace(/^\[成品\]\s*/,"") || "（未命名）").slice(0,60);
 }
-// ===== 短影片：AI 寫 12 句字幕 → 畫成 9:16 畫面 → 錄成 60 秒 MP4（不支援 MP4 時為 WebM）可下載 =====
-const CLIP_BLOBS = {};   // 本次開啟期間的影片檔（重新整理後需重新合成）
-const CLIP_N = 12, CLIP_SCENE_MS = 5000;   // 12 個畫面 × 5 秒 = 60 秒
+// ===== 短影片：12 句反骨金句（貼上 12 行直接存；輸入主題則由 AI 寫；一鍵流程完成後自動產出） =====
+const CLIP_N = 12;
 function clipSectionHTML(){
   const items = state.tasks.filter(t=>t.deptId==="clip").slice().reverse();
   const create = `<div class="clip-create">
-    <div class="clip-sub">依主題生成 12 句字幕，直接合成 60 秒影片，完成後可下載。</div>
-    <input id="clipTopic" class="clip-in" placeholder="主題（留空則使用最新一鍵的成品）">
-    <button class="clip-go" onclick="clipCreate(this)">🎬 生成短影片</button>
-    <div id="clipProg" class="clip-prog"></div>
+    <div class="clip-prog" id="clipProg">輸入主題，或直接貼上 12 行反骨金句（每行一句）</div>
+    <textarea id="clipTopic" class="clip-in" rows="4" placeholder="主題（留空則用最新一鍵的成品），或直接貼上 12 行金句"></textarea>
+    <button class="clip-go" onclick="clipCreate(this)">✨ 產出 12 句反骨金句</button>
   </div>`;
-  const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影音</div>`;
-  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">製作</span></div>${create}</div>`
-    + `<div class="res-sec" data-kind-sec="clipv"><div class="res-sec-head"><span class="res-sec-title">🎬 短影音</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${rows}</div></div>`;
+  const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影片金句</div>`;
+  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">${items.length} 組</span></div>${create}<div class="res-list">${rows}</div></div>`;
 }
 function clipRowHTML(t){
-  const ready = !!CLIP_BLOBS[t.id];
   const lines = String(t.output||"").split("\n").filter(Boolean);
   return `<div class="res-row clip-row" data-id="${t.id}">
     <div class="res-row-main"><div class="res-row-title">${esc(t.clipTitle||"短影片")}</div>
-      <div class="res-row-meta">影片 60 秒・${timeStr(t.time)}</div></div>
-    <div class="clip-acts"><button class="clip-dl" onclick="clipDownload(${t.id})">${ready?"⬇ 下載影片":"🎬 重新合成"}</button>
+      <div class="res-row-meta">12 句反骨金句・${timeStr(t.time)}</div></div>
+    <div class="clip-acts"><button class="clip-dl" onclick="clipCopy(${t.id})">📋 複製 12 句</button>
       <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button></div>
     <div class="clip-lines">${lines.map((s,i)=>`<div>${i+1}．${esc(s)}</div>`).join("")}</div>
   </div>`;
+}
+function clipCopy(id){
+  const t=state.tasks.find(x=>x.id===id); if(!t) return;
+  navigator.clipboard.writeText(String(t.output||"").replace(/\n/g,"\n")).then(()=>toast("已複製 12 句"));
 }
 function clipSetProg(txt){ const el=document.getElementById("clipProg"); if(el) el.textContent=txt; }
 function clipLatestTopic(){
   const f=state.tasks.filter(t=>t.deptId==="final").slice(-1)[0];
   return f ? resTitleOf(f) : "";
 }
+function clipSave(title, lines){
+  const task={ id:Date.now(), deptId:"clip", deptName:"短影片", accent:"#B5652E",
+    input:`[短影片] ${title}`, clipTitle:title, output:lines.join("\n"), time:Date.now() };
+  state.tasks.push(task); save(); return task;
+}
 async function clipCreate(btn){
-  if(!canRun()) return;
   const input=document.getElementById("clipTopic");
-  const topic=((input && input.value)||"").trim() || clipLatestTopic();
-  if(!topic){ toast("請先輸入主題，或先完成一次一鍵流程"); return; }
-  btn.disabled=true;
+  const raw=((input && input.value)||"").trim();
+  const ls=raw.split("\n").map(l=>l.trim()).filter(Boolean);
   try{
-    clipSetProg("AI 正在寫 12 句字幕…");
-    const scenes=await clipScript(topic);
-    const task={ id:Date.now(), deptId:"clip", deptName:"短影片", accent:"#B5652E",
-      input:`[短影片] ${topic.slice(0,40)}`, clipTitle:topic.slice(0,40), output:scenes.join("\n"), time:Date.now() };
-    state.tasks.push(task); save(); renderResults();
-    clipSetProg("正在合成影片（約 60 秒）…");
-    CLIP_BLOBS[task.id]=await clipRender(scenes, i=>clipSetProg(`正在合成影片… ${i+1}/${CLIP_N} 畫面`));
-    renderResults(); clipDownload(task.id);
-    clipSetProg("完成，已開始下載");
-  }catch(e){ clipSetProg("生成失敗：" + (e.message||e)); }
+    if(ls.length===CLIP_N){
+      if(new Set(ls).size!==CLIP_N){ clipSetProg("12 句金句不可重複，請修改後再試"); return; }
+      clipSave(ls[0].slice(0,40), ls.map(l=>noDM(l)));
+      renderResults(); clipSetProg("已儲存 12 句反骨金句"); if(input) input.value="";
+      return;
+    }
+    if(ls.length>1){ clipSetProg(`目前是 ${ls.length} 行：要直接使用請貼上 12 行，或只輸入一個主題`); return; }
+    if(!canRun()) return;
+    const topic = raw || clipLatestTopic();
+    if(!topic){ clipSetProg("請先輸入主題，或先完成一次一鍵流程"); return; }
+    btn.disabled=true; clipSetProg("AI 正在寫 12 句反骨金句…");
+    const lines=await clipScript(`主題：${topic}`);
+    clipSave(topic.slice(0,40), lines);
+    renderResults(); clipSetProg("完成，已存入短影片"); if(input) input.value="";
+  }catch(e){ clipSetProg("產出失敗：" + (e.message||e)); }
   finally{ btn.disabled=false; }
 }
-async function clipScript(topic){
-  const sys=`你是短影片文案助理，為 9:16 直式短影片寫字幕。
+// 依給定內容寫 12 句反骨金句（每句獨立、不重複、不加標籤）
+async function clipScript(source){
+  const sys=`你是短影片文案助理。請依給定內容，寫 ${CLIP_N} 句「反骨金句」。
 【硬性規定】
-・只輸出 ${CLIP_N} 行字幕，每行一句，每句 8 到 18 字
-・不編號、不寫時間或秒數、不寫畫面說明、不加標題與任何前後說明
-・第 1 句是開場鉤子（問句或現象），最後一句是一句反骨金句（先順著常識，再用「真正的……，從不……」反轉）
-・語氣口語、溫和，只說個人感受
+・只輸出 ${CLIP_N} 行，每行一句，每句 8 到 22 字
+・每句都是反骨金句：先順著大家以為的常識說一句，再用「真正的……，從不……」或「真正……的人，從不……」反轉推翻
+・12 句內容不重複，主題都要扣緊給定內容
+・不編號、不加標題、不加任何說明，也不加【反骨金句】等標籤
 ・不得出現：治療、治癒、根治、降血糖、降血壓、保證有效、抗癌、消炎、私訊、購買、加入`;
-  const raw=await callOpenAI(sys, `主題：${topic}`, 700, true);
+  const raw=await callOpenAI(sys, String(source||"").slice(0,3000), 700, true);
   const lines=String(raw||"").replace(/\r/g,"").split("\n")
     .map(l=>l.trim().replace(/^\d+[.、)．]\s*/,"").replace(/^[-•·]\s*/,"").replace(/【?反骨金句】?[：:]?/g,"").replace(/[。.!！?？]+$/,""))
-    .filter(l=>l.length>=4 && l.length<=40);
-  if(lines.length<CLIP_N) throw new Error("字幕不足 12 句，請再試一次");
-  return lines.slice(0,CLIP_N).map(l=>noDM(l));
-}
-function clipRender(scenes, onScene){
-  return new Promise((resolve,reject)=>{
-    if(!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream){ reject(new Error("此瀏覽器不支援影片錄製，請用最新版 Chrome 或 Safari")); return; }
-    const mime=["video/mp4;codecs=avc1.42E01E","video/mp4","video/webm;codecs=vp9","video/webm"].find(m=>MediaRecorder.isTypeSupported(m));
-    if(!mime){ reject(new Error("此瀏覽器無法錄製影片")); return; }
-    const ext=mime.startsWith("video/mp4")?"mp4":"webm";
-    const W=720, H=1280, FPS=30;
-    const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
-    const ctx=cv.getContext("2d");
-    const rec=new MediaRecorder(cv.captureStream(FPS),{mimeType:mime, videoBitsPerSecond:2500000});
-    const chunks=[];
-    rec.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
-    rec.onstop=()=>resolve({blob:new Blob(chunks,{type:mime.split(";")[0]}), ext});
-    rec.onerror=e=>reject(e.error||new Error("錄製失敗"));
-    const total=scenes.length*CLIP_SCENE_MS;
-    const t0=performance.now();
-    let cur=-1, tick=null;
-    rec.start(500);
-    tick=setInterval(()=>{
-      const el=performance.now()-t0;
-      const idx=Math.min(scenes.length-1, Math.floor(el/CLIP_SCENE_MS));
-      if(idx!==cur){ cur=idx; if(onScene) onScene(idx); }
-      drawClipScene(ctx,W,H,cur,scenes[cur], Math.min(1, el/total));
-      if(el>=total){ clearInterval(tick); setTimeout(()=>rec.stop(),200); }
-    }, 1000/FPS);
-  });
-}
-function drawClipScene(ctx,W,H,i,text,overall){
-  const pal=[["#3B2A17","#C7902B"],["#1F3B33","#C7902B"],["#2A2238","#B5652E"]];
-  const c2=pal[i%pal.length][1];
-  const g=ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,pal[i%pal.length][0]); g.addColorStop(1,"#120C06");
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle=c2; ctx.lineWidth=4; ctx.strokeRect(40,40,W-80,H-80);
-  const size=58;
-  ctx.font=`900 ${size}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
-  ctx.textAlign="center"; ctx.textBaseline="middle";
-  ctx.fillStyle="#FFF8EC"; ctx.shadowColor="rgba(0,0,0,.45)"; ctx.shadowBlur=12;
-  const lines=clipWrap(ctx, text||"", W-200);
-  const lh=size*1.45, y0=H/2-(lines.length-1)*lh/2;
-  lines.forEach((ln,k)=>ctx.fillText(ln, W/2, y0+k*lh));
-  ctx.shadowBlur=0;
-  ctx.fillStyle="rgba(255,255,255,.18)"; ctx.fillRect(80,H-110,W-160,8);
-  ctx.fillStyle=c2; ctx.fillRect(80,H-110,(W-160)*Math.min(1,Math.max(0,overall||0)),8);
-}
-function clipWrap(ctx,text,maxW){
-  const out=[]; let cur="";
-  for(const ch of String(text)){
-    const t=cur+ch;
-    if(ctx.measureText(t).width>maxW && cur){ out.push(cur); cur=ch; } else cur=t;
-  }
-  if(cur) out.push(cur);
-  return out;
-}
-async function clipDownload(id){
-  if(!CLIP_BLOBS[id]){
-    const t=state.tasks.find(x=>x.id===id); if(!t) return;
-    toast("正在合成影片（約 60 秒）…");
-    try{ CLIP_BLOBS[id]=await clipRender(String(t.output||"").split("\n").filter(Boolean)); renderResults(); }
-    catch(e){ toast("合成失敗：" + (e.message||e)); return; }
-  }
-  const r=CLIP_BLOBS[id];
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(r.blob); a.download=`短影片-${id}.${r.ext}`;
-  document.body.appendChild(a); a.click(); a.remove();
+    .filter(l=>l.length>=6 && l.length<=40);
+  const uniq=[...new Set(lines)];
+  if(uniq.length<CLIP_N) throw new Error("金句不足 12 句，請再試一次");
+  return uniq.slice(0,CLIP_N).map(l=>noDM(l));
 }
 // 同一次一鍵運轉只留一則文章（舊資料中同 runId 的多則只顯示最新的一則）
 function onePerRun(list){
@@ -5586,6 +5533,13 @@ async function runAllDepartments(resume){
     setPipeBar(TOTAL, TOTAL);
     setPipeRemark("🎉", "全部完成！成品已存入成品庫", "各產出也已分別存入分類紀錄");
 
+    // 一鍵流程完成後自動產出 12 句反骨金句（失敗不影響一鍵流程）
+    try{
+      setPipeRemark("🎞", "正在自動產出 12 句反骨金句…", "");
+      const kl=await clipScript(`本次一鍵成品：\n${finalOut}`);
+      clipSave((run.goal||"一鍵成品").slice(0,40), kl); renderResults();
+      setPipeRemark("🎞", "已自動產出 12 句反骨金句", "已存入短影片");
+    }catch(e){ setPipeRemark("⚠️", "短影片金句未產出", String(e.message||e)); }
     const anyTrim=run.anyTrim;
     // 診斷：列出本次實際存入成品庫的分類（時間不早於本次開始）
     const savedNames=[...new Set(state.tasks.filter(t=>t.time>=(run.startedAt||0)).map(t=>t.deptName||t.deptId))];
@@ -6692,11 +6646,11 @@ const NPC_ALL=[
      if(state.pipeRun || (typeof running!=='undefined' && running)) a.push(['📊 流程進度',null,null,'progress']);
      return a;
    }},
-  {id:'results',name:'成品庫',role:'圖卡、逐字稿與文章都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
+  {id:'results',name:'成品庫',role:'圖卡、逐字稿、文章與短影片都收在這裡',ic:'📚',x:8,y:16,look:L('#3A4A8A','#F3D9A3','hat'),
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['🖼 圖卡',()=>vzResults('final')],
          ['🎬 逐字稿',()=>vzResults('video')],
-         ['🎞 短影片／短影音',()=>vzResults('clip')],
+         ['🎞 短影片',()=>vzResults('clip')],
          ['✍️ 文章',()=>vzResults('copy')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
@@ -7094,7 +7048,7 @@ function openCard(n){
 function vzResults(kind){
   const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!box) return;
-  const title = kind==='final'?'🖼 圖卡':kind==='video'?'🎬 逐字稿':kind==='clip'?'🎞 短影片／短影音':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
+  const title = kind==='final'?'🖼 圖卡':kind==='video'?'🎬 逐字稿':kind==='clip'?'🎞 短影片':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
   box.hidden=false;
   box.innerHTML='<div class="vdd-btns"><button class="vbtn g" id="vResBack" type="button">← 返回成品庫</button></div><div id="vResHost"></div>';
   if(tEl) tEl.textContent='成品都在這裡，點開可以查看與複製。';
