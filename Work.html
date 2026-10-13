@@ -2567,7 +2567,10 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
 #vToggle{white-space:nowrap}
 #vNoticeBtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:999px;cursor:pointer;flex:0 0 auto;white-space:nowrap;font:800 12.5px/1 "Noto Serif TC","Songti TC",serif;background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border:1px solid rgba(160,120,70,.6);box-shadow:0 3px 8px rgba(90,70,40,.2);margin-right:6px}
 #vNoticeBtn:active{transform:scale(.94)}
-#vTop > #vNoticeBtn{margin:4px 14px 6px;align-self:flex-start}
+/* 公告與返回列表：縮小尺寸，並排在人物面板右側 */
+#vHead #vToggle,#vHead #vNoticeBtn{min-height:30px;padding:0 10px;font-size:11.5px;gap:4px;box-shadow:0 2px 6px rgba(90,70,40,.18)}
+#vHead #vNoticeBtn{margin:0 6px 0 auto}
+#vHead #vToggle{margin-left:0}
 </style>
 
 </head>
@@ -5371,6 +5374,9 @@ const HERB_FLOW_TXT="\n\n【火山草本（硬性規定）】只寫產品的理�
 // 一鍵流程中屬於「文案」的步驟：硬性限制字數，避免比文案模式長出數倍
 const COPY_LEN_TXT="\n\n【文案字數與結尾（硬性規定）】只寫一篇，不要寫第二篇、不要重複標題、不要第二個反骨金句或第二組標籤，也不要任何說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字。只寫一行 10 字內的標題，接著 2 到 3 段內文（每段 1 到 2 句），內文最後一句是反骨金句（直接寫，不加【反骨金句】等任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。不條列、不寫步驟與案例、不寫長段落，不要任何額外說明。";
 const CONCEPT_ONLY_TXT="\n\n【觀念主題（硬性規定）】只談觀念與生活道理，嚴禁出現身體、毒素、排毒、清理身體、保健、療效等字眼。";
+// 一鍵流程的文案步驟：專用的短文案系統提示（不套用長篇「康園道」風格，避免符號、#、留白與長文結構拉長文案）
+const COPY_STEP_RULES="【文案寫法（硬性規定）】\n① 第一段就點出讀者的具體處境或一個真實場景，不從產品或大道理開頭\n② 全篇只圍繞【文案主題】這一件事，不換題、不混入其他主題的觀點\n③ 短句、口語，像有經驗的人跟朋友說真話，少用形容詞堆砌\n④ 不寫「購買」「成交」「加入」「加入直銷」「賺錢機會」等推銷字眼；不寫收入、金額、成效保證\n⑤ 不使用 👉 ✅ 📌 等符號，不用 # 標示重點，不條列\n⑥ 不寫治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效、抗癌、消炎等合規禁語\n⑦ 內文最後一句是一句反骨金句，最後一行是 5 個主題標籤\n\n【語言鐵則】最終輸出一律用繁體中文（台灣用語），內容要可以直接拿去用。";
+function buildCopySys(){ return `你是「${state.title}」的文案寫手，只負責寫一篇有定位、可以直接發布的文案。\n\n【背景設定】\n${ctxFull()}\n\n`+COPY_STEP_RULES; }
 // 文案超過 125 字（不含空白）時，自動請 AI 改寫一次，確保落在 115–125 字
 function copyLen(t){ return String(t||"").replace(/\n\s*(#\S+\s*)+$/,"").replace(/\s/g,"").length; }
 // 文案收尾：移除「【反骨金句】」標籤（金句本身保留），並確保最後一行是 5 個 # 主題標籤
@@ -5607,6 +5613,8 @@ async function runAllDepartments(resume){
       setPipeRemark("✍️", `正在生成「${d.name}」的內容…`,
         run.stepTasks[i] ? `任務：${run.stepTasks[i]}` : "依分類專長自動發揮");
       let base="";
+      const isCopyStepEarly = d.id!=="video" && !GUIDE_DEPTS.includes(d.id);
+      if(isCopyStepEarly && run.goal) base+=`【文案主題（全篇只圍繞這個主題，不可換題）】${run.goal}\n\n`;
       if(run.goal) base+=`【本次共同目標】\n${run.goal}\n\n`;
       if(run.scope) base+=run.scope+"\n\n";
       if(d.id==="video" && run.collected.length){
@@ -5620,7 +5628,7 @@ async function runAllDepartments(resume){
       const isCopyStep = d.id!=="video" && !GUIDE_DEPTS.includes(d.id);
       const herbOnly = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
       const isVideoStep = d.id==="video";
-      const stepSys = (isCopyStep ? buildSys(d)+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (isVideoStep?VIDEO_LEN_TXT:"") + (herbOnly?HERB_FLOW_TXT:"");
+      const stepSys = (isCopyStep ? buildCopySys()+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (isVideoStep?VIDEO_LEN_TXT:"") + (herbOnly?HERB_FLOW_TXT:"");
       const raw0=await callOpenAI(stepSys, built.content, GUIDE_DEPTS.includes(d.id)?6000:(isCopyStep?500:1800));
       const out0 = isCopyStep ? finishCopy(await fitCopy(raw0, stepSys, built.content)) : (isVideoStep ? await fitVideo(raw0, stepSys, built.content) : raw0);
       const out = GUIDE_DEPTS.includes(d.id) ? cleanMarketText(out0) : out0;
@@ -6929,8 +6937,8 @@ function placeToggle(){
   if(isV){
     const head=document.getElementById('vHead');
     head.insertBefore(btn, document.getElementById('vLv'));
-    // 公告按鈕：移到人物面板（vHead）的正下方
-    head.parentNode.insertBefore(noticeBtn, head.nextSibling);
+    // 公告按鈕：放在「返回列表」的左邊
+    head.insertBefore(noticeBtn, btn);
   }else{
     noticeBtn.remove();
     const row=document.querySelector('.topbar .row');
