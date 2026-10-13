@@ -2613,6 +2613,15 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       <span class="chev">›</span>
     </div>
 
+    <div class="lib-entry results-entry" onclick="openResults('clip')">
+      <div class="le-ic" style="background:rgba(184,134,60,.16);color:#B5652E">🎞</div>
+      <div class="le-meta">
+        <div class="le-name">短影片</div>
+        <div class="le-sub" id="resSumK">依主題生成 60 秒影片</div>
+      </div>
+      <span class="chev">›</span>
+    </div>
+
     <div class="home-cat">如何改善</div>
     <div class="lib-entry results-entry guide-entry" onclick="openResults('market')">
       <div class="le-ic">📈</div>
@@ -3975,6 +3984,8 @@ function updateResSummary(){
   const b=document.getElementById("resSumV"); if(b) b.textContent = v ? `已收存 ${v} 則逐字稿` : "一分鐘口播逐字稿";
   const cEl=document.getElementById("resSumC"); const cc=state.tasks.filter(t=>t.copy).length;
   if(cEl) cEl.textContent = cc ? `已收存 ${cc} 則文章` : "依圖卡邏輯寫的短文章";
+  const kEl=document.getElementById("resSumK"); const kc=state.tasks.filter(t=>t.deptId==="clip").length;
+  if(kEl) kEl.textContent = kc ? `已收存 ${kc} 則短影片` : "依主題生成 60 秒影片";
   const mEl=document.getElementById("resSumM"); const mc=state.tasks.filter(t=>t.deptId==="market").length;
   if(mEl) mEl.textContent = mc ? `已收存 ${mc} 則上手流程` : "給新手的完整上手流程";
   const wEl=document.getElementById("resSumW"); const wc=state.tasks.filter(t=>t.deptId==="warmup").length;
@@ -4002,6 +4013,12 @@ function marketSectionHTML(items, kind){
   return `<div class="res-sec" data-kind-sec="${kind}"><div class="res-sec-head"><span class="res-sec-title">${title}</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${items.map(t=>`<div class="res-row" data-id="${t.id}"><div class="res-row-main" onclick="resExpand(this,0)"><div class="res-row-title">${esc(resTitleOf(t))}</div><div class="res-row-meta">上手流程・${timeStr(t.time)}</div></div><span class="res-row-arrow">›</span><div class="res-row-detail" hidden></div></div>`).join("")}</div></div>`;
 }
 // 快捷鍵：跳到該分類的第一個群組
+function resJumpSec(k){
+  const root=RES_HOST||document.getElementById("resList");
+  const el=root && root.querySelector(`[data-kind-sec="${k}"]`);
+  if(!el){ toast("目前沒有短影片"); return; }
+  el.scrollIntoView({behavior:"smooth", block:"start"});
+}
 function resJump(k){
   const root=RES_HOST||document.getElementById("resList");
   const el=root && root.querySelector(`[data-cat="${k}"]`);
@@ -4034,7 +4051,9 @@ function renderResultsInner(){
   {
     const keys=['auto','concept','health','herb','biz','net'];
     const btns=keys.map(k=>{ const n=state.tasks.filter(t=>catOfTask(t)===k).length; return `<button class="res-jump-btn" style="${n?"":"opacity:.45;"}" onclick="resJump('${k}')">${TOPIC_ICON_BY_CAT[k]} ${TOPIC_NAME_BY_CAT[k]}<b>${n}</b></button>`; }).join("");
-    html += `<div class="res-jump">${btns}</div>`;
+    const kn=state.tasks.filter(t=>t.deptId==="clip").length;
+    const clipBtn=`<button class="res-jump-btn" style="${kn?"":"opacity:.45;"}" onclick="resJumpSec('clip')">🎞 短影片<b>${kn}</b></button>`;
+    html += `<div class="res-jump">${btns}${clipBtn}</div>`;
   }
   // 最新一鍵完成：獨立放在最上面（圖卡、文章、短影音）
   if(latestId && (resKind==="all"||resKind==="final"||resKind==="copy"||resKind==="video")){
