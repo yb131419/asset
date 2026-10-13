@@ -2280,10 +2280,10 @@
 }
 .res-row.clip-row .clip-acts .res-del{text-align:center}
 .res-row.clip-row .clip-lines{
-  text-align:center;border-top:1px solid rgba(184,134,60,.18);padding-top:8px;
+  text-align:left;border-top:1px solid rgba(184,134,60,.18);padding-top:8px;
 }
 .res-row.clip-row .clip-lines>div{
-  padding:10px 4px;text-indent:0;font-size:14.5px;line-height:1.75;color:#3F3426;
+  padding:10px 4px;text-indent:0;text-align:left;font-size:14.5px;line-height:1.75;color:#3F3426;
   border-bottom:1px dashed rgba(184,134,60,.22);font-family:"Noto Serif TC","Songti TC",serif;
   overflow-wrap:anywhere;word-break:break-word;
 }
@@ -2570,17 +2570,6 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
 </style>
 
 </head>
-<style>
-/* ===== 網頁／平板版面（預設為手機版；按右上「網頁／平板」切換） ===== */
-body.wide .app{max-width:960px;}
-body.wide .res-row.clip-row,
-body.wide .res-item.output-card,
-body.wide .res-item{max-width:820px;margin-left:auto;margin-right:auto;}
-body.wide .card-deck{display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
-body.wide .card-deck .tcard{min-width:0;}
-body.wide .mc-modal,
-body.wide #listNotice .ln-card{max-width:620px;}
-</style>
 <body>
 <!-- 進場驗證頁：質感登入頁，顯示會員身分後才進入系統 -->
 <div class="gate" id="gateScreen">
@@ -2654,9 +2643,7 @@ body.wide #listNotice .ln-card{max-width:620px;}
       <button class="hdr-toggle" onclick="toggleMenu()" aria-label="選單" style="order:-1;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
       </button>
-      <button type="button" id="listNoticeBtn" class="ln-open" onclick="openListNotice()">📢 公告</button>
-      <button type="button" id="wideBtn" class="ln-open" onclick="toggleWideMode()" aria-label="切換網頁／平板版面">🖥 網頁／平板</button>
-      <span class="mini-title" id="miniTitle" style="display:none !important">智囊軍師</span>
+      <button type="button" id="listNoticeBtn" class="ln-open" onclick="openListNotice()">📢 公告</button>      <span class="mini-title" id="miniTitle" style="display:none !important">智囊軍師</span>
       <input id="titleInput" class="title-edit" style="display:none !important" value="智囊軍師" maxlength="20" spellcheck="false">
       <button class="hdr-toggle" onclick="toggleHeader()" id="hdrToggle" aria-label="收合標題">
         <svg class="chev-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
@@ -4536,8 +4523,8 @@ function resItemHTML(t, isVideo){
     <div class="res-top">
       <span class="res-plat">${esc(t.platform||(isVideo?"逐字稿":"成品"))}</span>
       <span class="res-time">${timeStr(t.time)}</span>
-      <button class="res-copy" onclick="copyResult(${t.id})">📋 複製</button>
-      <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button>
+      <button class="res-copy" onclick="copyResult(${t.id})">複製</button>
+      <button class="res-del" onclick="deleteResult(${t.id})">刪除</button>
     </div>
     <div class="res-goal">${esc((t.input||"").replace(/^\[成品\]\s*/,""))}</div>
     ${jn?`<div class="res-jin-hd" style="font-size:17px;font-weight:900;color:#6B4E24;line-height:1.5;margin:8px 0 10px;">${esc(jn)}</div>`:""}
@@ -7548,15 +7535,15 @@ function buildGrid(){
 }
 
 // 公告步驟（村莊版與列表版共用，只有第 2 步的入口不同）
-const NOTICE_STEP_COLLECT='先到「資料收集」，展開「收集設定」選擇方向，按「開始收集」，收集到的話題會存進話題列表。';
+const NOTICE_STEP_COLLECT='先到「資料收集」收集話題，話題會存進話題列表。';
 const NOTICE_STEP_RUN=[
-  '第 1 步：從已收集的話題選一個主題；也可以開啟「智囊軍師判定」，由 AI 依五大分類判斷方向。',
-  '確認後會整批自動執行，執行中會顯示「流程進度」，每完成一個分類就打勾。',
-  '完成後會自動產出：各分類的內容、統整成品（圖卡）、一則文章，以及一組 12 句反骨金句（短影片）。',
-  '到「成品庫」查看：圖卡、逐字稿、文章、短影片都在這裡，最新的會在上面。',
-  '執行中可以按「停止運轉」，進度會保存；之後按「接續上次進度」，從中斷的地方繼續。',
-  '一鍵完成不會自己選主題，也不會每天自動跑，每次都要手動開始。',
-  '統整成品與自動產出的短影片金句會扣次數。'
+  '選一個主題，或開啟「智囊軍師判定」讓 AI 幫你選方向。',
+  '確認後自動執行，可在「流程進度」看到每個分類完成狀況。',
+  '完成後會產出圖卡、文章、逐字稿與 12 句反骨金句。',
+  '到「成品庫」查看所有成品，最新的在最上面。',
+  '可按「停止運轉」暫停，之後按「接續上次進度」繼續。',
+  '每次都要手動開始，不會自動每天執行。',
+  '統整成品與短影片金句會扣次數。'
 ];
 function noticeStepsHTML(entry){
   return '<div class="vn-body vn-c"><h4>📢 如何使用「一鍵完成」流程</h4><ol class="notice-steps">'+
@@ -7577,20 +7564,6 @@ function openListNotice(){
   m.hidden=false;
 }
 window.openListNotice=openListNotice;
-// ===== 網頁／平板版面切換（預設手機版；選擇會記在這台裝置上） =====
-function setWide(on){
-  document.body.classList.toggle('wide',!!on);
-  const b=document.getElementById('wideBtn');
-  if(b) b.textContent = on ? '📱 手機版' : '🖥 網頁／平板';
-  try{ localStorage.setItem('wide_mode', on?'1':'0'); }catch(e){}
-}
-function toggleWideMode(){ setWide(!document.body.classList.contains('wide')); }
-window.toggleWideMode=toggleWideMode;
-(function(){
-  let on=false;
-  try{ on = localStorage.getItem('wide_mode')==='1'; }catch(e){}
-  setWide(on);
-})();
 const MUSIC_SONGS=[{id:'N-CnSr0ri7A',title:'背景音樂'}];
 let MUSIC_CUR=MUSIC_SONGS[0].id;
 function musicEmbed(id){ return 'https://www.youtube.com/embed/'+id+'?loop=1&playlist='+id+'&rel=0'; }
