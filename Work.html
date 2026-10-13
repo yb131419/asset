@@ -2182,6 +2182,14 @@
 .clip-bar{height:6px;border-radius:99px;background:rgba(184,134,60,.18);overflow:hidden;margin-bottom:8px}
 .clip-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#D9A44F,#B8862E);transition:width .2s}
 .clip-in{resize:vertical;font-family:inherit}
+.clip-list{display:block}
+.clip-row{border-bottom:1px dashed var(--line);padding:0 2px}
+.clip-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 4px;cursor:pointer}
+.clip-cat{font-size:12px;font-weight:800;color:#6B4E24;background:#FFF6E3;border:1px solid rgba(184,134,60,.5);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.clip-title{flex:1 1 120px;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip-time{font-size:12px;color:#8A7A5E;white-space:nowrap}
+.clip-body{padding:0 4px 12px}
+.clip-acts{display:flex;gap:8px;justify-content:flex-start;margin:4px 0 10px}
 </style>
 
 <style id="vz-style">
@@ -4236,17 +4244,28 @@ function clipSectionHTML(){
     <button class="clip-go" onclick="clipCreate(this)">✨ 產出 12 句反骨金句</button>
   </div>`;
   const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影片金句</div>`;
-  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">${items.length} 組</span></div>${create}<div class="res-list">${rows}</div></div>`;
+  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">${items.length} 組</span></div>${create}<div class="res-list clip-list">${rows}</div></div>`;
 }
 function clipRowHTML(t){
-  const lines = String(t.output||"").split("\n").filter(Boolean);
-  return `<div class="res-row clip-row" data-id="${t.id}">
-    <div class="res-row-main"><div class="res-row-title">${esc(t.clipTitle||"短影片")}</div>
-      <div class="res-row-meta">12 句反骨金句・${timeStr(t.time)}</div></div>
-    <div class="clip-acts"><button class="clip-dl" onclick="clipCopy(${t.id})">📋 複製 12 句</button>
-      <button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button></div>
-    <div class="clip-lines">${lines.map((s,i)=>`<div>${i+1}．${esc(s)}</div>`).join("")}</div>
+  const k=catOfTask(t);
+  const lines=String(t.output||"").split("\n").filter(Boolean);
+  return `<div class="res-row clip-row" data-id="${t.id}" data-cat="${k}">
+    <div class="clip-head" onclick="clipToggle(this)">
+      <span class="clip-cat">${TOPIC_ICON_BY_CAT[k]||"📁"} ${esc(TOPIC_NAME_BY_CAT[k]||"未分類")}</span>
+      <span class="clip-title">${esc(t.clipTitle||"短影片")}</span>
+      <span class="clip-time">${timeStr(t.time)}</span>
+      <span class="res-row-arrow">›</span>
+    </div>
+    <div class="clip-body" hidden>
+      <div class="clip-acts"><button class="clip-dl" onclick="clipCopy(${t.id})">📋 複製 12 句</button><button class="res-del" onclick="deleteResult(${t.id})">🗑 刪除</button></div>
+      <div class="clip-lines">${lines.map((x,i)=>`<div>${i+1}．${esc(x)}</div>`).join("")}</div>
+    </div>
   </div>`;
+}
+function clipToggle(head){
+  const body=head.parentElement.querySelector(".clip-body");
+  body.hidden=!body.hidden;
+  head.querySelector(".res-row-arrow").style.transform = body.hidden ? "" : "rotate(90deg)";
 }
 function clipCopy(id){
   const t=state.tasks.find(x=>x.id===id); if(!t) return;
@@ -4257,9 +4276,13 @@ function clipLatestTopic(){
   const f=state.tasks.filter(t=>t.deptId==="final").slice(-1)[0];
   return f ? resTitleOf(f) : "";
 }
-function clipSave(title, lines){
+function clipLatestCat(){
+  const f=state.tasks.filter(t=>t.deptId==="final").slice(-1)[0];
+  return f ? catOfTask(f) : "auto";
+}
+function clipSave(title, lines, cat){
   const task={ id:Date.now(), deptId:"clip", deptName:"短影片", accent:"#B5652E",
-    input:`[短影片] ${title}`, clipTitle:title, output:lines.join("\n"), time:Date.now() };
+    input:`[短影片] ${title}`, clipTitle:title, output:lines.join("\n"), time:Date.now(), cat:cat||clipLatestCat() };
   state.tasks.push(task); save(); return task;
 }
 async function clipCreate(btn){
@@ -4279,7 +4302,7 @@ async function clipCreate(btn){
     if(!topic){ clipSetProg("請先輸入主題，或先完成一次一鍵流程"); return; }
     btn.disabled=true; clipSetProg("AI 正在寫 12 句反骨金句…");
     const lines=await clipScript(`主題：${topic}`);
-    clipSave(topic.slice(0,40), lines);
+    clipSave(topic.slice(0,40), lines, clipLatestCat());
     renderResults(); clipSetProg("完成，已存入短影片"); if(input) input.value="";
   }catch(e){ clipSetProg("產出失敗：" + (e.message||e)); }
   finally{ btn.disabled=false; }
@@ -5537,7 +5560,7 @@ async function runAllDepartments(resume){
     try{
       setPipeRemark("🎞", "正在自動產出 12 句反骨金句…", "");
       const kl=await clipScript(`本次一鍵成品：\n${finalOut}`);
-      clipSave((run.goal||"一鍵成品").slice(0,40), kl); renderResults();
+      clipSave((run.goal||"一鍵成品").slice(0,40), kl, herbOnlyFinal?"herb":pickCatFor(finalOut, run.bizCats)); renderResults();
       setPipeRemark("🎞", "已自動產出 12 句反骨金句", "已存入短影片");
     }catch(e){ setPipeRemark("⚠️", "短影片金句未產出", String(e.message||e)); }
     const anyTrim=run.anyTrim;
@@ -7404,14 +7427,19 @@ function buildGrid(){
 }
 
 const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明', ic:'📢', look:L('#B8862E','#FFF1CC','hat'), lines:['這是村莊的說明。'], acts:[], html:`<div class="vn-body vn-c">
-<h4>大長老 AI Agent 是什麼？</h4>
+<h4>智囊軍師 使用流程</h4>
+<ol>
+<li><b>① 收集話題</b>：到「資料收集」，展開「收集設定」選好方向，按「開始收集」。收集到的話題會存進話題列表。</li>
+<li><b>② 一鍵產出</b>：到「大長老」，按「一鍵自動幫我寫」。第 1 步從已收集的話題選一個主題，確認後整批自動執行。</li>
+<li><b>③ 看進度</b>：執行中會顯示「流程進度」，每完成一個分類就打勾。</li>
+<li><b>④ 看成品</b>：完成後到「成品庫」查看：圖卡（統整成品）、逐字稿、文章、短影片（12 句反骨金句，一鍵完成後自動產出）。</li>
+</ol>
+<h4>小提醒</h4>
 <ul>
-<li>大長老會依你選好的主題，依序寫好各分類的內容，最後整合成一篇可直接發布的成品。</li>
-<li>使用方式：點大長老的「一鍵自動幫我寫」→ 第 1 步選擇主題（可從收集好的話題挑）→ 選上限 → 確認，整批自動跑。</li>
-<li>確認後會自動切到「📊 流程進度」，可以看每個分類的完成狀況。</li>
-<li>跑到上限會暫停，也可以按「停止運轉」。進度會保存，之後可以「接續上次進度」，或按「放棄進度」重來。</li>
-<li>資料收集、成品庫都在村莊裡：收集設定與開始收集在同一處，圖卡、逐字稿、文章、市場・暖身成品都在成品庫查看。</li>
-<li>目前不會自己選主題，也不會每天自動跑。只有統整成品那一步會扣次。</li>
+<li>執行中可以按「停止運轉」，進度會保存，之後按「接續上次進度」就能從中斷的地方繼續。</li>
+<li>不會自己選主題，也不會每天自動跑，每次都要你手動開始。</li>
+<li>統整成品與自動產出的短影片金句會扣次數。</li>
+<li>想只寫單一分類，可以到該分類的工坊直接寫。</li>
 </ul>
 </div>`};
 const MUSIC_SONGS=[{id:'N-CnSr0ri7A',title:'背景音樂'}];
