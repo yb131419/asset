@@ -4025,7 +4025,7 @@ function renderResultsInner(){
   const articles=state.tasks.filter(t=>t.deptId==="final" && !isLatest(t)).slice().reverse();
   const videos=state.tasks.filter(t=>t.deptId==="video" && !isLatest(t)).slice().reverse();
   const h2=document.querySelector("#view-results .ws-title h2");
-  if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 逐字稿" : resKind==="clip" ? "🎞 短影片" : resKind==="market" ? "📈 市場上手指南" : resKind==="warmup" ? "🤝 暖身上手指南" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
+  if(h2) h2.textContent = resKind==="final" ? "🖼 圖卡" : resKind==="copy" ? "✍️ 文章" : resKind==="video" ? "🎬 逐字稿" : resKind==="clip" ? "🎞 短影片／短影音" : resKind==="market" ? "📈 市場上手指南" : resKind==="warmup" ? "🤝 暖身上手指南" : resKind==="mw" ? "📈 市場・🤝 暖身成品" : "📦 成品庫";
   const showA = resKind==="all"||resKind==="final", showV = resKind==="all"||resKind==="video", showM = resKind==="all"||resKind==="market"||resKind==="mw", showW = resKind==="all"||resKind==="warmup"||resKind==="mw";
   const showC = resKind==="all"||resKind==="copy";
   const showK = resKind==="all"||resKind==="clip";
@@ -4215,8 +4215,9 @@ function clipSectionHTML(){
     <button class="clip-go" onclick="clipCreate(this)">🎬 生成短影片</button>
     <div id="clipProg" class="clip-prog"></div>
   </div>`;
-  const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影片</div>`;
-  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">${items.length} 則</span></div>${create}<div class="res-list">${rows}</div></div>`;
+  const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影音</div>`;
+  return `<div class="res-sec" data-kind-sec="clip"><div class="res-sec-head"><span class="res-sec-title">🎞 短影片</span><span class="res-sec-count">製作</span></div>${create}</div>`
+    + `<div class="res-sec" data-kind-sec="clipv"><div class="res-sec-head"><span class="res-sec-title">🎬 短影音</span><span class="res-sec-count">${items.length} 則</span></div><div class="res-list">${rows}</div></div>`;
 }
 function clipRowHTML(t){
   const ready = !!CLIP_BLOBS[t.id];
@@ -6676,7 +6677,7 @@ const NPC_ALL=[
    lines:['每產出一則成品，你的等級就會提升。'],
    acts:[['🖼 圖卡',()=>vzResults('final')],
          ['🎬 逐字稿',()=>vzResults('video')],
-         ['🎞 短影片',()=>vzResults('clip')],
+         ['🎞 短影片／短影音',()=>vzResults('clip')],
          ['✍️ 文章',()=>vzResults('copy')]]},
   {id:'market',name:'市場經營',role:'市場經營的成品與工坊',ic:'📈',x:5,y:16,look:L('#2E6FB0','#CFE3FA','hat'),
    lines:['一步一步來，我教你怎麼開始。'],
@@ -7074,7 +7075,7 @@ function openCard(n){
 function vzResults(kind){
   const box=document.getElementById('vcB'), tEl=document.getElementById('vcT');
   if(!box) return;
-  const title = kind==='final'?'🖼 圖卡':kind==='video'?'🎬 逐字稿':kind==='clip'?'🎞 短影片':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
+  const title = kind==='final'?'🖼 圖卡':kind==='video'?'🎬 逐字稿':kind==='clip'?'🎞 短影片／短影音':kind==='mw'?'📈 市場・🤝 暖身成品':'📦 成品庫';
   box.hidden=false;
   box.innerHTML='<div class="vdd-btns"><button class="vbtn g" id="vResBack" type="button">← 返回成品庫</button></div><div id="vResHost"></div>';
   if(tEl) tEl.textContent='成品都在這裡，點開可以查看與複製。';
