@@ -2567,6 +2567,7 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
 #vToggle{white-space:nowrap}
 #vNoticeBtn{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:999px;cursor:pointer;flex:0 0 auto;white-space:nowrap;font:800 12.5px/1 "Noto Serif TC","Songti TC",serif;background:linear-gradient(170deg,#FFFBF0,#F3E7CC);color:#4A3626;border:1px solid rgba(160,120,70,.6);box-shadow:0 3px 8px rgba(90,70,40,.2);margin-right:6px}
 #vNoticeBtn:active{transform:scale(.94)}
+#vTop > #vNoticeBtn{margin:4px 14px 6px;align-self:flex-start}
 </style>
 
 </head>
@@ -6928,7 +6929,8 @@ function placeToggle(){
   if(isV){
     const head=document.getElementById('vHead');
     head.insertBefore(btn, document.getElementById('vLv'));
-    head.insertBefore(noticeBtn, btn);
+    // 公告按鈕：移到人物面板（vHead）的正下方
+    head.parentNode.insertBefore(noticeBtn, head.nextSibling);
   }else{
     noticeBtn.remove();
     const row=document.querySelector('.topbar .row');
