@@ -2224,6 +2224,70 @@
 .res-row.clip-row .clip-acts{display:flex;flex-wrap:wrap;gap:8px;width:100%;margin:4px 0 10px}
 .res-row.clip-row .clip-acts button{flex:1 1 auto;min-height:40px;padding:8px 14px;white-space:nowrap}
 .res-row.clip-row .clip-lines{display:block;width:100%}
+/* ===== 短影片卡片：質感、置中排版 ===== */
+.res-row.clip-row{
+  display:block !important;grid-template-columns:none !important;grid-template-areas:none !important;
+  background:linear-gradient(180deg,#FFFEFA 0%,#FBF4E4 100%) !important;
+  border:1px solid rgba(184,134,60,.28) !important;border-radius:22px !important;
+  padding:18px 16px 16px !important;margin:0 0 14px !important;
+  box-shadow:0 10px 28px rgba(92,64,24,.10),inset 0 1px 0 rgba(255,255,255,.7) !important;
+  text-align:center;
+}
+.res-row.clip-row>*{grid-column:auto !important;grid-row:auto !important;width:100% !important;min-width:0}
+.res-row.clip-row .clip-head{
+  display:flex !important;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:0 0 4px;
+}
+.res-row.clip-row .clip-cat{
+  font-size:12px;font-weight:800;letter-spacing:.5px;color:#7A5520;
+  background:rgba(199,144,43,.14);border:1px solid rgba(184,134,60,.45);
+  border-radius:999px;padding:4px 12px;
+}
+.res-row.clip-row .clip-title{
+  white-space:normal;overflow:visible;text-overflow:clip;
+  font-family:"Noto Serif TC","Songti TC",serif;
+  font-size:18px;font-weight:900;line-height:1.55;color:#3B2A17;
+  letter-spacing:.3px;text-align:center;padding:2px 6px;
+}
+.res-row.clip-row .clip-time{font-size:12px;color:#9A8660;letter-spacing:.3px}
+.res-row.clip-row .res-row-arrow{
+  font-size:18px;color:#B8862E;line-height:1;transition:transform .2s ease;
+  display:inline-block;margin-top:2px;
+}
+.res-row.clip-row .clip-body{padding:0;margin-top:6px}
+.res-row.clip-row .clip-body::before{
+  content:"✦";display:block;text-align:center;color:#C7902B;font-size:12px;letter-spacing:8px;
+  margin:12px 0 6px;opacity:.8;
+}
+.res-row.clip-row .clip-acts{
+  display:flex !important;justify-content:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px;
+}
+.res-row.clip-row .clip-acts button{
+  flex:0 1 auto;min-height:40px;padding:9px 18px;border-radius:999px;font-family:inherit;
+  font-size:14px;font-weight:800;letter-spacing:.3px;cursor:pointer;white-space:nowrap;
+}
+.res-row.clip-row .clip-dl{
+  background:linear-gradient(180deg,#D9A44F 0%,#B8862E 100%);color:#FFF9EE;border:0;
+  box-shadow:0 6px 16px rgba(184,134,46,.28);
+}
+.res-row.clip-row .res-del{
+  background:transparent;color:#8A5A4A;border:1px solid rgba(138,90,74,.35);
+  box-shadow:none;
+}
+.res-row.clip-row .clip-lines{
+  text-align:center;border-top:1px solid rgba(184,134,60,.18);padding-top:8px;
+}
+.res-row.clip-row .clip-lines>div{
+  padding:10px 4px;text-indent:0;font-size:15.5px;line-height:1.75;color:#3F3426;
+  border-bottom:1px dashed rgba(184,134,60,.22);font-family:"Noto Serif TC","Songti TC",serif;
+  overflow-wrap:anywhere;word-break:break-word;
+}
+.res-row.clip-row .clip-lines>div:last-child{border-bottom:0}
+@media (max-width:520px){
+  .res-row.clip-row{padding:16px 12px 14px !important;border-radius:20px !important}
+  .res-row.clip-row .clip-title{font-size:17px}
+  .res-row.clip-row .clip-acts button{flex:1 1 calc(50% - 6px);padding:9px 10px}
+  .res-row.clip-row .clip-lines>div{font-size:15px}
+}
 </style>
 
 <style id="vz-style">
@@ -4245,15 +4309,18 @@ function catOfTask(t){
 // 文章與短影音的標題：取該篇的「反骨金句」
 // 文章：金句是內文最後一句（標籤行與「以上是個人感受」不算）；短影音：標有【反骨金句】的那一行
 function jinOf(t){
-  if(!t || !(t.copy || t.deptId==="video")) return "";
+  if(!t || !(t.copy || t.deptId==="video" || t.deptId==="final")) return "";
   const lines=String(t.output||"").replace(/\r/g,"").split("\n").map(l=>l.trim()).filter(Boolean);
-  const labeled=lines.find(l=>/反骨金句/.test(l));
-  if(labeled) return labeled.replace(/【?反骨金句】?[：:]?/g,"").replace(/[「」]/g,"").replace(/^#+\s*/,"").trim();
+  const clean=l=>l.replace(/【?反骨金句】?[：:]?/g,"").replace(/[「」]/g,"").replace(/^#+\s*/,"").trim();
+  const labeled=lines.filter(l=>/反骨金句/.test(l)).map(clean).find(s=>s.length>=4);
+  if(labeled) return labeled;
   if(t.copy){
     const body=lines.filter(l=>!/^(#\S+\s*){3,}$/.test(l) && !/以上是個人感受/.test(l));
     return body.length ? body[body.length-1].replace(/^#+\s*/,"") : "";
   }
-  return "";
+  // 圖卡／逐字稿沒有標籤時：找最後一句「真正……從不……」的反轉金句
+  const jin=lines.slice().reverse().find(l=>/真正.*從不/.test(l) && l.length<=60);
+  return jin ? jin.replace(/^#+\s*/,"").replace(/[「」]/g,"").trim() : "";
 }
 function resTitleOf(t){
   const jn=jinOf(t); if(jn) return jn.slice(0,60);
@@ -4444,7 +4511,7 @@ function resItemHTML(t, isVideo){
   if(t.copy) t={...t, output:finishCopy(t.output)};   // 文章只顯示一則（舊資料也一併處理）
   if(t.deptId==="final") t={...t, output:noDM(t.output)};   // 圖卡不出現「私訊」
   const jn=jinOf(t);   // 文章／短影音的標題：反骨金句（需在去除標籤前取得）
-  if(t.deptId==="video") t={...t, output:String(t.output||"").replace(/【?反骨金句】?[：:]?/g,"")};
+  if(t.deptId==="video"||t.deptId==="final") t={...t, output:String(t.output||"").replace(/【?反骨金句】?[：:]?/g,"")};
   if(GUIDE_DEPTS.includes(t.deptId)) t={...t, output:cleanMarketText(t.output)};
   const tag = t.deptId==="market" ? "市場上手指南 · 流程" : t.deptId==="warmup" ? "暖身上手指南 · 流程" : isVideo ? "影音內容 · 逐字稿" : "圖卡 · 成品";
   return `<div class="res-item output-card" data-id="${t.id}" style="padding:16px;">
