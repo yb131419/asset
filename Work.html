@@ -2190,6 +2190,12 @@
 .clip-time{font-size:12px;color:#8A7A5E;white-space:nowrap}
 .clip-body{padding:0 4px 12px}
 .clip-acts{display:flex;gap:8px;justify-content:flex-start;margin:4px 0 10px}
+.ln-open{border-radius:999px;border:1px solid rgba(243,217,163,.55);background:linear-gradient(180deg,#F6E3B4,#D9A44F);color:#3B2A17;font-weight:800;padding:7px 14px;font-size:14px;white-space:nowrap;font-family:inherit}
+#listNotice{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}
+#listNotice[hidden]{display:none}
+#listNotice .ln-card{background:#FFFBF1;border-radius:18px;max-width:440px;width:100%;max-height:82vh;overflow:auto;padding:14px 16px;box-shadow:0 12px 36px rgba(0,0,0,.35)}
+#listNotice .ln-head{display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:6px;color:#6B4E24}
+#listNotice .ln-x{border:0;background:none;font-size:20px;color:#6B4E24;padding:4px 8px}
 </style>
 
 <style id="vz-style">
@@ -2539,8 +2545,9 @@ body.v-mode.v-sheet .app{background:#F6F0DF}
       <button class="hdr-toggle" onclick="toggleMenu()" aria-label="選單" style="order:-1;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
       </button>
-      <span class="mini-title" id="miniTitle">智囊軍師</span>
-      <input id="titleInput" class="title-edit" value="智囊軍師" maxlength="20" spellcheck="false">
+      <button type="button" id="listNoticeBtn" class="ln-open" onclick="openListNotice()">📢 公告</button>
+      <span class="mini-title" id="miniTitle" style="display:none !important">智囊軍師</span>
+      <input id="titleInput" class="title-edit" style="display:none !important" value="智囊軍師" maxlength="20" spellcheck="false">
       <button class="hdr-toggle" onclick="toggleHeader()" id="hdrToggle" aria-label="收合標題">
         <svg class="chev-ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
       </button>
@@ -7427,21 +7434,30 @@ function buildGrid(){
 }
 
 const NOTICE={id:'notice', notice:true, name:'公告', role:'村莊最新說明', ic:'📢', look:L('#B8862E','#FFF1CC','hat'), lines:['這是村莊的說明。'], acts:[], html:`<div class="vn-body vn-c">
-<h4>智囊軍師 使用流程</h4>
-<ol>
-<li><b>① 收集話題</b>：到「資料收集」，展開「收集設定」選好方向，按「開始收集」。收集到的話題會存進話題列表。</li>
-<li><b>② 一鍵產出</b>：到「大長老」，按「一鍵自動幫我寫」。第 1 步從已收集的話題選一個主題，確認後整批自動執行。</li>
-<li><b>③ 看進度</b>：執行中會顯示「流程進度」，每完成一個分類就打勾。</li>
-<li><b>④ 看成品</b>：完成後到「成品庫」查看：圖卡（統整成品）、逐字稿、文章、短影片（12 句反骨金句，一鍵完成後自動產出）。</li>
-</ol>
-<h4>小提醒</h4>
+<h4>📢 如何使用「一鍵完成」流程</h4>
 <ul>
-<li>執行中可以按「停止運轉」，進度會保存，之後按「接續上次進度」就能從中斷的地方繼續。</li>
-<li>不會自己選主題，也不會每天自動跑，每次都要你手動開始。</li>
+<li>先到「資料收集」，展開「收集設定」選擇方向，按「開始收集」，收集到的話題會存進話題列表。</li>
+<li>到「大長老」，按「一鍵自動幫我寫」。</li>
+<li>第 1 步：從已收集的話題選一個主題；也可以開啟「智囊軍師判定」，由 AI 依五大分類判斷方向。</li>
+<li>確認後會整批自動執行，執行中會顯示「流程進度」，每完成一個分類就打勾。</li>
+<li>完成後會自動產出：各分類的內容、統整成品（圖卡）、一則文章，以及一組 12 句反骨金句（短影片）。</li>
+<li>到「成品庫」查看：圖卡、逐字稿、文章、短影片都在這裡，最新的會在上面。</li>
+<li>執行中可以按「停止運轉」，進度會保存；之後按「接續上次進度」，從中斷的地方繼續。</li>
+<li>一鍵完成不會自己選主題，也不會每天自動跑，每次都要手動開始。</li>
 <li>統整成品與自動產出的短影片金句會扣次數。</li>
-<li>想只寫單一分類，可以到該分類的工坊直接寫。</li>
 </ul>
 </div>`};
+function openListNotice(){
+  let m=document.getElementById('listNotice');
+  if(!m){
+    m=document.createElement('div'); m.id='listNotice';
+    m.innerHTML='<div class="ln-card"><div class="ln-head"><b>📢 公告</b><button type="button" class="ln-x" aria-label="關閉">✕</button></div><div class="ln-body">'+NOTICE.html+'</div></div>';
+    m.addEventListener('click',e=>{ if(e.target===m || e.target.closest('.ln-x')) m.hidden=true; });
+    document.body.appendChild(m);
+  }
+  m.hidden=false;
+}
+window.openListNotice=openListNotice;
 const MUSIC_SONGS=[{id:'N-CnSr0ri7A',title:'背景音樂'}];
 let MUSIC_CUR=MUSIC_SONGS[0].id;
 function musicEmbed(id){ return 'https://www.youtube.com/embed/'+id+'?loop=1&playlist='+id+'&rel=0'; }
