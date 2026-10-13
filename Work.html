@@ -4348,7 +4348,7 @@ function clipSectionHTML(){
   const items = state.tasks.filter(t=>t.deptId==="clip").slice().reverse();
   const create = `<div class="clip-create">
     <div class="clip-prog" id="clipProg">輸入主題，或直接貼上 12 行反骨金句（每行一句）</div>
-    <textarea id="clipTopic" class="clip-in" rows="4" placeholder="主題（留空則用最新一鍵的成品），或直接貼上 12 行金句"></textarea>
+    <textarea id="clipTopic" class="clip-in" rows="4" placeholder="請輸入主題，或直接貼上 12 行金句"></textarea>
     <button class="clip-go" onclick="clipCreate(this)">✨ 產出 12 句反骨金句</button>
   </div>`;
   const rows = items.map(t=>clipRowHTML(t)).join("") || `<div class="chain-empty">尚無短影片金句</div>`;
@@ -4405,9 +4405,9 @@ async function clipCreate(btn){
       return;
     }
     if(ls.length>1){ clipSetProg(`目前是 ${ls.length} 行：要直接使用請貼上 12 行，或只輸入一個主題`); return; }
+    if(!raw){ clipSetProg("請先輸入主題，或貼上 12 行金句"); return; }   // 沒填寫就不執行
     if(!canRun()) return;
-    const topic = raw || clipLatestTopic();
-    if(!topic){ clipSetProg("請先輸入主題，或先完成一次一鍵流程"); return; }
+    const topic = raw;
     btn.disabled=true; clipSetProg("AI 正在寫 12 句反骨金句…");
     const lines=await clipScript(`主題：${topic}`);
     clipSave(topic.slice(0,40), lines, clipLatestCat());
