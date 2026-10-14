@@ -2288,6 +2288,8 @@
   overflow-wrap:anywhere;word-break:break-word;
 }
 .res-row.clip-row .clip-lines>div:last-child{border-bottom:0}
+.res-row.clip-row .clip-lines>div.clip-sec{font-family:"Noto Serif TC","Songti TC",serif;font-weight:900;font-size:14.5px;color:#7A5520;text-indent:0;padding:14px 0 4px;border-bottom:0;letter-spacing:.3px}
+.res-row.clip-row .clip-lines>div.clip-p{text-indent:0;padding:4px 0 6px;border-bottom:0}
 @media (max-width:520px){
   .res-row.clip-row{padding:16px 12px 14px !important;border-radius:20px !important}
   .res-row.clip-row .clip-title{font-size:14.5px}
@@ -3362,7 +3364,7 @@ function deptModeGuide(){
     guide:"【本次模式：經營方向】請寫給完全新手看的網路經營完整上手流程，從準備到每日經營，每一步都要詳細說明怎麼做。只給方向與做法，不提收入或成效保證。",
     herb:"【本次模式：火山草本】只寫產品的理念、日常使用的生活場景與包裝故事（例如一天中怎麼使用、為什麼選擇它、包裝上想傳達的心意）。不寫功效、成分的療效描述，不使用治療、改善疾病、藥效等字眼，不做前後對比。文章最後一行必須是「以上是個人感受」。語氣像朋友分享，繁體台灣用語。",
     netbiz:"【本次模式：網路行銷】只寫經營技巧，例如如何讓人停留（開頭的鉤子、前三秒、段落節奏）、如何回留言（回覆的語氣、步驟與引導互動的方式）等實用做法。不寫業績、收入、獲利或任何成效保證，不提具體金額。白話、短句、繁體台灣用語。",
-    video:"【本次模式：短片腳本】請嚴格依照「本次共同目標」與圖文內容，寫成一支約 60 秒的短影音腳本，不另立新觀點、不加入圖文沒有的療效字眼。格式：每個鏡頭一組，依序列出「鏡頭編號」「畫面（拍什麼）」「台詞或旁白（口語、白話）」「字幕（一句）」「秒數」。最後一組鏡頭的台詞要帶出一句收尾的觀點。",
+    video:"【本次模式：逐字稿】請依「逐字稿模板」五段（Hook、反轉、真實故事、價值觀、CTA）寫成一支約 50 秒的口播逐字稿，段落標題照寫，只寫口白，不寫畫面提示與鏡頭編號。不另立新觀點、不加入圖文沒有的療效字眼。",
     copy:"【本次模式：文案】你是一位很懂人性、寫字像朋友說話的文案高手，幫我寫「一篇」文案。\n【依三步驟選題】本篇從下面三步驟中選一個重點來寫（專屬邀約訊息、第一次面談、把你會的事拆成步驟），用一個具體的生活場景切入，把該步驟的核心做法濃縮成 2 到 3 段，不寫成完整教學，也不要寫「第一步、第二步」等字樣。\n【版式】只寫「一篇」，不要寫第二篇、不要寫說明。全文 115 到 125 字（含標點，不含最後的標籤行），絕對不超過 125 字，也不可少於 115 字。第一行是標題（10 字內，一句話點出主題）；內文 2 到 3 段，每段 1 到 2 句，用空白行分段；語氣像本人在跟朋友說話，不像廣告。內文最後一句是一句反骨金句（直接寫，不加任何標籤）。最後另起一行寫 5 個主題標籤，格式「#詞 #詞 #詞 #詞 #詞」。\n【不可以寫】具體金額、收入、業績或任何成效保證；療效或前後對比；電話、地址、身分證等個人資料；條列、步驟、案例清單、長段落。\n【寫完自檢】字數在 115 到 125 字之間、內文 2 到 3 段、內文最後一句是反骨金句、最後一行是 5 個標籤。不符合就改到符合才輸出。",
     auto:"【本次模式：智囊軍師判定】請先依需求與近期素材，在五大分類中判斷最適合的方向：觀念、健康、火山草本、經營、網路行銷。回答的第一行必須是【定位判定：所選分類】（只寫分類名稱），之後再依該分類寫作：觀念只談觀念與生活道理，不寫身體、毒素、排毒；健康用大健康原理的比喻切入，案例只說個人感受、不寫療效；火山草本只寫理念、生活場景與包裝故事，不寫功效，結尾附「以上是個人感受」；經營寫給新手能照著做的方向，不提收入或成效保證；網路行銷只寫經營技巧，不寫業績。"
   };
@@ -4323,6 +4325,10 @@ function jinOf(t){
   const clean=l=>l.replace(/【?反骨金句】?[：:]?/g,"").replace(/[「」]/g,"").replace(/^#+\s*/,"").trim();
   const labeled=lines.filter(l=>/反骨金句/.test(l)).map(clean).find(s=>s.length>=4);
   if(labeled) return labeled;
+  if(t.deptId==="video"){
+    const vi=lines.findIndex(l=>l.startsWith("【價值觀"));
+    if(vi>=0 && lines[vi+1]) return lines[vi+1].slice(0,60);
+  }
   if(t.copy){
     const body=lines.filter(l=>!/^(#\S+\s*){3,}$/.test(l) && !/以上是個人感受/.test(l));
     return body.length ? body[body.length-1].replace(/^#+\s*/,"") : "";
@@ -4418,7 +4424,7 @@ async function clipCreate(btn){
   }catch(e){ clipSetProg("產出失敗：" + (e.message||e)); }
   finally{ btn.disabled=false; }
 }
-// 依給定內容寫 12 句反骨金句（每句獨立、不重複、不加標籤）
+// 短影片：12 句反骨金句（每句獨立、不重複、不加標籤）
 async function clipScript(source){
   const sys=`你是短影片文案助理。請依給定內容，寫 ${CLIP_N} 句「反骨金句」。
 【硬性規定】
@@ -5438,10 +5444,37 @@ async function fitCopy(out, sys, user){
 }
 function withCopyRule(sys){ return /反骨金句|金句天生愛反駁/.test(sys) ? sys : sys+COPY_RULE_TXT; }
 // 短影音：約一分鐘口播。只計算「口白／台詞」字數，不計標題、畫面提示、字幕與秒數
-const VIDEO_LEN_TXT="\n\n【一分鐘長度（硬性規定）】口白（台詞、旁白）合計 240 到 270 字（含標點），約 60 秒口播。不含標題、畫面提示、字幕與秒數等標註。不可超過 280 字，也不可少於 220 字。\n【收尾反骨金句（標題用）】最後一段的收尾金句必須獨立成一行，行首固定寫「【反骨金句】」，例如：【反骨金句】真正的經典，從不追趕經典。";
+const VIDEO_LEN_TXT=`
+
+【逐字稿模板（硬性規定）】必須照下面五段輸出，段落標題逐字照寫、順序不可改，每段只寫口白，不寫畫面提示與鏡頭編號。
+【Hook｜0–3秒】
+（具體場景 / 數字 / 反直覺問句，擇一，一句話內講完）
+【反轉｜3–10秒】
+大家都說：（常見說法）
+但我後來發現：（反轉觀點）
+【真實故事｜10–25秒】
+（時間）我遇到（人／事）。
+一開始（原本的狀況），
+後來我（做了什麼），
+結果是（具體變化或數字）。
+【價值觀｜25–40秒】
+（一句可被引用的結論，15 字以內）
+（補一句解釋為什麼這樣想）
+【CTA｜40–50秒】
+如果你也（對應的痛點），
+點（位置／按鈕），
+我會（具體給對方的好處）。
+【口白長度】全篇口白合計 160 到 230 字（含標點），約 50 秒口播，不可超過 240 字。不編造成效數字，不寫療效字眼。`;
+// 逐字稿步驟專用系統提示（不套用長篇風格，避免符號與留白拉長結構）
+function buildVideoSys(){ return `你是「${state.title}」的短影音逐字稿寫手，只負責寫一支約 50 秒的口播逐字稿。
+
+【背景設定】
+${ctxFull()}
+
+【寫作規定】口語、白話、短句；扣緊【本次共同目標】與圖文內容，不另立新觀點；不使用 👉 ✅ 等符號；不推銷，不寫購買、加入、直銷、賺錢等字眼；不寫治療、治癒、根治、降血糖、降血壓、改善疾病、保證有效等合規禁語；繁體台灣用語。`; }
 function videoSpokenLen(t){
   return String(t||"").replace(/\r/g,"").split("\n").map(l=>l.trim())
-    .filter(l=>l && !/^(一分鐘逐字稿|鏡頭\s*\d|畫面|字幕|秒數|#)/.test(l))
+    .filter(l=>l && !/^(一分鐘逐字稿|鏡頭\s*\d|畫面|字幕|秒數|#|【)/.test(l))
     .map(l=>l.replace(/[（(]畫面[^）)]*[）)]/g,"").replace(/【?反骨金句】?[：:]?/g,"").replace(/^(台詞|口白|旁白)[^：:]*[：:]\s*/,""))
     .filter(l=>l && !(l.length<=10 && !/[。？！?!，,]$/.test(l)))   // 段落小標不計
     .join("").replace(/\s/g,"").length;
@@ -5451,12 +5484,12 @@ async function fitVideo(out, sys, user){
   let cur=String(out||"").trim();
   for(let i=0;i<2;i++){
     const n=videoSpokenLen(cur);
-    if(n>=220 && n<=280) break;
+    if(n>=160 && n<=240) break;
     try{
-      const r=await callOpenAI(sys+`\n\n【改寫規定】上一版口白共 ${n} 字（${n>280?"超過":"不足"}一分鐘）。請保留原有結構與鏡頭順序，只把口白調整為 240 到 270 字；畫面提示與標題格式不變，只輸出改寫後的完整內容。`, "原文：\n"+cur, 1800);
+      const r=await callOpenAI(sys+`\n\n【改寫規定】上一版口白共 ${n} 字（${n>240?"超過":"不足"}約 50 秒）。請保留原有結構與鏡頭順序，只把口白調整為 160 到 230 字；五段標題與順序不變，只輸出改寫後的完整內容。`, "原文：\n"+cur, 1800);
       const t=String(r||"").trim();
       const m=videoSpokenLen(t);
-      if(t && m>=200 && m<=300) cur=t; else break;
+      if(t && m>=130 && m<=270) cur=t; else break;
     }catch(e){ break; }
   }
   return cur;
@@ -5628,7 +5661,7 @@ async function runAllDepartments(resume){
       const isCopyStep = d.id!=="video" && !GUIDE_DEPTS.includes(d.id);
       const herbOnly = (run.bizCats||[]).length===1 && run.bizCats[0]==="herb";
       const isVideoStep = d.id==="video";
-      const stepSys = (isCopyStep ? buildCopySys()+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : buildSys(d)) + (isVideoStep?VIDEO_LEN_TXT:"") + (herbOnly?HERB_FLOW_TXT:"");
+      const stepSys = (isCopyStep ? buildCopySys()+COPY_LEN_TXT+((_sel.concept && !_sel.health)?CONCEPT_ONLY_TXT:"") : (isVideoStep ? buildVideoSys() : buildSys(d))) + (isVideoStep?VIDEO_LEN_TXT:"") + (herbOnly?HERB_FLOW_TXT:"");
       const raw0=await callOpenAI(stepSys, built.content, GUIDE_DEPTS.includes(d.id)?6000:(isCopyStep?500:1800));
       const out0 = isCopyStep ? finishCopy(await fitCopy(raw0, stepSys, built.content)) : (isVideoStep ? await fitVideo(raw0, stepSys, built.content) : raw0);
       const out = GUIDE_DEPTS.includes(d.id) ? cleanMarketText(out0) : out0;
